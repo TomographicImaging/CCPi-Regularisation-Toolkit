@@ -75,6 +75,7 @@ params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
 params.iterFISTA  = 40;
+params.L_const = 7.6789e+08; 
 params.Regul_LambdaTV = 0.005; % TV regularization parameter for FISTA-TV
 params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
@@ -108,17 +109,16 @@ figure; imshow(X_fista_GH_TVLLT(:,:,1) , [0, 2.5]); title ('FISTA-GH-TV-LLT reco
 %%
 % fprintf('%s\n', 'Reconstruction using FISTA-Student-TV...');
 % clear params
+% params.proj_geom = proj_geom; % pass geometry to the function
+% params.vol_geom = vol_geom;
 % params.sino = Sino3D(:,:,10);
-% params.N  = recon_size;
-% params.angles = angles_rad;
-% params.iterFISTA  = 100;
+% params.iterFISTA  = 50;
 % params.L_const = 0.01; % Lipshitz constant
-% params.lambdaTV = 0.006; % TV regularization parameter for FISTA-TV
-% params.tol = 1.0e-04;
-% params.iterTV = 20;
+% params.Regul_LambdaTV = 0.008; % TV regularization parameter for FISTA-TV
 % params.fidelity = 'student'; % choosing Student t penalty
 % params.weights = Weights3D(:,:,10);
 % params.show = 0;
+% params.initialize = 1;
 % params.maxvalplot = 2.5; params.slice = 1;
 % 
 % tic; [X_fistaStudentTV] = FISTA_REC(params); toc;

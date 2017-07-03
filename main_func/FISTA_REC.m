@@ -165,7 +165,7 @@ if (isfield(params,'slice'))
 else
     slice = 1;
 end
-if (isfield(params,'initilize'))
+if (isfield(params,'initialize'))
     % Create a data object for the reconstruction
     rec_id = astra_mex_data3d('create', '-vol', vol_geom);
     
@@ -215,7 +215,7 @@ if (lambdaR_L1 > 0)
         [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
         
         for kkk = 1:anglesNumb
-            add_ring(:,kkk,:) =  sino(:,kkk,:) - alpha_ring.*r_x;
+            add_ring(:,kkk,:) =  squeeze(sino(:,kkk,:)) - alpha_ring.*r_x;
         end
         
         residual =  weights.*(sino_updt - add_ring);
@@ -223,9 +223,12 @@ if (lambdaR_L1 > 0)
         if (precondition == 1)
             residual = filtersinc(residual'); % filtering residual (Fourier preconditioning)
             residual = residual';
-        end
-        
+        end        
+
         vec = sum(residual,2);
+        if (SlicesZ > 1)
+            vec = squeeze(vec(:,1,:));
+        end
         
         r = r_x - (1./L_const).*vec;
         

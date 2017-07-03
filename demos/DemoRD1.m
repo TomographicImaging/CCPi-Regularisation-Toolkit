@@ -75,7 +75,7 @@ params.L_const = 3500; % Lipshitz constant
 params.Regul_LambdaTV = 0.0003; % TV regularization parameter
 params.fidelity = 'student'; % choosing Student t penalty
 params.show = 1;
-params.initilize = 1; % warm start with SIRT
+params.initialize = 1; % warm start with SIRT
 params.maxvalplot = 0.6; params.slice = 1;
 
 tic; [X_fistaStudentTV] = FISTA_REC(params); toc;
