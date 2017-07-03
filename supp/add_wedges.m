@@ -27,4 +27,9 @@ grayImage(173:end,:) = 0;
 
 %figure; imshow(grayImage, [0 1]);
 MW_sino_artifacts = sino_zing_rings.*double(grayImage);
-%Dweights = Dweights.*double(grayImage);
+% !!!
+% note that we do not re-calculate Dweights for MW_sino_artifacts
+% if one does: Dweights = Dweights.*double(grayImage);
+% then the MW artifacts will be reduced substantially, 
+% through weighting. However we would like to explore 
+% the effect of the penalty instead.

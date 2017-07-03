@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "omp.h"
 
-#define EPS 0.001
+#define EPS 0.01
 
 /* C-OMP implementation of Lysaker, Lundervold and Tai (LLT) model of higher order regularization penalty
  *

@@ -1,14 +1,23 @@
 %  uncomment this part of script to generate data with different noise characterisitcs
 
 fprintf('%s\n', 'Generating Projection Data...');
-multfactor = 1000;
+
 % Creating RHS (b) - the sinogram (using a strip projection model)
-vol_geom = astra_create_vol_geom(N, N);
-proj_geom = astra_create_proj_geom('parallel', 1.0, P, theta_rad);
-proj_id_temp = astra_create_projector('strip', proj_geom, vol_geom);
-[sinogram_id, sinogramIdeal] = astra_create_sino(phantom./multfactor, proj_id_temp);
-astra_mex_data2d('delete',sinogram_id);
-astra_mex_algorithm('delete',proj_id_temp);
+% vol_geom = astra_create_vol_geom(N, N);
+% proj_geom = astra_create_proj_geom('parallel', 1.0, P, theta_rad);
+% proj_id_temp = astra_create_projector('strip', proj_geom, vol_geom);
+% [sinogram_id, sinogramIdeal] = astra_create_sino(phantom, proj_id_temp);
+% astra_mex_data2d('delete',sinogram_id);
+% astra_mex_algorithm('delete',proj_id_temp);
+
+%%
+% inverse crime data generation
+[sino_id, sinogramIdeal] = astra_create_sino3d_cuda(phantom, proj_geom, vol_geom);
+astra_mex_data3d('delete', sino_id);
+
+% [id,x] = astra_create_backprojection3d_cuda(sinogramIdeal, proj_geom, vol_geom);
+% astra_mex_data3d('delete', id);
+%%
 %
 % % adding Gaussian noise
 % eta = 0.04;  % Relative noise level
@@ -20,7 +29,7 @@ astra_mex_algorithm('delete',proj_id_temp);
 %%
 % adding zingers
 val_offset = 0;
-sino_zing = sinogramIdeal;
+sino_zing = sinogramIdeal';
 vec1 = [60, 80, 80, 70, 70, 90, 90, 40, 130, 145, 155, 125];
 vec2 = [350, 450, 190, 500, 250, 530, 330, 230, 550, 250, 450, 195];
 for jj = 1:length(vec1)
@@ -58,19 +67,17 @@ sino_zing_rings(sino_zing_rings < 0) = 0;
 
 % adding Poisson noise
 dose = 50000;
-dataExp = dose.*exp(-sino_zing_rings); % noiseless raw data
-dataPnoise = astra_add_noise_to_sino(dataExp,2*dose); % pre-log noisy raw data (weights)
-Dweights = dataPnoise; 
-sinogram = log(dose./dataPnoise);  %log corrected data -> sinogram
-sinogram = abs(sinogram);
-clear dataPnoise dataExp
+multifactor = 0.002;
 
-% normalizing
-sinogram = sinogram.*multfactor;
-sino_zing_rings = sinogram;
-Dweights = multfactor./Dweights;
+dataExp = dose.*exp(-sino_zing_rings*multifactor); % noiseless raw data
+dataPnoise = astra_add_noise_to_sino(dataExp, dose); % pre-log noisy raw data (weights)
+sino_zing_rings = log(dose./max(dataPnoise,1))/multifactor; %log corrected data -> sinogram
+Dweights = dataPnoise'; % statistical weights
+sino_zing_rings = sino_zing_rings';
+clear dataPnoise dataExp 
 
-%
+% w = dose./exp(sinogram*multifactor); % getting back raw data from log-cor
+
 % figure(1);
 % set(gcf, 'Position', get(0,'Screensize'));
 % subplot(1,2,1); imshow(phantom,[0 0.6]); title('Ideal Phantom'); colorbar;
