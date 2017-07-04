@@ -72,7 +72,7 @@ if (isfield(params,'L_const'))
     L_const = params.L_const;
 else
     % using Power method (PM) to establish L constant
-    niter = 5; % number of iteration for PM
+    niter = 6; % number of iteration for PM
     x = rand(N,N,SlicesZ);
     sqweight = sqrt(weights);
     [sino_id, y] = astra_create_sino3d_cuda(x, proj_geom, vol_geom);
@@ -145,11 +145,6 @@ if (isfield(params,'fidelity'))
 else
     fidelity = 'LS';
 end
-if (isfield(params,'precondition'))
-    precondition = params.precondition;
-else
-    precondition = 0;
-end
 if (isfield(params,'show'))
     show = params.show;
 else
@@ -166,6 +161,7 @@ else
     slice = 1;
 end
 if (isfield(params,'initialize'))
+   % a 'warm start' with SIRT method
     % Create a data object for the reconstruction
     rec_id = astra_mex_data3d('create', '-vol', vol_geom);
     
@@ -190,7 +186,6 @@ if (isfield(params,'initialize'))
 else
     X = zeros(N,N,SlicesZ, 'single'); % storage for the solution
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Resid_error = zeros(iterFISTA,1); % error vector
@@ -218,12 +213,7 @@ if (lambdaR_L1 > 0)
             add_ring(:,kkk,:) =  squeeze(sino(:,kkk,:)) - alpha_ring.*r_x;
         end
         
-        residual =  weights.*(sino_updt - add_ring);
-        
-        if (precondition == 1)
-            residual = filtersinc(residual'); % filtering residual (Fourier preconditioning)
-            residual = residual';
-        end        
+        residual =  weights.*(sino_updt - add_ring); 
 
         vec = sum(residual,2);
         if (SlicesZ > 1)
@@ -295,13 +285,8 @@ else
             %gr = (2)*res_vec./(s*2 + conj(res_vec).*res_vec);
             [ff, gr] = studentst(res_vec,1);
             residual = reshape(gr, Detectors, anglesNumb, SlicesZ);
-        end
-        
-        if (precondition == 1)
-            residual = filtersinc(residual'); % filtering residual (Fourier preconditioning)
-            residual = residual';
-        end
-        
+        end        
+       
         [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
         X = X_t - (1/L_const).*x_temp;
         astra_mex_data3d('delete', sino_id);
@@ -314,7 +299,7 @@ else
             else
                 objective(i) = 0.5.*norm(residual(:))^2 + f_val;
             end
-            %  X = SplitBregman_TV(single(X), lambdaTV, iterTV, tol);  % TV-Split Bregman regularization on CPU (memory limited)
+           %X = SplitBregman_TV(single(X), lambdaTV, iterTV, tol);  % TV-Split Bregman regularization on CPU (memory limited)
         elseif ((lambdaHO > 0) && (lambdaTV == 0))
             % Higher Order regularization
             X = LLT_model(single(X), lambdaHO, tauHO, iterHO, tol, 0);   % LLT higher order model
@@ -338,10 +323,8 @@ else
             fprintf('%s %i %s %s %.4f  %s %s %.4f \n', 'Iteration Number:', i, '|', 'Error RMSE:', Resid_error(i), '|', 'Objective:', objective(i));
         else
             fprintf('%s %i  %s %s %.4f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
-        end
-        
-    end
-    
+        end        
+    end    
 end
 output.Resid_error = Resid_error;
 output.objective = objective;

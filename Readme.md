@@ -1,4 +1,4 @@
-# FISTA Reconstruction (Daniil Kazanteev)
+# FISTA Reconstruction (Daniil Kazantsev)
 
 # General Description
 
@@ -14,7 +14,6 @@ Software for reconstructing 2D/3D x-ray and neutron tomography datasets. The dat
 
 ### Demos:
  * Demo1: Synthetic phantom reconstruction with noise, stripes and zingers
- * Demo2: Synthetic phantom reconstruction with noise, stripes, zingers, and the missing wedges
  * DemoRD1: Real data reconstruction from  sino_basalt.mat (see Data)
  * DemoRD2: Real data reconstruction from  sino3D_dendrites.mat (see Data)
 
@@ -26,7 +25,7 @@ Software for reconstructing 2D/3D x-ray and neutron tomography datasets. The dat
 ### Main modules:
 
   * FISTA_REC.m – Matlab function to perform FISTA-based reconstruction
-  * FISTA_TV.c – C-omp function to solve for the weighted TV term using FISTA
+  * FGP_TV.c – C-omp function to solve for the weighted TV term using FGP
   * SplitBregman_TV.c – C-omp function to solve for the weighted TV term using Split-Bregman
   * LLT_model.c – C-omp function to solve for the weighted LLT [3] term using explicit scheme
   * studentst.m – Matlab function to calculate Students t penalty with 'auto-tuning'
@@ -34,17 +33,13 @@ Software for reconstructing 2D/3D x-ray and neutron tomography datasets. The dat
 ### Supplementary:
 
  * zing_rings_add.m Matlab script to generate proj. data, add noise, zingers and stripes
- * add_wedges.m script to add the missing wedge to existing sinogram
- * my_red_yellowMAP.mat – nice colormap for the phantom
+  * my_red_yellowMAP.mat – nice colormap for the phantom
  * RMSE.m – Matlab function to calculate Root Mean Square Error
- * subplot_tight – visualizing better subplots
- * ssim_index – ssim calculation
-
+ 
 ### Practical advices:
  * Full 3D reconstruction provides much better results than 2D. In the case of ring artifacts, 3D is almost necessary
  * Depending on data it is better to use TV-LLT combination in order to achieve piecewise-smooth solution. The  DemoRD2 shows one possible example when smoother surfaces required.
  * L (Lipshitz constant) if tweaked can lead to faster convergence than automatic values
- * Convergence is normally much faster when using Fourier filtering before backprojection
  * Students’t penalty is generally quite stable in practice, however some tweaking of L might require for the real data
  * You can choose between SplitBregman-TV and FISTA-TV modules. The former is slower but requires less  memory (for 3D volume U it can take up to 6 x U), the latter is faster but can take more memory (for 3D volume U it can take up to 11 x U). Also the SplitBregman is quite good in improving contrast. 
 
