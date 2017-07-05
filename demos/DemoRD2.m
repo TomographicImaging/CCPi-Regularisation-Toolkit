@@ -63,7 +63,7 @@ params.L_const = 7.6789e+08;
 params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
 params.weights = Weights3D;
 params.show = 1;
-params.maxvalplot = 2.5; params.slice = 10;
+params.maxvalplot = 2.5; params.slice = 4;
 
 tic; [X_fista_TV] = FISTA_REC(params); toc;
 figure; imshow(X_fista_TV(:,:,1) , [0, 2.5]); title ('FISTA-PWLS-TV reconstruction');
@@ -81,7 +81,7 @@ params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
 params.weights = Weights3D;
 params.show = 1;
-params.maxvalplot = 2.5; params.slice = 10;
+params.maxvalplot = 2.5; params.slice = 4;
 
 tic; [X_fista_GH_TV] = FISTA_REC(params); toc;
 figure; imshow(X_fista_GH_TV(:,:,1) , [0, 2.5]); title ('FISTA-GH-TV reconstruction');
@@ -94,7 +94,7 @@ params.vol_geom = vol_geom;
 params.sino = Sino3D;
 params.iterFISTA  = 40;
 params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
-params.Regul_LambdaHO = 200;  % regularization parameter for LLT problem
+params.Regul_LambdaHO = 250;  % regularization parameter for LLT problem
 params.Regul_tauLLT = 0.0005; % time-step parameter for the explicit scheme
 params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
