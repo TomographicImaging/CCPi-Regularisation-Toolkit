@@ -11,7 +11,6 @@ function [X,  output] = FISTA_REC(params)
 %       - .X_ideal (ideal image, if given)
 %       - .weights (statisitcal weights, size of the sinogram)
 %       - .ROI (Region-of-interest, only if X_ideal is given)
-%       - .fidelity (choose between "LS" and "student" data fidelities, default LS)
 %       - .initialize (a 'warm start' using SIRT method from ASTRA)
 %----------------Regularization choices------------------------
 %       - .Regul_Lambda_FGPTV (FGP-TV regularization parameter)
