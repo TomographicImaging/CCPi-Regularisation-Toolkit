@@ -15,7 +15,6 @@ function [X,  output] = FISTA_REC(params)
 %----------------Regularization choices------------------------
 %       - .Regul_Lambda_FGPTV (FGP-TV regularization parameter)
 %       - .Regul_Lambda_SBTV (SplitBregman-TV regularization parameter)
-%       - .Regul_Lambda_L1 (L1 regularization by soft-thresholding)
 %       - .Regul_Lambda_TVLLT (Higher order SB-LLT regularization parameter)
 %       - .Regul_tol (tolerance to terminate regul iterations, default 1.0e-04)
 %       - .Regul_Iterations (iterations for the selected penalty, default 25)
@@ -28,7 +27,7 @@ function [X,  output] = FISTA_REC(params)
 %       - .slice (for 3D volumes - slice number to imshow)
 % ___Output___:
 % 1. X - reconstructed image/volume
-% 2. output - structure with
+% 2. output - a structure with
 %    - .Resid_error - residual error (if X_ideal is given)
 %    - .objective: value of the objective function
 %    - .L_const: Lipshitz constant to avoid recalculations
@@ -74,21 +73,50 @@ if (isfield(params,'L_const'))
     L_const = params.L_const;
 else
     % using Power method (PM) to establish L constant
-    niter = 8; % number of iteration for PM
-    x = rand(N,N,SlicesZ);
-    sqweight = sqrt(weights);
-    [sino_id, y] = astra_create_sino3d_cuda(x, proj_geom, vol_geom);
-    y = sqweight.*y;
-    astra_mex_data3d('delete', sino_id);
-    
-    for i = 1:niter
-        [id,x] = astra_create_backprojection3d_cuda(sqweight.*y, proj_geom, vol_geom);
-        s = norm(x(:));
-        x = x/s;
-        [sino_id, y] = astra_create_sino3d_cuda(x, proj_geom, vol_geom);
+    if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
+        % for parallel geometry we can do just one slice
+        fprintf('%s \n', 'Calculating Lipshitz constant for parallel beam geometry...');
+        niter = 15; % number of iteration for the PM
+        x1 = rand(N,N,1);
+        sqweight = sqrt(weights(:,:,1));
+        proj_geomT = proj_geom;
+        proj_geomT.DetectorRowCount = 1;
+        vol_geomT = vol_geom;
+        vol_geomT.GridSliceCount = 1;
+        [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geomT, vol_geomT);
         y = sqweight.*y;
         astra_mex_data3d('delete', sino_id);
-        astra_mex_data3d('delete', id);
+        
+        for i = 1:niter
+            [id,x1] = astra_create_backprojection3d_cuda(sqweight.*y, proj_geomT, vol_geomT);
+            s = norm(x1(:));
+            x1 = x1/s;
+            [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geomT, vol_geomT);
+            y = sqweight.*y;
+            astra_mex_data3d('delete', sino_id);
+            astra_mex_data3d('delete', id);
+        end
+        clear proj_geomT vol_geomT
+    else
+        % divergen beam geometry
+        fprintf('%s \n', 'Calculating Lipshitz constant for divergen beam geometry...');
+        niter = 8; % number of iteration for PM
+        x1 = rand(N,N,SlicesZ);
+        sqweight = sqrt(weights);
+        [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geom, vol_geom);
+        y = sqweight.*y;
+        astra_mex_data3d('delete', sino_id);
+        
+        for i = 1:niter
+            [id,x1] = astra_create_backprojection3d_cuda(sqweight.*y, proj_geom, vol_geom);
+            s = norm(x1(:));
+            x1 = x1/s;
+            [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geom, vol_geom);
+            y = sqweight.*y;
+            astra_mex_data3d('delete', sino_id);
+            astra_mex_data3d('delete', id);
+        end
+        clear x1
     end
     L_const = s;
 end
@@ -111,11 +139,6 @@ if (isfield(params,'Regul_Lambda_SBTV'))
     lambdaSB_TV = params.Regul_Lambda_SBTV;
 else
     lambdaSB_TV = 0;
-end
-if (isfield(params,'Regul_Lambda_L1'))
-    lambdaL1 = params.Regul_Lambda_L1;
-else
-    lambdaL1 = 0;
 end
 if (isfield(params,'Regul_tol'))
     tol = params.Regul_tol;
@@ -194,19 +217,18 @@ else
     X = zeros(N,N,SlicesZ, 'single'); % storage for the solution
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Resid_error = zeros(iterFISTA,1); % error vector
-objective = zeros(iterFISTA,1); % obhective vector
+%----------------Reconstruction part------------------------
+Resid_error = zeros(iterFISTA,1); % errors vector (if the ground truth is given)
+objective = zeros(iterFISTA,1); % objective function values vector
 
 t = 1;
 X_t = X;
 
-% add_ring = zeros(size(sino),'single'); % size of sinogram array
 r = zeros(Detectors,SlicesZ, 'single'); % 2D array (for 3D data) of sparse "ring" vectors
 r_x = r; % another ring variable
 residual = zeros(size(sino),'single');
 
-% Outer iterations loop
+% Outer FISTA iterations loop
 for i = 1:iterFISTA
     
     X_old = X;
@@ -216,12 +238,10 @@ for i = 1:iterFISTA
     [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
     
     if (lambdaR_L1 > 0)
-        % add ring removal part (Group-Huber fidelity)
+        % ring removal part (Group-Huber fidelity)
         for kkk = 1:anglesNumb
-            % add_ring(:,kkk,:) =  squeeze(sino(:,kkk,:)) - alpha_ring.*r_x;
             residual(:,kkk,:) =  squeeze(weights(:,kkk,:)).*(squeeze(sino_updt(:,kkk,:)) - (squeeze(sino(:,kkk,:)) - alpha_ring.*r_x));
-        end
-        
+        end        
         vec = sum(residual,2);
         if (SlicesZ > 1)
             vec = squeeze(vec(:,1,:));
@@ -229,9 +249,10 @@ for i = 1:iterFISTA
         r = r_x - (1./L_const).*vec;
     else
         % no ring removal
-        residual = weights.*(sino_updt - sino);
+        residual = weights.*(sino_updt - sino);        
     end
-    % residual =  weights.*(sino_updt - add_ring);
+    
+    objective(i) = (0.5*norm(residual(:))^2)/(Detectors*anglesNumb*SlicesZ); % for the objective function output
     
     [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
     
@@ -242,27 +263,22 @@ for i = 1:iterFISTA
     if (lambdaFGP_TV > 0)
         % FGP-TV regularization
         [X, f_val] = FGP_TV(single(X), lambdaFGP_TV, IterationsRegul, tol, 'iso');
-        objective(i) = 0.5.*norm(residual(:))^2 + f_val;
+        objective(i) = objective(i) + f_val;
     end
     if (lambdaSB_TV > 0)
         % Split Bregman regularization
         X = SplitBregman_TV(single(X), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
-        objective(i) = 0.5.*norm(residual(:))^2;
-    end
-    if (lambdaL1 > 0)
-        % L1 soft-threhsolding regularization
-        X = max(abs(X)-lambdaL1, 0).*sign(X);
-        objective(i) = 0.5.*norm(residual(:))^2;
     end
     if (lambdaHO > 0)
         % Higher Order (LLT) regularization
         X2 = LLT_model(single(X), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
         X = 0.5.*(X + X2); % averaged combination of two solutions
-        objective(i) = 0.5.*norm(residual(:))^2;
     end
     
+    
+    
     if (lambdaR_L1 > 0)
-        r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator
+        r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator for ring vector
     end
     
     t = (1 + sqrt(1 + 4*t^2))/2; % updating t
@@ -281,9 +297,9 @@ for i = 1:iterFISTA
     end
     if (strcmp(X_ideal, 'none' ) == 0)
         Resid_error(i) = RMSE(X(ROI), X_ideal(ROI));
-        fprintf('%s %i %s %s %.4f  %s %s %.4f \n', 'Iteration Number:', i, '|', 'Error RMSE:', Resid_error(i), '|', 'Objective:', objective(i));
+        fprintf('%s %i %s %s %.4f  %s %s %f \n', 'Iteration Number:', i, '|', 'Error RMSE:', Resid_error(i), '|', 'Objective:', objective(i));
     else
-        fprintf('%s %i  %s %s %.4f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
+        fprintf('%s %i  %s %s %f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
     end
 end
 output.Resid_error = Resid_error;

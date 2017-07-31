@@ -15,7 +15,7 @@
 close all;clc;clear all;
 % adding paths
 addpath('../data/'); 
-addpath('../main_func/'); 
+addpath('../main_func/'); addpath('../main_func/regularizers_CPU/');
 addpath('../supp/'); 
 
 load phantom_bone512.mat % load the phantom

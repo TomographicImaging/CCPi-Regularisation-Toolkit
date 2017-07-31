@@ -5,7 +5,7 @@ close all
 
 % adding paths
 addpath('../data/'); 
-addpath('../main_func/'); 
+addpath('../main_func/'); addpath('../main_func/regularizers_CPU/');
 addpath('../supp/'); 
 
 load('sino_basalt.mat') % load real neutron data
