@@ -23,6 +23,8 @@ limitations under the License.
 #include <stdio.h>
 #include "omp.h"
 
+#include "utils.h"
+
 /* C-OMP implementation of Split Bregman - TV denoising-regularization model (2D/3D)
 *
 * Input Parameters:
@@ -47,7 +49,7 @@ limitations under the License.
 * D. Kazantsev, 2016*
 */
 
-float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
+//float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
 float gauss_seidel2D(float *U, float *A, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
 float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
 float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);

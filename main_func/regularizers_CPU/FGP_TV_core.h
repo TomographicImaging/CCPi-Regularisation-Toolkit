@@ -23,6 +23,7 @@ limitations under the License.
 #include <memory.h>
 #include <stdio.h>
 #include "omp.h"
+#include "utils.h"
 
 /* C-OMP implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
 *
@@ -51,7 +52,7 @@ limitations under the License.
 *
 */
 
-float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
+//float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
 float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
 float Proj_func2D(float *P1, float *P2, int methTV, int dimX, int dimY);

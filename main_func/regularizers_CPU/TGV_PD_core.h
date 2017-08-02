@@ -23,6 +23,7 @@ limitations under the License.
 #include <memory.h>
 #include <stdio.h>
 #include "omp.h"
+#include "utils.h"
 
 /* C-OMP implementation of Primal-Dual denoising method for
 * Total Generilized Variation (TGV)-L2 model (2D case only)
@@ -61,4 +62,4 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
 float DualP_3D(float *U, float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, int dimX, int dimY, int dimZ, float sigma);
 
 float newU(float *U, float *U_old, int dimX, int dimY, int dimZ);
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+//float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
