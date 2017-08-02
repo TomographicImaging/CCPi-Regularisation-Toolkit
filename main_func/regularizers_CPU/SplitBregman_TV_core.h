@@ -23,7 +23,33 @@ limitations under the License.
 #include <stdio.h>
 #include "omp.h"
 
-float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
+#include "utils.h"
+
+/* C-OMP implementation of Split Bregman - TV denoising-regularization model (2D/3D)
+*
+* Input Parameters:
+* 1. Noisy image/volume
+* 2. lambda - regularization parameter
+* 3. Number of iterations [OPTIONAL parameter]
+* 4. eplsilon - tolerance constant [OPTIONAL parameter]
+* 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
+*
+* Output:
+* Filtered/regularized image
+*
+* Example:
+* figure;
+* Im = double(imread('lena_gray_256.tif'))/255;  % loading image
+* u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
+* u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
+*
+* to compile with OMP support: mex SplitBregman_TV.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+* References:
+* The Split Bregman Method for L1 Regularized Problems, by Tom Goldstein and Stanley Osher.
+* D. Kazantsev, 2016*
+*/
+
+//float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
 float gauss_seidel2D(float *U, float *A, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
 float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
 float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);

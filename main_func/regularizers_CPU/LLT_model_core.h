@@ -23,6 +23,7 @@ limitations under the License.
 #include <memory.h>
 #include <stdio.h>
 #include "omp.h"
+#include "utils.h"
 
 #define EPS 0.01
 
@@ -36,4 +37,4 @@ float div_upd3D(float *U0, float *U, float *D1, float *D2, float *D3, unsigned s
 float calcMap(float *U, unsigned short *Map, int dimX, int dimY, int dimZ);
 float cleanMap(unsigned short *Map, int dimX, int dimY, int dimZ);
 
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+//float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);

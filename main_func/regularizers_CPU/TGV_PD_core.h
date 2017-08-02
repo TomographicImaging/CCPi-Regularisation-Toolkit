@@ -23,6 +23,7 @@ limitations under the License.
 #include <memory.h>
 #include <stdio.h>
 #include "omp.h"
+#include "utils.h"
 
 /* 2D functions */
 float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, int dimZ, float sigma);
@@ -32,4 +33,4 @@ float ProjQ_2D(float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, fl
 float DivProjP_2D(float *U, float *A, float *P1, float *P2, int dimX, int dimY, int dimZ, float lambda, float tau);
 float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float tau);
 float newU(float *U, float *U_old, int dimX, int dimY, int dimZ);
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+//float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);

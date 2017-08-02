@@ -23,8 +23,36 @@ limitations under the License.
 #include <memory.h>
 #include <stdio.h>
 #include "omp.h"
+#include "utils.h"
 
-float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
+/* C-OMP implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
+*
+* Input Parameters:
+* 1. Noisy image/volume [REQUIRED]
+* 2. lambda - regularization parameter [REQUIRED]
+* 3. Number of iterations [OPTIONAL parameter]
+* 4. eplsilon: tolerance constant [OPTIONAL parameter]
+* 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
+*
+* Output:
+* [1] Filtered/regularized image
+* [2] last function value
+*
+* Example of image denoising:
+* figure;
+* Im = double(imread('lena_gray_256.tif'))/255;  % loading image
+* u0 = Im + .05*randn(size(Im)); % adding noise
+* u = FGP_TV(single(u0), 0.05, 100, 1e-04);
+*
+* to compile with OMP support: mex FGP_TV.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+* This function is based on the Matlab's code and paper by
+* [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
+*
+* D. Kazantsev, 2016-17
+*
+*/
+
+//float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
 float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
 float Proj_func2D(float *P1, float *P2, int methTV, int dimX, int dimY);
