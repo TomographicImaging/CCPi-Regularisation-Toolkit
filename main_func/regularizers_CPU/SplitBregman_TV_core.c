@@ -37,7 +37,6 @@ limitations under the License.
 * u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
 * u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
 *
-* to compile with OMP support: mex SplitBregman_TV.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 * References:
 * The Split Bregman Method for L1 Regularized Problems, by Tom Goldstein and Stanley Osher.
 * D. Kazantsev, 2016*

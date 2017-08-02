@@ -99,7 +99,7 @@ else
         clear proj_geomT vol_geomT
     else
         % divergen beam geometry
-        fprintf('%s \n', 'Calculating Lipshitz constant for divergen beam geometry...');
+        fprintf('%s \n', 'Calculating Lipshitz constant for divergen beam geometry... will take some time!');
         niter = 8; % number of iteration for PM
         x1 = rand(N,N,SlicesZ);
         sqweight = sqrt(weights);
@@ -216,6 +216,39 @@ if (isfield(params,'initialize'))
 else
     X = zeros(N,N,SlicesZ, 'single'); % storage for the solution
 end
+if (isfield(params,'OS'))
+    % Ordered Subsets reorganisation of data and angles
+    OS = 1;
+    subsets = 8;
+    angles = proj_geom.ProjectionAngles;
+    binEdges = linspace(min(angles),max(angles),subsets+1);
+    
+    % assign values to bins
+    [binsDiscr,~] = histc(angles, [binEdges(1:end-1) Inf]);
+    
+    % rearrange angles into subsets
+    AnglesReorg = zeros(length(angles),1);
+    SinoReorg = zeros(Detectors, anglesNumb, SlicesZ, 'single');
+    
+    counterM = 0;
+    for ii = 1:max(binsDiscr(:))
+        counter = 0;
+        for jj = 1:subsets
+            curr_index = ii+jj-1 + counter;
+            if (binsDiscr(jj) >= ii)
+                counterM = counterM + 1;
+                AnglesReorg(counterM) = angles(curr_index);
+                SinoReorg(:,counterM,:) = squeeze(sino(:,curr_index,:));
+            end
+            counter = (counter + binsDiscr(jj)) - 1;
+        end
+    end
+    sino = SinoReorg;
+    clear SinoReorg;
+else 
+    OS = 0; % normal FISTA
+end
+
 
 %----------------Reconstruction part------------------------
 Resid_error = zeros(iterFISTA,1); % errors vector (if the ground truth is given)
@@ -241,7 +274,7 @@ for i = 1:iterFISTA
         % ring removal part (Group-Huber fidelity)
         for kkk = 1:anglesNumb
             residual(:,kkk,:) =  squeeze(weights(:,kkk,:)).*(squeeze(sino_updt(:,kkk,:)) - (squeeze(sino(:,kkk,:)) - alpha_ring.*r_x));
-        end        
+        end
         vec = sum(residual,2);
         if (SlicesZ > 1)
             vec = squeeze(vec(:,1,:));
@@ -249,7 +282,7 @@ for i = 1:iterFISTA
         r = r_x - (1./L_const).*vec;
     else
         % no ring removal
-        residual = weights.*(sino_updt - sino);        
+        residual = weights.*(sino_updt - sino);
     end
     
     objective(i) = (0.5*norm(residual(:))^2)/(Detectors*anglesNumb*SlicesZ); % for the objective function output
@@ -305,5 +338,6 @@ end
 output.Resid_error = Resid_error;
 output.objective = objective;
 output.L_const = L_const;
+output.sino = sino;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end

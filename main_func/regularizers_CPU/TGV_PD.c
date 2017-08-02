@@ -39,7 +39,7 @@ limitations under the License.
  * u0 = Im + .03*randn(size(Im)); % adding noise
  * tic; u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550); toc;
  *
- * to compile with OMP support: mex TGV_PD.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+ * to compile with OMP support: mex TGV_PD.c  TGV_PD_core.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
  * References:
  * K. Bredies "Total Generalized Variation"
  *
@@ -53,7 +53,7 @@ void mexFunction(
 {
     int number_of_dims, iter, dimX, dimY, dimZ, ll;
     const int  *dim_array;
-    float *A, *U, *U_old, *P1, *P2, *P3, *Q1, *Q2, *Q3, *Q4, *Q5, *Q6, *Q7, *Q8, *Q9, *V1, *V1_old, *V2, *V2_old, *V3, *V3_old, lambda, L2, tau, sigma,  alpha1, alpha0;
+    float *A, *U, *U_old, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, lambda, L2, tau, sigma,  alpha1, alpha0;
     
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     dim_array = mxGetDimensions(prhs[0]);
@@ -88,40 +88,10 @@ void mexFunction(
         V1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
         V1_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
         V2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        V2_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));   }
-    else if (number_of_dims == 3) {
-        mexErrMsgTxt("The input data should be 2D");
-        /*3D case*/
-//         dimZ = dim_array[2];
-//         U = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         
-//         P1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         P2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         P3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         
-//         Q1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q4 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q5 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q6 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q7 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q8 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         Q9 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         
-//         U_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         
-//         V1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         V1_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         V2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         V2_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         V3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-//         V3_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));	  
-    }
-    else {mexErrMsgTxt("The input data should be 2D");}
-    
-    
-    /*printf("%i \n", i);*/
+        V2_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));   
+        
+        
+         /*printf("%i \n", i);*/
     L2 = 12.0; /*Lipshitz constant*/
     tau = 1.0/pow(L2,0.5);
     sigma = 1.0/pow(L2,0.5);
@@ -129,7 +99,6 @@ void mexFunction(
     /*Copy A to U*/
     copyIm(A, U, dimX, dimY, dimZ);
     
-    if (number_of_dims == 2) {
         /* Here primal-dual iterations begin for 2D */
         for(ll = 0; ll < iter; ll++) {
             
@@ -164,23 +133,12 @@ void mexFunction(
             /*get new V*/
             newU(V1, V1_old, dimX, dimY, dimZ);
             newU(V2, V2_old, dimX, dimY, dimZ);
-        } /*end of iterations*/
+        } /*end of iterations*/        
     }
-    
-//     /*3D version*/
-//     if (number_of_dims == 3) {
-//         /* Here primal-dual iterations begin for 3D */
-//         for(ll = 0; ll < iter; ll++) {
-//             
-//             /* Calculate Dual Variable P */
-//             DualP_3D(U, V1, V2, V3, P1, P2, P3, dimX, dimY, dimZ, sigma);
-//             
-//             /*Projection onto convex set for P*/
-//             ProjP_3D(P1, P2, P3, dimX, dimY, dimZ, alpha1);
-//             
-//             /* Calculate Dual Variable Q */
-//             DualQ_3D(V1, V2, V2, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, dimX, dimY, dimZ, sigma);
-//             
-//         } /*end of iterations*/
-//     }
+    else if (number_of_dims == 3) {
+        mexErrMsgTxt("The input data should be a 2D array");
+        /*3D case*/
+    }
+    else {mexErrMsgTxt("The input data should be a 2D array");}    
+   
 }

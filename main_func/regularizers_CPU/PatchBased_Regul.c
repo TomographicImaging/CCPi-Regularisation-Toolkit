@@ -27,27 +27,23 @@ limitations under the License.
  * References: 1. Yang Z. & Jacob M. "Nonlocal Regularization of Inverse Problems"
  *             2. Kazantsev D. et al. "4D-CT reconstruction with unified spatial-temporal patch-based regularization"
  *
- * Input Parameters (mandatory):
- * 1. Image (2D or 3D)
- * 2. ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window)
- * 3. ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window)
- * 4. h - parameter for the PB penalty function
- * 5. lambda - regularization parameter 
+ * Input Parameters:
+ * 1. Image (2D or 3D) [required]
+ * 2. ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window) [optional]
+ * 3. ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window) [optional]
+ * 4. h - parameter for the PB penalty function [optional]
+ * 5. lambda - regularization parameter  [optional]
 
  * Output:
  * 1. regularized (denoised) Image (N x N)/volume (N x N x N)
  *
- * Quick 2D denoising example in Matlab:   
+ * 2D denoising example in Matlab:   
    Im = double(imread('lena_gray_256.tif'))/255;  % loading image
    u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
-   ImDen = PB_Regul_CPU(single(u0), 3, 1, 0.08, 0.05); 
- *
- * Please see more tests in a file: 
-   TestTemporalSmoothing.m
- 
+   ImDen = PatchBased_Regul(single(u0), 3, 1, 0.08, 0.05); 
  *
  * Matlab + C/mex compilers needed
- * to compile with OMP support: mex PB_Regul_CPU.c CFLAGS="\$CFLAGS -fopenmp -Wall" LDFLAGS="\$LDFLAGS -fopenmp"
+ * to compile with OMP support: mex PatchBased_Regul.c CFLAGS="\$CFLAGS -fopenmp -Wall" LDFLAGS="\$LDFLAGS -fopenmp"
  *
  * D. Kazantsev *
  * 02/07/2014
@@ -70,17 +66,23 @@ void mexFunction(
     M = dims[1];
     Z = dims[2];
     
-    if ((numdims < 2) || (numdims > 3)) {mexErrMsgTxt("The input should be 2D image or 3D volume");}
+    if ((numdims < 2) || (numdims > 3)) {mexErrMsgTxt("The input is 2D image or 3D volume");}
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input in single precision is required"); }
     
     if(nrhs != 5) mexErrMsgTxt("Five inputs reqired: Image(2D,3D), SearchW, SimilW, Threshold, Regularization parameter");
     
     /*Handling inputs*/
-    A  = (float *) mxGetData(prhs[0]);    /* the image to regularize/filter */
-    SearchW_real  = (int) mxGetScalar(prhs[1]); /* the searching window ratio */
-    SimilW =  (int) mxGetScalar(prhs[2]);  /* the similarity window ratio */
-    h =  (float) mxGetScalar(prhs[3]);  /* parameter for the PB filtering function */
-    lambda = (float) mxGetScalar(prhs[4]); /* regularization parameter */   
+    A  = (float *) mxGetData(prhs[0]);    /* the image/volume to regularize/filter */
+    SearchW_real = 3; /*default value*/
+    SimilW = 1; /*default value*/
+    h = 0.1; 
+    lambda = 0.1;
+    
+    if ((nrhs == 2) || (nrhs == 3) || (nrhs == 4) || (nrhs == 5))   SearchW_real  = (int) mxGetScalar(prhs[1]); /* the searching window ratio */
+    if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5))   SimilW =  (int) mxGetScalar(prhs[2]);  /* the similarity window ratio */
+    if ((nrhs == 4) || (nrhs == 5))  h =  (float) mxGetScalar(prhs[3]);  /* parameter for the PB filtering function */
+    if ((nrhs == 5))  lambda = (float) mxGetScalar(prhs[4]); /* regularization parameter */   
+
 
     if (h <= 0) mexErrMsgTxt("Parmeter for the PB penalty function should be > 0");
     if (lambda <= 0) mexErrMsgTxt(" Regularization parmeter should be > 0");
@@ -89,7 +91,6 @@ void mexFunction(
     
     /* SearchW_full = 2*SearchW + 1; */ /* the full searching window  size */
     /* SimilW_full = 2*SimilW + 1;  */  /* the full similarity window  size */
-
     
     padXY = SearchW + 2*SimilW; /* padding sizes */
     newsizeX = N + 2*(padXY); /* the X size of the padded array */

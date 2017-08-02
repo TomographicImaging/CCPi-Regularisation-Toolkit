@@ -30,7 +30,7 @@ Weights3D = single(data_raw3D); % weights for PW model
 clear data_raw3D
 %%
 % set projection/reconstruction geometry here
-Z_slices = 3;
+Z_slices = 20;
 det_row_count = Z_slices;
 proj_geom = astra_create_proj_geom('parallel3d', 1, 1, det_row_count, size_det, angles_rad);
 vol_geom = astra_create_vol_geom(recon_size,recon_size,Z_slices);
@@ -44,7 +44,7 @@ clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
-params.iterFISTA  = 35;
+params.iterFISTA  = 1;
 params.weights = Weights3D;
 params.show = 1;
 params.maxvalplot = 2.5; params.slice = 2;

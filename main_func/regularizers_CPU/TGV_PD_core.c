@@ -38,7 +38,6 @@ limitations under the License.
  * u0 = Im + .03*randn(size(Im)); % adding noise
  * tic; u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550); toc;
  *
- * to compile with OMP support: mex TGV_PD.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
  * References:
  * K. Bredies "Total Generalized Variation"
  *

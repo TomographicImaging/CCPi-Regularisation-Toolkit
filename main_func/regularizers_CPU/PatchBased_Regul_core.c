@@ -19,40 +19,33 @@ limitations under the License.
 
 #include "PatchBased_Regul_core.h"
 
-/* C-OMP implementation of  patch-based (PB) regularization (2D and 3D cases).
-* This method finds self-similar patches in data and performs one fixed point iteration to mimimize the PB penalty function
-*
-* References: 1. Yang Z. & Jacob M. "Nonlocal Regularization of Inverse Problems"
-*             2. Kazantsev D. et al. "4D-CT reconstruction with unified spatial-temporal patch-based regularization"
-*
-* Input Parameters (mandatory):
-* 1. Image (2D or 3D)
-* 2. ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window)
-* 3. ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window)
-* 4. h - parameter for the PB penalty function
-* 5. lambda - regularization parameter
+/* C-OMP implementation of  patch-based (PB) regularization (2D and 3D cases). 
+ * This method finds self-similar patches in data and performs one fixed point iteration to mimimize the PB penalty function
+ * 
+ * References: 1. Yang Z. & Jacob M. "Nonlocal Regularization of Inverse Problems"
+ *             2. Kazantsev D. et al. "4D-CT reconstruction with unified spatial-temporal patch-based regularization"
+ *
+ * Input Parameters:
+ * 1. Image (2D or 3D) [required]
+ * 2. ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window) [optional]
+ * 3. ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window) [optional]
+ * 4. h - parameter for the PB penalty function [optional]
+ * 5. lambda - regularization parameter  [optional]
 
-* Output:
-* 1. regularized (denoised) Image (N x N)/volume (N x N x N)
-*
-* Quick 2D denoising example in Matlab:
-Im = double(imread('lena_gray_256.tif'))/255;  % loading image
-u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
-ImDen = PB_Regul_CPU(single(u0), 3, 1, 0.08, 0.05);
-*
-* Please see more tests in a file:
-TestTemporalSmoothing.m
+ * Output:
+ * 1. regularized (denoised) Image (N x N)/volume (N x N x N)
+ *
+ * 2D denoising example in Matlab:   
+   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
+   u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
+   ImDen = PatchBased_Regul(single(u0), 3, 1, 0.08, 0.05); 
+ 
+ * D. Kazantsev *
+ * 02/07/2014
+ * Harwell, UK
+ */
 
-*
-* Matlab + C/mex compilers needed
-* to compile with OMP support: mex PB_Regul_CPU.c CFLAGS="\$CFLAGS -fopenmp -Wall" LDFLAGS="\$LDFLAGS -fopenmp"
-*
-* D. Kazantsev *
-* 02/07/2014
-* Harwell, UK
-*/
-
-/*2D version*/
+/*2D version function */
 float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, int SimilW, float h, float lambda)
 {
     int i, j, i_n, j_n, i_m, j_m, i_p, j_p, i_l, j_l, i1, j1, i2, j2, i3, j3, i5,j5, count, SimilW_full;
