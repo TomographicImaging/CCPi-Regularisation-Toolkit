@@ -1,6 +1,6 @@
 function [X,  output] = FISTA_REC(params)
 
-% <<<< FISTA-based reconstruction algorithm using ASTRA-toolbox >>>>
+% <<<< FISTA-based reconstruction routine using ASTRA-toolbox >>>>
 % ___Input___:
 % params.[] file:
 %----------------General Parameters------------------------
@@ -19,9 +19,9 @@ function [X,  output] = FISTA_REC(params)
 %       3 .Regul_LambdaLLT (Higher order LLT regularization parameter)
 %          3.1 .Regul_tauLLT (time step parameter for LLT (HO) term)
 %       4 .Regul_LambdaPatchBased (Patch-based nonlocal regularization parameter)
-%                 4.1  .Regul_PB_SearchW (ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window))
-%                 4.2  .Regul_PB_SimilW (ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window))
-%                 4.3  .Regul_PB_h (PB penalty function threshold)
+%          4.1  .Regul_PB_SearchW (ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window))
+%          4.2  .Regul_PB_SimilW (ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window))
+%          4.3  .Regul_PB_h (PB penalty function threshold)
 %       5 .Regul_LambdaTGV (Total Generalized variation regularization parameter)
 %       - .Regul_tol (tolerance to terminate regul iterations, default 1.0e-04)
 %       - .Regul_Iterations (iterations for the selected penalty, default 25)
@@ -193,6 +193,11 @@ if (isfield(params,'Regul_PB_h'))
 else
     h_PB = 0.1; % default
 end
+if (isfield(params,'Regul_LambdaTGV'))
+    LambdaTGV = params.Regul_LambdaTGV;
+else
+    LambdaTGV = 0.01;
+end
 if (isfield(params,'Ring_LambdaR_L1'))
     lambdaR_L1 = params.Ring_LambdaR_L1;
 else
@@ -252,20 +257,17 @@ if (isfield(params,'initialize'))
 else
     X = zeros(N,N,SlicesZ, 'single'); % storage for the solution
 end
-if (isfield(params,'OS'))
+if (isfield(params,'subsets'))
     % Ordered Subsets reorganisation of data and angles
-    OS = 1;
-    subsets = 8;
+    subsets = params.subsets; % subsets number
     angles = proj_geom.ProjectionAngles;
     binEdges = linspace(min(angles),max(angles),subsets+1);
     
     % assign values to bins
     [binsDiscr,~] = histc(angles, [binEdges(1:end-1) Inf]);
     
-    % rearrange angles into subsets
-    AnglesReorg = zeros(length(angles),1);
-    SinoReorg = zeros(Detectors, anglesNumb, SlicesZ, 'single');
-    
+    % get rearranged subset indices
+    IndicesReorg = zeros(length(angles),1);
     counterM = 0;
     for ii = 1:max(binsDiscr(:))
         counter = 0;
@@ -273,143 +275,313 @@ if (isfield(params,'OS'))
             curr_index = ii+jj-1 + counter;
             if (binsDiscr(jj) >= ii)
                 counterM = counterM + 1;
-                AnglesReorg(counterM) = angles(curr_index);
-                SinoReorg(:,counterM,:) = squeeze(sino(:,curr_index,:));
+                IndicesReorg(counterM) = curr_index;
             end
             counter = (counter + binsDiscr(jj)) - 1;
         end
     end
-    sino = SinoReorg;
-    clear SinoReorg;
-else 
-    OS = 0; % normal FISTA
+else
+    subsets = 0; % Classical FISTA
 end
-
 
 %----------------Reconstruction part------------------------
 Resid_error = zeros(iterFISTA,1); % errors vector (if the ground truth is given)
 objective = zeros(iterFISTA,1); % objective function values vector
 
-t = 1;
-X_t = X;
 
-r = zeros(Detectors,SlicesZ, 'single'); % 2D array (for 3D data) of sparse "ring" vectors
-r_x = r; % another ring variable
-residual = zeros(size(sino),'single');
-
-% Outer FISTA iterations loop
-for i = 1:iterFISTA
+if (subsets == 0)
+    % Classical FISTA
+    t = 1;
+    X_t = X;
     
-    X_old = X;
-    t_old = t;
-    r_old = r;
+    r = zeros(Detectors,SlicesZ, 'single'); % 2D array (for 3D data) of sparse "ring" vectors
+    r_x = r; % another ring variable
+    residual = zeros(size(sino),'single');
     
-    [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
-    
-    if (lambdaR_L1 > 0)
-        % ring removal part (Group-Huber fidelity)
-        for kkk = 1:anglesNumb
-            residual(:,kkk,:) =  squeeze(weights(:,kkk,:)).*(squeeze(sino_updt(:,kkk,:)) - (squeeze(sino(:,kkk,:)) - alpha_ring.*r_x));
-        end
-        vec = sum(residual,2);
-        if (SlicesZ > 1)
-            vec = squeeze(vec(:,1,:));
-        end
-        r = r_x - (1./L_const).*vec;
-    else
-        % no ring removal
-        residual = weights.*(sino_updt - sino);
-    end
-    
-    objective(i) = (0.5*norm(residual(:))^2)/(Detectors*anglesNumb*SlicesZ); % for the objective function output
-    
-    [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
-    
-    X = X_t - (1/L_const).*x_temp;
-    astra_mex_data3d('delete', sino_id);
-    astra_mex_data3d('delete', id);
-    
-    % regularization
-     if (lambdaFGP_TV > 0)
-         % FGP-TV regularization
-        if ((strcmp('2D', Dimension) == 1))
-            % 2D regularization
-            for kkk = 1:SlicesZ
-                [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV, IterationsRegul, tol, 'iso');
-            end
-        else
-            % 3D regularization
-            [X, f_val] = FGP_TV(single(X), lambdaFGP_TV, IterationsRegul, tol, 'iso');
-        end
-         objective(i) = objective(i) + f_val;
-     end
-     if (lambdaSB_TV > 0)
-         % Split Bregman regularization
-        if ((strcmp('2D', Dimension) == 1))
-            % 2D regularization
-            for kkk = 1:SlicesZ
-                X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
-            end
-        else
-            % 3D regularization
-            X = SplitBregman_TV(single(X), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
-        end
-     end
-     if (lambdaHO > 0)
-         % Higher Order (LLT) regularization
-        X2 = zeros(N,N,SlicesZ,'single');
-        if ((strcmp('2D', Dimension) == 1))
-            % 2D regularization
-            for kkk = 1:SlicesZ
-                X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
-            end
-        else
-            % 3D regularization
-            X2 = LLT_model(single(X), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
-        end
-         X = 0.5.*(X + X2); % averaged combination of two solutions
-     end
-    if (lambdaPB > 0)
-        % Patch-Based regularization (can be slow on CPU)
-        if ((strcmp('2D', Dimension) == 1))
-            % 2D regularization
-            for kkk = 1:SlicesZ
-                X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB);
-            end
-        else
-            X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB);
-        end
-    end  
-    
-    
-    if (lambdaR_L1 > 0)
-        r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator for ring vector
-    end
-    
-    t = (1 + sqrt(1 + 4*t^2))/2; % updating t
-    X_t = X + ((t_old-1)/t).*(X - X_old); % updating X
-    
-    if (lambdaR_L1 > 0)
-        r_x = r + ((t_old-1)/t).*(r - r_old); % updating r
-    end
-    
-    if (show == 1)
-        figure(10); imshow(X(:,:,slice), [0 maxvalplot]);
+    % Outer FISTA iterations loop
+    for i = 1:iterFISTA
+        
+        X_old = X;
+        t_old = t;
+        r_old = r;
+        
+        [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+        
         if (lambdaR_L1 > 0)
-            figure(11); plot(r); title('Rings offset vector')
+            % the ring removal part (Group-Huber fidelity)
+            for kkk = 1:anglesNumb
+                residual(:,kkk,:) =  squeeze(weights(:,kkk,:)).*(squeeze(sino_updt(:,kkk,:)) - (squeeze(sino(:,kkk,:)) - alpha_ring.*r_x));
+            end
+            vec = sum(residual,2);
+            if (SlicesZ > 1)
+                vec = squeeze(vec(:,1,:));
+            end
+            r = r_x - (1./L_const).*vec;
+        else
+            % no ring removal
+            residual = weights.*(sino_updt - sino);
         end
-        pause(0.01);
+        
+        objective(i) = (0.5*norm(residual(:))^2)/(Detectors*anglesNumb*SlicesZ); % for the objective function output
+        
+        [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
+        
+        X = X_t - (1/L_const).*x_temp;
+        astra_mex_data3d('delete', sino_id);
+        astra_mex_data3d('delete', id);
+        
+        % regularization
+        if (lambdaFGP_TV > 0)
+            % FGP-TV regularization
+            if ((strcmp('2D', Dimension) == 1))
+                % 2D regularization
+                for kkk = 1:SlicesZ
+                    [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV, IterationsRegul, tol, 'iso');
+                end
+            else
+                % 3D regularization
+                [X, f_val] = FGP_TV(single(X), lambdaFGP_TV, IterationsRegul, tol, 'iso');
+            end
+            objective(i) = objective(i) + f_val;
+        end
+        if (lambdaSB_TV > 0)
+            % Split Bregman regularization
+            if ((strcmp('2D', Dimension) == 1))
+                % 2D regularization
+                for kkk = 1:SlicesZ
+                    X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
+                end
+            else
+                % 3D regularization
+                X = SplitBregman_TV(single(X), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
+            end
+        end
+        if (lambdaHO > 0)
+            % Higher Order (LLT) regularization
+            X2 = zeros(N,N,SlicesZ,'single');
+            if ((strcmp('2D', Dimension) == 1))
+                % 2D regularization
+                for kkk = 1:SlicesZ
+                    X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
+                end
+            else
+                % 3D regularization
+                X2 = LLT_model(single(X), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
+            end
+            X = 0.5.*(X + X2); % averaged combination of two solutions
+        end
+        if (lambdaPB > 0)
+            % Patch-Based regularization (can be slow on CPU)
+            if ((strcmp('2D', Dimension) == 1))
+                % 2D regularization
+                for kkk = 1:SlicesZ
+                    X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB);
+                end
+            else
+                X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB);
+            end
+        end
+        if (LambdaTGV > 0)
+                % Total Generalized variation (currently only 2D)
+                lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
+                lamTGV2 = 0.5; % second-order term
+                for kkk = 1:SlicesZ
+                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV, lamTGV1, lamTGV2, IterationsRegul);
+                end
+        end
+        
+        if (lambdaR_L1 > 0)
+            r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator for ring vector
+        end
+        
+        t = (1 + sqrt(1 + 4*t^2))/2; % updating t
+        X_t = X + ((t_old-1)/t).*(X - X_old); % updating X
+        
+        if (lambdaR_L1 > 0)
+            r_x = r + ((t_old-1)/t).*(r - r_old); % updating r
+        end
+        
+        if (show == 1)
+            figure(10); imshow(X(:,:,slice), [0 maxvalplot]);
+            if (lambdaR_L1 > 0)
+                figure(11); plot(r); title('Rings offset vector')
+            end
+            pause(0.01);
+        end
+        if (strcmp(X_ideal, 'none' ) == 0)
+            Resid_error(i) = RMSE(X(ROI), X_ideal(ROI));
+            fprintf('%s %i %s %s %.4f  %s %s %f \n', 'Iteration Number:', i, '|', 'Error RMSE:', Resid_error(i), '|', 'Objective:', objective(i));
+        else
+            fprintf('%s %i  %s %s %f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
+        end
     end
-    if (strcmp(X_ideal, 'none' ) == 0)
-        Resid_error(i) = RMSE(X(ROI), X_ideal(ROI));
-        fprintf('%s %i %s %s %.4f  %s %s %f \n', 'Iteration Number:', i, '|', 'Error RMSE:', Resid_error(i), '|', 'Objective:', objective(i));
-    else
-        fprintf('%s %i  %s %s %f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
+else
+    % Ordered Subsets (OS) FISTA reconstruction routine (normally one order of magnitude faster than classical)
+    t = 1;
+    X_t = X;
+    proj_geomSUB = proj_geom;
+    
+    
+    r = zeros(Detectors,SlicesZ, 'single'); % 2D array (for 3D data) of sparse "ring" vectors
+    r_x = r; % another ring variable
+    residual2 = zeros(size(sino),'single');
+    
+    % Outer FISTA iterations loop
+    for i = 1:iterFISTA
+        
+        % With OS approach it becomes trickier to correlate independent subsets, hence additional work is required
+        % one solution is to work with a full sinogram at times
+        if ((i >= 3) && (lambdaR_L1 > 0))
+            [sino_id2, sino_updt2] = astra_create_sino3d_cuda(X, proj_geom, vol_geom);
+            astra_mex_data3d('delete', sino_id2);
+        end
+        
+        % subsets loop
+        counterInd = 1;
+        for ss = 1:subsets
+            X_old = X;
+            t_old = t;
+            r_old = r;
+            
+            numProjSub = binsDiscr(ss); % the number of projections per subset
+            CurrSubIndeces = IndicesReorg(counterInd:(counterInd + numProjSub - 1)); % extract indeces attached to the subset
+            proj_geomSUB.ProjectionAngles = angles(CurrSubIndeces);
+            
+            if (lambdaR_L1 > 0)
+                
+                % the ring removal part (Group-Huber fidelity)
+                % first 2 iterations do additional work reconstructing whole dataset to ensure
+                % stablility
+                if (i < 3)
+                    [sino_id2, sino_updt2] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+                    astra_mex_data3d('delete', sino_id2);
+                else
+                    [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
+                end
+                
+                for kkk = 1:anglesNumb
+                    residual2(:,kkk,:) = squeeze(weights(:,kkk,:)).*(squeeze(sino_updt2(:,kkk,:)) - (squeeze(sino(:,kkk,:)) - alpha_ring.*r_x));
+                end
+                
+                residual = zeros(Detectors, numProjSub, SlicesZ,'single');
+                for kkk = 1:numProjSub
+                    indC = CurrSubIndeces(kkk);
+                    if (i < 3)
+                        residual(:,kkk,:) =  squeeze(residual2(:,indC,:));
+                    else
+                        residual(:,kkk,:) =  squeeze(weights(:,indC,:)).*(squeeze(sino_updt(:,kkk,:)) - (squeeze(sino(:,indC,:)) - alpha_ring.*r_x));
+                    end
+                end
+                vec = sum(residual2,2);
+                if (SlicesZ > 1)
+                    vec = squeeze(vec(:,1,:));
+                end
+                r = r_x - (1./L_const).*vec;
+            else
+                [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
+                % no ring removal
+                residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));
+            end
+            
+            [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geomSUB, vol_geom);
+            
+            X = X_t - (1/L_const).*x_temp;
+            astra_mex_data3d('delete', sino_id);
+            astra_mex_data3d('delete', id);
+            
+            % regularization
+            if (lambdaFGP_TV > 0)
+                % FGP-TV regularization
+                if ((strcmp('2D', Dimension) == 1))
+                    % 2D regularization
+                    for kkk = 1:SlicesZ
+                        [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV/subsets, IterationsRegul, tol, 'iso');
+                    end
+                else
+                    % 3D regularization
+                    [X, f_val] = FGP_TV(single(X), lambdaFGP_TV/subsets, IterationsRegul, tol, 'iso');
+                end
+                objective(i) = objective(i) + f_val;
+            end
+            if (lambdaSB_TV > 0)
+                % Split Bregman regularization
+                if ((strcmp('2D', Dimension) == 1))
+                    % 2D regularization
+                    for kkk = 1:SlicesZ
+                        X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV/subsets, IterationsRegul, tol);  % (more memory efficent)
+                    end
+                else
+                    % 3D regularization
+                    X = SplitBregman_TV(single(X), lambdaSB_TV/subsets, IterationsRegul, tol);  % (more memory efficent)
+                end
+            end
+            if (lambdaHO > 0)
+                % Higher Order (LLT) regularization
+                X2 = zeros(N,N,SlicesZ,'single');
+                if ((strcmp('2D', Dimension) == 1))
+                    % 2D regularization
+                    for kkk = 1:SlicesZ
+                        X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO/subsets, tauHO/subsets, iterHO, 2.0e-05, 0);
+                    end
+                else
+                    % 3D regularization
+                    X2 = LLT_model(single(X), lambdaHO/subsets, tauHO/subsets, iterHO, 2.0e-05, 0);
+                end
+                X = 0.5.*(X + X2); % averaged combination of two solutions
+            end
+            if (lambdaPB > 0)
+                % Patch-Based regularization (can be slow on CPU)
+                if ((strcmp('2D', Dimension) == 1))
+                    % 2D regularization
+                    for kkk = 1:SlicesZ
+                        X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB/subsets);
+                    end
+                else
+                    X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB/subsets);
+                end
+            end
+            if (LambdaTGV > 0)
+                % Total Generalized variation (currently only 2D)
+                lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
+                lamTGV2 = 0.5; % second-order term
+                for kkk = 1:SlicesZ
+                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV/subsets, lamTGV1, lamTGV2, IterationsRegul);
+                end
+            end           
+            
+            if (lambdaR_L1 > 0)
+                r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator for ring vector
+            end
+            
+            t = (1 + sqrt(1 + 4*t^2))/2; % updating t
+            X_t = X + ((t_old-1)/t).*(X - X_old); % updating X
+            
+            if (lambdaR_L1 > 0)
+                r_x = r + ((t_old-1)/t).*(r - r_old); % updating r
+            end
+            
+            counterInd = counterInd + numProjSub;
+        end
+        
+        if (show == 1)
+            figure(10); imshow(X(:,:,slice), [0 maxvalplot]);
+            if (lambdaR_L1 > 0)
+                figure(11); plot(r); title('Rings offset vector')
+            end
+            pause(0.01);
+        end
+        
+        if (strcmp(X_ideal, 'none' ) == 0)
+            Resid_error(i) = RMSE(X(ROI), X_ideal(ROI));
+            fprintf('%s %i %s %s %.4f  %s %s %f \n', 'Iteration Number:', i, '|', 'Error RMSE:', Resid_error(i), '|', 'Objective:', objective(i));
+        else
+            fprintf('%s %i  %s %s %f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
+        end
     end
 end
+
 output.Resid_error = Resid_error;
 output.objective = objective;
 output.L_const = L_const;
-output.sino = sino;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 end

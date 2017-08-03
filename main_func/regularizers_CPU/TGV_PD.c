@@ -37,9 +37,9 @@ limitations under the License.
  * figure;
  * Im = double(imread('lena_gray_256.tif'))/255;  % loading image
  * u0 = Im + .03*randn(size(Im)); % adding noise
- * tic; u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550); toc;
+ * tic; u = TGV_PD(single(u0), 0.02, 1.3, 1, 550); toc;
  *
- * to compile with OMP support: mex TGV_PD.c  TGV_PD_core.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+ * to compile with OMP support: mex TGV_PD.c TGV_PD_core.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
  * References:
  * K. Bredies "Total Generalized Variation"
  *
@@ -92,7 +92,7 @@ void mexFunction(
         
         
          /*printf("%i \n", i);*/
-    L2 = 12.0; /*Lipshitz constant*/
+    L2 = 12.0f; /*Lipshitz constant*/
     tau = 1.0/pow(L2,0.5);
     sigma = 1.0/pow(L2,0.5);
     
