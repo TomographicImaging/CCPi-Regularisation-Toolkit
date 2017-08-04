@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazanteev
+Copyright 2017 Daniil Kazantsev
 Copyright 2017 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -188,13 +188,4 @@ float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3,
 	return 1;
 }
 
-/* General Functions */
-/*****************************************************************/
-/* Copy Image */
-float copyIm(float *A, float *B, int dimX, int dimY, int dimZ)
-{
-	int j;
-#pragma omp parallel for shared(A, B) private(j)
-	for (j = 0; j<dimX*dimY*dimZ; j++)  B[j] = A[j];
-	return *B;
-}
+
