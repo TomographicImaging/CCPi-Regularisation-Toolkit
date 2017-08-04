@@ -29,14 +29,14 @@ extra_library_dirs = [library_include_path+"/../lib", "C:\\Apps\\Miniconda2\\env
 extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x']
 extra_libraries = []
 if platform.system() == 'Windows':
-    extra_compile_args[0:] = ['/DWIN32','/EHsc','/DBOOST_ALL_NO_LIB']   
-    extra_include_dirs += ["..\\ContourTree\\", "..\\win32\\" , "..\\Core\\","."]
+    extra_compile_args[0:] = ['/DWIN32','/EHsc','/DBOOST_ALL_NO_LIB' , '/openmp' ]   
+    extra_include_dirs += ["..\\..\\main_func\\regularizers_CPU\\","."]
     if sys.version_info.major == 3 :   
         extra_libraries += ['boost_python3-vc140-mt-1_64', 'boost_numpy3-vc140-mt-1_64']
     else:
         extra_libraries += ['boost_python-vc90-mt-1_64', 'boost_numpy-vc90-mt-1_64']
 else:
-    extra_include_dirs += ["../ContourTree/", "../Core/","."]
+    extra_include_dirs += ["../../main_func/regularizers_CPU","."]
     if sys.version_info.major == 3:
         extra_libraries += ['boost_python3', 'boost_numpy3','gomp']
     else:
@@ -47,8 +47,12 @@ setup(
 	description='CCPi Core Imaging Library - FISTA Reconstruction Module',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("fista",
-                             sources=[  "Matlab2Python_utils.cpp",
+    ext_modules = [Extension("regularizers",
+                             sources=["fista_module.cpp",
+                                      "..\\..\\main_func\\regularizers_CPU\\FGP_TV_core.c",
+                                      "..\\..\\main_func\\regularizers_CPU\\SplitBregman_TV_core.c",
+                                      "..\\..\\main_func\\regularizers_CPU\\LLT_model_core.c",
+                                      "..\\..\\main_func\\regularizers_CPU\\utils.c"
                                         ],
                              include_dirs=extra_include_dirs, library_dirs=extra_library_dirs, extra_compile_args=extra_compile_args, libraries=extra_libraries ), 
     
