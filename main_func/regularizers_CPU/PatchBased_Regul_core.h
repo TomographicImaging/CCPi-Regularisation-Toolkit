@@ -19,7 +19,7 @@ limitations under the License.
 
 #define _USE_MATH_DEFINES
 
-#include <matrix.h>
+//#include <matrix.h>
 #include <math.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -58,7 +58,12 @@ TestTemporalSmoothing.m
 * 02/07/2014
 * Harwell, UK
 */
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 float pad_crop(float *A, float *Ap, int OldSizeX, int OldSizeY, int OldSizeZ, int NewSizeX, int NewSizeY, int NewSizeZ, int padXY, int switchpad_crop);
 float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, int SimilW, float h, float lambda);
 float PB_FUNC3D(float *A, float *B, int dimX, int dimY, int dimZ, int padXY, int SearchW, int SimilW, float h, float lambda);
+#ifdef __cplusplus
+}
+#endif

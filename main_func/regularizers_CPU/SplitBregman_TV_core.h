@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazanteev
+Copyright 2017 Daniil Kazantsev
 Copyright 2017 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include <matrix.h>
+//#include <matrix.h>
 #include <math.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -49,6 +49,10 @@ limitations under the License.
 * D. Kazantsev, 2016*
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
 float gauss_seidel2D(float *U, float *A, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
 float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
@@ -59,3 +63,7 @@ float gauss_seidel3D(float *U, float *A, float *Dx, float *Dy, float *Dz, float 
 float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
 float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
 float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ);
+
+#ifdef __cplusplus
+}
+#endif
