@@ -52,6 +52,7 @@ setup(
                                       "..\\..\\main_func\\regularizers_CPU\\FGP_TV_core.c",
                                       "..\\..\\main_func\\regularizers_CPU\\SplitBregman_TV_core.c",
                                       "..\\..\\main_func\\regularizers_CPU\\LLT_model_core.c",
+                                      "..\\..\\main_func\\regularizers_CPU\\PatchBased_Regul_core.c",
                                       "..\\..\\main_func\\regularizers_CPU\\utils.c"
                                         ],
                              include_dirs=extra_include_dirs, library_dirs=extra_library_dirs, extra_compile_args=extra_compile_args, libraries=extra_libraries ), 
