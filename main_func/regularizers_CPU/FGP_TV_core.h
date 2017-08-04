@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazanteev
+Copyright 2017 Daniil Kazantsev
 Copyright 2017 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <matrix.h>
+//#include <matrix.h>
 #include <math.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -51,7 +51,9 @@ limitations under the License.
 * D. Kazantsev, 2016-17
 *
 */
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 //float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
 float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
@@ -64,3 +66,6 @@ float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R
 float Proj_func3D(float *P1, float *P2, float *P3, int dimX, int dimY, int dimZ);
 float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int dimX, int dimY, int dimZ);
 float Obj_func_CALC3D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY, int dimZ);
+#ifdef __cplusplus
+}
+#endif
