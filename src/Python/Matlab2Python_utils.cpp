@@ -128,7 +128,11 @@ T * mxGetData(const np::ndarray pm) {
 
 template<typename T>
 np::ndarray zeros(int dims , int * dim_array, T el) {
-	bp::tuple shape = bp::make_tuple(dim_array[0], dim_array[1], dim_array[2]);
+	bp::tuple shape;
+	if (dims == 3)
+		shape = bp::make_tuple(dim_array[0], dim_array[1], dim_array[2]);
+	else if (dims == 2)
+		shape = bp::make_tuple(dim_array[0], dim_array[1]);
 	np::dtype dtype = np::dtype::get_builtin<T>();
 	np::ndarray zz = np::zeros(shape, dtype);
 	return zz;
@@ -163,7 +167,7 @@ bp::list mexFunction( np::ndarray input ) {
 			for (int k = 0; k < dim_array[2]; k++) {
 				int index = k + dim_array[2] * j + dim_array[2] * dim_array[1] * i;
 				int val = (*(A + index));
-				float fval = (float)val;
+				float fval = sqrt((float)val);
 				std::memcpy(B + index , &val, sizeof(int));
 				std::memcpy(C + index , &fval, sizeof(float));
 			}
@@ -186,7 +190,7 @@ bp::list mexFunction( np::ndarray input ) {
 }
 
 
-BOOST_PYTHON_MODULE(fista)
+BOOST_PYTHON_MODULE(prova)
 {
 	np::initialize();
 
