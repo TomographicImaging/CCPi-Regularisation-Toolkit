@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazanteev
+Copyright 2017 Daniil Kazantsev
 Copyright 2017 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,33 @@ limitations under the License.
 */
 
 #include "mex.h"
+#include "matrix.h"
 #include "LLT_model_core.h"
-
+/* C-OMP implementation of Lysaker, Lundervold and Tai (LLT) model of higher order regularization penalty
+*
+* Input Parameters:
+* 1. U0 - original noise image/volume
+* 2. lambda - regularization parameter
+* 3. tau - time-step  for explicit scheme
+* 4. iter - iterations number
+* 5. epsil  - tolerance constant (to terminate earlier)
+* 6. switcher - default is 0, switch to (1) to restrictive smoothing in Z dimension (in test)
+*
+* Output:
+* Filtered/regularized image
+*
+* Example:
+* figure;
+* Im = double(imread('lena_gray_256.tif'))/255;  % loading image
+* u0 = Im + .03*randn(size(Im)); % adding noise
+* [Den] = LLT_model(single(u0), 10, 0.1, 1);
+*
+*
+* to compile with OMP support: mex LLT_model.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+* References: Lysaker, Lundervold and Tai (LLT) 2003, IEEE
+*
+* 28.11.16/Harwell
+*/
 
 void mexFunction(
         int nlhs, mxArray *plhs[],
