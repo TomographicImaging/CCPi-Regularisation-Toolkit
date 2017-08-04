@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazanteev
+Copyright 2017 Daniil Kazantsev
 Copyright 2017 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <matrix.h>
-#include <math.h>
+//#include <matrix.h>
+//#include <math.h>
 #include <stdlib.h>
 #include <memory.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include "omp.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+#ifdef __cplusplus
+}
+#endif
