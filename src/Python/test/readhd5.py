@@ -1,0 +1,28 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Aug 23 16:34:49 2017
+
+@author: ofn77899
+"""
+
+import h5py
+import numpy
+
+def getEntry(nx, location):
+    for item in nx[location].keys():
+        print (item)
+        
+filename = r'C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\Demos\DendrData.h5'
+nx = h5py.File(filename, "r")
+#getEntry(nx, '/')
+# I have exported the entries as children of /
+entries = [entry for entry in nx['/'].keys()]
+print (entries)
+
+Sino3D = numpy.asarray(nx.get('/Sino3D'))
+Weights3D = numpy.asarray(nx.get('/Weights3D'))
+angSize = numpy.asarray(nx.get('/angSize'), dtype=int)[0]
+angles_rad = numpy.asarray(nx.get('/angles_rad'))
+recon_size = numpy.asarray(nx.get('/recon_size'), dtype=int)[0]
+size_det = numpy.asarray(nx.get('/size_det'), dtype=int)[0]
+slices_tot = numpy.asarray(nx.get('/slices_tot'), dtype=int)[0]
