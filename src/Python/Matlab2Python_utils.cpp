@@ -188,6 +188,71 @@ bp::list mexFunction( np::ndarray input ) {
 	return result;
 
 }
+bp::list doSomething(np::ndarray input, PyObject *pyobj , PyObject *pyobj2) {
+
+	boost::python::object output(boost::python::handle<>(boost::python::borrowed(pyobj)));
+	int isOutput = !(output == boost::python::api::object());
+
+	boost::python::object calculate(boost::python::handle<>(boost::python::borrowed(pyobj2)));
+	int isCalculate = !(calculate == boost::python::api::object());
+
+	int number_of_dims = input.get_nd();
+	int dim_array[3];
+
+	dim_array[0] = input.shape(0);
+	dim_array[1] = input.shape(1);
+	if (number_of_dims == 2) {
+		dim_array[2] = -1;
+	}
+	else {
+		dim_array[2] = input.shape(2);
+	}
+
+	/**************************************************************************/
+	np::ndarray zz = zeros(3, dim_array, (int)0);
+	np::ndarray fzz = zeros(3, dim_array, (float)0);
+	/**************************************************************************/
+
+	int * A = reinterpret_cast<int *>(input.get_data());
+	int * B = reinterpret_cast<int *>(zz.get_data());
+	float * C = reinterpret_cast<float *>(fzz.get_data());
+
+	//Copy data and cast
+	for (int i = 0; i < dim_array[0]; i++) {
+		for (int j = 0; j < dim_array[1]; j++) {
+			for (int k = 0; k < dim_array[2]; k++) {
+				int index = k + dim_array[2] * j + dim_array[2] * dim_array[1] * i;
+				int val = (*(A + index));
+				float fval = sqrt((float)val);
+				std::memcpy(B + index, &val, sizeof(int));
+				std::memcpy(C + index, &fval, sizeof(float));
+				// if the PyObj is not None evaluate the function 
+				if (isOutput)	
+					output(fval);
+				if (isCalculate) {
+					float nfval = (float)bp::extract<float>(calculate(val));
+					if (isOutput)
+						output(nfval);
+					std::memcpy(C + index, &nfval, sizeof(float));
+				}
+			}
+		}
+	}
+
+
+	bp::list result;
+
+	result.append<int>(number_of_dims);
+	result.append<int>(dim_array[0]);
+	result.append<int>(dim_array[1]);
+	result.append<int>(dim_array[2]);
+	result.append<np::ndarray>(zz);
+	result.append<np::ndarray>(fzz);
+
+	//result.append<bp::tuple>(tup);
+	return result;
+
+}
 
 
 BOOST_PYTHON_MODULE(prova)
@@ -196,7 +261,7 @@ BOOST_PYTHON_MODULE(prova)
 
 	//To specify that this module is a package
 	bp::object package = bp::scope();
-	package.attr("__path__") = "fista";
+	package.attr("__path__") = "prova";
 
 	np::dtype dt1 = np::dtype::get_builtin<uint8_t>();
 	np::dtype dt2 = np::dtype::get_builtin<uint16_t>();
@@ -207,4 +272,5 @@ BOOST_PYTHON_MODULE(prova)
 	//numpy_boost_python_register_type<float, 3>();
 	//numpy_boost_python_register_type<double, 3>();
 	def("mexFunction", mexFunction);
+	def("doSomething", doSomething);
 }

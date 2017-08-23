@@ -30,13 +30,13 @@ extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x'
 extra_libraries = []
 if platform.system() == 'Windows':
     extra_compile_args[0:] = ['/DWIN32','/EHsc','/DBOOST_ALL_NO_LIB']   
-    extra_include_dirs += ["..\\ContourTree\\", "..\\win32\\" , "..\\Core\\","."]
+    #extra_include_dirs += ["..\\ContourTree\\", "..\\win32\\" , "..\\Core\\","."]
     if sys.version_info.major == 3 :   
         extra_libraries += ['boost_python3-vc140-mt-1_64', 'boost_numpy3-vc140-mt-1_64']
     else:
         extra_libraries += ['boost_python-vc90-mt-1_64', 'boost_numpy-vc90-mt-1_64']
 else:
-    extra_include_dirs += ["../ContourTree/", "../Core/","."]
+    #extra_include_dirs += ["../ContourTree/", "../Core/","."]
     if sys.version_info.major == 3:
         extra_libraries += ['boost_python3', 'boost_numpy3','gomp']
     else:
@@ -47,7 +47,7 @@ setup(
 	description='CCPi Core Imaging Library - FISTA Reconstruction Module',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("fista",
+    ext_modules = [Extension("prova",
                              sources=[  "Matlab2Python_utils.cpp",
                                         ],
                              include_dirs=extra_include_dirs, library_dirs=extra_library_dirs, extra_compile_args=extra_compile_args, libraries=extra_libraries ), 
