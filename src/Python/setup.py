@@ -47,7 +47,7 @@ setup(
 	description='CCPi Core Imaging Library - FISTA Reconstruction Module',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("regularizers",
+    ext_modules = [Extension("ccpi.imaging.cpu_regularizers",
                              sources=["fista_module.cpp",
                                       "../../main_func/regularizers_CPU/FGP_TV_core.c",
                                       "../../main_func/regularizers_CPU/SplitBregman_TV_core.c",
@@ -60,5 +60,5 @@ setup(
     
     ],
 	zip_safe = False,	
-	packages = {'ccpi','ccpi.reconstruction'},
+	packages = {'ccpi','ccpi.fistareconstruction'},
 )
