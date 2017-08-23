@@ -14,7 +14,8 @@ import os
 from enum import Enum
 import timeit
 
-from Regularizer import Regularizer
+#from Regularizer import Regularizer
+from ccpi.imaging.Regularizer import Regularizer
 
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
