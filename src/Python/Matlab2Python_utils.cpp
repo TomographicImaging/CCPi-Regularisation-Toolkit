@@ -123,7 +123,7 @@ T * mxGetData(const np::ndarray pm) {
 	probably this would work.
 	A = reinterpret_cast<float *>(prhs[0]);
 	*/
-	return reinterpret_cast<T *>(prhs[0]);
+	//return reinterpret_cast<T *>(prhs[0]);
 }
 
 template<typename T>
