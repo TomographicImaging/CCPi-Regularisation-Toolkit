@@ -98,7 +98,7 @@ else
         for i = 1:niter
             [id,x1] = astra_create_backprojection3d_cuda(sqweight.*y, proj_geomT, vol_geomT);
             s = norm(x1(:));
-            x1 = x1/s;
+            x1 = x1./s;
             [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geomT, vol_geomT);
             y = sqweight.*y;
             astra_mex_data3d('delete', sino_id);
@@ -196,7 +196,7 @@ end
 if (isfield(params,'Regul_LambdaTGV'))
     LambdaTGV = params.Regul_LambdaTGV;
 else
-    LambdaTGV = 0.01;
+    LambdaTGV = 0;
 end
 if (isfield(params,'Ring_LambdaR_L1'))
     lambdaR_L1 = params.Ring_LambdaR_L1;
@@ -369,6 +369,7 @@ if (subsets == 0)
                 X2 = LLT_model(single(X), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
             end
             X = 0.5.*(X + X2); % averaged combination of two solutions
+            
         end
         if (lambdaPB > 0)
             % Patch-Based regularization (can be slow on CPU)
@@ -384,7 +385,7 @@ if (subsets == 0)
         if (LambdaTGV > 0)
                 % Total Generalized variation (currently only 2D)
                 lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
-                lamTGV2 = 0.5; % second-order term
+                lamTGV2 = 0.8; % second-order term
                 for kkk = 1:SlicesZ
                 X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV, lamTGV1, lamTGV2, IterationsRegul);
                 end
