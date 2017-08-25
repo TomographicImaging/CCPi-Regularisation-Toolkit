@@ -23,10 +23,10 @@ nx = h5py.File(filename, "r")
 entries = [entry for entry in nx['/'].keys()]
 print (entries)
 
-Sino3D = numpy.asarray(nx.get('/Sino3D'))
-Weights3D = numpy.asarray(nx.get('/Weights3D'))
+Sino3D = numpy.asarray(nx.get('/Sino3D'), dtype="float32")
+Weights3D = numpy.asarray(nx.get('/Weights3D'), dtype="float32")
 angSize = numpy.asarray(nx.get('/angSize'), dtype=int)[0]
-angles_rad = numpy.asarray(nx.get('/angles_rad'))
+angles_rad = numpy.asarray(nx.get('/angles_rad'), dtype="float32")
 recon_size = numpy.asarray(nx.get('/recon_size'), dtype=int)[0]
 size_det = numpy.asarray(nx.get('/size_det'), dtype=int)[0]
 slices_tot = numpy.asarray(nx.get('/slices_tot'), dtype=int)[0]
@@ -62,17 +62,18 @@ vol_geom = astra.creators.create_vol_geom( image_size_x,
  #N = params.vol_geom.GridColCount
  
 pars = dict()
-pars['projector_geometry'] = proj_geom
-pars['output_geometry'] = vol_geom
-pars['input_sinogram'] = Sino3D
+pars['projector_geometry'] = proj_geom.copy()
+pars['output_geometry'] = vol_geom.copy()
+pars['input_sinogram'] = Sino3D.copy()
 sliceZ , nangles , detectors  = numpy.shape(Sino3D)
 pars['detectors'] = detectors
 pars['number_of_angles'] = nangles
 pars['SlicesZ'] = sliceZ
     
 
-pars['weights'] = numpy.ones(numpy.shape(pars['input_sinogram']))
-         
+#pars['weights'] = numpy.ones(numpy.shape(pars['input_sinogram']))
+pars['weights'] = Weights3D.copy()         
+
 N = pars['output_geometry']['GridColCount']
 proj_geom = pars['projector_geometry']
 vol_geom = pars['output_geometry']
@@ -82,7 +83,7 @@ SlicesZ = pars['SlicesZ']
 if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
     #% for parallel geometry we can do just one slice
     print('Calculating Lipshitz constant for parallel beam geometry...')
-    niter = 15;# % number of iteration for the PM
+    niter = 16;# % number of iteration for the PM
     #N = params.vol_geom.GridColCount;
     #x1 = rand(N,N,1);
     x1 = numpy.random.rand(1,N,N)
@@ -96,7 +97,8 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
     #[sino_id, y] = astra_create_sino3d_cuda(x1, proj_geomT, vol_geomT);
     
     import matplotlib.pyplot as plt
-    fig = plt.figure()
+    fig = [] 
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     
     #a.set_title('Lipschitz')        
     for i in range(niter):
@@ -107,14 +109,27 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
 #            y = sqweight.*y;
 #            astra_mex_data3d('delete', sino_id);
 #            astra_mex_data3d('delete', id);
-        print ("iteration {0}".format(i))
+        #print ("iteration {0}".format(i))
+        fig.append(plt.figure())
+
+        a=fig[-1].add_subplot(1,2,1)
+        a.text(0.05, 0.95, "iteration {0}, x1".format(i), transform=a.transAxes,
+               fontsize=14,verticalalignment='top', bbox=props)
+        
+        imgplot = plt.imshow(x1[0].copy())
+        
+        
         sino_id, y = astra.creators.create_sino3d_gpu(x1,
                                                   proj_geomT,
                                                   vol_geomT)
-        #a=fig.add_subplot(2,1,1)
-        #imgplot = plt.imshow(y[0])
+        a=fig[-1].add_subplot(1,2,2)
+        a.text(0.05, 0.95, "iteration {0}, y".format(i), 
+               transform=a.transAxes, fontsize=14,verticalalignment='top', 
+               bbox=props)
         
-        y = sqweight * y # element wise multiplication
+        imgplot = plt.imshow(y[0].copy())
+        
+        y = (sqweight * y).copy() # element wise multiplication
         
         #b=fig.add_subplot(2,1,2)
         #imgplot = plt.imshow(x1[0])
@@ -122,15 +137,17 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
         
         #astra_mex_data3d('delete', sino_id);
         astra.matlab.data3d('delete', sino_id)
+        del x1
             
-        idx,x1 = astra.creators.create_backprojection3d_gpu(sqweight*y, 
+        idx,x1 = astra.creators.create_backprojection3d_gpu((sqweight*y).copy(), 
                                                             proj_geomT,
-                                                            vol_geomT);
-        print ("shape {1} x1 {0}".format(x1.T[:4].T, numpy.shape(x1)))
+                                                            vol_geomT)
+        del y
+        
+                                                            
         s = numpy.linalg.norm(x1)
         ### this line?
-        x1 = x1/s;
-        print ("x1 {0}".format(x1.T[:4].T))
+        x1 = (x1/s).copy();
         
 #        ### this line?
 #        sino_id, y = astra.creators.create_sino3d_gpu(x1, 
@@ -138,10 +155,13 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
 #                                                      vol_geomT);
 #        y = sqweight * y;
         astra.matlab.data3d('delete', sino_id);
-        astra.matlab.data3d('delete', idx);
+        astra.matlab.data3d('delete', idx)
+        print ("iteration {0} s= {1}".format(i,s))
+        
     #end
     del proj_geomT
     del vol_geomT
+    #plt.show()
 else:
     #% divergen beam geometry
     print('Calculating Lipshitz constant for divergen beam geometry...')
