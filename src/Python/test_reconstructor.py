@@ -58,7 +58,8 @@ vol_geom = astra.creators.create_vol_geom( image_size_x,
 ## First pass the arguments to the FISTAReconstructor and test the
 ## Lipschitz constant
 
-#fistaRecon = FISTAReconstructor(proj_geom, vol_geom, Sino3D )
+fistaRecon = FISTAReconstructor(proj_geom, vol_geom, Sino3D , weights=Weights3D)
+print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
  #N = params.vol_geom.GridColCount
  
 pars = dict()
@@ -83,7 +84,7 @@ SlicesZ = pars['SlicesZ']
 if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
     #% for parallel geometry we can do just one slice
     print('Calculating Lipshitz constant for parallel beam geometry...')
-    niter = 16;# % number of iteration for the PM
+    niter = 5;# % number of iteration for the PM
     #N = params.vol_geom.GridColCount;
     #x1 = rand(N,N,1);
     x1 = numpy.random.rand(1,N,N)
@@ -129,7 +130,7 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
         
         imgplot = plt.imshow(y[0].copy())
         
-        y = (sqweight * y).copy() # element wise multiplication
+        y = (sqweight * y) # element wise multiplication
         
         #b=fig.add_subplot(2,1,2)
         #imgplot = plt.imshow(x1[0])
@@ -139,7 +140,7 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
         astra.matlab.data3d('delete', sino_id)
         del x1
             
-        idx,x1 = astra.creators.create_backprojection3d_gpu((sqweight*y).copy(), 
+        idx,x1 = astra.creators.create_backprojection3d_gpu((sqweight*y), 
                                                             proj_geomT,
                                                             vol_geomT)
         del y
@@ -147,7 +148,7 @@ if (proj_geom['type'] == 'parallel') or (proj_geom['type'] == 'parallel3d'):
                                                             
         s = numpy.linalg.norm(x1)
         ### this line?
-        x1 = (x1/s).copy();
+        x1 = (x1/s)
         
 #        ### this line?
 #        sino_id, y = astra.creators.create_sino3d_gpu(x1, 
