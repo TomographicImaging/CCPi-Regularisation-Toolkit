@@ -9,7 +9,7 @@ Based on DemoRD2.m
 import h5py
 import numpy
 
-from ccpi.reconstruction_dev.FISTAReconstructor import FISTAReconstructor
+from ccpi.fista.FISTAReconstructor import FISTAReconstructor
 import astra
 
 ##def getEntry(nx, location):
