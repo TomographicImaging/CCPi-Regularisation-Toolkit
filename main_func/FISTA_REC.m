@@ -104,7 +104,7 @@ else
             astra_mex_data3d('delete', sino_id);
             astra_mex_data3d('delete', id);
         end
-        clear proj_geomT vol_geomT
+        %clear proj_geomT vol_geomT
     else
         % divergen beam geometry
         fprintf('%s \n', 'Calculating Lipshitz constant for divergen beam geometry... will take some time!');
@@ -309,7 +309,7 @@ if (subsets == 0)
         if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
 			sino_updt = zeros(size(sino),'single');
 			for kkk = 1:SlicesZ			
-			  [sino_id, sino_updt(:,kkk,:)] = astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
+			  [sino_id, sino_updt(:,:,kkk)] = astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
 			  astra_mex_data3d('delete', sino_id);
 			end
 		else
@@ -338,7 +338,7 @@ if (subsets == 0)
         if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
         x_temp = zeros(size(X),'single');
 			for kkk = 1:SlicesZ	        
-			[id, x_temp(:,:,kkk)] = astra_create_backprojection3d_cuda(squeeze(residual(:,kkk,:)), proj_geomT, vol_geomT);
+			[id, x_temp(:,:,kkk)] = astra_create_backprojection3d_cuda(squeeze(residual(:,:,kkk)), proj_geomT, vol_geomT);
 			astra_mex_data3d('delete', id);
 			end
         else
