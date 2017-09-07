@@ -305,7 +305,17 @@ if (subsets == 0)
         t_old = t;
         r_old = r;
         
+        % if the geometry is parallel use slice-by-slice projection-backprojection routine 
+        if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
+			sino_updt = zeros(size(sino),'single');
+			for kkk = 1:SlicesZ			
+			  [sino_id, sino_updt(:,kkk,:)] = astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
+			  astra_mex_data3d('delete', sino_id);
+			end
+		else
+		% for divergent 3D geometry (for Matlab watch the GPU memory overflow)
         [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+        end
         
         if (lambdaR_L1 > 0)
             % the ring removal part (Group-Huber fidelity)
@@ -324,8 +334,16 @@ if (subsets == 0)
         
         objective(i) = (0.5*norm(residual(:))^2)/(Detectors*anglesNumb*SlicesZ); % for the objective function output
         
+        % if the geometry is parallel use slice-by-slice projection-backprojection routine 
+        if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
+        x_temp = zeros(size(X),'single');
+			for kkk = 1:SlicesZ	        
+			[id, x_temp(:,:,kkk)] = astra_create_backprojection3d_cuda(squeeze(residual(:,kkk,:)), proj_geomT, vol_geomT);
+			astra_mex_data3d('delete', id);
+			end
+        else
         [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
-        
+        end
         X = X_t - (1/L_const).*x_temp;
         astra_mex_data3d('delete', sino_id);
         astra_mex_data3d('delete', id);
