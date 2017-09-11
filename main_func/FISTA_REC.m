@@ -19,7 +19,8 @@ function [X,  output] = FISTA_REC(params)
 %       - .iterFISTA (iterations for the main loop, default 40)
 %       - .L_const (Lipschitz constant, default Power method)                                                                                                    )
 %       - .X_ideal (ideal image, if given)
-%       - .weights (statisitcal weights, size of the sinogram)
+%       - .weights (statisitcal weights for the PWLS model, size of the sinogram)
+%       - .fidelity (use 'studentt' fidelity)
 %       - .ROI (Region-of-interest, only if X_ideal is given)
 %       - .initialize (a 'warm start' using SIRT method from ASTRA)
 %----------------Regularization choices------------------------
@@ -91,6 +92,15 @@ if (isfield(params,'weights'))
     weights = params.weights;
 else
     weights = ones(size(sino));
+end
+if (isfield(params,'fidelity'))
+	studentt = 0;
+    if (strcmp(params.fidelity,'studentt') == 1)
+    studentt = 1;
+    lambdaR_L1 = 0;
+    end    
+else
+    studentt = 0;    
 end
 if (isfield(params,'L_const'))
     L_const = params.L_const;
@@ -357,12 +367,25 @@ if (subsets == 0)
                 vec = squeeze(vec(:,1,:));
             end
             r = r_x - (1./L_const).*vec;
-        else
-            % no ring removal
+            objective(i) = (0.5*sum(residual(:).^2)); % for the objective function output
+        else            
+			if (studentt == 1)
+				% artifacts removal with Students t penalty
+				residual = weights.*(sino_updt - sino);
+				for kkk = 1:SlicesZ
+				res_vec = reshape(residual(:,:,kkk), Detectors*anglesNumb, 1); % 1D vectorized sinogram
+                %s = 100;
+                %gr = (2)*res_vec./(s*2 + conj(res_vec).*res_vec);
+                [ff, gr] = studentst(res_vec, 1);
+                residual(:,:,kkk) = reshape(gr, Detectors, anglesNumb);
+				end            
+				objective(i) = ff; % for the objective function output
+            else
+            % no ring removal (LS model)
             residual = weights.*(sino_updt - sino);
-        end
-        
-        objective(i) = (0.5*sum(residual(:).^2)); % for the objective function output
+            objective(i) = (0.5*sum(residual(:).^2)); % for the objective function output
+            end	
+        end       
         
         % if the geometry is parallel use slice-by-slice projection-backprojection routine
         if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
@@ -549,9 +572,24 @@ else
                 end
                 r = r_x - (1./L_const).*vec;
             else
-                [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
-                % no ring removal
-                residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));
+                [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);                
+                
+                if (studentt == 1)
+				% artifacts removal with Students t penalty
+				residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));
+				
+				for kkk = 1:SlicesZ
+				res_vec = reshape(residual(:,:,kkk), Detectors*numProjSub, 1); % 1D vectorized sinogram
+                %s = 100;
+                %gr = (2)*res_vec./(s*2 + conj(res_vec).*res_vec);
+                [ff, gr] = studentst(res_vec, 1);
+                residual(:,:,kkk) = reshape(gr, Detectors, numProjSub);
+				end            
+				objective(i) = ff; % for the objective function output
+				else
+				% no ring removal (LS model)
+				residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));				
+				end	               
             end
             
             [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geomSUB, vol_geom);
