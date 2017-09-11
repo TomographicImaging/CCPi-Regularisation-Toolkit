@@ -54,7 +54,7 @@ void mexFunction(
 {
     int number_of_dims, iter, dimX, dimY, dimZ, ll, j, count, methTV;
     const int  *dim_array;
-    float *A, *D=NULL, *D_old=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_old=NULL, *P2_old=NULL, *P3_old=NULL, *R1=NULL, *R2=NULL, *R3=NULL, lambda, tk, tkp1, re, re1, re_old, epsil, funcval;
+    float *A, *D=NULL, *D_old=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_old=NULL, *P2_old=NULL, *P3_old=NULL, *R1=NULL, *R2=NULL, *R3=NULL, lambda, tk, tkp1, re, re1, re_old, epsil;
     
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     dim_array = mxGetDimensions(prhs[0]);
@@ -78,7 +78,6 @@ void mexFunction(
         mxFree(penalty_type);
     }
     /*output function value (last iteration) */
-    funcval = 0.0f;
     plhs[1] = mxCreateNumericMatrix(1, 1, mxSINGLE_CLASS, mxREAL);  
     float *funcvalA = (float *) mxGetData(plhs[1]);
         
@@ -117,7 +116,7 @@ void mexFunction(
             
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-            Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);
+            Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);                
             
             /* calculate norm */
             re = 0.0f; re1 = 0.0f;
@@ -129,23 +128,17 @@ void mexFunction(
             re = sqrt(re)/sqrt(re1);
             if (re < epsil)  count++;
             if (count > 3) {
-                Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);            
-                funcval = 0.0f; 
-                for(j=0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j],2);                           
-                funcvalA[0] = sqrt(funcval);     
+                Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY); 
                 break; }
             
             /* check that the residual norm is decreasing */
             if (ll > 2) {
                 if (re > re_old) {
-                    Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);            
-                    funcval = 0.0f; 
-                    for(j=0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j],2);                           
-                    funcvalA[0] = sqrt(funcval);                     
+                    Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY);                                   
                     break; }}            
             re_old = re;
-            /*printf("%f %i %i \n", re, ll, count); */
-            
+            /*printf("%f %i %i \n", re, ll, count); */                      
+          
             /*storing old values*/
             copyIm(D, D_old, dimX, dimY, dimZ);
             copyIm(P1, P1_old, dimX, dimY, dimZ);
@@ -153,12 +146,7 @@ void mexFunction(
             tk = tkp1;
             
             /* calculating the objective function value */
-            if (ll == (iter-1)) {
-            Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);            
-            funcval = 0.0f; 
-            for(j=0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j],2);                           
-            funcvalA[0] = sqrt(funcval);            
-            }
+            if (ll == (iter-1)) Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY);            
         }
         printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
     }
@@ -202,21 +190,14 @@ void mexFunction(
             /* stop if the norm residual is less than the tolerance EPS */
             if (re < epsil)  count++;
             if (count > 3) {
-                Obj_func3D(A, D, P1, P2, P3,lambda, dimX, dimY, dimZ);
-                funcval = 0.0f; 
-                for(j=0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j],2);                           
-                funcvalA[0] = sqrt(funcval);                  
+                Obj_func_CALC3D(A, D, funcvalA, lambda, dimX, dimY, dimZ);                            
                 break;}
             
             /* check that the residual norm is decreasing */
             if (ll > 2) {
                 if (re > re_old) {
-                Obj_func3D(A, D, P1, P2, P3,lambda, dimX, dimY, dimZ);
-                funcval = 0.0f; 
-                for(j=0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j],2);                           
-                funcvalA[0] = sqrt(funcval);  
-                break; }}
-            
+                Obj_func_CALC3D(A, D, funcvalA, lambda, dimX, dimY, dimZ);
+                }}            
             re_old = re;
             /*printf("%f %i %i \n", re, ll, count); */
             
@@ -227,13 +208,7 @@ void mexFunction(
             copyIm(P3, P3_old, dimX, dimY, dimZ);
             tk = tkp1;
             
-            if (ll == (iter-1)) {
-            Obj_func3D(A, D, P1, P2, P3,lambda, dimX, dimY, dimZ);
-            funcval = 0.0f; 
-            for(j=0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j],2);                           
-            funcvalA[0] = sqrt(funcval);            
-            }
-            
+            if (ll == (iter-1)) Obj_func_CALC3D(A, D, funcvalA, lambda, dimX, dimY, dimZ);            
         }
         printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
     }

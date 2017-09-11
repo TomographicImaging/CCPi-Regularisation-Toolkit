@@ -29,8 +29,10 @@ float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dim
 float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
 float Proj_func2D(float *P1, float *P2, int methTV, int dimX, int dimY);
 float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int dimX, int dimY);
+float Obj_func_CALC2D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY);
 
 float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ);
 float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ);
 float Proj_func3D(float *P1, float *P2, float *P3, int dimX, int dimY, int dimZ);
 float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int dimX, int dimY, int dimZ);
+float Obj_func_CALC3D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY, int dimZ);

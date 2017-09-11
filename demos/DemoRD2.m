@@ -6,7 +6,7 @@ close all
 %%
 % % adding paths
 addpath('../data/');
-addpath('../main_func/'); addpath('../main_func/regularizers_CPU/');
+addpath('../main_func/'); addpath('../main_func/regularizers_CPU/'); addpath('../main_func/regularizers_GPU/NL_Regul/'); addpath('../main_func/regularizers_GPU/Diffus_HO/');
 addpath('../supp/');
 
 load('DendrRawData.mat') % load raw data of 3D dendritic set
@@ -30,7 +30,7 @@ Weights3D = single(data_raw3D); % weights for PW model
 clear data_raw3D
 %%
 % set projection/reconstruction geometry here
-Z_slices = 1;
+Z_slices = 5;
 det_row_count = Z_slices;
 proj_geom = astra_create_proj_geom('parallel3d', 1, 1, det_row_count, size_det, angles_rad);
 vol_geom = astra_create_vol_geom(recon_size,recon_size,Z_slices);
@@ -107,25 +107,46 @@ tic; [X_fista_GH_TVLLT, outputGH_TVLLT] = FISTA_REC(params); toc;
 figure; imshow(X_fista_GH_TVLLT(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-GH-TV-LLT reconstruction');
 
 %%
-% fprintf('%s\n', 'Reconstruction using FISTA-OS-PB...');
-% % very-slow on CPU
-% clear params
-% params.proj_geom = proj_geom; % pass geometry to the function
-% params.vol_geom = vol_geom;
-% params.sino = Sino3D(:,:,1);
-% params.iterFISTA  = 12;
-% params.Regul_LambdaPatchBased = 1; % PB regularization parameter 
-% params.Regul_PB_h = 0.1; % threhsold parameter
-% params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
-% params.Ring_Alpha = 21; % to boost ring removal procedure
-% params.weights = Weights3D(:,:,1);
-% params.subsets = 16; % the number of ordered subsets 
-% params.show = 1;
-% params.maxvalplot = 2.5; params.slice = 1;
-% 
-% tic; [X_fista_GH_PB, outputPB] = FISTA_REC(params); toc;
-% figure; imshow(X_fista_GH_PB(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-PB reconstruction');
+fprintf('%s\n', 'Reconstruction using FISTA-OS-GH-HigherOrderDiffusion...');
+% !GPU version!
+clear params
+params.proj_geom = proj_geom; % pass geometry to the function
+params.vol_geom = vol_geom;
+params.sino = Sino3D(:,:,1:5);
+params.iterFISTA  = 25;
+params.Regul_LambdaDiffHO = 2; % DiffHO regularization parameter 
+params.Regul_DiffHO_EdgePar = 0.05; % threshold parameter
+params.Regul_Iterations = 150;
+params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
+params.Ring_Alpha = 21; % to boost ring removal procedure
+params.weights = Weights3D(:,:,1:5);
+params.subsets = 16; % the number of ordered subsets 
+params.show = 1;
+params.maxvalplot = 2.5; params.slice = 1;
+ 
+tic; [X_fista_GH_HO, outputHO] = FISTA_REC(params); toc;
+figure; imshow(X_fista_GH_HO(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-HigherOrderDiffusion reconstruction');
 
+%%
+fprintf('%s\n', 'Reconstruction using FISTA-PB...');
+% !GPU version!
+clear params
+params.proj_geom = proj_geom; % pass geometry to the function
+params.vol_geom = vol_geom;
+params.sino = Sino3D(:,:,1);
+params.iterFISTA  = 25;
+params.Regul_LambdaPatchBased_GPU = 3; % PB regularization parameter 
+params.Regul_PB_h = 0.04; % threhsold parameter
+params.Regul_PB_SearchW = 3;
+params.Regul_PB_SimilW  = 1;
+params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
+params.Ring_Alpha = 21; % to boost ring removal procedure
+params.weights = Weights3D(:,:,1);
+params.show = 1;
+params.maxvalplot = 2.5; params.slice = 1;
+ 
+tic; [X_fista_GH_PB, outputPB] = FISTA_REC(params); toc;
+figure; imshow(X_fista_GH_PB(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-PB reconstruction');
 %%
 fprintf('%s\n', 'Reconstruction using FISTA-OS-GH-TGV...');
 % still testing...
@@ -145,6 +166,7 @@ params.maxvalplot = 2.5; params.slice = 1;
 
 tic; [X_fista_GH_TGV, outputTGV] = FISTA_REC(params); toc;
 figure; imshow(X_fista_GH_TGV(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-GH-TGV reconstruction');
+
 
 %%
 % fprintf('%s\n', 'Reconstruction using FISTA-Student-TV...');

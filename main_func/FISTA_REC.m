@@ -1,6 +1,15 @@
 function [X,  output] = FISTA_REC(params)
 
 % <<<< FISTA-based reconstruction routine using ASTRA-toolbox >>>>
+% This code solves regularised PWLS problem using FISTA approach.
+% The code contains multiple regularisation penalties as well as it can be
+% accelerated by using ordered-subset version. Various projection
+% geometries supported.
+
+% DISCLAIMER
+% It is recommended to use ASTRA version 1.8 or later in order to avoid
+% crashing due to GPU memory overflow for big datasets
+
 % ___Input___:
 % params.[] file:
 %----------------General Parameters------------------------
@@ -18,11 +27,17 @@ function [X,  output] = FISTA_REC(params)
 %       2 .Regul_Lambda_SBTV (SplitBregman-TV regularization parameter)
 %       3 .Regul_LambdaLLT (Higher order LLT regularization parameter)
 %          3.1 .Regul_tauLLT (time step parameter for LLT (HO) term)
-%       4 .Regul_LambdaPatchBased (Patch-based nonlocal regularization parameter)
+%       4 .Regul_LambdaPatchBased_CPU (Patch-based nonlocal regularization parameter)
 %          4.1  .Regul_PB_SearchW (ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window))
 %          4.2  .Regul_PB_SimilW (ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window))
 %          4.3  .Regul_PB_h (PB penalty function threshold)
-%       5 .Regul_LambdaTGV (Total Generalized variation regularization parameter)
+%       5 .Regul_LambdaPatchBased_GPU (Patch-based nonlocal regularization parameter)
+%          5.1  .Regul_PB_SearchW (ratio of the searching window (e.g. 3 = (2*3+1) = 7 pixels window))
+%          5.2  .Regul_PB_SimilW (ratio of the similarity window (e.g. 1 = (2*1+1) = 3 pixels window))
+%          5.3  .Regul_PB_h (PB penalty function threshold)
+%       6 .Regul_LambdaDiffHO (Higher-Order Diffusion regularization parameter)
+%          6.1  .Regul_DiffHO_EdgePar (edge-preserving noise related parameter)
+%       7 .Regul_LambdaTGV (Total Generalized variation regularization parameter)
 %       - .Regul_tol (tolerance to terminate regul iterations, default 1.0e-04)
 %       - .Regul_Iterations (iterations for the selected penalty, default 25)
 %       - .Regul_Dimension ('2D' or '3D' way to apply regularization, '3D' is the default)
@@ -173,10 +188,15 @@ if (isfield(params,'Regul_tauLLT'))
 else
     tauHO = 0.0001;
 end
-if (isfield(params,'Regul_LambdaPatchBased'))
-    lambdaPB = params.Regul_LambdaPatchBased;
+if (isfield(params,'Regul_LambdaPatchBased_CPU'))
+    lambdaPB = params.Regul_LambdaPatchBased_CPU;
 else
     lambdaPB = 0;
+end
+if (isfield(params,'Regul_LambdaPatchBased_GPU'))
+    lambdaPB_GPU = params.Regul_LambdaPatchBased_GPU;
+else
+    lambdaPB_GPU = 0;
 end
 if (isfield(params,'Regul_PB_SearchW'))
     SearchW = params.Regul_PB_SearchW;
@@ -192,6 +212,16 @@ if (isfield(params,'Regul_PB_h'))
     h_PB = params.Regul_PB_h;
 else
     h_PB = 0.1; % default
+end
+if (isfield(params,'Regul_LambdaDiffHO'))
+    LambdaDiff_HO = params.Regul_LambdaDiffHO;
+else
+    LambdaDiff_HO = 0;
+end
+if (isfield(params,'Regul_DiffHO_EdgePar'))
+    LambdaDiff_HO_EdgePar = params.Regul_DiffHO_EdgePar;
+else
+    LambdaDiff_HO_EdgePar = 0.01;
 end
 if (isfield(params,'Regul_LambdaTGV'))
     LambdaTGV = params.Regul_LambdaTGV;
@@ -305,16 +335,16 @@ if (subsets == 0)
         t_old = t;
         r_old = r;
         
-        % if the geometry is parallel use slice-by-slice projection-backprojection routine 
+        % if the geometry is parallel use slice-by-slice projection-backprojection routine
         if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
-			sino_updt = zeros(size(sino),'single');
-			for kkk = 1:SlicesZ			
-			  [sino_id, sino_updt(:,:,kkk)] = astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
-			  astra_mex_data3d('delete', sino_id);
-			end
-		else
-		% for divergent 3D geometry (for Matlab watch the GPU memory overflow)
-        [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+            sino_updt = zeros(size(sino),'single');
+            for kkk = 1:SlicesZ
+                [sino_id, sino_updt(:,:,kkk)] = astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
+                astra_mex_data3d('delete', sino_id);
+            end
+        else
+            % for divergent 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
+            [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
         end
         
         if (lambdaR_L1 > 0)
@@ -332,17 +362,17 @@ if (subsets == 0)
             residual = weights.*(sino_updt - sino);
         end
         
-        objective(i) = (0.5*norm(residual(:))^2)/(Detectors*anglesNumb*SlicesZ); % for the objective function output
+        objective(i) = (0.5*sum(residual(:).^2)); % for the objective function output
         
-        % if the geometry is parallel use slice-by-slice projection-backprojection routine 
+        % if the geometry is parallel use slice-by-slice projection-backprojection routine
         if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
-        x_temp = zeros(size(X),'single');
-			for kkk = 1:SlicesZ	        
-			[id, x_temp(:,:,kkk)] = astra_create_backprojection3d_cuda(squeeze(residual(:,:,kkk)), proj_geomT, vol_geomT);
-			astra_mex_data3d('delete', id);
-			end
+            x_temp = zeros(size(X),'single');
+            for kkk = 1:SlicesZ
+                [id, x_temp(:,:,kkk)] = astra_create_backprojection3d_cuda(squeeze(residual(:,:,kkk)), proj_geomT, vol_geomT);
+                astra_mex_data3d('delete', id);
+            end
         else
-        [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
+            [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
         end
         X = X_t - (1/L_const).*x_temp;
         astra_mex_data3d('delete', sino_id);
@@ -360,7 +390,7 @@ if (subsets == 0)
                 % 3D regularization
                 [X, f_val] = FGP_TV(single(X), lambdaFGP_TV, IterationsRegul, tol, 'iso');
             end
-            objective(i) = objective(i) + f_val;
+            objective(i) = (objective(i) + f_val)./(Detectors*anglesNumb*SlicesZ);
         end
         if (lambdaSB_TV > 0)
             % Split Bregman regularization
@@ -390,7 +420,7 @@ if (subsets == 0)
             
         end
         if (lambdaPB > 0)
-            % Patch-Based regularization (can be slow on CPU)
+            % Patch-Based regularization (can be very slow on CPU)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
@@ -400,13 +430,35 @@ if (subsets == 0)
                 X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB);
             end
         end
-        if (LambdaTGV > 0)
-                % Total Generalized variation (currently only 2D)
-                lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
-                lamTGV2 = 0.8; % second-order term
+        if (lambdaPB_GPU > 0)
+            % Patch-Based regularization (GPU CUDA implementation)
+            if ((strcmp('2D', Dimension) == 1))
+                % 2D regularization
                 for kkk = 1:SlicesZ
-                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV, lamTGV1, lamTGV2, IterationsRegul);
+                    X(:,:,kkk) = NLM_GPU(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB_GPU);
                 end
+            else
+                X = NLM_GPU(single(X), SearchW, SimilW, h_PB, lambdaPB_GPU);
+            end
+        end
+        if (LambdaDiff_HO > 0)
+            % Higher-order diffusion penalty (GPU CUDA implementation)
+            if ((strcmp('2D', Dimension) == 1))
+                % 2D regularization
+                for kkk = 1:SlicesZ
+                    X(:,:,kkk) = Diff4thHajiaboli_GPU(single(X(:,:,kkk)), LambdaDiff_HO_EdgePar, LambdaDiff_HO, IterationsRegul);
+                end
+            else
+                X = Diff4thHajiaboli_GPU(X, LambdaDiff_HO_EdgePar, LambdaDiff_HO, IterationsRegul);
+            end
+        end
+        if (LambdaTGV > 0)
+            % Total Generalized variation (currently only 2D)
+            lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
+            lamTGV2 = 0.8; % second-order term
+            for kkk = 1:SlicesZ
+                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV, lamTGV1, lamTGV2, IterationsRegul);
+            end
         end
         
         if (lambdaR_L1 > 0)
@@ -470,7 +522,7 @@ else
                 
                 % the ring removal part (Group-Huber fidelity)
                 % first 2 iterations do additional work reconstructing whole dataset to ensure
-                % stablility
+                % the stablility
                 if (i < 3)
                     [sino_id2, sino_updt2] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
                     astra_mex_data3d('delete', sino_id2);
@@ -546,7 +598,7 @@ else
                     % 3D regularization
                     X2 = LLT_model(single(X), lambdaHO/subsets, tauHO/subsets, iterHO, 2.0e-05, 0);
                 end
-                X = 0.5.*(X + X2); % averaged combination of two solutions
+                X = 0.5.*(X + X2); % the averaged combination of two solutions
             end
             if (lambdaPB > 0)
                 % Patch-Based regularization (can be slow on CPU)
@@ -559,14 +611,36 @@ else
                     X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB/subsets);
                 end
             end
+            if (lambdaPB_GPU > 0)
+                % Patch-Based regularization (GPU CUDA implementation)
+                if ((strcmp('2D', Dimension) == 1))
+                    % 2D regularization
+                    for kkk = 1:SlicesZ
+                        X(:,:,kkk) = NLM_GPU(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB_GPU);
+                    end
+                else
+                    X = NLM_GPU(single(X), SearchW, SimilW, h_PB, lambdaPB_GPU);
+                end
+            end
+            if (LambdaDiff_HO > 0)
+                % Higher-order diffusion penalty (GPU CUDA implementation)
+                if ((strcmp('2D', Dimension) == 1))
+                    % 2D regularization
+                    for kkk = 1:SlicesZ
+                        X(:,:,kkk) = Diff4thHajiaboli_GPU(single(X(:,:,kkk)), LambdaDiff_HO_EdgePar, LambdaDiff_HO, round(IterationsRegul/subsets));
+                    end
+                else
+                    X = Diff4thHajiaboli_GPU(X, LambdaDiff_HO_EdgePar, LambdaDiff_HO, round(IterationsRegul/subsets));
+                end
+            end
             if (LambdaTGV > 0)
                 % Total Generalized variation (currently only 2D)
                 lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
                 lamTGV2 = 0.5; % second-order term
                 for kkk = 1:SlicesZ
-                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV/subsets, lamTGV1, lamTGV2, IterationsRegul);
+                    X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV/subsets, lamTGV1, lamTGV2, IterationsRegul);
                 end
-            end           
+            end
             
             if (lambdaR_L1 > 0)
                 r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator for ring vector

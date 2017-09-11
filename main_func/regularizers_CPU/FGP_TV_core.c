@@ -47,6 +47,30 @@ limitations under the License.
 
 /* 2D-case related Functions */
 /*****************************************************************/
+float Obj_func_CALC2D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY)
+{   
+    int i,j;
+    float f1, f2, val1, val2;
+    
+    /*data-related term */
+    f1 = 0.0f;
+    for(i=0; i<dimX*dimY; i++) f1 += pow(D[i] - A[i],2);    
+    
+    /*TV-related term */
+    f2 = 0.0f;
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+            /* boundary conditions  */
+            if (i == dimX-1) {val1 = 0.0f;} else {val1 = A[(i+1)*dimY + (j)] - A[(i)*dimY + (j)];}
+            if (j == dimY-1) {val2 = 0.0f;} else {val2 = A[(i)*dimY + (j+1)] - A[(i)*dimY + (j)];}    
+            f2 += sqrt(pow(val1,2) + pow(val2,2));
+        }}  
+    
+    /* sum of two terms */
+    funcvalA[0] = 0.5f*f1 + lambda*f2;     
+    return *funcvalA;
+}
+
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
 {
 	float val1, val2;
@@ -131,6 +155,31 @@ float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1,
 
 /* 3D-case related Functions */
 /*****************************************************************/
+float Obj_func_CALC3D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY, int dimZ)
+{   
+    int i,j,k;
+    float f1, f2, val1, val2, val3;
+    
+    /*data-related term */
+    f1 = 0.0f;
+    for(i=0; i<dimX*dimY*dimZ; i++) f1 += pow(D[i] - A[i],2);    
+    
+    /*TV-related term */
+    f2 = 0.0f;
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+            for(k=0; k<dimZ; k++) {
+            /* boundary conditions  */
+            if (i == dimX-1) {val1 = 0.0f;} else {val1 = A[(dimX*dimY)*k + (i+1)*dimY + (j)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}
+            if (j == dimY-1) {val2 = 0.0f;} else {val2 = A[(dimX*dimY)*k + (i)*dimY + (j+1)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}    
+            if (k == dimZ-1) {val3 = 0.0f;} else {val3 = A[(dimX*dimY)*(k+1) + (i)*dimY + (j)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}    
+            f2 += sqrt(pow(val1,2) + pow(val2,2)  + pow(val3,2));
+        }}}     
+    /* sum of two terms */
+    funcvalA[0] = 0.5f*f1 + lambda*f2;     
+    return *funcvalA;
+}
+
 float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
 {
 	float val1, val2, val3;
