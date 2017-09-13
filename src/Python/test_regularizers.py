@@ -76,7 +76,7 @@ fig = plt.figure()
 
 a=fig.add_subplot(2,3,1)
 a.set_title('noise')
-imgplot = plt.imshow(u0)
+imgplot = plt.imshow(u0,cmap="gray")
 
 reg_output = []
 ##############################################################################
@@ -138,20 +138,6 @@ textstr = out2[-1]
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-out2 = Regularizer.PatchBased_Regul(input=u0, regularization_parameter=0.05,
-                           searching_window_ratio=3,
-                           similarity_window_ratio=1,
-                           PB_filtering_parameter=0.08)
-pars = out2[-2]
-reg_output.append(out2)
-
-a=fig.add_subplot(2,3,5)
-
-
-textstr = out2[-1]
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
@@ -176,15 +162,6 @@ pars = out2[-2]
 reg_output.append(out2)
 
 a=fig.add_subplot(2,3,4)
-out2 = Regularizer.PatchBased_Regul(input=u0, regularization_parameter=0.05,
-                           searching_window_ratio=3,
-                           similarity_window_ratio=1,
-                           PB_filtering_parameter=0.08)
-pars = out2[-2]
-reg_output.append(out2)
-
-a=fig.add_subplot(2,3,5)
-
 
 textstr = out2[-1]
 
@@ -195,13 +172,6 @@ a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
-textstr = out2[-1]
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# place a text box in upper left in axes coords
-a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
 # ###################### PatchBased_Regul #########################################
 # # Quick 2D denoising example in Matlab:   
