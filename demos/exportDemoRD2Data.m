@@ -24,7 +24,7 @@ end
 
 Sino3D = Sino3D.*1000;
 Weights3D = single(data_raw3D); % weights for PW model
-clear data_raw3D
+%clear data_raw3D
 
 hdf5write('DendrData.h5', '/Weights3D', Weights3D)
 hdf5write('DendrData.h5', '/Sino3D', Sino3D, 'WriteMode', 'append')
