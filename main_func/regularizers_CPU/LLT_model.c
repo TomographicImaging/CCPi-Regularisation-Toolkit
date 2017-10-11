@@ -24,13 +24,7 @@ limitations under the License.
 /* C-OMP implementation of Lysaker, Lundervold and Tai (LLT) model of higher order regularization penalty
 *
 * Input Parameters:
-* 1. U0 - origanal noise image/volume
-=======
-/* C-OMP implementation of Lysaker, Lundervold and Tai (LLT) model of higher order regularization penalty
-*
-* Input Parameters:
 * 1. U0 - original noise image/volume
->>>>>>> fix typo and add include "matrix.h"
 * 2. lambda - regularization parameter
 * 3. tau - time-step  for explicit scheme
 * 4. iter - iterations number

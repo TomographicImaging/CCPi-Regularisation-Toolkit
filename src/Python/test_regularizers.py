@@ -5,15 +5,15 @@ Created on Fri Aug  4 11:10:05 2017
 @author: ofn77899
 """
 
-from ccpi.viewer.CILViewer2D import Converter
-import vtk
+#from ccpi.viewer.CILViewer2D import Converter
+#import vtk
 
 import matplotlib.pyplot as plt
 import numpy as np
 import os    
 from enum import Enum
 import timeit
-
+#from PIL import Image
 #from Regularizer import Regularizer
 from ccpi.imaging.Regularizer import Regularizer
 
@@ -46,12 +46,21 @@ def nrmse(im1, im2):
 # u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
 # u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
 
-filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
-reader = vtk.vtkTIFFReader()
-reader.SetFileName(os.path.normpath(filename))
-reader.Update()
-#vtk returns 3D images, let's take just the one slice there is as 2D
-Im = Converter.vtk2numpy(reader.GetOutput()).T[0]/255
+
+#filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
+filename = r"/home/ofn77899/Reconstruction/CCPi-FISTA_Reconstruction/data/lena_gray_512.tif"
+#filename = r'/home/algol/Documents/Python/STD_test_images/lena_gray_512.tif'
+
+#reader = vtk.vtkTIFFReader()
+#reader.SetFileName(os.path.normpath(filename))
+#reader.Update()
+Im = plt.imread(filename)                     
+#Im = Image.open('/home/algol/Documents/Python/STD_test_images/lena_gray_512.tif')/255
+#img.show()
+Im = np.asarray(Im, dtype='float32')
+
+
+
 
 #imgplot = plt.imshow(Im)
 perc = 0.05
@@ -68,7 +77,7 @@ fig = plt.figure()
 
 a=fig.add_subplot(2,3,1)
 a.set_title('noise')
-imgplot = plt.imshow(u0)
+imgplot = plt.imshow(u0,cmap="gray")
 
 reg_output = []
 ##############################################################################
@@ -80,6 +89,7 @@ reg_output = []
 use_object = True
 if use_object:
     reg = Regularizer(Regularizer.Algorithm.SplitBregman_TV)
+    print (reg.pars)
     reg.setParameter(input=u0)    
     reg.setParameter(regularization_parameter=10.)
     # or 
@@ -113,7 +123,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(plotme)
+imgplot = plt.imshow(plotme,cmap="gray")
 
 ###################### FGP_TV #########################################
 # u = FGP_TV(single(u0), 0.05, 100, 1e-04);
@@ -131,8 +141,12 @@ textstr = out2[-1]
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
+         verticalalignment='top', bbox=props)
 imgplot = plt.imshow(reg_output[-1][0])
+# place a text box in upper left in axes coords
+a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
+        verticalalignment='top', bbox=props)
+imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
 ###################### LLT_model #########################################
 # * u0 = Im + .03*randn(size(Im)); % adding noise
@@ -149,13 +163,16 @@ pars = out2[-2]
 reg_output.append(out2)
 
 a=fig.add_subplot(2,3,4)
+
 textstr = out2[-1]
+
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-imgplot = plt.imshow(reg_output[-1][0])
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
+
 
 # ###################### PatchBased_Regul #########################################
 # # Quick 2D denoising example in Matlab:   
@@ -164,9 +181,9 @@ imgplot = plt.imshow(reg_output[-1][0])
 # #   ImDen = PB_Regul_CPU(single(u0), 3, 1, 0.08, 0.05); 
 
 out2 = Regularizer.PatchBased_Regul(input=u0, regularization_parameter=0.05,
-                           searching_window_ratio=3,
-                           similarity_window_ratio=1,
-                           PB_filtering_parameter=0.08)
+                       searching_window_ratio=3,
+                       similarity_window_ratio=1,
+                       PB_filtering_parameter=0.08)
 pars = out2[-2]
 reg_output.append(out2)
 
@@ -180,20 +197,20 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(reg_output[-1][0])
+imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
 
-###################### TGV_PD #########################################
-# Quick 2D denoising example in Matlab:   
-#   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
-#   u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
-#   u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550);
+# ###################### TGV_PD #########################################
+# # Quick 2D denoising example in Matlab:   
+# #   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
+# #   u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
+# #   u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550);
 
 
 out2 = Regularizer.TGV_PD(input=u0, regularization_parameter=0.05,
-                          first_order_term=1.3,
-                          second_order_term=1,
-                          number_of_iterations=550)
+                           first_order_term=1.3,
+                           second_order_term=1,
+                           number_of_iterations=550)
 pars = out2[-2]
 reg_output.append(out2)
 
@@ -207,8 +224,8 @@ textstr = out2[-1]
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-imgplot = plt.imshow(reg_output[-1][0])
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
 
 plt.show()

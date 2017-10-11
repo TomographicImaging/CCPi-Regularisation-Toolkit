@@ -25,6 +25,7 @@ angSize = numpy.asarray(nx.get('/angSize'), dtype=int)[0]
 angles_rad = numpy.asarray(nx.get('/angles_rad'))
 recon_size = numpy.asarray(nx.get('/recon_size'), dtype=int)[0]
 size_det = numpy.asarray(nx.get('/size_det'), dtype=int)[0]
+
 slices_tot = numpy.asarray(nx.get('/slices_tot'), dtype=int)[0]
 
 #from ccpi.viewer.CILViewer2D import CILViewer2D
