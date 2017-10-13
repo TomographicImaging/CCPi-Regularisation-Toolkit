@@ -46,6 +46,7 @@ def nrmse(im1, im2):
 # u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
 # u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
 
+
 #filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
 filename = r"/home/ofn77899/Reconstruction/CCPi-FISTA_Reconstruction/data/lena_gray_512.tif"
 #filename = r'/home/algol/Documents/Python/STD_test_images/lena_gray_512.tif'

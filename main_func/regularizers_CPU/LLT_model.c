@@ -20,6 +20,7 @@ limitations under the License.
 #include "mex.h"
 #include "matrix.h"
 #include "LLT_model_core.h"
+
 /* C-OMP implementation of Lysaker, Lundervold and Tai (LLT) model of higher order regularization penalty
 *
 * Input Parameters:

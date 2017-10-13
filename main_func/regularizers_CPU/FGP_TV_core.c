@@ -19,8 +19,58 @@ limitations under the License.
 
 #include "FGP_TV_core.h"
 
+/* C-OMP implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
+ *
+ * Input Parameters:
+ * 1. Noisy image/volume [REQUIRED]
+ * 2. lambda - regularization parameter [REQUIRED]
+ * 3. Number of iterations [OPTIONAL parameter]
+ * 4. eplsilon: tolerance constant [OPTIONAL parameter]
+ * 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
+ *
+ * Output:
+ * [1] Filtered/regularized image
+ * [2] last function value 
+ *
+ * Example of image denoising:
+ * figure;
+ * Im = double(imread('lena_gray_256.tif'))/255;  % loading image
+ * u0 = Im + .05*randn(size(Im)); % adding noise
+ * u = FGP_TV(single(u0), 0.05, 100, 1e-04);
+ *
+ * This function is based on the Matlab's code and paper by
+ * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
+ *
+ * D. Kazantsev, 2016-17
+ *
+ */
+
 /* 2D-case related Functions */
 /*****************************************************************/
+float Obj_func_CALC2D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY)
+{   
+    int i,j;
+    float f1, f2, val1, val2;
+    
+    /*data-related term */
+    f1 = 0.0f;
+    for(i=0; i<dimX*dimY; i++) f1 += pow(D[i] - A[i],2);    
+    
+    /*TV-related term */
+    f2 = 0.0f;
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+            /* boundary conditions  */
+            if (i == dimX-1) {val1 = 0.0f;} else {val1 = A[(i+1)*dimY + (j)] - A[(i)*dimY + (j)];}
+            if (j == dimY-1) {val2 = 0.0f;} else {val2 = A[(i)*dimY + (j+1)] - A[(i)*dimY + (j)];}    
+            f2 += sqrt(pow(val1,2) + pow(val2,2));
+        }}  
+    
+    /* sum of two terms */
+    funcvalA[0] = 0.5f*f1 + lambda*f2;     
+    return *funcvalA;
+}
+
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
 {
 	float val1, val2;
@@ -105,6 +155,31 @@ float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1,
 
 /* 3D-case related Functions */
 /*****************************************************************/
+float Obj_func_CALC3D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY, int dimZ)
+{   
+    int i,j,k;
+    float f1, f2, val1, val2, val3;
+    
+    /*data-related term */
+    f1 = 0.0f;
+    for(i=0; i<dimX*dimY*dimZ; i++) f1 += pow(D[i] - A[i],2);    
+    
+    /*TV-related term */
+    f2 = 0.0f;
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+            for(k=0; k<dimZ; k++) {
+            /* boundary conditions  */
+            if (i == dimX-1) {val1 = 0.0f;} else {val1 = A[(dimX*dimY)*k + (i+1)*dimY + (j)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}
+            if (j == dimY-1) {val2 = 0.0f;} else {val2 = A[(dimX*dimY)*k + (i)*dimY + (j+1)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}    
+            if (k == dimZ-1) {val3 = 0.0f;} else {val3 = A[(dimX*dimY)*(k+1) + (i)*dimY + (j)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}    
+            f2 += sqrt(pow(val1,2) + pow(val2,2)  + pow(val3,2));
+        }}}     
+    /* sum of two terms */
+    funcvalA[0] = 0.5f*f1 + lambda*f2;     
+    return *funcvalA;
+}
+
 float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
 {
 	float val1, val2, val3;
