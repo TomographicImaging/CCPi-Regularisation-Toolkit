@@ -12,7 +12,7 @@ def getEntry(nx, location):
     for item in nx[location].keys():
         print (item)
         
-filename = r'C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\Demos\DendrData.h5'
+filename = r'/home/ofn77899/Reconstruction/CCPi-FISTA_Reconstruction/demos/DendrData.h5'
 nx = h5py.File(filename, "r")
 #getEntry(nx, '/')
 # I have exported the entries as children of /
