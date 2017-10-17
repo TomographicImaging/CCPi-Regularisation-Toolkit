@@ -81,7 +81,7 @@ class FISTAReconstructor():
         self.pars['projector_geometry'] = projector_geometry # proj_geom
         self.pars['output_geometry'] = output_geometry       # vol_geom
         self.pars['input_sinogram'] = input_sinogram         # sino
-        detectors, nangles, sliceZ = numpy.shape(input_sinogram)
+        sliceZ, nangles, detectors = numpy.shape(input_sinogram)
         self.pars['detectors'] = detectors
         self.pars['number_of_angles'] = nangles
         self.pars['SlicesZ'] = sliceZ
@@ -108,7 +108,9 @@ class FISTAReconstructor():
               'regularizer' , 
               'ring_lambda_R_L1',
               'ring_alpha',
-              'subsets')
+              'subsets',
+              'use_studentt_fidelity',
+              'studentt')
         self.acceptedInputKeywords = list(kw)
         
         # handle keyworded parameters
@@ -143,16 +145,18 @@ class FISTAReconstructor():
             else:
                 self.pars['region_of_interest'] = numpy.nonzero(
                     self.pars['ideal_image']>0.0)
-            
+                
+        # the regularizer must be a correctly instantiated object    
         if not 'regularizer' in kwargs.keys() :
             self.pars['regularizer'] = None
-        else:
-            # the regularizer must be a correctly instantiated object
-            if not 'ring_lambda_R_L1' in kwargs.keys():
-                self.pars['ring_lambda_R_L1'] = 0
-            if not 'ring_alpha' in kwargs.keys():
-                self.pars['ring_alpha'] = 1
 
+        #RING REMOVAL
+        if not 'ring_lambda_R_L1' in kwargs.keys():
+            self.pars['ring_lambda_R_L1'] = 0
+        if not 'ring_alpha' in kwargs.keys():
+            self.pars['ring_alpha'] = 1
+
+        # ORDERED SUBSET
         if not 'subsets' in kwargs.keys():
             self.pars['subsets'] = 0
         else:
@@ -160,6 +164,15 @@ class FISTAReconstructor():
 
         if not 'initialize' in kwargs.keys():
             self.pars['initialize'] = False
+
+        if not 'use_studentt_fidelity' in kwargs.keys():
+            self.setParameter(studentt=False)
+        else:
+            print ("studentt {0}".format(kwargs['use_studentt_fidelity']))
+            if kwargs['use_studentt_fidelity']:
+                raise Exception('Not implemented')
+            
+            self.setParameter(studentt=kwargs['use_studentt_fidelity'])
             
             
     def setParameter(self, **kwargs):
@@ -170,6 +183,8 @@ class FISTAReconstructor():
         '''
         for key , value in kwargs.items():
             if key in self.acceptedInputKeywords:
+                if key == 'use_studentt_fidelity':
+                    raise Exception('use_studentt_fidelity Not implemented')
                 self.pars[key] = value
             else:
                 raise Exception('Wrong parameter {0} for '.format(key) +
@@ -354,10 +369,28 @@ class FISTAReconstructor():
             #return subsets
 
         angles = self.getParameter('projector_geometry')['ProjectionAngles'] 
-            
-            
-            
         
+        #binEdges = numpy.linspace(angles.min(),
+        #                          angles.max(),
+        #                          subsets + 1)
+        binsDiscr, binEdges = numpy.histogram(angles, bins=subsets)
+        # get rearranged subset indices
+        IndicesReorg = numpy.zeros((numpy.shape(angles)))
+        counterM = 0
+        for ii in range(binsDiscr.max()):
+            counter = 0
+            for jj in range(subsets):
+                curr_index = ii + jj  + counter
+                #print ("{0} {1} {2}".format(binsDiscr[jj] , ii, counterM))
+                if binsDiscr[jj] > ii:
+                    if (counterM < numpy.size(IndicesReorg)):
+                        IndicesReorg[counterM] = curr_index
+                    counterM = counterM + 1
+                    
+                counter = counter + binsDiscr[jj] - 1    
+                
+            
+        return IndicesReorg
             
 
     def prepareForIteration(self):
@@ -368,23 +401,24 @@ class FISTAReconstructor():
         detectors, nangles, sliceZ  = numpy.shape(self.pars['input_sinogram'])
         self.r = numpy.zeros((detectors, sliceZ), dtype=numpy.float)
         # another ring variable
-        self.rx = self.r.copy()
+        self.r_x = self.r.copy()
 
         self.residual = numpy.zeros(numpy.shape(self.pars['input_sinogram']))
         
         if self.getParameter('Lipschitz_constant') is None:
             self.pars['Lipschitz_constant'] = \
                             self.calculateLipschitzConstantWithPowerMethod()
+        
 
     # prepareForIteration
 
     def iterate(self, Xin=None):
         # convenience variable storage
         proj_geom , vol_geom, sino , \
-                  SlicesZ = self.getParameter(['projector_geometry' ,
-                                                        'output_geometry',
-                                                        'input_sinogram',
-                                                        'SlicesZ'])
+                  SlicesZ = self.getParameter([ 'projector_geometry' ,
+                                                'output_geometry',
+                                                'input_sinogram',
+                                                'SlicesZ'])
                         
         t = 1
         if Xin is None:    
@@ -394,7 +428,8 @@ class FISTAReconstructor():
                 N = vol_geom['GridColCount']
                 X = numpy.zeros((N,N,SlicesZ), dtype=numpy.float)
         else:
-            X = Xin.copy()
+            # copy by reference
+            X = Xin
 
         X_t = X.copy()
         
@@ -402,28 +437,31 @@ class FISTAReconstructor():
             X_old = X.copy()
             t_old = t
             r_old = self.r.copy()
-            if self.pars['projector_geometry']['type'] == 'parallel' or \
-               self.pars['projector_geometry']['type'] == 'parallel3d':
+            if self.getParameter('projector_geometry')['type'] == 'parallel' or \
+               self.getParameter('projector_geometry')['type'] == 'parallel3d':
                 # if the geometry is parallel use slice-by-slice
                 # projection-backprojection routine
                 #sino_updt = zeros(size(sino),'single');
+                proj_geomT = proj_geom.copy()
+                proj_geomT['DetectorRowCount'] = 1
+                vol_geomT = vol_geom.copy()
+                vol_geomT['GridSliceCount'] = 1;
                 sino_updt = numpy.zeros(numpy.shape(sino), dtype=numpy.float)
-                
-                #for kkk = 1:SlicesZ
-                #    [sino_id, sino_updt(:,:,kkk)] =
-                # astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
-                #    astra_mex_data3d('delete', sino_id);
                 for kkk in range(SlicesZ):
+                    print (kkk)
                     sino_id, sino_updt[kkk] = \
                              astra.creators.create_sino3d_gpu(
-                                 X_t[kkk], proj_geomT, vol_geomT)
-                    
+                                 X_t[kkk:kkk+1], proj_geomT, vol_geomT)
+                    astra.matlab.data3d('delete', sino_id)
             else:
-                # for divergent 3D geometry (watch GPU memory overflow in
-                # Astra < 1.8
-                sino_id, y = astra.creators.create_sino3d_gpu(X_t, 
-                                                              proj_geom, 
-                                                              vol_geom)
-    
+                # for divergent 3D geometry (watch the GPU memory overflow in
+                # ASTRA versions < 1.8)
+                #[sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+                sino_id, sino_updt = astra.matlab.create_sino3d_gpu(
+                    X_t, proj_geom, vol_geom)
 
+
+            ## RING REMOVAL
+
+            ## REGULARIZATION
             
