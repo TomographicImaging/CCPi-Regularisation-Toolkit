@@ -108,9 +108,7 @@ class FISTAReconstructor():
               'regularizer' , 
               'ring_lambda_R_L1',
               'ring_alpha',
-              'subsets',
-              'use_studentt_fidelity',
-              'studentt')
+              'subsets')
         self.acceptedInputKeywords = list(kw)
         
         # handle keyworded parameters
@@ -141,10 +139,12 @@ class FISTAReconstructor():
         
         if not 'region_of_interest'in kwargs.keys() :
             if self.pars['ideal_image'] == None:
-                pass
+                self.pars['region_of_interest'] = None
             else:
-                self.pars['region_of_interest'] = numpy.nonzero(
-                    self.pars['ideal_image']>0.0)
+                ## nonzero if the image is larger than m
+                fsm = numpy.frompyfunc(lambda x,m: 1 if x>m else 0, 2,1)
+                
+                self.pars['region_of_interest'] = fsm(self.pars['ideal_image'], 0)
                 
         # the regularizer must be a correctly instantiated object    
         if not 'regularizer' in kwargs.keys() :
@@ -165,14 +165,7 @@ class FISTAReconstructor():
         if not 'initialize' in kwargs.keys():
             self.pars['initialize'] = False
 
-        if not 'use_studentt_fidelity' in kwargs.keys():
-            self.setParameter(studentt=False)
-        else:
-            print ("studentt {0}".format(kwargs['use_studentt_fidelity']))
-            if kwargs['use_studentt_fidelity']:
-                raise Exception('Not implemented')
-            
-            self.setParameter(studentt=kwargs['use_studentt_fidelity'])
+        
             
             
     def setParameter(self, **kwargs):
