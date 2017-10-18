@@ -15,7 +15,7 @@ function [X,  output] = FISTA_REC(params)
 %----------------General Parameters------------------------
 %       - .proj_geom (geometry of the projector) [required]
 %       - .vol_geom (geometry of the reconstructed object) [required]
-%       - .sino (vectorized in 2D or 3D sinogram) [required]
+%       - .sino (2D or 3D sinogram) [required]
 %       - .iterFISTA (iterations for the main loop, default 40)
 %       - .L_const (Lipschitz constant, default Power method)                                                                                                    )
 %       - .X_ideal (ideal image, if given)
@@ -94,45 +94,36 @@ else
     weights = ones(size(sino));
 end
 if (isfield(params,'fidelity'))
-	studentt = 0;
+    studentt = 0;
     if (strcmp(params.fidelity,'studentt') == 1)
-    studentt = 1;
-    lambdaR_L1 = 0;
-    end    
+        studentt = 1;
+    end
 else
-    studentt = 0;    
+    studentt = 0;
 end
 if (isfield(params,'L_const'))
     L_const = params.L_const;
 else
     % using Power method (PM) to establish L constant
-    if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
-        % for parallel geometry we can do just one slice
-        fprintf('%s \n', 'Calculating Lipshitz constant for parallel beam geometry...');
+    fprintf('%s %s %s \n', 'Calculating Lipshitz constant for',proj_geom.type, 'beam geometry...');
+    if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))       
+        % for 2D geometry we can do just one selected slice        
         niter = 15; % number of iteration for the PM
         x1 = rand(N,N,1);
         sqweight = sqrt(weights(:,:,1));
-        proj_geomT = proj_geom;
-        proj_geomT.DetectorRowCount = 1;
-        vol_geomT = vol_geom;
-        vol_geomT.GridSliceCount = 1;
-        [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geomT, vol_geomT);
-        y = sqweight.*y;
-        astra_mex_data3d('delete', sino_id);
-        
+        [sino_id, y] = astra_create_sino_cuda(x1, proj_geom, vol_geom);
+        y = sqweight.*y';
+        astra_mex_data2d('delete', sino_id);        
         for i = 1:niter
-            [id,x1] = astra_create_backprojection3d_cuda(sqweight.*y, proj_geomT, vol_geomT);
+            [x1] = astra_create_backprojection_cuda((sqweight.*y)', proj_geom, vol_geom);
             s = norm(x1(:));
             x1 = x1./s;
-            [sino_id, y] = astra_create_sino3d_cuda(x1, proj_geomT, vol_geomT);
-            y = sqweight.*y;
-            astra_mex_data3d('delete', sino_id);
-            astra_mex_data3d('delete', id);
-        end
-        %clear proj_geomT vol_geomT
-    else
-        % divergen beam geometry
-        fprintf('%s \n', 'Calculating Lipshitz constant for divergen beam geometry... will take some time!');
+            [sino_id, y] = astra_create_sino_cuda(x1, proj_geom, vol_geom);
+            y = sqweight.*y';
+            astra_mex_data2d('delete', sino_id);
+        end        
+    elseif (strcmp(proj_geom.type,'cone') || strcmp(proj_geom.type,'parallel3d') || strcmp(proj_geom.type,'parallel3d_vec') || strcmp(proj_geom.type,'cone_vec'))
+        % 3D geometry        
         niter = 8; % number of iteration for PM
         x1 = rand(N,N,SlicesZ);
         sqweight = sqrt(weights);
@@ -150,6 +141,8 @@ else
             astra_mex_data3d('delete', id);
         end
         clear x1
+    else
+        error('%s \n', 'No suitable geometry has been found!');
     end
     L_const = s;
 end
@@ -272,28 +265,10 @@ else
     slice = 1;
 end
 if (isfield(params,'initialize'))
-    % a 'warm start' with SIRT method
-    % Create a data object for the reconstruction
-    rec_id = astra_mex_data3d('create', '-vol', vol_geom);
-    
-    sinogram_id = astra_mex_data3d('create', '-proj3d', proj_geom, sino);
-    
-    % Set up the parameters for a reconstruction algorithm using the GPU
-    cfg = astra_struct('SIRT3D_CUDA');
-    cfg.ReconstructionDataId = rec_id;
-    cfg.ProjectionDataId = sinogram_id;
-    
-    % Create the algorithm object from the configuration structure
-    alg_id = astra_mex_algorithm('create', cfg);
-    astra_mex_algorithm('iterate', alg_id, 35);
-    % Get the result
-    X = astra_mex_data3d('get', rec_id);
-    
-    % Clean up. Note that GPU memory is tied up in the algorithm object,
-    % and main RAM in the data objects.
-    astra_mex_algorithm('delete', alg_id);
-    astra_mex_data3d('delete', rec_id);
-    astra_mex_data3d('delete', sinogram_id);
+    X  = params.initialize;
+    if ((size(X,1) ~= N) || (size(X,2) ~= N) || (size(X,3) ~= SlicesZ))
+        error('%s \n', 'The initialized volume has different dimensions!');
+    end        
 else
     X = zeros(N,N,SlicesZ, 'single'); % storage for the solution
 end
@@ -345,16 +320,18 @@ if (subsets == 0)
         t_old = t;
         r_old = r;
         
-        % if the geometry is parallel use slice-by-slice projection-backprojection routine
-        if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
+        % if the geometry is 2D use slice-by-slice projection-backprojection routine
+        if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))    
             sino_updt = zeros(size(sino),'single');
-            for kkk = 1:SlicesZ
-                [sino_id, sino_updt(:,:,kkk)] = astra_create_sino3d_cuda(X_t(:,:,kkk), proj_geomT, vol_geomT);
-                astra_mex_data3d('delete', sino_id);
+            for kkk = 1:SlicesZ                
+                [sino_id, sinoT] = astra_create_sino_cuda(X_t(:,:,kkk), proj_geom, vol_geom);
+                sino_updt(:,:,kkk) = sinoT';
+                astra_mex_data2d('delete', sino_id);
             end
         else
-            % for divergent 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
+            % for 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
             [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+            astra_mex_data3d('delete', sino_id);
         end
         
         if (lambdaR_L1 > 0)
@@ -368,40 +345,37 @@ if (subsets == 0)
             end
             r = r_x - (1./L_const).*vec;
             objective(i) = (0.5*sum(residual(:).^2)); % for the objective function output
-        else            
-			if (studentt == 1)
-				% artifacts removal with Students t penalty
-				residual = weights.*(sino_updt - sino);
-				for kkk = 1:SlicesZ
-				res_vec = reshape(residual(:,:,kkk), Detectors*anglesNumb, 1); % 1D vectorized sinogram
+        elseif (studentt > 0)
+            % artifacts removal with Students t penalty
+            residual = weights.*(sino_updt - sino);
+            for kkk = 1:SlicesZ
+                res_vec = reshape(residual(:,:,kkk), Detectors*anglesNumb, 1); % 1D vectorized sinogram
                 %s = 100;
                 %gr = (2)*res_vec./(s*2 + conj(res_vec).*res_vec);
                 [ff, gr] = studentst(res_vec, 1);
                 residual(:,:,kkk) = reshape(gr, Detectors, anglesNumb);
-				end            
-				objective(i) = ff; % for the objective function output
-            else
+            end
+            objective(i) = ff; % for the objective function output
+        else
             % no ring removal (LS model)
             residual = weights.*(sino_updt - sino);
             objective(i) = (0.5*sum(residual(:).^2)); % for the objective function output
-            end	
-        end       
+        end
         
-        % if the geometry is parallel use slice-by-slice projection-backprojection routine
-        if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'parallel3d'))
+        
+        % if the geometry is 2D use slice-by-slice projection-backprojection routine
+        if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))    
             x_temp = zeros(size(X),'single');
             for kkk = 1:SlicesZ
-                [id, x_temp(:,:,kkk)] = astra_create_backprojection3d_cuda(squeeze(residual(:,:,kkk)), proj_geomT, vol_geomT);
-                astra_mex_data3d('delete', id);
+                [x_temp(:,:,kkk)] = astra_create_backprojection_cuda(squeeze(residual(:,:,kkk))', proj_geom, vol_geom);
             end
         else
             [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geom, vol_geom);
+            astra_mex_data3d('delete', id);
         end
-        X = X_t - (1/L_const).*x_temp;
-        astra_mex_data3d('delete', sino_id);
-        astra_mex_data3d('delete', id);
+        X = X_t - (1/L_const).*x_temp;          
         
-        % regularization
+        % ----------------Regularization part------------------------
         if (lambdaFGP_TV > 0)
             % FGP-TV regularization
             if ((strcmp('2D', Dimension) == 1))
@@ -572,28 +546,27 @@ else
                 end
                 r = r_x - (1./L_const).*vec;
             else
-                [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);                
+                [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
                 
                 if (studentt == 1)
-				% artifacts removal with Students t penalty
-				residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));
-				
-				for kkk = 1:SlicesZ
-				res_vec = reshape(residual(:,:,kkk), Detectors*numProjSub, 1); % 1D vectorized sinogram
-                %s = 100;
-                %gr = (2)*res_vec./(s*2 + conj(res_vec).*res_vec);
-                [ff, gr] = studentst(res_vec, 1);
-                residual(:,:,kkk) = reshape(gr, Detectors, numProjSub);
-				end            
-				objective(i) = ff; % for the objective function output
-				else
-				% no ring removal (LS model)
-				residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));				
-				end	               
+                    % artifacts removal with Students t penalty
+                    residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));
+                    
+                    for kkk = 1:SlicesZ
+                        res_vec = reshape(residual(:,:,kkk), Detectors*numProjSub, 1); % 1D vectorized sinogram
+                        %s = 100;
+                        %gr = (2)*res_vec./(s*2 + conj(res_vec).*res_vec);
+                        [ff, gr] = studentst(res_vec, 1);
+                        residual(:,:,kkk) = reshape(gr, Detectors, numProjSub);
+                    end
+                    objective(i) = ff; % for the objective function output
+                else
+                    % no ring removal (LS model)
+                    residual = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt - squeeze(sino(:,CurrSubIndeces,:)));
+                end
             end
             
             [id, x_temp] = astra_create_backprojection3d_cuda(residual, proj_geomSUB, vol_geom);
-            
             X = X_t - (1/L_const).*x_temp;
             astra_mex_data3d('delete', sino_id);
             astra_mex_data3d('delete', id);
