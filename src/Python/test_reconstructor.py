@@ -100,7 +100,7 @@ if False:
             counter = counter + binsDiscr[jj] - 1
 
 
-if True:
+if False:
     print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
     print ("prepare for iteration")
     fistaRecon.prepareForIteration()
@@ -145,7 +145,8 @@ if True:
         t_old = t
         r_old = fistaRecon.r.copy()
         if fistaRecon.getParameter('projector_geometry')['type'] == 'parallel' or \
-           fistaRecon.getParameter('projector_geometry')['type'] == 'parallel3d':
+           fistaRecon.getParameter('projector_geometry')['type'] == 'fanflat' or \
+           fistaRecon.getParameter('projector_geometry')['type'] == 'fanflat_vec' :
             # if the geometry is parallel use slice-by-slice
             # projection-backprojection routine
             #sino_updt = zeros(size(sino),'single');
@@ -157,13 +158,13 @@ if True:
             for kkk in range(SlicesZ):
                 sino_id, sino_updt[kkk] = \
                          astra.creators.create_sino3d_gpu(
-                             X_t[kkk:kkk+1], proj_geomT, vol_geomT)
+                             X_t[kkk:kkk+1], proj_geom, vol_geom)
                 astra.matlab.data3d('delete', sino_id)
         else:
             # for divergent 3D geometry (watch the GPU memory overflow in
             # ASTRA versions < 1.8)
             #[sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
-            sino_id, sino_updt = astra.matlab.create_sino3d_gpu(
+            sino_id, sino_updt = astra.creators.create_sino3d_gpu(
                 X_t, proj_geom, vol_geom)
 
         ## RING REMOVAL
@@ -206,7 +207,8 @@ if True:
 
         # Projection/Backprojection Routine
         if fistaRecon.getParameter('projector_geometry')['type'] == 'parallel' or \
-           fistaRecon.getParameter('projector_geometry')['type'] == 'parallel3d':
+           fistaRecon.getParameter('projector_geometry')['type'] == 'fanflat' or\
+           fistaRecon.getParameter('projector_geometry')['type'] == 'fanflat_vec':
             x_temp = numpy.zeros(numpy.shape(X),dtype=numpy.float32)
             print ("Projection/Backprojection Routine")
             for kkk in range(SlicesZ):
@@ -284,3 +286,16 @@ if True:
 ##        else
 ##            fprintf('%s %i  %s %s %f \n', 'Iteration Number:', i, '|', 'Objective:', objective(i));
 ##        end
+else:
+    fistaRecon = FISTAReconstructor(proj_geom,
+                                vol_geom,
+                                Sino3D ,
+                                weights=Weights3D)
+
+    print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
+    fistaRecon.setParameter(number_of_iterations = 12)
+    fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
+    fistaRecon.setParameter(ring_alpha = 21)
+    fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
+    fistaRecon.prepareForIteration()
+    X = fistaRecon.iterate(numpy.load("X.npy"))
