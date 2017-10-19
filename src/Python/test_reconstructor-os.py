@@ -139,7 +139,10 @@ if True:
 
     ## additional for 
     proj_geomSUB = proj_geom.copy()
-    fistaRecon.residual2 = numpy.zeros(numpy.shape(self.pars['input_sinogram']))
+    fistaRecon.residual2 = numpy.zeros(numpy.shape(fistaRecon.pars['input_sinogram']))
+    residual2 = fistaRecon.residual2
+    sino_updt_FULL = residual.copy()
+    
     print ("starting iterations")
 ##    % Outer FISTA iterations loop
     for i in range(fistaRecon.getParameter('number_of_iterations')):
@@ -153,11 +156,23 @@ if True:
         # hence additional work is required one solution is to work with a full
         # sinogram at times
 
-        ## https://github.com/vais-ral/CCPi-FISTA_Reconstruction/issues/4
-        if (lambdaR_L1 > 0) :
-            sino_id2, sino_updt2 = astra.creators.create_sino3d_gpu(
-                X, proj_geom, vol_geom)
-            astra.matlab.data3d('delete', sino_id2)
+
+        SlicesZ, anglesNumb, Detectors = \
+                    numpy.shape(fistaRecon.getParameter('input_sinogram'))        ## https://github.com/vais-ral/CCPi-FISTA_Reconstruction/issues/4
+        if (i > 1 and lambdaR_L1 > 0) :
+            for kkk in range(anglesNumb):
+                 
+                 residual2[:,kkk,:] = (weights[:,kkk,:]).squeeze() * \
+                                       ((sino_updt_FULL[:,kkk,:]).squeeze() - \
+                                        (sino[:,kkk,:]).squeeze() -\
+                                        (alpha_ring * r_x)
+                                        )
+            r_old = fistaRecon.r.copy()
+            vec = residual.sum(axis = 1)
+            #if SlicesZ > 1:
+            #    vec = vec[:,1,:] # 1 or 0?
+            r_x = fistaRecon.r_x
+            fistaRecon.r = (r_x - (1./L_const) * vec).copy()
 
         # subset loop
         counterInd = 1
@@ -165,8 +180,7 @@ if True:
             print ("Subset {0}".format(ss))
             X_old = X.copy()
             t_old = t
-            r_old = fistaRecon.r.copy()
-
+            
             # the number of projections per subset
             numProjSub = fistaRecon.getParameter('os_bins')[ss]
             CurrSubIndices = fistaRecon.getParameter('os_indices')\
@@ -198,27 +212,35 @@ if True:
 
         ## RING REMOVAL
         residual = fistaRecon.residual
-        residual2 = fistaRecon.residual2
         
         lambdaR_L1 , alpha_ring , weights , L_const= \
                    fistaRecon.getParameter(['ring_lambda_R_L1',
                                            'ring_alpha' , 'weights',
                                            'Lipschitz_constant'])
-        r_x = fistaRecon.r_x
-        SlicesZ, anglesNumb, Detectors = \
-                    numpy.shape(fistaRecon.getParameter('input_sinogram'))
+        sino_updt_Sub = numpy.zeros(numpy.shape(self.pars['input_sinogram']))
         if lambdaR_L1 > 0 :
              print ("ring removal")
-##             % the ring removal part (Group-Huber fidelity)
-##                % first 2 iterations do additional work reconstructing whole dataset to ensure
-##                % the stablility
-##                if (i < 3)
-##                    [sino_id2, sino_updt2] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
-##                    astra_mex_data3d('delete', sino_id2);
-##                else
-##                    [sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
-##                end
+             geometry_type = fistaRecon.getParameter('projector_geometry')['type']
+             if geometry_type == 'parallel' or \
+                geometry_type == 'fanflat' or \
+                geometry_type == 'fanflat_vec' :
+                 # here
+                 for kkk in range(SlicesZ):
+                     sino_id, sinoT[kkk] = \
+                             astra.creators.create_sino3d_gpu(
+                                 X_t[kkk:kkk+1], proj_geomSUB, vol_geom)
+                     sino_updt_Sub[kkk] = sinoT.T.copy()
+                     astra.matlab.data3d('delete', sino_id)
 
+##                 % if geometry is 2D use slice-by-slice projection-backprojection routine                    
+##                    for kkk = 1:SlicesZ
+##                        [sino_id, sinoT] = astra_create_sino_cuda(X_t(:,:,kkk), proj_geomSUB, vol_geom);
+##                        sino_updt_Sub(:,:,kkk) = sinoT';
+##                        astra_mex_data2d('delete', sino_id);
+##                    end
+                
+
+##             
 ## https://github.com/vais-ral/CCPi-FISTA_Reconstruction/issues/4
              if i < 3:
                  pass
@@ -254,7 +276,7 @@ if True:
                  if i < 3:
                      residual[:,kkk,:] = residual2[:,indC,:].squeeze()
                  else:
-                     residual(:,kkk,:) = \
+                     residual[:,kkk,:] = \
                         weights[:,indC,:].squeeze() * sino_updt[:,kkk,:].squeeze() - \
                         sino[:,indC,:].squeeze() - alpha_ring * fistaRecon.r_x
                         #squeeze(weights(:,indC,:)).* \
