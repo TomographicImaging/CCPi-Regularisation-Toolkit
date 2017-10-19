@@ -487,7 +487,7 @@ else
     % Ordered Subsets (OS) FISTA reconstruction routine (normally one order of magnitude faster than the classical version)
     t = 1;
     X_t = X;
-    proj_geomSUB = proj_geom;    
+    proj_geomSUB = proj_geom;
     
     r = zeros(Detectors,SlicesZ, 'single'); % 2D array (for 3D data) of sparse "ring" vectors
     r_x = r; % another ring variable
@@ -495,7 +495,7 @@ else
     sino_updt_FULL = zeros(size(sino),'single');
     
     % Outer FISTA iterations loop
-    for i = 1:iterFISTA        
+    for i = 1:iterFISTA
         
         if ((i > 1) && (lambdaR_L1 > 0))
             % in order to make Group-Huber fidelity work with ordered subsets
@@ -517,30 +517,30 @@ else
         
         % subsets loop
         counterInd = 1;
-		if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
-			% if geometry is 2D use slice-by-slice projection-backprojection routine                    
-			for kkk = 1:SlicesZ
-				[sino_id, sinoT] = astra_create_sino_cuda(X_t(:,:,kkk), proj_geomSUB, vol_geom);
-				sino_updt_Sub(:,:,kkk) = sinoT';
-				astra_mex_data2d('delete', sino_id);
-			end
-		else
-			% for 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
-			[sino_id, sino_updt_Sub] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
-			astra_mex_data3d('delete', sino_id);
-		end
         for ss = 1:subsets
             X_old = X;
-            t_old = t;         
+            t_old = t;
             
             numProjSub = binsDiscr(ss); % the number of projections per subset
+            sino_updt_Sub = zeros(Detectors, numProjSub, SlicesZ,'single');
             CurrSubIndeces = IndicesReorg(counterInd:(counterInd + numProjSub - 1)); % extract indeces attached to the subset
             proj_geomSUB.ProjectionAngles = angles(CurrSubIndeces);
-            sino_updt_Sub = zeros(Detectors, numProjSub, SlicesZ,'single');
+            
+            if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
+                % if geometry is 2D use slice-by-slice projection-backprojection routine
+                for kkk = 1:SlicesZ
+                    [sino_id, sinoT] = astra_create_sino_cuda(X_t(:,:,kkk), proj_geomSUB, vol_geom);
+                    sino_updt_Sub(:,:,kkk) = sinoT';
+                    astra_mex_data2d('delete', sino_id);
+                end
+            else
+                % for 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
+                [sino_id, sino_updt_Sub] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
+                astra_mex_data3d('delete', sino_id);
+            end
             
             if (lambdaR_L1 > 0)
                 % Group-Huber fidelity (ring removal)
-                
                 
                 residualSub = zeros(Detectors, numProjSub, SlicesZ,'single'); % residual for a chosen subset
                 for kkk = 1:numProjSub
@@ -551,8 +551,6 @@ else
                 
             elseif (studentt > 0)
                 % student t data fidelity
-                
-                
                 % artifacts removal with Students t penalty
                 residualSub = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt_Sub - squeeze(sino(:,CurrSubIndeces,:)));
                 
@@ -566,8 +564,11 @@ else
                 objective(i) = ff; % for the objective function output
             else
                 % PWLS model
-                
+                residualSub = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt_Sub - squeeze(sino(:,CurrSubIndeces,:)));
+                objective(i) = 0.5*norm(residualSub(:)); % for the objective function output
+            end
             
+            % perform backprojection of a subset
             if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
                 % if geometry is 2D use slice-by-slice projection-backprojection routine
                 x_temp = zeros(size(X),'single');
@@ -579,7 +580,7 @@ else
                 astra_mex_data3d('delete', id);
             end
             
-            X = X_t - (1/L_const).*x_temp;            
+            X = X_t - (1/L_const).*x_temp;
             
             % ----------------Regularization part------------------------%
             if (lambdaFGP_TV > 0)
