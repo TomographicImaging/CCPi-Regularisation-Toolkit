@@ -10,19 +10,35 @@ addpath('../supp/');
 
 %%
 % build 3D phantom using TomoPhantom and generate projection data
-modelNo = 3; % see Phantom3DLibrary.dat file in TomoPhantom
+modelNo = 2; % see Phantom3DLibrary.dat file in TomoPhantom
 N = 256; % x-y-z size (cubic image)
 angles = 1:0.5:180; % angles vector in degrees
 angles_rad = angles*(pi/180); % conversion to radians
 det_size = round(sqrt(2)*N); % detector size
 % in order to run functions you have to go to the directory:
-cd /home/algol/Documents/MATLAB/TomoPhantom/functions/
-TomoPhantom = buildPhantom3D(modelNo,N); % generate 3D phantom
-sino_tomophan3D = buildSino3D(modelNo, N, det_size, single(angles)); % generate data
+pathTP = '/home/algol/Documents/MATLAB/TomoPhantom/functions/models/Phantom3DLibrary.dat'; % path to TomoPhantom parameters file
+TomoPhantom = buildPhantom3D(modelNo,N,pathTP); % generate 3D phantom
+sino_tomophan3D = buildSino3D(modelNo, N, det_size, single(angles),pathTP); % generate ideal data
+% Adding noise and distortions if required
+sino_artifacts = sino_add_artifacts(sino_tomophan3D,'rings');
+%
 %%
 % using ASTRA-toolbox to set the projection geometry (parallel beam)
 proj_geom = astra_create_proj_geom('parallel', 1, det_size, angles_rad);
 vol_geom = astra_create_vol_geom(N,N);
+%%
+fprintf('%s\n', 'Reconstructing with FBP using ASTRA-toolbox ...');
+for i = 1:k
+vol_id = astra_mex_data2d('create', '-vol', vol_geom, 0);
+proj_id = astra_mex_data2d('create', '-proj3d', proj_geom, sino_artifacts(:,:,k)); 
+cfg = astra_struct('FBP_CUDA');
+cfg.ProjectionDataId = proj_id;
+cfg.ReconstructionDataId = vol_id;
+cfg.option.MinConstraint = 0;
+alg_id = astra_mex_algorithm('create', cfg);
+astra_mex_algorithm('iterate', alg_id, 15);
+reconASTRA_3D = astra_mex_data2d('get', vol_id);
+end
 %% 
 fprintf('%s\n', 'Reconstruction using FISTA-LS without regularization...');
 clear params
