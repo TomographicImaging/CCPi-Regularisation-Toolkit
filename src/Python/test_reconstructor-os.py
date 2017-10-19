@@ -176,6 +176,23 @@ if True:
 
         # subset loop
         counterInd = 1
+        geometry_type = fistaRecon.getParameter('projector_geometry')['type']
+        if geometry_type == 'parallel' or \
+           geometry_type == 'fanflat' or \
+           geometry_type == 'fanflat_vec' :
+            
+            for kkk in range(SlicesZ):
+                sino_id, sinoT[kkk] = \
+                         astra.creators.create_sino3d_gpu(
+                             X_t[kkk:kkk+1], proj_geomSUB, vol_geom)
+                sino_updt_Sub[kkk] = sinoT.T.copy()
+                
+        else:
+            sino_id, sino_updt_Sub = \
+                astra.creators.create_sino3d_gpu(X_t, proj_geomSUB, vol_geom)
+        
+        astra.matlab.data3d('delete', sino_id)
+  
         for ss in range(fistaRecon.getParameter('subsets')):
             print ("Subset {0}".format(ss))
             X_old = X.copy()
@@ -186,29 +203,29 @@ if True:
             CurrSubIndices = fistaRecon.getParameter('os_indices')\
                              [counterInd:counterInd+numProjSub-1]
             proj_geomSUB['ProjectionAngles'] = angles[CurrSubIndeces]
+
+            shape = list(numpy.shape(fistaRecon.getParameter('input_sinogram')))
+            shape[1] = numProjSub
+            sino_updt_Sub = numpy.zeros(shape)
+
+            if geometry_type == 'parallel' or \
+               geometry_type == 'fanflat' or \
+               geometry_type == 'fanflat_vec' :
+
+                for kkk in range(SlicesZ):
+                    sino_id, sinoT = astra.creators.create_sino3d_gpu (
+                        X_t[kkk:kkk+1] , proj_geomSUB, vol_geom)
+                    sino_updt_Sub[kkk] = sinoT.T.copy()
+                    
+            else:
+                # for 3D geometry (watch the GPU memory overflow in ASTRA < 1.8)
+                sino_id, sino_updt_Sub = \
+                     astra.creators.create_sino3d_gpu (X_t, proj_geomSUB, vol_geom)
+                
+            astra.matlab.data3d('delete', sino_id)
+                
             
-##        if fistaRecon.getParameter('projector_geometry')['type'] == 'parallel' or \
-##           fistaRecon.getParameter('projector_geometry')['type'] == 'fanflat' or \
-##           fistaRecon.getParameter('projector_geometry')['type'] == 'fanflat_vec' :
-##            # if the geometry is parallel use slice-by-slice
-##            # projection-backprojection routine
-##            #sino_updt = zeros(size(sino),'single');
-##            proj_geomT = proj_geom.copy()
-##            proj_geomT['DetectorRowCount'] = 1
-##            vol_geomT = vol_geom.copy()
-##            vol_geomT['GridSliceCount'] = 1;
-##            sino_updt = numpy.zeros(numpy.shape(sino), dtype=numpy.float)
-##            for kkk in range(SlicesZ):
-##                sino_id, sino_updt[kkk] = \
-##                         astra.creators.create_sino3d_gpu(
-##                             X_t[kkk:kkk+1], proj_geom, vol_geom)
-##                astra.matlab.data3d('delete', sino_id)
-##        else:
-##            # for divergent 3D geometry (watch the GPU memory overflow in
-##            # ASTRA versions < 1.8)
-##            #[sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
-##            sino_id, sino_updt = astra.creators.create_sino3d_gpu(
-##                X_t, proj_geom, vol_geom)
+
 
         ## RING REMOVAL
         residual = fistaRecon.residual
@@ -217,20 +234,23 @@ if True:
                    fistaRecon.getParameter(['ring_lambda_R_L1',
                                            'ring_alpha' , 'weights',
                                            'Lipschitz_constant'])
-        sino_updt_Sub = numpy.zeros(numpy.shape(self.pars['input_sinogram']))
         if lambdaR_L1 > 0 :
              print ("ring removal")
-             geometry_type = fistaRecon.getParameter('projector_geometry')['type']
-             if geometry_type == 'parallel' or \
-                geometry_type == 'fanflat' or \
-                geometry_type == 'fanflat_vec' :
-                 # here
-                 for kkk in range(SlicesZ):
-                     sino_id, sinoT[kkk] = \
-                             astra.creators.create_sino3d_gpu(
-                                 X_t[kkk:kkk+1], proj_geomSUB, vol_geom)
-                     sino_updt_Sub[kkk] = sinoT.T.copy()
-                     astra.matlab.data3d('delete', sino_id)
+             residualSub = numpy.zeros(shape)
+##             for a chosen subset
+##                for kkk = 1:numProjSub
+##                    indC = CurrSubIndeces(kkk);
+##                    residualSub(:,kkk,:) =  squeeze(weights(:,indC,:)).*(squeeze(sino_updt_Sub(:,kkk,:)) - (squeeze(sino(:,indC,:)) - alpha_ring.*r_x));
+##                    sino_updt_FULL(:,indC,:) = squeeze(sino_updt_Sub(:,kkk,:)); % filling the full sinogram
+##                end
+             for kkk in range(numProjSub):
+                 indC = CurrSubIndices[kkk]
+                 residualSub[:,kkk,:] = weights[:,indC,:].squeeze() * \
+                        (sino_updt_Sub[:,kkk,:].squeeze() - \
+                         sino[:,indC,:].squeeze() - alpha_ring * r_x)
+                 # filling the full sinogram
+                 sino_updt_FULL[:,indC,:] = sino_updt_Sub[:,kkk,:].squeeze()
+                                        
 
 ##                 % if geometry is 2D use slice-by-slice projection-backprojection routine                    
 ##                    for kkk = 1:SlicesZ
