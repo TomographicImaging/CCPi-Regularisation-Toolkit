@@ -33,6 +33,7 @@ params.sino = single(sino_tomophan3D); % sinogram
 params.iterFISTA = 5; %max number of outer iterations
 params.X_ideal = TomoPhantom; % ideal phantom
 params.show = 1; % visualize reconstruction on each iteration
+params.subsets = 12; 
 params.slice = round(N/2); params.maxvalplot = 1; 
 tic; [X_FISTA, output] = FISTA_REC(params); toc; 
 
@@ -44,6 +45,6 @@ figure(2);
 subplot(1,2,1); imshow(X_FISTA(:,:,params.slice),[0 params.maxvalplot]); title('FISTA-LS reconstruction'); colorbar;
 subplot(1,2,2); imshow(Resid3D(:,:,params.slice),[0 0.1]);  title('residual'); colorbar;
 figure(3);
-subplot(1,2,1); plot(error_FISTA);  title('RMSE plot'); colorbar;
-subplot(1,2,2); plot(obj_FISTA);  title('Objective plot'); colorbar;
+subplot(1,2,1); plot(error_FISTA);  title('RMSE plot'); 
+subplot(1,2,2); plot(obj_FISTA);  title('Objective plot'); 
 %%
