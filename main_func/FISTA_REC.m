@@ -669,6 +669,10 @@ else
             counterInd = counterInd + numProjSub;
         end
         
+        if (i == 1)
+            r_old = r;
+        end
+        
         % working with a 'ring vector'
         if (lambdaR_L1 > 0)
             r =  max(abs(r)-lambdaR_L1, 0).*sign(r); % soft-thresholding operator for ring vector

@@ -65,7 +65,7 @@ void mexFunction(
     A  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
     iter = 50; /* default iterations number */
-    epsil = 0.001; /* default tolerance constant */
+    epsil = 0.0001; /* default tolerance constant */
     methTV = 0;  /* default isotropic TV penalty */
     
     if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5))  iter = (int) mxGetScalar(prhs[2]); /* iterations number */
@@ -88,7 +88,7 @@ void mexFunction(
     
     tk = 1.0f;
     tkp1=1.0f;
-    count = 1;
+    count = 0;
     re_old = 0.0f;
     
     if (number_of_dims == 2) {
@@ -127,7 +127,7 @@ void mexFunction(
             }
             re = sqrt(re)/sqrt(re1);
             if (re < epsil)  count++;
-            if (count > 3) {
+            if (count > 4) {
                 Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY); 
                 break; }
             
