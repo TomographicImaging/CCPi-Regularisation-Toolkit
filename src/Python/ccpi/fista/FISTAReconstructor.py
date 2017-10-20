@@ -583,3 +583,27 @@ class FISTAReconstructor():
             string = 'Iteration Number {0} | RMS Error {1} | Objective {2} \n'
             print (string.format(i,Resid_error[i], self.objective[i]))
         return (X , X_t, t)
+
+    def os_iterate(self, Xin=None):
+        print ("FISTA Reconstructor: iterate")
+        
+        if Xin is None:    
+            if self.getParameter('initialize'):
+                X = self.initialize()
+            else:
+                N = vol_geom['GridColCount']
+                X = numpy.zeros((N,N,SlicesZ), dtype=numpy.float)
+        else:
+            # copy by reference
+            X = Xin
+        # store the output volume in the parameters
+        self.setParameter(output_volume=X)
+        X_t = X.copy()
+
+        # some useful constants
+        proj_geom , vol_geom, sino , \
+          SlicesZ, weights , alpha_ring ,
+          lambdaR_L1 , L_const = self.getParameter(
+            ['projector_geometry' , 'output_geometry',
+             'input_sinogram', 'SlicesZ' ,  'weights', 'ring_alpha' ,
+             'ring_lambda_R_L1', 'Lipschitz_constant'])
