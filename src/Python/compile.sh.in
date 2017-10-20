@@ -1,0 +1,6 @@
+#!/bin/sh
+
+export CIL_VERSION=@CIL_VERSION@
+module load python/anaconda
+source activate @CONDA_ENVIRONMENT@
+conda build conda-recipe --python=@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@ --numpy=@NUMPY_VERSION@ -c ccpi
