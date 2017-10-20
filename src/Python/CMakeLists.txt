@@ -15,6 +15,7 @@
 message("CIL VERSION " ${CIL_VERSION})
 
 # variables that are set by conda
+
 #PREFIX=C:\Apps\Miniconda2\envs\cil\Library
 #LIBRARY_INC=C:\\Apps\\Miniconda2\\envs\\cil\\Library\\include
 
