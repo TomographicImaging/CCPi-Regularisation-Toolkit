@@ -32,6 +32,18 @@ sino3D_log = log(dose./max(dataRaw,1))*multifactor; %log corrected data -> sinog
 clear dataExp sino_tomophan3D
 %
 %%
+%-------------Astra toolbox------------%
+% one can generate data using ASTRA toolbox
+proj_geom = astra_create_proj_geom('parallel', 1, det_size, angles_rad);
+vol_geom = astra_create_vol_geom(N,N);
+sino_ASTRA3D = zeros(det_size, length(angles), N, 'single');
+for i = 1:N
+[sino_id, sinoT] = astra_create_sino_cuda(TomoPhantom(:,:,i), proj_geom, vol_geom);
+sino_ASTRA3D(:,:,i) = sinoT';
+astra_mex_data2d('delete', sino_id);
+end
+%--------------------------------------%
+%%
 % using ASTRA-toolbox to set the projection geometry (parallel beam)
 proj_geom = astra_create_proj_geom('parallel', 1, det_size, angles_rad);
 vol_geom = astra_create_vol_geom(N,N);
