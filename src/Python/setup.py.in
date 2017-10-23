@@ -44,7 +44,7 @@ else:
 
 setup(
     name='ccpi',
-	description='CCPi Core Imaging Library - FISTA Reconstruction Module',
+	description='CCPi Core Imaging Library - Image Regularizers',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension("ccpi.imaging.cpu_regularizers",
@@ -65,3 +65,5 @@ setup(
 	zip_safe = False,	
 	packages = {'ccpi','ccpi.imaging'},
 )
+
+
