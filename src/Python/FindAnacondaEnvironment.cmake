@@ -36,8 +36,12 @@
 
 
 function (findPythonForAnacondaEnvironment env)
-	
-	file(TO_CMAKE_PATH ${env}/python.exe PYTHON_EXECUTABLE)
+	set (EXE "")
+	if (WIN32)
+	  set (EXE ".exe")
+	endif()
+
+	file(TO_CMAKE_PATH ${env}/python${EXE} PYTHON_EXECUTABLE)
 	
 	message("Found " ${PYTHON_EXECUTABLE})
 	####### FROM FindPythonInterpr ########
