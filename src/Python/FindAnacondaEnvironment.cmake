@@ -36,14 +36,14 @@
 
 
 function (findPythonForAnacondaEnvironment env)
-	set (EXE "")
 	if (WIN32)
-	  set (EXE ".exe")
+	  file(TO_CMAKE_PATH ${env}/python.exe PYTHON_EXECUTABLE)
+        elseif (UNIX)
+  	  file(TO_CMAKE_PATH ${env}/bin/python PYTHON_EXECUTABLE)
 	endif()
 
-	file(TO_CMAKE_PATH ${env}/python${EXE} PYTHON_EXECUTABLE)
 	
-	message("Found " ${PYTHON_EXECUTABLE})
+	message("findPythonForAnacondaEnvironment Found Python Executable" ${PYTHON_EXECUTABLE})
 	####### FROM FindPythonInterpr ########
 	# determine python version string
 	if(PYTHON_EXECUTABLE)
@@ -133,37 +133,16 @@ endif()
 
 
 function(findPythonPackagesPath)
-### https://openlab.ncl.ac.uk/gitlab/john.shearer/clappertracker/raw/549885e5decd37f7b23e9c1fd39e86f207156795/src/3rdparty/opencv/cmake/OpenCVDetectPython.cmake
-###
-if(CMAKE_HOST_UNIX)
-      execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import *; print get_python_lib()"
+   execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import *; print (get_python_lib())"
                       RESULT_VARIABLE PYTHON_CVPY_PROCESS
                       OUTPUT_VARIABLE PYTHON_STD_PACKAGES_PATH
                       OUTPUT_STRIP_TRAILING_WHITESPACE)
-      if("${PYTHON_STD_PACKAGES_PATH}" MATCHES "site-packages")
+   #message("STD_PACKAGES " ${PYTHON_STD_PACKAGES_PATH})
+   if("${PYTHON_STD_PACKAGES_PATH}" MATCHES "site-packages")
         set(_PYTHON_PACKAGES_PATH "python${PYTHON_VERSION_MAJOR_MINOR}/site-packages")
-      else() #debian based assumed, install to the dist-packages.
-        set(_PYTHON_PACKAGES_PATH "python${PYTHON_VERSION_MAJOR_MINOR}/dist-packages")
-      endif()
-      if(EXISTS "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/${PYTHON_PACKAGES_PATH}")
-        set(_PYTHON_PACKAGES_PATH "lib${LIB_SUFFIX}/${_PYTHON_PACKAGES_PATH}")
-      else()
-        set(_PYTHON_PACKAGES_PATH "lib/${_PYTHON_PACKAGES_PATH}")
-      endif()
-    elseif(CMAKE_HOST_WIN32)
-      get_filename_component(PYTHON_PATH "${PYTHON_EXECUTABLE}" PATH)
-      file(TO_CMAKE_PATH "${PYTHON_PATH}" PYTHON_PATH)
-      if(NOT EXISTS "${PYTHON_PATH}/Lib/site-packages")
-        unset(PYTHON_PATH)
-        get_filename_component(PYTHON_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION_MAJOR_MINOR}\\InstallPath]" ABSOLUTE)
-        if(NOT PYTHON_PATH)
-           get_filename_component(PYTHON_PATH "[HKEY_CURRENT_USER\\SOFTWARE\\Python\\PythonCore\\${PYTHON_VERSION_MAJOR_MINOR}\\InstallPath]" ABSOLUTE)
-        endif()
-        file(TO_CMAKE_PATH "${PYTHON_PATH}" PYTHON_PATH)
-      endif()
-      set(_PYTHON_PACKAGES_PATH "${PYTHON_PATH}/Lib/site-packages")
-    endif()
-    SET(PYTHON_PACKAGES_PATH "${_PYTHON_PACKAGES_PATH}" PARENT_SCOPE)
+   endif()
+
+    SET(PYTHON_PACKAGES_PATH "${PYTHON_STD_PACKAGES_PATH}" PARENT_SCOPE)
 
 endfunction()
 
