@@ -12,18 +12,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-message("CIL VERSION " ${CIL_VERSION})
-
-
 # variables that must be set for conda compilation
 
 #PREFIX=C:\Apps\Miniconda2\envs\cil\Library
 #LIBRARY_INC=C:\\Apps\\Miniconda2\\envs\\cil\\Library\\include
 set (NUMPY_VERSION 1.12)
-#set (PYTHON_VERSION 3.5)
-
-#https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/R9gWjl09UFs
-#set (CONDA_ENVIRONMENT "cil")
 
 ## Tries to parse the output of conda env list to determine the current
 ## active conda environment
@@ -50,27 +43,23 @@ execute_process(COMMAND "conda" "env" "list"
 				  endif()
 				endforeach()
 			else()
-				message("conda result false" ${_CONDA_ERR})
+				message(FATAL_ERROR "conda error " ${_CONDA_ERR})
 			endif()
 
-if (${CONDA_ENVIRONMENT} AND ${CONDA_ENVIRONMENT_PATH})
-  message (FATAL_ERROR "CONDA NOT FOUND")
-else()
-  message("**********************************************************")
-  message("Using current conda environmnet " ${CONDA_ENVIRONMENT})
-  message("Using current conda environmnet path" ${CONDA_ENVIRONMENT_PATH})
-endif()
-
-
+message("**********************************************************")
+message("Using current conda environmnet " ${CONDA_ENVIRONMENT})
+message("Using current conda environmnet path" ${CONDA_ENVIRONMENT_PATH})
 
 message("CIL VERSION " ${CIL_VERSION})
 
 # set the Python variables for the Conda environment
 include(FindAnacondaEnvironment.cmake)
 findPythonForAnacondaEnvironment(${CONDA_ENVIRONMENT_PATH})
+
 message("Python found " ${PYTHON_VERSION_STRING})
 message("Python found Major " ${PYTHON_VERSION_MAJOR})
 message("Python found Minor " ${PYTHON_VERSION_MINOR})
+
 findPythonPackagesPath()
 message("PYTHON_PACKAGES_FOUND " ${PYTHON_PACKAGES_PATH})
 
@@ -104,6 +93,7 @@ elseif(UNIX)
     # assumes we will use bash
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile.sh.in ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
 endif()
+
 
 ### add tests
 
