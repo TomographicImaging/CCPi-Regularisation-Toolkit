@@ -1,6 +1,9 @@
 #!/bin/sh
+# compile within the right conda environment
+#module load python/anaconda
+#source activate @CONDA_ENVIRONMENT@
 
 export CIL_VERSION=@CIL_VERSION@
-module load python/anaconda
-source activate @CONDA_ENVIRONMENT@
+export LIBRARY_INC=@CONDA_ENVIRONMENT_LIBRARY_INC@
+
 conda build conda-recipe --python=@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@ --numpy=@NUMPY_VERSION@ -c ccpi

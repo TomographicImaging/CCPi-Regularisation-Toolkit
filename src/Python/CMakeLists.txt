@@ -14,17 +14,25 @@
 
 message("CIL VERSION " ${CIL_VERSION})
 
-# variables that are set by conda
+
+# variables that must be set for conda compilation
 
 #PREFIX=C:\Apps\Miniconda2\envs\cil\Library
 #LIBRARY_INC=C:\\Apps\\Miniconda2\\envs\\cil\\Library\\include
-
 set (NUMPY_VERSION 1.12)
 #set (PYTHON_VERSION 3.5)
 
 #https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/R9gWjl09UFs
 set (CONDA_ENVIRONMENT "cil")
-set (CONDA_ENVIRONMENT_PATH "C:\\Apps\\Miniconda2\\envs\\${CONDA_ENVIRONMENT}" CACHE PATH "env dir")
+if (WIN32)
+  set (CONDA_ENVIRONMENT_PATH "C:\\Apps\\Miniconda2\\envs\\${CONDA_ENVIRONMENT}" CACHE PATH "Main environment directory")
+  set (CONDA_ENVIRONMENT_PREFIX "${CONDA_ENVIRONMENT_PATH}\\Library" CACHE PATH "env dir")
+  set (CONDA_ENVIRONMENT_LIBRARY_INC "${CONDA_ENVIRONMENT_PREFIX}\\include" CACHE PATH "env dir")
+elseif (UNIX)
+  set (CONDA_ENVIRONMENT_PATH "/apps/anaconda/2.4/envs/${CONDA_ENVIRONMENT}" CACHE PATH "Main environment directory")
+  set (CONDA_ENVIRONMENT_PREFIX "${CONDA_ENVIRONMENT_PATH}" CACHE PATH "env dir")
+  set (CONDA_ENVIRONMENT_LIBRARY_INC "${CONDA_ENVIRONMENT_PREFIX}/include" CACHE PATH "env dir")
+endif()
 
 message("CIL VERSION " ${CIL_VERSION})
 
@@ -56,4 +64,14 @@ elseif(UNIX)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile.sh.in ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
 endif()
 
+### add tests
 
+#add_executable(RegularizersTest )
+find_package(tiff)
+if (TIFF_FOUND)
+  message("LibTIFF Found")
+  message("TIFF_INCLUDE_DIR "${TIFF_INCLUDE_DIR})
+  message("TIFF_LIBRARIES"${TIFF_LIBRARIES})
+else()
+  message("LibTIFF not found")
+endif()
