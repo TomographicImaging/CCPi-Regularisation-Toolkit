@@ -1,5 +1,5 @@
 package:
-  name: ccpi-fista
+  name: ccpi-regularizers
   version: {{ environ['CIL_VERSION'] }}
 
 
