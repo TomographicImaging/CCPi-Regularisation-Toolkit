@@ -9,7 +9,7 @@ Based on DemoRD2.m
 import h5py
 import numpy
 
-from ccpi.fista.FISTAReconstructor import FISTAReconstructor
+from ccpi.reconstruction.FISTAReconstructor import FISTAReconstructor
 import astra
 import matplotlib.pyplot as plt
 
@@ -76,9 +76,12 @@ fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
 fistaRecon.setParameter(ring_alpha = 21)
 fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
 
+
 ## Ordered subset
 if True:
     subsets = 16
+    fistaRecon.setParameter(subsets=subsets)
+    fistaRecon.createOrderedSubsets()
     angles = fistaRecon.getParameter('projector_geometry')['ProjectionAngles']
     #binEdges = numpy.linspace(angles.min(),
     #                          angles.max(),
@@ -146,6 +149,7 @@ if True:
     fistaRecon.residual2 = numpy.zeros(numpy.shape(fistaRecon.pars['input_sinogram']))
     residual2 = fistaRecon.residual2
     sino_updt_FULL = fistaRecon.residual.copy()
+    r_x = fistaRecon.r.copy()
     
     print ("starting iterations")
 ##    % Outer FISTA iterations loop
@@ -207,7 +211,11 @@ if True:
             numProjSub = fistaRecon.getParameter('os_bins')[ss]
             CurrSubIndices = fistaRecon.getParameter('os_indices')\
                              [counterInd:counterInd+numProjSub-1]
-            proj_geomSUB['ProjectionAngles'] = angles[CurrSubIndeces]
+            mask = numpy.zeros(numpy.shape(angles), dtype=bool)
+            cc = 0
+            for i in range(len(CurrSubIndices)):
+                mask[int(CurrSubIndices[i])] = True
+            proj_geomSUB['ProjectionAngles'] = angles[mask]
 
             shape = list(numpy.shape(fistaRecon.getParameter('input_sinogram')))
             shape[1] = numProjSub
@@ -246,7 +254,8 @@ if True:
     ##                    sino_updt_FULL(:,indC,:) = squeeze(sino_updt_Sub(:,kkk,:)); % filling the full sinogram
     ##                end
                  for kkk in range(numProjSub):
-                     indC = CurrSubIndices[kkk]
+                     print ("ring removal indC ... {0}".format(kkk))
+                     indC = int(CurrSubIndices[kkk])
                      residualSub[:,kkk,:] = weights[:,indC,:].squeeze() * \
                             (sino_updt_Sub[:,kkk,:].squeeze() - \
                              sino[:,indC,:].squeeze() - alpha_ring * r_x)
