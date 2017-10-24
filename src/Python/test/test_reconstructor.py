@@ -299,3 +299,4 @@ else:
     fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
     fistaRecon.prepareForIteration()
     X = fistaRecon.iterate(numpy.load("X.npy"))
+    numpy.save("X_out.npy", X)
