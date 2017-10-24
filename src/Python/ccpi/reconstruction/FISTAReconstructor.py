@@ -363,6 +363,9 @@ class FISTAReconstructor():
             except Exception():
                 subsets = 0
             #return subsets
+        else:
+            self.setParameter(subsets=subsets)
+            
 
         angles = self.getParameter('projector_geometry')['ProjectionAngles'] 
         
@@ -371,7 +374,7 @@ class FISTAReconstructor():
         #                          subsets + 1)
         binsDiscr, binEdges = numpy.histogram(angles, bins=subsets)
         # get rearranged subset indices
-        IndicesReorg = numpy.zeros((numpy.shape(angles)))
+        IndicesReorg = numpy.zeros((numpy.shape(angles)), dtype=numpy.int32)
         counterM = 0
         for ii in range(binsDiscr.max()):
             counter = 0

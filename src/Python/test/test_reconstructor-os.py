@@ -12,6 +12,7 @@ import numpy
 from ccpi.reconstruction.FISTAReconstructor import FISTAReconstructor
 import astra
 import matplotlib.pyplot as plt
+from ccpi.imaging.Regularizer import Regularizer
 
 def RMSE(signal1, signal2):
     '''RMSE Root Mean Squared Error'''
@@ -76,6 +77,12 @@ fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
 fistaRecon.setParameter(ring_alpha = 21)
 fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
 
+
+reg = Regularizer(Regularizer.Algorithm.LLT_model)
+reg.setParameter(regularization_parameter=25,
+                          time_step=0.0003,
+                          tolerance_constant=0.0001,
+                          number_of_iterations=300)
 
 ## Ordered subset
 if True:
@@ -210,11 +217,12 @@ if True:
             # the number of projections per subset
             numProjSub = fistaRecon.getParameter('os_bins')[ss]
             CurrSubIndices = fistaRecon.getParameter('os_indices')\
-                             [counterInd:counterInd+numProjSub-1]
+                             [counterInd:counterInd+numProjSub]
+            #print ("Len CurrSubIndices {0}".format(numProjSub))
             mask = numpy.zeros(numpy.shape(angles), dtype=bool)
             cc = 0
-            for i in range(len(CurrSubIndices)):
-                mask[int(CurrSubIndices[i])] = True
+            for j in range(len(CurrSubIndices)):
+                mask[int(CurrSubIndices[j])] = True
             proj_geomSUB['ProjectionAngles'] = angles[mask]
 
             shape = list(numpy.shape(fistaRecon.getParameter('input_sinogram')))
@@ -254,7 +262,7 @@ if True:
     ##                    sino_updt_FULL(:,indC,:) = squeeze(sino_updt_Sub(:,kkk,:)); % filling the full sinogram
     ##                end
                  for kkk in range(numProjSub):
-                     print ("ring removal indC ... {0}".format(kkk))
+                     #print ("ring removal indC ... {0}".format(kkk))
                      indC = int(CurrSubIndices[kkk])
                      residualSub[:,kkk,:] = weights[:,indC,:].squeeze() * \
                             (sino_updt_Sub[:,kkk,:].squeeze() - \
@@ -297,7 +305,8 @@ if True:
         # regularizer = fistaRecon.getParameter('regularizer')
         # for slices:
         # out = regularizer(input=X)
-        print ("skipping regularizer")
+        print ("regularizer")
+        #X = reg(input=X)
 
 
         ## FINAL
@@ -321,7 +330,8 @@ if True:
             Resid_error[i] = RMSE(X*ROI, X_ideal*ROI)
             string = 'Iteration Number {0} | RMS Error {1} | Objective {2} \n'
             print (string.format(i,Resid_error[i], objective[i]))
-            
+
+    numpy.save("X_out_os.npy", X)
 
 else:
     fistaRecon = FISTAReconstructor(proj_geom,

@@ -76,6 +76,13 @@ fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
 fistaRecon.setParameter(ring_alpha = 21)
 fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
 
+reg = Regularizer(Regularizer.Algorithm.LLT_model)
+reg.setParameter(regularization_parameter=25,
+                          time_step=0.0003,
+                          tolerance_constant=0.0001,
+                          number_of_iterations=300)
+fistaRecon.setParameter(regularizer = reg)
+
 ## Ordered subset
 if False:
     subsets = 16
