@@ -602,7 +602,7 @@ class FISTAReconstructor():
 
         # some useful constants
         proj_geom , vol_geom, sino , \
-          SlicesZ, weights , alpha_ring ,
+          SlicesZ, weights , alpha_ring ,\
           lambdaR_L1 , L_const = self.getParameter(
             ['projector_geometry' , 'output_geometry',
              'input_sinogram', 'SlicesZ' ,  'weights', 'ring_alpha' ,
