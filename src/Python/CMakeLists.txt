@@ -64,6 +64,16 @@ message("Python found Minor " ${PYTHON_VERSION_MINOR})
 findPythonPackagesPath()
 message("PYTHON_PACKAGES_FOUND " ${PYTHON_PACKAGES_PATH})
 
+## CACHE SOME VARIABLES ##
+set (CONDA_ENVIRONMENT ${CONDA_ENVIRONMENT} CACHE INTERNAL "active conda environment" FORCE)
+set (CONDA_ENVIRONMENT_PATH ${CONDA_ENVIRONMENT_PATH} CACHE INTERNAL "active conda environment" FORCE)
+
+set (PYTHON_VERSION_STRING ${PYTHON_VERSION_STRING} CACHE INTERNAL "conda environment Python version string" FORCE)
+set (PYTHON_VERSION_MAJOR ${PYTHON_VERSION_MAJOR} CACHE INTERNAL "conda environment Python version major" FORCE)
+set (PYTHON_VERSION_MINOR ${PYTHON_VERSION_MINOR} CACHE INTERNAL "conda environment Python version minor" FORCE)
+set (PYTHON_VERSION_PATCH ${PYTHON_VERSION_PATCH} CACHE INTERNAL "conda environment Python version patch" FORCE)
+set (PYTHON_PACKAGES_PATH ${PYTHON_PACKAGES_PATH} CACHE INTERNAL "conda environment Python packages path" FORCE)
+
 if (WIN32)
   #set (CONDA_ENVIRONMENT_PATH "C:\\Apps\\Miniconda2\\envs\\${CONDA_ENVIRONMENT}" CACHE PATH "Main environment directory")
   set (CONDA_ENVIRONMENT_PREFIX "${CONDA_ENVIRONMENT_PATH}\\Library" CACHE PATH "env dir")
@@ -123,7 +133,43 @@ elseif(UNIX)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile-fista.sh.in ${CMAKE_CURRENT_BINARY_DIR}/compile-fista.sh)
 endif()
 
+#############################  TARGETS
 
+##########################  REGULARIZER PACKAGE ###############################
+
+# runs cmake on the build tree to update the code from source
+add_custom_target(update_code 
+		COMMAND ${CMAKE_COMMAND} 
+		ARGS ${CMAKE_SOURCE_DIR}
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		) 
+
+
+add_custom_target(fista
+		COMMAND bash
+		compile-fista.sh
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${update_code}
+		)
+
+add_custom_target(regularizers
+		COMMAND bash
+		compile.sh
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${update_code}
+		)
+
+add_custom_target(install-fista
+		COMMAND conda
+		install --force --use-local ccpi-fista=${CIL_VERSION} -c ccpi -c conda-forge
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${fista})
+
+add_custom_target(install-regularizers
+		COMMAND conda
+		install --force --use-local ccpi-regularizers=${CIL_VERSION} -c ccpi -c conda-forge
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${fista})
 ### add tests
 
 #add_executable(RegularizersTest )
