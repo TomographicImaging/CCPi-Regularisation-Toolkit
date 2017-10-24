@@ -9,7 +9,7 @@ Based on DemoRD2.m
 import h5py
 import numpy
 
-from ccpi.fista.FISTAReconstructor import FISTAReconstructor
+from ccpi.reconstruction.FISTAReconstructor import FISTAReconstructor
 import astra
 import matplotlib.pyplot as plt
 
