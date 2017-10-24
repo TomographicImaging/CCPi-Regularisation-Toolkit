@@ -18,7 +18,7 @@ requirements:
   run:
     - python
     - numpy
-    - astra-toolbox
+    #- astra-toolbox
     - ccpi-regularizers
 
 
