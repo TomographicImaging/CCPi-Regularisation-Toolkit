@@ -78,11 +78,15 @@ fistaRecon.setParameter(ring_alpha = 21)
 fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
 
 
+#reg = Regularizer(Regularizer.Algorithm.FGP_TV)
+#reg.setParameter(regularization_parameter=0.005,
+#                          number_of_iterations=50)
 reg = Regularizer(Regularizer.Algorithm.LLT_model)
 reg.setParameter(regularization_parameter=25,
                           time_step=0.0003,
                           tolerance_constant=0.0001,
                           number_of_iterations=300)
+
 
 ## Ordered subset
 if True:
@@ -306,7 +310,7 @@ if True:
         # for slices:
         # out = regularizer(input=X)
         print ("regularizer")
-        #X = reg(input=X)
+        X = reg(input=X)[0]
 
 
         ## FINAL
