@@ -408,14 +408,11 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 
 		/* begin iterations */
 		for (ll = 0; ll<iter; ll++) {
-			std::cout << "iteration " << ll << " D[0]" << D[0] << std::endl;
 			/* computing the gradient of the objective function */
 			Obj_func2D(A, D, R1, R2, lambda, dimX, dimY);
-			std::cout << "Obj_func2D D[0] " << D[0]<< " A[0]" << A[0]  << " R1[0] " << R1[0] << " R2[0] " << R2[0] << " lambda " << lambda << " dimX " << dimX << " dimY " << dimY << std::endl;
 
 			/*Taking a step towards minus of the gradient*/
 			Grad_func2D(P1, P2, D, R1, R2, lambda, dimX, dimY);
-			std::cout << "Grad_func2D D[0] " << D[0]<< " P1[0]" << P1[0]  << " P2[0] " << P2[0] << " R1[0] " << R1[0] << " R2[0] " << R2[0] << " lambda " << lambda << " dimX " << dimX << " dimY " << dimY << std::endl;
 
 
 
@@ -435,7 +432,6 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 			if (re < epsil)  count++;
 			if (count > 3) {
 				Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
-			std::cout << "Obj_func2D D[0] " << D[0]<< " A[0]" << A[0]  << " R1[0] " << R1[0] << " R2[0] " << R2[0] << " lambda " << lambda << " dimX " << dimX << " dimY " << dimY << std::endl;
 				funcval = 0.0f;
 				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
 				//funcvalA[0] = sqrt(funcval);
@@ -448,7 +444,6 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 			if (ll > 2) {
 				if (re > re_old) {
 					Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
-			std::cout << "Obj_func2D D[0] " << D[0]<< " A[0]" << A[0]  << " R1[0] " << R1[0] << " R2[0] " << R2[0] << " lambda " << lambda << " dimX " << dimX << " dimY " << dimY << std::endl;
 					funcval = 0.0f;
 					for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
 					//funcvalA[0] = sqrt(funcval);
@@ -469,7 +464,6 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 			/* calculating the objective function value */
 			if (ll == (iter - 1)) {
 				Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
-			std::cout << "Obj_func2D D[0] " << D[0]<< " A[0]" << A[0]  << " R1[0] " << R1[0] << " R2[0] " << R2[0] << " lambda " << lambda << " dimX " << dimX << " dimY " << dimY << std::endl;
 				funcval = 0.0f;
 				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
 				//funcvalA[0] = sqrt(funcval);
