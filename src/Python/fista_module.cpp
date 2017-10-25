@@ -338,7 +338,7 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 	A = reinterpret_cast<float *>(input.get_data());
 
 	//mu = (float)mxGetScalar(prhs[1]); /* regularization parameter */
-	mu = (float)d_mu;
+	lambda = (float)d_mu;
 
 	//iter = 35; /* default iterations number */
 
@@ -408,15 +408,14 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 
 		/* begin iterations */
 		for (ll = 0; ll<iter; ll++) {
-
 			/* computing the gradient of the objective function */
 			Obj_func2D(A, D, R1, R2, lambda, dimX, dimY);
 
 			/*Taking a step towards minus of the gradient*/
 			Grad_func2D(P1, P2, D, R1, R2, lambda, dimX, dimY);
 
-			/* projection step */
-			Proj_func2D(P1, P2, methTV, dimX, dimY);
+
+
 
 			/*updating R and t*/
 			tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
