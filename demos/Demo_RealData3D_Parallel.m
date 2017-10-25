@@ -11,12 +11,12 @@ addpath('../supp/');
 
 load('DendrRawData.mat') % load raw data of 3D dendritic set
 angles_rad = angles*(pi/180); % conversion to radians
-size_det = size(data_raw3D,1); % detectors dim
+det_size = size(data_raw3D,1); % detectors dim
 angSize = size(data_raw3D, 2); % angles dim
 slices_tot = size(data_raw3D, 3); % no of slices
 recon_size = 950; % reconstruction size
 
-Sino3D = zeros(size_det, angSize, slices_tot, 'single'); % log-corrected sino
+Sino3D = zeros(det_size, angSize, slices_tot, 'single'); % log-corrected sino
 % normalizing the data
 for  jj = 1:slices_tot
     sino = data_raw3D(:,:,jj);
@@ -30,10 +30,8 @@ Weights3D = single(data_raw3D); % weights for PW model
 clear data_raw3D
 %%
 % set projection/reconstruction geometry here
-Z_slices = 5;
-det_row_count = Z_slices;
-proj_geom = astra_create_proj_geom('parallel3d', 1, 1, det_row_count, size_det, angles_rad);
-vol_geom = astra_create_vol_geom(recon_size,recon_size,Z_slices);
+proj_geom = astra_create_proj_geom('parallel', 1, det_size, angles_rad);
+vol_geom = astra_create_vol_geom(recon_size,recon_size);
 %%
 fprintf('%s\n', 'Reconstruction using FBP...');
 FBP = iradon(Sino3D(:,:,10), angles,recon_size);
@@ -50,7 +48,7 @@ params.iterFISTA  = 12;
 params.weights = Weights3D;
 params.subsets = 16; % the number of ordered subsets 
 params.show = 1;
-params.maxvalplot = 2.5; params.slice = 2;
+params.maxvalplot = 2.5; params.slice = 1;
 
 tic; [X_fista, outputFISTA] = FISTA_REC(params); toc;
 figure; imshow(X_fista(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-PWLS reconstruction');
@@ -76,13 +74,13 @@ params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
 params.iterFISTA  = 12;
-params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
+% params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
 params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
 params.weights = Weights3D;
 params.subsets = 16; % the number of ordered subsets 
 params.show = 1;
-params.maxvalplot = 2.5; params.slice = 2;
+params.maxvalplot = 2.5; params.slice = 1;
 
 tic; [X_fista_GH_TV, outputGHTV] = FISTA_REC(params); toc;
 figure; imshow(X_fista_GH_TV(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-GH-TV reconstruction');

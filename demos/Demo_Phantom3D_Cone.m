@@ -8,7 +8,6 @@ addpath('../data/');
 addpath('../main_func/'); addpath('../main_func/regularizers_CPU/'); addpath('../main_func/regularizers_GPU/NL_Regul/'); addpath('../main_func/regularizers_GPU/Diffus_HO/');
 addpath('../supp/');
 
-
 %%
 % build 3D phantom using TomoPhantom 
 modelNo = 3; % see Phantom3DLibrary.dat file in TomoPhantom
@@ -16,9 +15,11 @@ N = 256; % x-y-z size (cubic image)
 angles = 0:1.5:360; % angles vector in degrees
 angles_rad = angles*(pi/180); % conversion to radians
 det_size = round(sqrt(2)*N); % detector size
-% in order to run functions you have to go to the directory:
+
+%---------TomoPhantom routines---------%
 pathTP = '/home/algol/Documents/MATLAB/TomoPhantom/functions/models/Phantom3DLibrary.dat'; % path to TomoPhantom parameters file
 TomoPhantom = buildPhantom3D(modelNo,N,pathTP); % generate 3D phantom
+%--------------------------------------%
 %%
 % using ASTRA-toolbox to set the projection geometry (cone beam)
 % eg: astra.create_proj_geom('cone', 1.0 (resol), 1.0 (resol), detectorRowCount, detectorColCount, angles, originToSource, originToDetector)

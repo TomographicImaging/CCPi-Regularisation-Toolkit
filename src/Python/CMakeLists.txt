@@ -12,21 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-message("CIL VERSION " ${CIL_VERSION})
-
-
 # variables that must be set for conda compilation
 
 #PREFIX=C:\Apps\Miniconda2\envs\cil\Library
 #LIBRARY_INC=C:\\Apps\\Miniconda2\\envs\\cil\\Library\\include
 set (NUMPY_VERSION 1.12)
-#set (PYTHON_VERSION 3.5)
-
-#https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/R9gWjl09UFs
-#set (CONDA_ENVIRONMENT "cil")
 
 ## Tries to parse the output of conda env list to determine the current
 ## active conda environment
+message ("Trying to determine your active conda environment...")
 execute_process(COMMAND "conda" "env" "list"
 					OUTPUT_VARIABLE _CONDA_ENVS
 					RESULT_VARIABLE _CONDA_RESULT
@@ -44,7 +38,7 @@ execute_process(COMMAND "conda" "env" "list"
 				  endif()
 				endforeach()
 			else()
-				message("conda result false" ${_CONDA_ERR})
+				message(FATAL_ERROR "ERROR with conda command " ${_CONDA_ERR})
 			endif()
 
 if (${CONDA_ENVIRONMENT} AND ${CONDA_ENVIRONMENT_PATH})
@@ -55,24 +49,28 @@ else()
   message("Using current conda environmnet path " ${CONDA_ENVIRONMENT_PATH})
 endif()
 
-
-
 message("CIL VERSION " ${CIL_VERSION})
 
 # set the Python variables for the Conda environment
 include(FindAnacondaEnvironment.cmake)
 findPythonForAnacondaEnvironment(${CONDA_ENVIRONMENT_PATH})
+
 message("Python found " ${PYTHON_VERSION_STRING})
 message("Python found Major " ${PYTHON_VERSION_MAJOR})
 message("Python found Minor " ${PYTHON_VERSION_MINOR})
+
 findPythonPackagesPath()
 message("PYTHON_PACKAGES_FOUND " ${PYTHON_PACKAGES_PATH})
 
-# copy the Pyhon files of the package
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi/imaging/)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/imaging/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/imaging)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/imaging/Regularizer.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/imaging)
+## CACHE SOME VARIABLES ##
+set (CONDA_ENVIRONMENT ${CONDA_ENVIRONMENT} CACHE INTERNAL "active conda environment" FORCE)
+set (CONDA_ENVIRONMENT_PATH ${CONDA_ENVIRONMENT_PATH} CACHE INTERNAL "active conda environment" FORCE)
+
+set (PYTHON_VERSION_STRING ${PYTHON_VERSION_STRING} CACHE INTERNAL "conda environment Python version string" FORCE)
+set (PYTHON_VERSION_MAJOR ${PYTHON_VERSION_MAJOR} CACHE INTERNAL "conda environment Python version major" FORCE)
+set (PYTHON_VERSION_MINOR ${PYTHON_VERSION_MINOR} CACHE INTERNAL "conda environment Python version minor" FORCE)
+set (PYTHON_VERSION_PATCH ${PYTHON_VERSION_PATCH} CACHE INTERNAL "conda environment Python version patch" FORCE)
+set (PYTHON_PACKAGES_PATH ${PYTHON_PACKAGES_PATH} CACHE INTERNAL "conda environment Python packages path" FORCE)
 
 if (WIN32)
   #set (CONDA_ENVIRONMENT_PATH "C:\\Apps\\Miniconda2\\envs\\${CONDA_ENVIRONMENT}" CACHE PATH "Main environment directory")
@@ -84,21 +82,92 @@ elseif (UNIX)
   set (CONDA_ENVIRONMENT_LIBRARY_INC "${CONDA_ENVIRONMENT_PREFIX}/include" CACHE PATH "env dir")
 endif()
 
+######### CONFIGURE REGULARIZER PACKAGE #############
+
+# copy the Pyhon files of the package regularizer
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi/imaging/)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi)
+# regularizers
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/imaging/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/imaging)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/imaging/Regularizer.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/imaging)
+
 # Copy and configure the relative conda build and recipes
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/conda-recipe)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/conda-recipe/meta.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/conda-recipe)
 
 if (WIN32)
-	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/conda-recipe/bld.bat DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/conda-recipe/)
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile.bat.in ${CMAKE_CURRENT_BINARY_DIR}/compile.bat)
+	
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/conda-recipe/bld.bat DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/conda-recipe/) 
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile.bat.in ${CMAKE_CURRENT_BINARY_DIR}/compile.bat)
+
 elseif(UNIX)
-        message ("We are on UNIX")
-	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/conda-recipe/build.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/conda-recipe/)
-    # assumes we will use bash
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile.sh.in ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
+  
+  message ("We are on UNIX")
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/conda-recipe/build.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/conda-recipe/)
+  # assumes we will use bash
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile.sh.in ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
+
 endif()
 
+########## CONFIGURE FISTA RECONSTRUCTOR PACKAGE
+# fista reconstructor
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/reconstruction/FISTAReconstructor.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/reconstruction)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/reconstruction/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/reconstruction)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup-fista.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup-fista.py)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fista-recipe)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/fista-recipe/meta.yaml DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/fista-recipe)
+
+if (WIN32)
+
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/fista-recipe/bld.bat DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/fista-recipe/)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile-fista.bat.in ${CMAKE_CURRENT_BINARY_DIR}/compile-fista.bat)
+
+elseif(UNIX)
+  message ("We are on UNIX")
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/fista-recipe/build.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/fista-recipe/)
+  # assumes we will use bash
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/compile-fista.sh.in ${CMAKE_CURRENT_BINARY_DIR}/compile-fista.sh)
+endif()
+
+#############################  TARGETS
+
+##########################  REGULARIZER PACKAGE ###############################
+
+# runs cmake on the build tree to update the code from source
+add_custom_target(update_code 
+		COMMAND ${CMAKE_COMMAND} 
+		ARGS ${CMAKE_SOURCE_DIR}
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		) 
+
+
+add_custom_target(fista
+		COMMAND bash
+		compile-fista.sh
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${update_code}
+		)
+
+add_custom_target(regularizers
+		COMMAND bash
+		compile.sh
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${update_code}
+		)
+
+add_custom_target(install-fista
+		COMMAND conda
+		install --force --use-local ccpi-fista=${CIL_VERSION} -c ccpi -c conda-forge
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${fista})
+
+add_custom_target(install-regularizers
+		COMMAND conda
+		install --force --use-local ccpi-regularizers=${CIL_VERSION} -c ccpi -c conda-forge
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		DEPENDS ${fista})
 ### add tests
 
 #add_executable(RegularizersTest )
