@@ -154,20 +154,20 @@ add_custom_target(regularizers
 		COMMAND bash
 		compile.sh
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-		DEPENDS ${update_code}
+		DEPENDS update_code
 		)
 
 add_custom_target(install-fista
 		COMMAND conda
 		install --force --use-local ccpi-fista=${CIL_VERSION} -c ccpi -c conda-forge
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-		DEPENDS ${fista})
+		)
 
 add_custom_target(install-regularizers
 		COMMAND conda
 		install --force --use-local ccpi-regularizers=${CIL_VERSION} -c ccpi -c conda-forge
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-		DEPENDS ${fista})
+		)
 ### add tests
 
 #add_executable(RegularizersTest )
