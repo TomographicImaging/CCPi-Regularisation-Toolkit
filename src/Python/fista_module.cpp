@@ -312,7 +312,7 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 
 	int number_of_dims, dimX, dimY, dimZ, ll, j, count;
 	float *A, *D = NULL, *D_old = NULL, *P1 = NULL, *P2 = NULL, *P3 = NULL, *P1_old = NULL, *P2_old = NULL, *P3_old = NULL, *R1 = NULL, *R2 = NULL, *R3 = NULL;
-	float lambda, tk, tkp1, re, re1, re_old, epsil, funcval, mu;
+	float lambda, tk, tkp1, re, re1, re_old, epsil, funcval;
 
 	//number_of_dims = mxGetNumberOfDimensions(prhs[0]);
 	//dim_array = mxGetDimensions(prhs[0]);
@@ -901,7 +901,7 @@ bp::list TGV_PD(np::ndarray input, double d_lambda, double d_alpha1, double d_al
 	bp::list result;
 	int number_of_dims, /*iter,*/ dimX, dimY, dimZ, ll;
 	//const int  *dim_array;
-	float *A, *U, *U_old, *P1, *P2, *P3, *Q1, *Q2, *Q3, *Q4, *Q5, *Q6, *Q7, *Q8, *Q9, *V1, *V1_old, *V2, *V2_old, *V3, *V3_old, lambda, L2, tau, sigma, alpha1, alpha0;
+	float *A, *U, *U_old, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, lambda, L2, tau, sigma, alpha1, alpha0;
 
 	//number_of_dims = mxGetNumberOfDimensions(prhs[0]);
 	//dim_array = mxGetDimensions(prhs[0]);
