@@ -1,7 +1,7 @@
 % Demonstration of tomographic 3D reconstruction from X-ray synchrotron
 % dataset (dendrites) using various data fidelities
 % ! It is advisable not to run the whole script, it will take lots of time to reconstruct the whole 3D data using many algorithms !
-clear all
+clear
 close all
 %%
 % % adding paths
@@ -44,9 +44,9 @@ clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
-params.iterFISTA  = 12;
+params.iterFISTA  = 18;
 params.weights = Weights3D;
-params.subsets = 16; % the number of ordered subsets 
+params.subsets = 8; % the number of ordered subsets 
 params.show = 1;
 params.maxvalplot = 2.5; params.slice = 1;
 
@@ -58,12 +58,12 @@ clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
-params.iterFISTA  = 12;
-params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
+params.iterFISTA  = 18;
+params.Regul_Lambda_FGPTV = 5.0000e+6; % TV regularization parameter for FGP-TV
 params.weights = Weights3D;
-params.subsets = 16; % the number of ordered subsets 
+params.subsets = 8; % the number of ordered subsets 
 params.show = 1;
-params.maxvalplot = 2.5; params.slice = 2;
+params.maxvalplot = 2.5; params.slice = 10;
 
 tic; [X_fista_TV, outputTV] = FISTA_REC(params); toc;
 figure; imshow(X_fista_TV(:,:,params.slice) , [0, 2.5]); title ('FISTA-OS-PWLS-TV reconstruction');
@@ -73,12 +73,12 @@ clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
-params.iterFISTA  = 12;
-% params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
+params.iterFISTA  = 18;
+params.Regul_Lambda_FGPTV = 5.0000e+6; % TV regularization parameter for FGP-TV
 params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
 params.weights = Weights3D;
-params.subsets = 16; % the number of ordered subsets 
+params.subsets = 8; % the number of ordered subsets 
 params.show = 1;
 params.maxvalplot = 2.5; params.slice = 1;
 
@@ -91,7 +91,7 @@ params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = Sino3D;
 params.iterFISTA  = 12;
-params.Regul_Lambda_FGPTV = 0.005; % TV regularization parameter for FGP-TV
+params.Regul_Lambda_FGPTV = 5.0000e+6; % TV regularization parameter for FGP-TV
 params.Regul_LambdaLLT = 100;  % regularization parameter for LLT problem
 params.Regul_tauLLT = 0.0005; % time-step parameter for the explicit scheme
 params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
