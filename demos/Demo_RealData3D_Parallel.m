@@ -72,12 +72,12 @@ fprintf('%s\n', 'Reconstruction using FISTA-OS-GH-TV...');
 clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
-params.sino = Sino3D;
+params.sino = Sino3D(:,:,10);
 params.iterFISTA  = 18;
 params.Regul_Lambda_FGPTV = 5.0000e+6; % TV regularization parameter for FGP-TV
 params.Ring_LambdaR_L1 = 0.002; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
-params.weights = Weights3D;
+params.weights = Weights3D(:,:,10);
 params.subsets = 8; % the number of ordered subsets 
 params.show = 1;
 params.maxvalplot = 2.5; params.slice = 1;

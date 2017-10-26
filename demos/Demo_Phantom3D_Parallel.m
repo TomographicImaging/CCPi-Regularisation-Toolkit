@@ -71,7 +71,7 @@ clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = single(sino3D_log); % sinogram
-params.iterFISTA = 12; %max number of outer iterations
+params.iterFISTA = 15; %max number of outer iterations
 params.X_ideal = TomoPhantom; % ideal phantom
 params.weights = dataRaw./max(dataRaw(:)); % statistical weight for PWLS
 params.subsets = 12; % the number of subsets

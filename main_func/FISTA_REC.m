@@ -494,6 +494,7 @@ else
     residual2 = zeros(size(sino),'single');
     sino_updt_FULL = zeros(size(sino),'single');
     
+    
     % Outer FISTA iterations loop
     for i = 1:iterFISTA
         
@@ -514,21 +515,9 @@ else
             end
             r = r_x - (1./L_const).*vec; % update ring variable
         end
-        
-        % subsets loop
-        counterInd = 1;
-		if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
-			% if geometry is 2D use slice-by-slice projection-backprojection routine                    
-			for kkk = 1:SlicesZ
-				[sino_id, sinoT] = astra_create_sino_cuda(X_t(:,:,kkk), proj_geomSUB, vol_geom);
-				sino_updt_Sub(:,:,kkk) = sinoT';
-				astra_mex_data2d('delete', sino_id);
-			end
-		else
-			% for 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
-			[sino_id, sino_updt_Sub] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
-			astra_mex_data3d('delete', sino_id);
-		end
+                
+       % subsets loop
+        counterInd = 1;        
         for ss = 1:subsets
             X_old = X;
             t_old = t;
@@ -553,8 +542,6 @@ else
             
             if (lambdaR_L1 > 0)
                 % Group-Huber fidelity (ring removal)
-
-                
                 residualSub = zeros(Detectors, numProjSub, SlicesZ,'single'); % residual for a chosen subset
                 for kkk = 1:numProjSub
                     indC = CurrSubIndeces(kkk);
@@ -564,7 +551,7 @@ else
                 
             elseif (studentt > 0)
                 % student t data fidelity
-
+                
                 % artifacts removal with Students t penalty
                 residualSub = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt_Sub - squeeze(sino(:,CurrSubIndeces,:)));
                 
@@ -577,12 +564,10 @@ else
                 end
                 objective(i) = ff; % for the objective function output
             else
-                % PWLS model
-
+                % PWLS model                
                 residualSub = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt_Sub - squeeze(sino(:,CurrSubIndeces,:)));
                 objective(i) = 0.5*norm(residualSub(:)); % for the objective function output
             end
-
             
             % perform backprojection of a subset
             if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
