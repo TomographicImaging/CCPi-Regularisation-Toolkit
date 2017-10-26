@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazanteev
+Copyright 2017 Daniil Kazantsev
 Copyright 2017 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -314,12 +314,5 @@ float cleanMap(unsigned short *Map, int dimX, int dimY, int dimZ)
 	return *Map;
 }
 
-/* Copy Image */
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
-{
-	int j;
-#pragma omp parallel for shared(A, U) private(j)
-	for (j = 0; j<dimX*dimY*dimZ; j++)  U[j] = A[j];
-	return *U;
-}
+
 /*********************3D *********************/

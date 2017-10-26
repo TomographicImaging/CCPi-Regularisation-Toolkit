@@ -186,14 +186,6 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
         }}
     return 1;
 }
-/* Copy Image */
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
-{
-    int j;
-#pragma omp parallel for shared(A, U) private(j)
-    for(j=0; j<dimX*dimY*dimZ; j++)  U[j] = A[j];
-    return *U;
-}
 /*********************3D *********************/
 
 /*Calculating dual variable P (using forward differences)*/
