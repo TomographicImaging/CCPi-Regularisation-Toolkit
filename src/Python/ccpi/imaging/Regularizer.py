@@ -216,13 +216,13 @@ class Regularizer():
                 #assuming it's 3D
                 # run independent calls on each slice
                 out3d = input.copy()
-                for i in range(np.shape(input)[2]):
-                    out = self.algorithm(input, regularization_parameter,
+                for i in range(np.shape(input)[0]):
+                    out = self.algorithm(input[i], regularization_parameter,
                                  self.pars['first_order_term'] , 
                                  self.pars['second_order_term'] , 
                                  self.pars['number_of_iterations'])
                     # copy the result in the 3D image
-                    out3d.T[i] = out[0].copy()
+                    out3d[i] = out[0].copy()
                 # append the rest of the info that the algorithm returns
                 output = [out3d]
                 for i in range(1,len(out)):
