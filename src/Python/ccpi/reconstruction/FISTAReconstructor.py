@@ -27,7 +27,7 @@ import numpy
 from enum import Enum
 
 import astra
-from ccpi.reconstruction.AstraDevice import AstraDevice
+#from ccpi.reconstruction.AstraDevice import AstraDevice
 
    
     
@@ -74,7 +74,10 @@ class FISTAReconstructor():
     # 3. "A novel tomographic reconstruction method based on the robust
     # Student's t function for suppressing data outliers" D. Kazantsev et.al.
     # D. Kazantsev, 2016-17
-    def __init__(self, projector_geometry, output_geometry, input_sinogram,
+    def __init__(self, projector_geometry,
+                 output_geometry,
+                 input_sinogram,
+                 device, 
                  **kwargs):
         # handle parmeters:
         # obligatory parameters
@@ -87,16 +90,10 @@ class FISTAReconstructor():
         self.pars['number_of_angles'] = nangles
         self.pars['SlicesZ'] = sliceZ
         self.pars['output_volume'] = None
-
+        self.pars['device'] = device
 
         
-        device = createAstraDevice(projector_geometry, output_geometry)
-        self.setParameter(device_model=device)
-        proj_geomT = projector_geometry.copy();
-        proj_geomT['DetectorRowCount'] = 1;
-        vol_geomT = output_geometry.copy();
-        vol_geomT['GridSliceCount'] = 1;
-        reduced_device = createAstraDevice(proj_geomT, vol_geomT)
+        reduced_device = device.createReducedDevice()
         self.setParameter(reduced_device_model=reduced_device)
 
         self.use_device = True
@@ -187,21 +184,7 @@ class FISTAReconstructor():
             self.pars['initialize'] = False
 
         
-    def createAstraDevice(self, projector_geometry, output_geometry):
-        '''TODO remove'''
-        
-        device = AstraDevice(DeviceModel.PARALLEL3D,
-                    {'detectorSpacingX' : projector_geometry['DetectorSpacingX'] ,
-                     'detectorSpacingY' : projector_geometry['DetectorSpacingY'] ,
-                     'cameraX' : projector_geometry['DetectorColCount'] ,
-                     'cameraY' : projector_geometry['DetectorRowCount'] ,
-                     'angles' : projector_geometry['ProjectionAngles'] } ,
-                    {
-                        'X' : output_geometry['GridColCount'],
-                        'Y' : output_geometry['GridRowCount']
-                        'Z' : output_geometry['GridSliceCount']} )
-        return device
-            
+                
     def setParameter(self, **kwargs):
         '''set named parameter for the reconstructor engine
         
