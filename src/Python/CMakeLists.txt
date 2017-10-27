@@ -114,6 +114,8 @@ endif()
 # fista reconstructor
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/reconstruction/FISTAReconstructor.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/reconstruction)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/reconstruction/__init__.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/reconstruction)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/reconstruction/DeviceModel.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/reconstruction)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccpi/reconstruction/AstraDevice.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ccpi/reconstruction)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup-fista.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup-fista.py)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fista-recipe)
