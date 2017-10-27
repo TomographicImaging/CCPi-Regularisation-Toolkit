@@ -44,7 +44,7 @@ reconstructed_volume_geometry: tuple (dimX,dimY,dimZ)
             'Z': reconstructed_volume_geometry[2] }
 
     @abstractmethod
-    def doFowardProject(self, volume):
+    def doForwardProject(self, volume):
         '''Forward projects the volume according to the device geometry'''
         return NotImplemented
 
@@ -52,6 +52,11 @@ reconstructed_volume_geometry: tuple (dimX,dimY,dimZ)
     @abstractmethod
     def doBackwardProject(self, projections):
         '''Backward projects the projections according to the device geometry'''
+        return NotImplemented
+
+    @abstractmethod
+    def createReducedDevice(self):
+        '''Create a Device to do forward/backward projections on 2D slices'''
         return NotImplemented
     
 
