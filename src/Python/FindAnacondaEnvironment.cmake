@@ -97,7 +97,12 @@ function (findPythonForAnacondaEnvironment env)
 	set (PYTHON_VERSION_MINOR ${_PYTHON_VERSION_MINOR} PARENT_SCOPE)
 	set (PYTHON_VERSION_PATCH ${_PYTHON_VERSION_PATCH} PARENT_SCOPE)
 	message("My version found " ${PYTHON_VERSION_STRING})
-
+	## find conda executable
+	if (WIN32)
+	  set (CONDA_EXECUTABLE ${env}/Script/conda PARENT_SCOPE)
+	elseif(UNIX)
+	  set (CONDA_EXECUTABLE ${env}/bin/conda PARENT_SCOPE)
+	endif()
 endfunction()
 
 
