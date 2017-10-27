@@ -13,6 +13,7 @@ class AstraDevice(DeviceModel):
                                           data_aquisition_geometry,
                                           reconstructed_volume_geometry)
 
+        self.type = device_type
         self.proj_geom = astra.creators.create_proj_geom(
             device_type,
             self.acquisition_data_geometry['detectorSpacingX'],
@@ -50,6 +51,7 @@ Uses Astra-toolbox
                    self.vol_geom)
         astra.matlab.data3d('delete', idx)
         return volume
+    
     def createReducedDevice(self):
         proj_geom = astra.creators.create_proj_geom(
             device_type,
