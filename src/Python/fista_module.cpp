@@ -328,7 +328,6 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 	else {
 		dim_array[2] = input.shape(2);
 	}
-
 	// Parameter handling is be done in Python
 	///*Handling Matlab input data*/
 	//if ((nrhs < 2) || (nrhs > 5)) mexErrMsgTxt("At least 2 parameters is required: Image(2D/3D), Regularization parameter. The full list of parameters: Image(2D/3D), Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1')");
@@ -513,13 +512,11 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 		P3_old = reinterpret_cast<float *>(npP3_old.get_data());
 		R1     = reinterpret_cast<float *>(npR1.get_data());
 		R2     = reinterpret_cast<float *>(npR2.get_data());
-		R2     = reinterpret_cast<float *>(npR3.get_data());
+		R3     = reinterpret_cast<float *>(npR3.get_data());
 		/* begin iterations */
 		for (ll = 0; ll<iter; ll++) {
-
 			/* computing the gradient of the objective function */
 			Obj_func3D(A, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
-
 			/*Taking a step towards minus of the gradient*/
 			Grad_func3D(P1, P2, P3, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
 
