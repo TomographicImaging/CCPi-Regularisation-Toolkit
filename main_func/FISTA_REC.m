@@ -169,12 +169,12 @@ end
 if (isfield(params,'Regul_tol'))
     tol = params.Regul_tol;
 else
-    tol = 1.0e-04;
+    tol = 1.0e-05;
 end
 if (isfield(params,'Regul_Iterations'))
     IterationsRegul = params.Regul_Iterations;
 else
-    IterationsRegul = 25;
+    IterationsRegul = 45;
 end
 if (isfield(params,'Regul_LambdaLLT'))
     lambdaHO = params.Regul_LambdaLLT;
@@ -381,11 +381,11 @@ if (subsets == 0)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
-                    [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV, IterationsRegul, tol, 'iso');
+                    [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV/L_const, IterationsRegul, tol, 'iso');
                 end
             else
                 % 3D regularization
-                [X, f_val] = FGP_TV(single(X), lambdaFGP_TV, IterationsRegul, tol, 'iso');
+                [X, f_val] = FGP_TV(single(X), lambdaFGP_TV/L_const, IterationsRegul, tol, 'iso');
             end
             objective(i) = (objective(i) + f_val)./(Detectors*anglesNumb*SlicesZ);
         end
@@ -394,11 +394,11 @@ if (subsets == 0)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
-                    X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
+                    X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV/L_const, IterationsRegul, tol);  % (more memory efficent)
                 end
             else
                 % 3D regularization
-                X = SplitBregman_TV(single(X), lambdaSB_TV, IterationsRegul, tol);  % (more memory efficent)
+                X = SplitBregman_TV(single(X), lambdaSB_TV/L_const, IterationsRegul, tol);  % (more memory efficent)
             end
         end
         if (lambdaHO > 0)
@@ -407,11 +407,11 @@ if (subsets == 0)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
-                    X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
+                    X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO/L_const, tauHO, iterHO, 3.0e-05, 0);
                 end
             else
                 % 3D regularization
-                X2 = LLT_model(single(X), lambdaHO, tauHO, iterHO, 3.0e-05, 0);
+                X2 = LLT_model(single(X), lambdaHO/L_const, tauHO, iterHO, 3.0e-05, 0);
             end
             X = 0.5.*(X + X2); % averaged combination of two solutions
             
@@ -421,10 +421,10 @@ if (subsets == 0)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
-                    X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB);
+                    X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB/L_const);
                 end
             else
-                X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB);
+                X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB/L_const);
             end
         end
         if (lambdaPB_GPU > 0)
@@ -432,10 +432,10 @@ if (subsets == 0)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
-                    X(:,:,kkk) = NLM_GPU(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB_GPU);
+                    X(:,:,kkk) = NLM_GPU(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB_GPU/L_const);
                 end
             else
-                X = NLM_GPU(single(X), SearchW, SimilW, h_PB, lambdaPB_GPU);
+                X = NLM_GPU(single(X), SearchW, SimilW, h_PB, lambdaPB_GPU/L_const);
             end
         end
         if (LambdaDiff_HO > 0)
@@ -443,10 +443,10 @@ if (subsets == 0)
             if ((strcmp('2D', Dimension) == 1))
                 % 2D regularization
                 for kkk = 1:SlicesZ
-                    X(:,:,kkk) = Diff4thHajiaboli_GPU(single(X(:,:,kkk)), LambdaDiff_HO_EdgePar, LambdaDiff_HO, IterationsRegul);
+                    X(:,:,kkk) = Diff4thHajiaboli_GPU(single(X(:,:,kkk)), LambdaDiff_HO_EdgePar, LambdaDiff_HO/L_const, IterationsRegul);
                 end
             else
-                X = Diff4thHajiaboli_GPU(X, LambdaDiff_HO_EdgePar, LambdaDiff_HO, IterationsRegul);
+                X = Diff4thHajiaboli_GPU(X, LambdaDiff_HO_EdgePar, LambdaDiff_HO/L_const, IterationsRegul);
             end
         end
         if (LambdaTGV > 0)
@@ -454,7 +454,7 @@ if (subsets == 0)
             lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
             lamTGV2 = 0.8; % second-order term
             for kkk = 1:SlicesZ
-                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV, lamTGV1, lamTGV2, IterationsRegul);
+                X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV/L_const, lamTGV1, lamTGV2, IterationsRegul);
             end
         end
         
@@ -494,6 +494,7 @@ else
     residual2 = zeros(size(sino),'single');
     sino_updt_FULL = zeros(size(sino),'single');
     
+    
     % Outer FISTA iterations loop
     for i = 1:iterFISTA
         
@@ -514,21 +515,9 @@ else
             end
             r = r_x - (1./L_const).*vec; % update ring variable
         end
-        
-        % subsets loop
-        counterInd = 1;
-		if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
-			% if geometry is 2D use slice-by-slice projection-backprojection routine                    
-			for kkk = 1:SlicesZ
-				[sino_id, sinoT] = astra_create_sino_cuda(X_t(:,:,kkk), proj_geomSUB, vol_geom);
-				sino_updt_Sub(:,:,kkk) = sinoT';
-				astra_mex_data2d('delete', sino_id);
-			end
-		else
-			% for 3D geometry (watch the GPU memory overflow in earlier ASTRA versions < 1.8)
-			[sino_id, sino_updt_Sub] = astra_create_sino3d_cuda(X_t, proj_geomSUB, vol_geom);
-			astra_mex_data3d('delete', sino_id);
-		end
+                
+       % subsets loop
+        counterInd = 1;        
         for ss = 1:subsets
             X_old = X;
             t_old = t;
@@ -553,8 +542,6 @@ else
             
             if (lambdaR_L1 > 0)
                 % Group-Huber fidelity (ring removal)
-
-                
                 residualSub = zeros(Detectors, numProjSub, SlicesZ,'single'); % residual for a chosen subset
                 for kkk = 1:numProjSub
                     indC = CurrSubIndeces(kkk);
@@ -564,7 +551,7 @@ else
                 
             elseif (studentt > 0)
                 % student t data fidelity
-
+                
                 % artifacts removal with Students t penalty
                 residualSub = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt_Sub - squeeze(sino(:,CurrSubIndeces,:)));
                 
@@ -577,12 +564,10 @@ else
                 end
                 objective(i) = ff; % for the objective function output
             else
-                % PWLS model
-
+                % PWLS model                
                 residualSub = squeeze(weights(:,CurrSubIndeces,:)).*(sino_updt_Sub - squeeze(sino(:,CurrSubIndeces,:)));
                 objective(i) = 0.5*norm(residualSub(:)); % for the objective function output
             end
-
             
             % perform backprojection of a subset
             if (strcmp(proj_geom.type,'parallel') || strcmp(proj_geom.type,'fanflat') || strcmp(proj_geom.type,'fanflat_vec'))
@@ -604,11 +589,11 @@ else
                 if ((strcmp('2D', Dimension) == 1))
                     % 2D regularization
                     for kkk = 1:SlicesZ
-                        [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV/subsets, IterationsRegul, tol, 'iso');
+                        [X(:,:,kkk), f_val] = FGP_TV(single(X(:,:,kkk)), lambdaFGP_TV/(subsets*L_const), IterationsRegul, tol, 'iso');
                     end
                 else
                     % 3D regularization
-                    [X, f_val] = FGP_TV(single(X), lambdaFGP_TV/subsets, IterationsRegul, tol, 'iso');
+                    [X, f_val] = FGP_TV(single(X), lambdaFGP_TV/(subsets*L_const), IterationsRegul, tol, 'iso');
                 end
                 objective(i) = objective(i) + f_val;
             end
@@ -617,11 +602,11 @@ else
                 if ((strcmp('2D', Dimension) == 1))
                     % 2D regularization
                     for kkk = 1:SlicesZ
-                        X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV/subsets, IterationsRegul, tol);  % (more memory efficent)
+                        X(:,:,kkk) = SplitBregman_TV(single(X(:,:,kkk)), lambdaSB_TV/(subsets*L_const), IterationsRegul, tol);  % (more memory efficent)
                     end
                 else
                     % 3D regularization
-                    X = SplitBregman_TV(single(X), lambdaSB_TV/subsets, IterationsRegul, tol);  % (more memory efficent)
+                    X = SplitBregman_TV(single(X), lambdaSB_TV/(subsets*L_const), IterationsRegul, tol);  % (more memory efficent)
                 end
             end
             if (lambdaHO > 0)
@@ -630,11 +615,11 @@ else
                 if ((strcmp('2D', Dimension) == 1))
                     % 2D regularization
                     for kkk = 1:SlicesZ
-                        X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO/subsets, tauHO/subsets, iterHO, 2.0e-05, 0);
+                        X2(:,:,kkk) = LLT_model(single(X(:,:,kkk)), lambdaHO/(subsets*L_const), tauHO/subsets, iterHO, 2.0e-05, 0);
                     end
                 else
                     % 3D regularization
-                    X2 = LLT_model(single(X), lambdaHO/subsets, tauHO/subsets, iterHO, 2.0e-05, 0);
+                    X2 = LLT_model(single(X), lambdaHO/(subsets*L_const), tauHO/subsets, iterHO, 2.0e-05, 0);
                 end
                 X = 0.5.*(X + X2); % the averaged combination of two solutions
             end
@@ -643,10 +628,10 @@ else
                 if ((strcmp('2D', Dimension) == 1))
                     % 2D regularization
                     for kkk = 1:SlicesZ
-                        X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB/subsets);
+                        X(:,:,kkk) = PatchBased_Regul(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB/(subsets*L_const));
                     end
                 else
-                    X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB/subsets);
+                    X = PatchBased_Regul(single(X), SearchW, SimilW, h_PB, lambdaPB/(subsets*L_const));
                 end
             end
             if (lambdaPB_GPU > 0)
@@ -654,10 +639,10 @@ else
                 if ((strcmp('2D', Dimension) == 1))
                     % 2D regularization
                     for kkk = 1:SlicesZ
-                        X(:,:,kkk) = NLM_GPU(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB_GPU);
+                        X(:,:,kkk) = NLM_GPU(single(X(:,:,kkk)), SearchW, SimilW, h_PB, lambdaPB_GPU/(subsets*L_const));
                     end
                 else
-                    X = NLM_GPU(single(X), SearchW, SimilW, h_PB, lambdaPB_GPU);
+                    X = NLM_GPU(single(X), SearchW, SimilW, h_PB, lambdaPB_GPU/(subsets*L_const));
                 end
             end
             if (LambdaDiff_HO > 0)
@@ -665,10 +650,10 @@ else
                 if ((strcmp('2D', Dimension) == 1))
                     % 2D regularization
                     for kkk = 1:SlicesZ
-                        X(:,:,kkk) = Diff4thHajiaboli_GPU(single(X(:,:,kkk)), LambdaDiff_HO_EdgePar, LambdaDiff_HO, round(IterationsRegul/subsets));
+                        X(:,:,kkk) = Diff4thHajiaboli_GPU(single(X(:,:,kkk)), LambdaDiff_HO_EdgePar, LambdaDiff_HO/(subsets*L_const), round(IterationsRegul/subsets));
                     end
                 else
-                    X = Diff4thHajiaboli_GPU(X, LambdaDiff_HO_EdgePar, LambdaDiff_HO, round(IterationsRegul/subsets));
+                    X = Diff4thHajiaboli_GPU(X, LambdaDiff_HO_EdgePar, LambdaDiff_HO/(subsets*L_const), round(IterationsRegul/subsets));
                 end
             end
             if (LambdaTGV > 0)
@@ -676,7 +661,7 @@ else
                 lamTGV1 = 1.1; % smoothing trade-off parameters, see Pock's paper
                 lamTGV2 = 0.5; % second-order term
                 for kkk = 1:SlicesZ
-                    X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV/subsets, lamTGV1, lamTGV2, IterationsRegul);
+                    X(:,:,kkk) = TGV_PD(single(X(:,:,kkk)), LambdaTGV/(subsets*L_const), lamTGV1, lamTGV2, IterationsRegul);
                 end
             end
             

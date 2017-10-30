@@ -2,7 +2,7 @@
 % PARALLEL BEAM geometry
 % requirements: ASTRA-toolbox and TomoPhantom toolbox
 
-close all;clc;clear all;
+close all;clc;clear;
 % adding paths
 addpath('../data/');
 addpath('../main_func/'); addpath('../main_func/regularizers_CPU/'); addpath('../main_func/regularizers_GPU/NL_Regul/'); addpath('../main_func/regularizers_GPU/Diffus_HO/');
@@ -71,12 +71,12 @@ clear params
 params.proj_geom = proj_geom; % pass geometry to the function
 params.vol_geom = vol_geom;
 params.sino = single(sino3D_log); % sinogram
-params.iterFISTA = 12; %max number of outer iterations
+params.iterFISTA = 15; %max number of outer iterations
 params.X_ideal = TomoPhantom; % ideal phantom
 params.weights = dataRaw./max(dataRaw(:)); % statistical weight for PWLS
 params.subsets = 12; % the number of subsets
 params.show = 1; % visualize reconstruction on each iteration
-params.slice = 1; params.maxvalplot = 1.3; 
+params.slice = 128; params.maxvalplot = 1.3; 
 tic; [X_FISTA, output] = FISTA_REC(params); toc; 
 
 error_FISTA = output.Resid_error; obj_FISTA = output.objective;
@@ -91,7 +91,7 @@ subplot(1,2,1); plot(error_FISTA);  title('RMSE plot');
 subplot(1,2,2); plot(obj_FISTA);  title('Objective plot'); 
 %%
 %% 
-fprintf('%s\n', 'Reconstruction using OS-FISTA-GH without FGP-TV regularization...');
+fprintf('%s\n', 'Reconstruction using OS-FISTA-GH with FGP-TV regularization...');
 clear params
 % define parameters
 params.proj_geom = proj_geom; % pass geometry to the function
@@ -99,13 +99,13 @@ params.vol_geom = vol_geom;
 params.sino = single(sino3D_log); % sinogram
 params.iterFISTA = 15; %max number of outer iterations
 params.X_ideal = TomoPhantom; % ideal phantom
-params.weights = dataRaw./max(dataRaw(:)); % statistical weight for PWLS
-params.subsets = 8; % the number of subsets
-params.Regul_Lambda_FGPTV = 0.003; % TV regularization parameter for FGP-TV
+params.weights = dataRaw./max(dataRaw(:)); % statistical weights for PWLS
+params.subsets = 12; % the number of subsets
+params.Regul_Lambda_FGPTV = 100; % TV regularization parameter for FGP-TV
 params.Ring_LambdaR_L1 = 0.02; % Soft-Thresh L1 ring variable parameter
 params.Ring_Alpha = 21; % to boost ring removal procedure
 params.show = 1; % visualize reconstruction on each iteration
-params.slice = 1; params.maxvalplot = 1.3; 
+params.slice = 128; params.maxvalplot = 1.3; 
 tic; [X_FISTA_GH_TV, output] = FISTA_REC(params); toc; 
 
 error_FISTA_GH_TV = output.Resid_error; obj_FISTA_GH_TV = output.objective;
