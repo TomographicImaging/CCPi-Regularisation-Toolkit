@@ -18,7 +18,7 @@ limitations under the License.
 */
 
 #include "PatchBased_Regul_core.h"
-
+#include <string.h>
 /* C-OMP implementation of  patch-based (PB) regularization (2D and 3D cases). 
  * This method finds self-similar patches in data and performs one fixed point iteration to mimimize the PB penalty function
  * 
@@ -46,11 +46,25 @@ limitations under the License.
  */
 
 /*2D version function */
-float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, int SimilW, float h, float lambda)
+float PB_FUNC2D(float *Ap, float *Bp, int dimX, int dimY, int padXY, int SearchW, int SimilW, float h, float lambda)
 {
     int i, j, i_n, j_n, i_m, j_m, i_p, j_p, i_l, j_l, i1, j1, i2, j2, i3, j3, i5,j5, count, SimilW_full;
     float *Eucl_Vec, h2, denh2, normsum, Weight, Weight_norm, value, denom, WeightGlob, t1;
-                 
+    
+    float A[dimX*dimY], B[dimX*dimY];
+
+    //fill the structures
+    int index=0;
+    for (i=0;i<dimX;i++){
+    	for (j=0;j<dimY;j++){
+		int index = j + dimX * i;
+
+		float val = (*(Ap + index));
+		memcpy(A + index , &val, sizeof(float));
+		val = (*(Bp + index));
+		memcpy(B + index , &val, sizeof(float));
+	}
+    }
     /*SearchW_full = 2*SearchW + 1; */ /* the full searching window  size */
     SimilW_full = 2*SimilW + 1;   /* the full similarity window  size */
     h2 = h*h;
@@ -65,10 +79,12 @@ float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, 
             Eucl_Vec[count] = exp(-(t1)/(2*SimilW*SimilW));
             count = count + 1;                       
         }} /*main neighb loop */   
-    
+
+   #pragma acc kernels copy(A[0:dimX*dimY], B[0:dimX*dimY], Eucl_Vec[0:SimilW_full*SimilW_full])
+   {
     /*The NLM code starts here*/         
     /* setting OMP here */
-    #pragma omp parallel for shared (A, B, dimX, dimY, Eucl_Vec, lambda, denh2) private(denom, i, j, WeightGlob, count,  i1, j1, i2, j2, i3, j3, i5, j5, Weight_norm, normsum, i_m, j_m, i_n, j_n, i_l, j_l, i_p, j_p, Weight,  value)
+    //#pragma omp parallel for shared (A, B, dimX, dimY, Eucl_Vec, lambda, denh2) private(denom, i, j, WeightGlob, count,  i1, j1, i2, j2, i3, j3, i5, j5, Weight_norm, normsum, i_m, j_m, i_n, j_n, i_l, j_l, i_p, j_p, Weight,  value)
     
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -101,7 +117,8 @@ float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, 
                                  WeightGlob += Weight;
                              }}                      
       
-                         value += A[i1*dimY+j1]*WeightGlob;
+                         value += A[i1*dimY+j1]
+			           * WeightGlob;
                          Weight_norm += WeightGlob;           
                     }}      /*search window loop end*/
                 
@@ -110,6 +127,8 @@ float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, 
                 B[i*dimY+j] = (A[i*dimY+j] + lambda*value)/denom;         
              }
         }}   /*main loop*/     
+
+	} // OpenAcc pragma
     return (*B);
     free(Eucl_Vec);    
 }

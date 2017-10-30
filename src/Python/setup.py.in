@@ -21,13 +21,15 @@ except:
     library_include_path = os.environ['PREFIX']+'/include'
     pass
     
-extra_include_dirs = [numpy.get_include(), library_include_path]
-extra_library_dirs = [os.path.join(library_include_path, "..", "lib")]
+extra_include_dirs = [numpy.get_include(), 
+                      library_include_path , 
+                      ]
+extra_library_dirs = [os.path.join(library_include_path, "..", "lib"),
+                     os.path.join("@CMAKE_BINARY_DIR@" ,"src","Python","ccpi","imaging")]
 extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x']
 extra_libraries = []
 extra_include_dirs += [os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU"),
-                       	   os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_GPU") , 
-						   "@CMAKE_CURRENT_SOURCE_DIR@"]
+                       	   os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_GPU") ,   "@CMAKE_CURRENT_SOURCE_DIR@"]
 						   
 if platform.system() == 'Windows':
     extra_compile_args[0:] = ['/DWIN32','/EHsc','/DBOOST_ALL_NO_LIB' , '/openmp' ]   
@@ -38,9 +40,9 @@ if platform.system() == 'Windows':
         extra_libraries += ['boost_python-vc90-mt-1_64', 'boost_numpy-vc90-mt-1_64']
 else:
     if sys.version_info.major == 3:
-        extra_libraries += ['boost_python3', 'boost_numpy3','gomp']
+        extra_libraries += ['boost_python3', 'boost_numpy3','gomp','regularizers_lib']
     else:
-        extra_libraries += ['boost_python', 'boost_numpy','gomp']
+        extra_libraries += ['boost_python', 'boost_numpy','gomp','regularizers_lib']
 
 setup(
     name='ccpi',
@@ -49,12 +51,12 @@ setup(
     cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension("ccpi.imaging.cpu_regularizers",
                              sources=[os.path.join("@CMAKE_CURRENT_SOURCE_DIR@" , "fista_module.cpp" ),
-                                      os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "FGP_TV_core.c"),
-									  os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "SplitBregman_TV_core.c"),
-									  os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "LLT_model_core.c"),
-									  os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "PatchBased_Regul_core.c"),
-									  os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "TGV_PD_core.c"),
-									  os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "utils.c")
+                                      #os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "FGP_TV_core.c"),
+				      #os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "SplitBregman_TV_core.c"),
+				      #os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "LLT_model_core.c"),
+				      #os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "PatchBased_Regul_core.c"),
+				      #os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "TGV_PD_core.c"),
+				      #os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "utils.c")
                                         ],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 

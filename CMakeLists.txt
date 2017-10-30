@@ -26,5 +26,6 @@ set (CIL_VERSION_MINOR 9)
 set (CIL_VERSION_PATCH 1)
 
 set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}' CACHE INTERNAL "Core Imaging Library version" FORCE)
+add_subdirectory(main_func)
 
 add_subdirectory(src)

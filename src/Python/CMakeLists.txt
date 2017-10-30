@@ -156,7 +156,7 @@ add_custom_target(regularizers
 		COMMAND bash
 		compile.sh
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-		DEPENDS update_code
+		DEPENDS update_code install
 		)
 
 add_custom_target(install-fista
