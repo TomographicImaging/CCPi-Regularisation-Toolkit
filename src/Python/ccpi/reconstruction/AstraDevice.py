@@ -1,5 +1,6 @@
 import astra
 from ccpi.reconstruction.DeviceModel import DeviceModel
+import numpy
 
 class AstraDevice(DeviceModel):
     '''Concrete class for Astra Device'''
@@ -17,7 +18,7 @@ class AstraDevice(DeviceModel):
         self.proj_geom = astra.creators.create_proj_geom(
             device_type,
             self.acquisition_data_geometry['detectorSpacingX'],
-            self.acquisition_data_geometry['detectorSpacingX'],
+            self.acquisition_data_geometry['detectorSpacingY'],
             self.acquisition_data_geometry['cameraX'],
             self.acquisition_data_geometry['cameraY'],
             self.acquisition_data_geometry['angles'],
@@ -34,10 +35,15 @@ class AstraDevice(DeviceModel):
 
 Uses Astra-toolbox
 '''
-        sino_id, y = astra.creators.create_sino3d_gpu(
-            volume, self.proj_geom, self.vol_geom)
-        astra.matlab.data3d('delete', sino_id)
-        return y
+              
+        try:
+            sino_id, y = astra.creators.create_sino3d_gpu(
+                volume, self.proj_geom, self.vol_geom)
+            astra.matlab.data3d('delete', sino_id)
+            return y
+        except Exception(e):
+            print(e)
+            print("Value Error: ", self.proj_geom, self.vol_geom)
 
     def doBackwardProject(self, projections):
         '''Backward projects the projections according to the device geometry
@@ -49,27 +55,25 @@ Uses Astra-toolbox
                    projections,
                    self.proj_geom,
                    self.vol_geom)
+        
         astra.matlab.data3d('delete', idx)
         return volume
     
     def createReducedDevice(self):
-        proj_geom = astra.creators.create_proj_geom(
-            device_type,
-            self.acquisition_data_geometry['detectorSpacingX'],
-            self.acquisition_data_geometry['detectorSpacingX'],
+        proj_geom =  [ 
             self.acquisition_data_geometry['cameraX'],
             1,
-            self.acquisition_data_geometry['angles'],
-            )
+            self.acquisition_data_geometry['detectorSpacingX'],
+            self.acquisition_data_geometry['detectorSpacingY'],
+            self.acquisition_data_geometry['angles']
+            ]
 
-        vol_geom = astra.creators.create_vol_geom(
+        vol_geom = [
             self.reconstructed_volume_geometry['X'],
             self.reconstructed_volume_geometry['Y'],
             1
-            )
-        return AstraDevice(proj_geom['type'] ,
-                           proj_geom,
-                           vol_geom)
+            ]
+        return AstraDevice(self.type, proj_geom, vol_geom)
         
 
         

@@ -27,7 +27,7 @@ import numpy
 from enum import Enum
 
 import astra
-#from ccpi.reconstruction.AstraDevice import AstraDevice
+from ccpi.reconstruction.AstraDevice import AstraDevice
 
    
     
@@ -90,11 +90,7 @@ class FISTAReconstructor():
         self.pars['number_of_angles'] = nangles
         self.pars['SlicesZ'] = sliceZ
         self.pars['output_volume'] = None
-        self.pars['device'] = device
-
-        
-        reduced_device = device.createReducedDevice()
-        self.setParameter(reduced_device_model=reduced_device)
+        self.pars['device_model'] = device
 
         self.use_device = True
         
@@ -182,6 +178,9 @@ class FISTAReconstructor():
 
         if not 'initialize' in kwargs.keys():
             self.pars['initialize'] = False
+
+        reduced_device = device.createReducedDevice()
+        self.setParameter(reduced_device_model=reduced_device)
 
         
                 
@@ -455,22 +454,24 @@ class FISTAReconstructor():
                                                 'ring_lambda_R_L1'])
                    
         t = 1
-        
+
         device = self.getParameter('device_model')
         reduced_device = self.getParameter('reduced_device_model')
         
         for i in range(self.getParameter('number_of_iterations')):
+            print("iteration", i)
             X_old = X.copy()
             t_old = t
             r_old = self.r.copy()
-            if self.getParameter('projector_geometry')['type'] == 'parallel' or \
-               self.getParameter('projector_geometry')['type'] == 'fanflat' or \
-               self.getParameter('projector_geometry')['type'] == 'fanflat_vec':
+            pg = self.getParameter('projector_geometry')['type']
+            if pg == 'parallel' or \
+               pg == 'fanflat' or \
+               pg == 'fanflat_vec':
                 # if the geometry is parallel use slice-by-slice
                 # projection-backprojection routine
                 #sino_updt = zeros(size(sino),'single');
                 
-                if self.use_device:
+                if self.use_device :
                     self.sino_updt = numpy.zeros(numpy.shape(sino), dtype=numpy.float)
                     
                     for kkk in range(SlicesZ):
@@ -491,6 +492,7 @@ class FISTAReconstructor():
                 # for divergent 3D geometry (watch the GPU memory overflow in
                 # ASTRA versions < 1.8)
                 #[sino_id, sino_updt] = astra_create_sino3d_cuda(X_t, proj_geom, vol_geom);
+                
                 if self.use_device:
                     self.sino_updt = device.doForwardProject(X_t)
                 else:
@@ -563,7 +565,7 @@ class FISTAReconstructor():
             #sino_updt = zeros(size(sino),'single');
             x_temp = numpy.zeros(numpy.shape(X),dtype=numpy.float32)
                 
-            if use_device:
+            if self.use_device:
                 proj_geomT = proj_geom.copy()
                 proj_geomT['DetectorRowCount'] = 1
                 vol_geomT = vol_geom.copy()
@@ -581,7 +583,7 @@ class FISTAReconstructor():
                     x_temp[kkk] = \
                         reduced_device.doBackwardProject(residual[kkk:kkk+1])
         else:
-            if use_device:
+            if self.use_device:
                 x_id, x_temp = \
                   astra.creators.create_backprojection3d_gpu(
                       residual, proj_geom, vol_geom)
