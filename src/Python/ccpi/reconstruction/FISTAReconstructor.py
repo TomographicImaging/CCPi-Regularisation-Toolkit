@@ -602,7 +602,10 @@ class FISTAReconstructor():
         
         regularizer = self.getParameter('regularizer')
         if regularizer is not None:
-            return regularizer(input=X)
+            lc = self.getParameter('Lipschitz_constant')
+            reg_par = regularizer.getParameter('regularization_parameter') / lc
+            return regularizer(input=X,
+                               regularization_parameter = reg_par)
         else:
             return X
 
