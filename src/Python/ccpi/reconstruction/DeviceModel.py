@@ -28,7 +28,8 @@ HELICAL'''
 
 Mandatory parameters are:
 device_type from DeviceType Enum
-data_acquisition_geometry: tuple (camera_X, camera_Y)
+data_acquisition_geometry: tuple (camera_X, camera_Y, detectorSpacingX,
+                                  detectorSpacingY, angles)
 reconstructed_volume_geometry: tuple (dimX,dimY,dimZ)
 '''
         self.device_geometry = device_type

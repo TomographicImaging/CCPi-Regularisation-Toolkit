@@ -30,10 +30,10 @@ def createAstraDevice(projector_geometry, output_geometry):
     '''TODO remove'''
     
     device = AstraDevice(DeviceModel.DeviceType.PARALLEL3D.value,
-                [projector_geometry['DetectorSpacingX'] ,
-                 projector_geometry['DetectorSpacingY'] ,
+                [projector_geometry['DetectorRowCount'] ,
                  projector_geometry['DetectorColCount'] ,
-                 projector_geometry['DetectorRowCount'] ,
+                 projector_geometry['DetectorSpacingX'] ,
+                 projector_geometry['DetectorSpacingY'] ,
                  projector_geometry['ProjectionAngles']
                  ],
                 [
@@ -332,5 +332,34 @@ else:
     
     
     fistaRecon.prepareForIteration()
-    X = fistaRecon.iterate(numpy.load("X.npy"))
-    numpy.save("X_out.npy", X)
+    X = numpy.load("X.npy")
+##    rd = astradevice.createReducedDevice()
+##    print ("rd proj_geom" , rd.proj_geom)
+##    
+##        
+##    rd.doForwardProject(X[0:1])
+##    proj_geomT = proj_geom.copy()
+##    for ekey in rd.proj_geom.keys():
+##        if ekey == 'ProjectionAngles':
+##            valrd = numpy.shape(rd.proj_geom[ekey])
+##            valg  = numpy.shape(proj_geomT[ekey])
+##        else:
+##            valrd = rd.proj_geom[ekey]
+##            valg =  proj_geomT[ekey]
+##      
+##        print ("key {0}: RD {1} geomT {2}".format(ekey, valrd, valg))
+##        
+##        
+##    proj_geomT['DetectorRowCount'] = 1
+##    vol_geomT = vol_geom.copy()
+##    vol_geomT['GridSliceCount'] = 1;
+##    rd.proj_geom = proj_geomT.copy()
+##    rd.vol_geom = vol_geomT.copy()
+##
+##
+##
+##    sino_id, y = astra.creators.create_sino3d_gpu(
+##                X[0:1], rd.proj_geom, rd.vol_geom)
+    
+    X = fistaRecon.iterate(X)
+    #numpy.save("X_out.npy", X)
