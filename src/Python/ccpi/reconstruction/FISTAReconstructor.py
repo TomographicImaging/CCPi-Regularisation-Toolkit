@@ -597,7 +597,7 @@ class FISTAReconstructor():
         #astra.matlab.data3d('delete', sino_id)
         
 
-    def regularize(self, X):
+    def regularize(self, X , output_all=False):
         print ("FISTA Reconstructor: regularize")
         
         regularizer = self.getParameter('regularizer')
@@ -605,7 +605,8 @@ class FISTAReconstructor():
             lc = self.getParameter('Lipschitz_constant')
             reg_par = regularizer.getParameter('regularization_parameter') / lc
             return regularizer(input=X,
-                               regularization_parameter = reg_par)
+                               regularization_parameter = reg_par,
+                               output_all=output_all)
         else:
             return X
 
