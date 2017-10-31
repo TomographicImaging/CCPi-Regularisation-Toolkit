@@ -85,10 +85,13 @@ fistaRecon = FISTAReconstructor(proj_geom,
                                 device=astradevice)
 
 print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
-fistaRecon.setParameter(number_of_iterations = 12)
+fistaRecon.setParameter(number_of_iterations = 2)
 fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
 fistaRecon.setParameter(ring_alpha = 21)
 fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
+fistaRecon.setParameter(ring_lambda_R_L1 = 0)
+subsets = 8
+fistaRecon.setParameter(subsets=subsets)
 
 
 #reg = Regularizer(Regularizer.Algorithm.FGP_TV)
@@ -130,7 +133,7 @@ else:
             counter = counter + binsDiscr[jj] - 1
 
 
-if True:
+if False:
     print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
     print ("prepare for iteration")
     fistaRecon.prepareForIteration()
@@ -361,15 +364,40 @@ if True:
     numpy.save("X_out_os.npy", X)
 
 else:
+    astradevice = AstraDevice(DeviceModel.DeviceType.PARALLEL3D.value,
+                [proj_geom['DetectorRowCount'] ,
+                 proj_geom['DetectorColCount'] ,
+                 proj_geom['DetectorSpacingX'] ,
+                 proj_geom['DetectorSpacingY'] ,
+                 proj_geom['ProjectionAngles']
+                 ],
+                [
+                    vol_geom['GridColCount'],
+                    vol_geom['GridRowCount'], 
+                    vol_geom['GridSliceCount'] ] )
+    regul = Regularizer(Regularizer.Algorithm.FGP_TV)
+    regul.setParameter(regularization_parameter=5e6,
+                       number_of_iterations=50,
+                       tolerance_constant=1e-4,
+                       TV_penalty=Regularizer.TotalVariationPenalty.isotropic)
+
     fistaRecon = FISTAReconstructor(proj_geom,
                                 vol_geom,
                                 Sino3D ,
-                                weights=Weights3D)
+                                weights=Weights3D,
+                                device=astradevice,
+                                regularizer = regul,
+                                subsets=8)
 
     print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
     fistaRecon.setParameter(number_of_iterations = 12)
     fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
     fistaRecon.setParameter(ring_alpha = 21)
     fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
+    #fistaRecon.setParameter(subsets=8)
+    
+    lc = fistaRecon.getParameter('Lipschitz_constant')
+    fistaRecon.getParameter('regularizer').setParameter(regularization_parameter=5e6/lc)
+    
     fistaRecon.prepareForIteration()
     X = fistaRecon.iterate(numpy.load("X.npy"))
