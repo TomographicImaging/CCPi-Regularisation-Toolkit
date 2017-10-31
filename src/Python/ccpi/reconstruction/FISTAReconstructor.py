@@ -664,7 +664,7 @@ class FISTAReconstructor():
              'ring_lambda_R_L1',    'Lipschitz_constant',
              'number_of_iterations'])
 
-        
+            
         # errors vector (if the ground truth is given)
         Resid_error = numpy.zeros((iterFISTA));
         # objective function values vector
@@ -727,7 +727,12 @@ class FISTAReconstructor():
                 for j in range(len(CurrSubIndices)):
                     mask[int(CurrSubIndices[j])] = True
                 proj_geomSUB['ProjectionAngles'] = angles[mask]
-
+                if self.use_device:
+                    device = self.getParameter('device_model')\
+                             .createReducedDevice(
+                                 proj_par={'angles':angles[mask]},
+                                 vol_par={})
+        
                 shape = list(numpy.shape(self.getParameter('input_sinogram')))
                 shape[1] = numProjSub
                 sino_updt_Sub = numpy.zeros(shape)
@@ -736,17 +741,24 @@ class FISTAReconstructor():
                    geometry_type == 'fanflat_vec' :
 
                     for kkk in range(SlicesZ):
-                        sino_id, sinoT = astra.creators.create_sino3d_gpu (
-                            X_t[kkk:kkk+1] , proj_geomSUB, vol_geom)
-                        sino_updt_Sub[kkk] = sinoT.T.copy()
+                        if self.use_device:
+                            sinoT = device.doForwardProject(X_t[kkk:kkk+1])
+                        else:
+                            sino_id, sinoT = astra.creators.create_sino3d_gpu (
+                                X_t[kkk:kkk+1] , proj_geomSUB, vol_geom)
+                            sino_updt_Sub[kkk] = sinoT.T.copy()
+                            astra.matlab.data3d('delete', sino_id)
                         
                 else:
                     # for 3D geometry (watch the GPU memory overflow in
                     # ASTRA < 1.8)
-                    sino_id, sino_updt_Sub = \
-                         astra.creators.create_sino3d_gpu (X_t, proj_geomSUB, vol_geom)
-                    
-                astra.matlab.data3d('delete', sino_id)
+                    if self.use_device:
+                        sino_updt_Sub = device.doForwardProject(X_t)
+                    else:
+                        sino_id, sino_updt_Sub = \
+                             astra.creators.create_sino3d_gpu (X_t, proj_geomSUB, vol_geom)
+                        
+                        astra.matlab.data3d('delete', sino_id)
         
                 
                 if lambdaR_L1 > 0 :
@@ -773,18 +785,26 @@ class FISTAReconstructor():
                     # routine
                     x_temp = numpy.zeros(numpy.shape(X), dtype=numpy.float32)
                     for kkk in range(SlicesZ):
-                        
-                        x_id, x_temp[kkk] = \
-                                 astra.creators.create_backprojection3d_gpu(
-                                     residualSub[kkk:kkk+1],
-                                     proj_geomSUB, vol_geom)
+                        if self.use_device:
+                            x_temp[kkk] = device.doBackwardProject(
+                                residualSub[kkk:kkk+1])
+                        else:
+                            x_id, x_temp[kkk] = \
+                                     astra.creators.create_backprojection3d_gpu(
+                                         residualSub[kkk:kkk+1],
+                                         proj_geomSUB, vol_geom)
+                            astra.matlab.data3d('delete', x_id)
                         
                 else:
-                    x_id, x_temp = \
+                    if self.use_device:
+                        x_temp = device.doBackwardProject(
+                            residualSub)
+                    else:
+                        x_id, x_temp = \
                           astra.creators.create_backprojection3d_gpu(
                               residualSub, proj_geomSUB, vol_geom)
 
-                astra.matlab.data3d('delete', x_id)
+                        astra.matlab.data3d('delete', x_id)
                 X = X_t - (1/L_const) * x_temp
                 ## REGULARIZATION
                 X = self.regularize(X)

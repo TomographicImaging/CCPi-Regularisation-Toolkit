@@ -390,7 +390,7 @@ else:
                                 subsets=8)
 
     print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
-    fistaRecon.setParameter(number_of_iterations = 12)
+    fistaRecon.setParameter(number_of_iterations = 2)
     fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
     fistaRecon.setParameter(ring_alpha = 21)
     fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
