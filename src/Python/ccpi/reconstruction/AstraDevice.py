@@ -41,7 +41,7 @@ Uses Astra-toolbox
                 volume, self.proj_geom, self.vol_geom)
             astra.matlab.data3d('delete', sino_id)
             return y
-        except Exception(e):
+        except Exception as e:
             print(e)
             print("Value Error: ", self.proj_geom, self.vol_geom)
 
@@ -59,19 +59,33 @@ Uses Astra-toolbox
         astra.matlab.data3d('delete', idx)
         return volume
     
-    def createReducedDevice(self):
+    def createReducedDevice(self, proj_par={'cameraY' : 1} , vol_par={'Z':1}):
+        '''Change the definition of the current device by changing some parameter
+
+VERY RISKY'''
+        for k,v in proj_par.items():
+            if k in self.acquisition_data_geometry.keys():
+                print ("Reduced device updating " , k , v)
+                self.acquisition_data_geometry[k] = v
+        print ("Reduced Device: ", self.acquisition_data_geometry)
         proj_geom =  [ 
             self.acquisition_data_geometry['cameraX'],
-            1,
+            self.acquisition_data_geometry['cameraY'],
             self.acquisition_data_geometry['detectorSpacingX'],
             self.acquisition_data_geometry['detectorSpacingY'],
             self.acquisition_data_geometry['angles']
             ]
-
+        
+        for k,v in vol_par.items():
+            if k in self.reconstructed_volume_geometry.keys():
+                print ("Reduced device updating " , k , v)
+                self.reconstructed_volume_geometry[k] = v
+        print ("Reduced Device: ",self.reconstructed_volume_geometry)
+        
         vol_geom = [
             self.reconstructed_volume_geometry['X'],
             self.reconstructed_volume_geometry['Y'],
-            1
+            self.reconstructed_volume_geometry['Z']
             ]
         return AstraDevice(self.type, proj_geom, vol_geom)
         
