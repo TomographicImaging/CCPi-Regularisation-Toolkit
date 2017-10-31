@@ -315,16 +315,36 @@ if False:
 else:
     
     # create a device for forward/backprojection
-    astradevice = createAstraDevice(proj_geom, vol_geom)
+    #astradevice = createAstraDevice(proj_geom, vol_geom)
+    
+    astradevice = AstraDevice(DeviceModel.DeviceType.PARALLEL3D.value,
+                [proj_geom['DetectorRowCount'] ,
+                 proj_geom['DetectorColCount'] ,
+                 proj_geom['DetectorSpacingX'] ,
+                 proj_geom['DetectorSpacingY'] ,
+                 proj_geom['ProjectionAngles']
+                 ],
+                [
+                    vol_geom['GridColCount'],
+                    vol_geom['GridRowCount'], 
+                    vol_geom['GridSliceCount'] ] )
+
+    regul = Regularizer(Regularizer.Algorithm.FGP_TV)
+    regul.setParameter(regularization_parameter=5e6,
+                       number_of_iterations=50,
+                       tolerance_constant=1e-4,
+                       TV_penalty=Regularizer.TotalVariationPenalty.isotropic)
+    
     fistaRecon = FISTAReconstructor(proj_geom,
                                 vol_geom,
                                 Sino3D ,
                                 device = astradevice,
-                                weights=Weights3D
+                                weights=Weights3D,
+                                regularizer = regul
                                 )
 
     print ("Lipschitz Constant {0}".format(fistaRecon.pars['Lipschitz_constant']))
-    fistaRecon.setParameter(number_of_iterations = 3)
+    fistaRecon.setParameter(number_of_iterations = 18)
     fistaRecon.setParameter(Lipschitz_constant = 767893952.0)
     fistaRecon.setParameter(ring_alpha = 21)
     fistaRecon.setParameter(ring_lambda_R_L1 = 0.002)
@@ -333,33 +353,7 @@ else:
     
     fistaRecon.prepareForIteration()
     X = numpy.load("X.npy")
-##    rd = astradevice.createReducedDevice()
-##    print ("rd proj_geom" , rd.proj_geom)
-##    
-##        
-##    rd.doForwardProject(X[0:1])
-##    proj_geomT = proj_geom.copy()
-##    for ekey in rd.proj_geom.keys():
-##        if ekey == 'ProjectionAngles':
-##            valrd = numpy.shape(rd.proj_geom[ekey])
-##            valg  = numpy.shape(proj_geomT[ekey])
-##        else:
-##            valrd = rd.proj_geom[ekey]
-##            valg =  proj_geomT[ekey]
-##      
-##        print ("key {0}: RD {1} geomT {2}".format(ekey, valrd, valg))
-##        
-##        
-##    proj_geomT['DetectorRowCount'] = 1
-##    vol_geomT = vol_geom.copy()
-##    vol_geomT['GridSliceCount'] = 1;
-##    rd.proj_geom = proj_geomT.copy()
-##    rd.vol_geom = vol_geomT.copy()
-##
-##
-##
-##    sino_id, y = astra.creators.create_sino3d_gpu(
-##                X[0:1], rd.proj_geom, rd.vol_geom)
+
     
     X = fistaRecon.iterate(X)
     #numpy.save("X_out.npy", X)
