@@ -431,7 +431,7 @@ class FISTAReconstructor():
     # prepareForIteration
 
     def iterate (self, Xin=None):
-        if self.getParameter('subset') == 0:
+        if self.getParameter('subsets') == 0:
             return self.iterateStandard(Xin)
         else:
             return self.iterateOrderedSubsets(Xin)
@@ -608,10 +608,7 @@ class FISTAReconstructor():
         
         regularizer = self.getParameter('regularizer')
         if regularizer is not None:
-            lc = self.getParameter('Lipschitz_constant')
-            reg_par = regularizer.getParameter('regularization_parameter') / lc
             return regularizer(input=X,
-                               regularization_parameter = reg_par,
                                output_all=output_all)
         else:
             return X
@@ -642,7 +639,7 @@ class FISTAReconstructor():
             print (string.format(i,Resid_error[i], self.objective[i]))
         return (X , X_t, t)
 
-    def iterateOS(self, Xin=None):
+    def iterateOrderedSubsets(self, Xin=None):
         print ("FISTA Reconstructor: Ordered Subsets iterate")
         
         if Xin is None:    
@@ -685,7 +682,7 @@ class FISTAReconstructor():
 
         print ("starting iterations")
         ##    % Outer FISTA iterations loop
-        for i in range(fistaRecon.getParameter('number_of_iterations')):
+        for i in range(self.getParameter('number_of_iterations')):
             # With OS approach it becomes trickier to correlate independent
             # subsets, hence additional work is required one solution is to
             # work with a full sinogram at times
@@ -755,8 +752,11 @@ class FISTAReconstructor():
                 if lambdaR_L1 > 0 :
                     ## RING REMOVAL
                     print ("ring removal")
-                    residualSub = self.ringRemovalOrderedSubsets(sino_updt_Sub,
-                                                   sino_updt_FULL)
+                    residualSub = \
+                        self.ringRemovalOrderedSubsets(ss,
+                                                       counterInd,
+                                                       sino_updt_Sub,
+                                                       sino_updt_FULL)
                 else:
                     #PWLS model
                     print ("PWLS model")
@@ -797,7 +797,8 @@ class FISTAReconstructor():
 
         return X
     
-    def ringRemovalOrderedSubsets(self, sino_updt_Sub, sino_updt_FULL):
+    def ringRemovalOrderedSubsets(self, ss,counterInd,
+                                  sino_updt_Sub, sino_updt_FULL):
         residual = self.residual
         r_x = self.r_x
         weights , alpha_ring , sino = \
@@ -805,6 +806,10 @@ class FISTAReconstructor():
         numProjSub = self.getParameter('os_bins')[ss]
         CurrSubIndices = self.getParameter('os_indices')\
                          [counterInd:counterInd+numProjSub]
+
+        shape = list(numpy.shape(self.getParameter('input_sinogram')))
+        shape[1] = numProjSub
+            
         residualSub = numpy.zeros(shape)
 
         for kkk in range(numProjSub):
