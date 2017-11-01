@@ -760,7 +760,6 @@ class FISTAReconstructor():
                         
                         astra.matlab.data3d('delete', sino_id)
         
-                
                 if lambdaR_L1 > 0 :
                     ## RING REMOVAL
                     print ("ring removal")
