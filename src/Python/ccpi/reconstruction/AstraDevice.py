@@ -23,12 +23,20 @@ class AstraDevice(DeviceModel):
             self.acquisition_data_geometry['cameraY'],
             self.acquisition_data_geometry['angles'],
             )
-
+        print ("Astra device created:")
+        print ("Camera : {0}x{1}".format(self.proj_geom['DetectorColCount'],
+               self.proj_geom['DetectorRowCount']))
+        print ("number of projections " , len(self.proj_geom['ProjectionAngles']))
+        
         self.vol_geom = astra.creators.create_vol_geom(
             self.reconstructed_volume_geometry['X'],
             self.reconstructed_volume_geometry['Y'],
             self.reconstructed_volume_geometry['Z']
             )
+        print ("Reconstruction volume:")
+        print ("[{0},{1},{2}]".format(self.vol_geom['GridColCount'],
+                                      self.vol_geom['GridRowCount'],
+                                      self.vol_geom['GridSliceCount']))
 
     def doForwardProject(self, volume):
         '''Forward projects the volume according to the device geometry
@@ -60,32 +68,30 @@ Uses Astra-toolbox
         return volume
     
     def createReducedDevice(self, proj_par={'cameraY' : 1} , vol_par={'Z':1}):
-        '''Change the definition of the current device by changing some parameter
+        '''Create a new device based on the current device by changing some parameter
 
 VERY RISKY'''
+        acquisition_data_geometry = self.acquisition_data_geometry.copy()
         for k,v in proj_par.items():
-            if k in self.acquisition_data_geometry.keys():
-                print ("Reduced device updating " , k , v)
-                self.acquisition_data_geometry[k] = v
-        print ("Reduced Device: ", self.acquisition_data_geometry)
+            if k in acquisition_data_geometry.keys():
+                acquisition_data_geometry[k] = v
         proj_geom =  [ 
-            self.acquisition_data_geometry['cameraX'],
-            self.acquisition_data_geometry['cameraY'],
-            self.acquisition_data_geometry['detectorSpacingX'],
-            self.acquisition_data_geometry['detectorSpacingY'],
-            self.acquisition_data_geometry['angles']
+            acquisition_data_geometry['cameraX'],
+            acquisition_data_geometry['cameraY'],
+            acquisition_data_geometry['detectorSpacingX'],
+            acquisition_data_geometry['detectorSpacingY'],
+            acquisition_data_geometry['angles']
             ]
-        
+
+        reconstructed_volume_geometry = self.reconstructed_volume_geometry.copy()
         for k,v in vol_par.items():
-            if k in self.reconstructed_volume_geometry.keys():
-                print ("Reduced device updating " , k , v)
-                self.reconstructed_volume_geometry[k] = v
-        print ("Reduced Device: ",self.reconstructed_volume_geometry)
+            if k in reconstructed_volume_geometry.keys():
+                reconstructed_volume_geometry[k] = v
         
         vol_geom = [
-            self.reconstructed_volume_geometry['X'],
-            self.reconstructed_volume_geometry['Y'],
-            self.reconstructed_volume_geometry['Z']
+            reconstructed_volume_geometry['X'],
+            reconstructed_volume_geometry['Y'],
+            reconstructed_volume_geometry['Z']
             ]
         return AstraDevice(self.type, proj_geom, vol_geom)
         
