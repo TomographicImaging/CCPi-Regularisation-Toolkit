@@ -1,0 +1,22 @@
+package:
+  name: regularizer
+  version: {{ environ['CIL_VERSION'] }}
+
+source:
+  path: ../
+
+build:
+  preserve_egg_dir: False
+  script_env: 
+    - CIL_VERSION
+
+requirements: 
+  build:
+    - toolchain
+    - cmake
+    - ninja
+
+about:
+  home: http://www.ccpi.ac.uk
+  license: Apache v2.0
+  summary: Regularizer package from CCPi
