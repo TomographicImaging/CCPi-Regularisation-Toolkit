@@ -23,21 +23,13 @@ class AstraDevice(DeviceModel):
             self.acquisition_data_geometry['cameraY'],
             self.acquisition_data_geometry['angles'],
             )
-        print ("Astra device created:")
-        print ("Camera : {0}x{1}".format(self.proj_geom['DetectorColCount'],
-               self.proj_geom['DetectorRowCount']))
-        print ("number of projections " , len(self.proj_geom['ProjectionAngles']))
         
         self.vol_geom = astra.creators.create_vol_geom(
             self.reconstructed_volume_geometry['X'],
             self.reconstructed_volume_geometry['Y'],
             self.reconstructed_volume_geometry['Z']
             )
-        print ("Reconstruction volume:")
-        print ("[{0},{1},{2}]".format(self.vol_geom['GridColCount'],
-                                      self.vol_geom['GridRowCount'],
-                                      self.vol_geom['GridSliceCount']))
-
+        
     def doForwardProject(self, volume):
         '''Forward projects the volume according to the device geometry
 
