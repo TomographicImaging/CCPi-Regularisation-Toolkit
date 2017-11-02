@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Wed Aug 23 16:34:49 2017
@@ -86,14 +87,14 @@ fistaRecon = FISTAReconstructor(proj_geom,
                             subsets = 8)
 
 print("Reconstruction using FISTA-OS-PWLS without regularization...")
-fistaRecon.setParameter(number_of_iterations = 18)
+fistaRecon.setParameter(number_of_iterations = 5)
 
 ### adjust the regularization parameter
 ##lc = fistaRecon.getParameter('Lipschitz_constant')
 ##fistaRecon.getParameter('regularizer')\
 ##             .setParameter(regularization_parameter=5e6/lc)
 fistaRecon.use_device = True
-if False:
+if True:
     fistaRecon.prepareForIteration()
     X = fistaRecon.iterate(numpy.load("../test/X.npy"))
     numpy.save("FISTA-OS-PWLS.npy",X)
@@ -123,7 +124,7 @@ if False:
     X = fistaRecon.iterate(numpy.load("../test/X.npy"))
     numpy.save("FISTA-OS-GH-TV.npy",X)
 
-if True:
+if False:
     # adjust the regularization parameter
     lc = fistaRecon.getParameter('Lipschitz_constant')
     regul.setParameter(
@@ -136,3 +137,32 @@ if True:
     X = fistaRecon.iterate(numpy.load("../test/X.npy"))
     numpy.save("FISTA-OS-GH-TGV.npy",X)
     
+if False:
+    # adjust the regularization parameter
+    lc = fistaRecon.getParameter('Lipschitz_constant')
+    regul.setParameter(
+        algorithm=Regularizer.Algorithm.PatchBased_Regul,
+        regularization_parameter=3/lc,
+        searching_window_ratio=3,
+        similarity_window_ratio=1,
+        PB_filtering_parameter=0.04
+        
+        )
+    fistaRecon.setParameter(regularizer=regul)
+    fistaRecon.setParameter(ring_lambda_R_L1=0.002, ring_alpha=21)
+    fistaRecon.prepareForIteration()
+    X = fistaRecon.iterate(numpy.load("../test/X.npy"))
+    numpy.save("FISTA-OS-CPU_PB.npy",X)
+
+if False:
+    fistaRecon = FISTAReconstructor(proj_geom,
+                            vol_geom,
+                            Sino3D ,
+                            weights=Weights3D,
+                            device=astradevice,
+                            Lipschitz_constant = 7.6792e8,
+                            number_of_iterations=50)
+
+    fistaRecon.prepareForIteration()
+    X = fistaRecon.iterate(numpy.load("../test/X.npy"))
+    numpy.save("FISTA.npy",X)
