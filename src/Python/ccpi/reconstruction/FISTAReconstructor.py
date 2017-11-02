@@ -453,11 +453,13 @@ class FISTAReconstructor():
         X_t = X.copy()
         # convenience variable storage
         proj_geom , vol_geom, sino , \
-          SlicesZ , ring_lambda_R_L1 = self.getParameter([ 'projector_geometry' ,
+          SlicesZ , ring_lambda_R_L1 , weights = \
+                            self.getParameter([ 'projector_geometry' ,
                                                 'output_geometry',
                                                 'input_sinogram',
                                                 'SlicesZ' ,
-                                                'ring_lambda_R_L1'])
+                                                'ring_lambda_R_L1',
+                                                'weights'])
                    
         t = 1
 
@@ -510,13 +512,21 @@ class FISTAReconstructor():
             ## RING REMOVAL
             if ring_lambda_R_L1 != 0:
                 self.ringRemoval(i)
+            else:
+                self.residual = weights * (self.sino_updt - sino)
+                self.objective[i] = 0.5 * numpy.linalg.norm(self.residual)
+                #objective(i) = 0.5*norm(residual(:)); % for the objective function output
             ## Projection/Backprojection Routine
-            self.projectionBackprojection(X, X_t)
+            X, X_t = self.projectionBackprojection(X, X_t)
             
             ## REGULARIZATION
-            X = self.regularize(X)
+            Y = self.regularize(X)
+            X = Y.copy()
             ## Update Loop
             X , X_t, t = self.updateLoop(i, X, X_old, r_old, t, t_old)
+
+            print ("t" , t)
+            print ("X min {0} max {1}".format(X_t.min(),X_t.max()))
             self.setParameter(output_volume=X)
         return X
     ## iterate
@@ -601,10 +611,11 @@ class FISTAReconstructor():
 
         X = X_t - (1/L_const) * x_temp
         #astra.matlab.data3d('delete', sino_id)
+        return (X , X_t)
         
 
     def regularize(self, X , output_all=False):
-        print ("FISTA Reconstructor: regularize")
+        #print ("FISTA Reconstructor: regularize")
         
         regularizer = self.getParameter('regularizer')
         if regularizer is not None:
@@ -668,7 +679,8 @@ class FISTAReconstructor():
         # errors vector (if the ground truth is given)
         Resid_error = numpy.zeros((iterFISTA));
         # objective function values vector
-        objective = numpy.zeros((iterFISTA)); 
+        #objective = numpy.zeros((iterFISTA));
+        objective = self.objective
 
           
         t = 1
@@ -713,7 +725,7 @@ class FISTAReconstructor():
             angles = self.getParameter('projector_geometry')['ProjectionAngles']
 
             for ss in range(self.getParameter('subsets')):
-                print ("Subset {0}".format(ss))
+                #print ("Subset {0}".format(ss))
                 X_old = X.copy()
                 t_old = t
                 
@@ -723,10 +735,11 @@ class FISTAReconstructor():
                                  [counterInd:counterInd+numProjSub]
                 #print ("Len CurrSubIndices {0}".format(numProjSub))
                 mask = numpy.zeros(numpy.shape(angles), dtype=bool)
-                cc = 0
+                #cc = 0
                 for j in range(len(CurrSubIndices)):
                     mask[int(CurrSubIndices[j])] = True
                 proj_geomSUB['ProjectionAngles'] = angles[mask]
+                
                 if self.use_device:
                     device = self.getParameter('device_model')\
                              .createReducedDevice(
@@ -746,31 +759,33 @@ class FISTAReconstructor():
                         else:
                             sino_id, sinoT = astra.creators.create_sino3d_gpu (
                                 X_t[kkk:kkk+1] , proj_geomSUB, vol_geom)
-                            sino_updt_Sub[kkk] = sinoT.T.copy()
                             astra.matlab.data3d('delete', sino_id)
+                        sino_updt_Sub[kkk] = sinoT.T.copy()
                         
                 else:
                     # for 3D geometry (watch the GPU memory overflow in
                     # ASTRA < 1.8)
                     if self.use_device:
                         sino_updt_Sub = device.doForwardProject(X_t)
+                        
                     else:
                         sino_id, sino_updt_Sub = \
                              astra.creators.create_sino3d_gpu (X_t, proj_geomSUB, vol_geom)
                         
                         astra.matlab.data3d('delete', sino_id)
         
+                #print ("shape(sino_updt_Sub)",numpy.shape(sino_updt_Sub))
                 if lambdaR_L1 > 0 :
                     ## RING REMOVAL
-                    print ("ring removal")
-                    residualSub = \
+                    #print ("ring removal")
+                    residualSub , sino_updt_Sub, sino_updt_FULL = \
                         self.ringRemovalOrderedSubsets(ss,
                                                        counterInd,
                                                        sino_updt_Sub,
                                                        sino_updt_FULL)
                 else:
                     #PWLS model
-                    print ("PWLS model")
+                    #print ("PWLS model")
                     residualSub = weights[:,CurrSubIndices,:] * \
                                   ( sino_updt_Sub - \
                                     sino[:,CurrSubIndices,:].squeeze() )
@@ -804,13 +819,35 @@ class FISTAReconstructor():
                               residualSub, proj_geomSUB, vol_geom)
 
                         astra.matlab.data3d('delete', x_id)
+                
                 X = X_t - (1/L_const) * x_temp
+                
                 ## REGULARIZATION
                 X = self.regularize(X)
-            
+                
+                ## Update subset Loop
+                t = (1 + numpy.sqrt(1 + 4 * t**2))/2
+                X_t = X + (((t_old -1)/t) * (X - X_old))
             # FINAL
-            ## Update Loop
-            X , X_t, t = self.updateLoop(i, X, X_old, r_old, t, t_old)
+            ## update iteration loop
+            if lambdaR_L1 > 0:
+                self.r = numpy.max(
+                    numpy.abs(self.r) - lambdaR_L1 , 0) * \
+                    numpy.sign(self.r)
+                self.r_x = self.r + \
+                                 (((t_old-1)/t) * (self.r - r_old))
+
+            if self.getParameter('region_of_interest') is None:
+                string = 'Iteration Number {0} | Objective {1} \n'
+                print (string.format( i, self.objective[i]))
+            else:
+                ROI , X_ideal = fistaRecon.getParameter('region_of_interest',
+                                                        'ideal_image')
+                
+                Resid_error[i] = RMSE(X*ROI, X_ideal*ROI)
+                string = 'Iteration Number {0} | RMS Error {1} | Objective {2} \n'
+                print (string.format(i,Resid_error[i], self.objective[i]))    
+            print("X min {0} max {1}".format(X.min(),X.max()))
             self.setParameter(output_volume=X)
             counterInd = counterInd + numProjSub
 
@@ -840,6 +877,6 @@ class FISTAReconstructor():
             # filling the full sinogram
             sino_updt_FULL[:,indC,:] = sino_updt_Sub[:,kkk,:].squeeze()
 
-        return residualSub
+        return (residualSub , sino_updt_Sub, sino_updt_FULL)
 
 
