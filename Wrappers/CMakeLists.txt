@@ -11,24 +11,4 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
-cmake_minimum_required (VERSION 3.0)
-
-project(FISTA)
-#https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
-
-# The version number.
-set (FISTA_VERSION_MAJOR 1)
-set (FISTA_VERSION_MINOR 0)
-
-set (CIL_VERSION_MAJOR 0)
-set (CIL_VERSION_MINOR 9)
-set (CIL_VERSION_PATCH 1)
-
-set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}' CACHE INTERNAL "Core Imaging Library version" FORCE)
-
-# set the Python variables for the Conda environment
-include(${CMAKE_SOURCE_DIR}/CMake/FindAnacondaEnvironment.cmake)
-
-add_subdirectory(Core)
-add_subdirectory(Wrappers)
+add_subdirectory(Python)
