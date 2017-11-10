@@ -233,7 +233,7 @@ class FISTAReconstructor():
             #x1 = rand(N,N,1);
             x1 = numpy.random.rand(1,N,N)
             #sqweight = sqrt(weights(:,:,1));
-            sqweight = numpy.sqrt(weights[0])
+            sqweight = numpy.sqrt(weights[0:1,:,:])
             proj_geomT = proj_geom.copy();
             proj_geomT['DetectorRowCount'] = 1;
             vol_geomT = vol_geom.copy();
