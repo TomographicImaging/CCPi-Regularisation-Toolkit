@@ -1,5 +1,5 @@
 package:
-  name: regularizer
+  name: cil_regularizer
   version: {{ environ['CIL_VERSION'] }}
 
 source:
@@ -10,11 +10,25 @@ build:
   script_env: 
     - CIL_VERSION
 
-requirements: 
+requirements:
   build:
-    - toolchain
-    - cmake
-    - ninja
+    - boost == 1.64.0	
+    - boost-cpp == 1.64.0 
+#    - toolchain
+    - python 3.5        
+    - cmake >=3.1
+#    - zlib 1.2.11
+    - vc 14 # [win and py35] 
+    - libtiff    
+    - numpy
+
+  run:
+    - boost ==1.64.0
+    - libtiff
+    - vc 14 # [win and py35]
+    - python 3.5
+    - numpy
+
 
 about:
   home: http://www.ccpi.ac.uk
