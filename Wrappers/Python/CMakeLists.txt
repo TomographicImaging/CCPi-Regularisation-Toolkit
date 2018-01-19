@@ -13,6 +13,20 @@
 #   limitations under the License.
 
 # variables that must be set for conda compilation
+cmake_minimum_required (VERSION 3.0)
+
+project(FISTA)
+#https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
+
+# The version number.
+set (FISTA_VERSION_MAJOR 1)
+set (FISTA_VERSION_MINOR 0)
+
+set (CIL_VERSION_MAJOR 0)
+set (CIL_VERSION_MINOR 9)
+set (CIL_VERSION_PATCH 1)
+
+set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}' CACHE INTERNAL "Core Imaging Library version" FORCE)
 
 #PREFIX=C:\Apps\Miniconda2\envs\cil\Library
 #LIBRARY_INC=C:\\Apps\\Miniconda2\\envs\\cil\\Library\\include
@@ -51,8 +65,6 @@ endif()
 
 message("CIL VERSION " ${CIL_VERSION})
 
-# set the Python variables for the Conda environment
-include(FindAnacondaEnvironment.cmake)
 findPythonForAnacondaEnvironment(${CONDA_ENVIRONMENT_PATH})
 
 message("Python found " ${PYTHON_VERSION_STRING})
