@@ -40,7 +40,7 @@ message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 set(CMAKE_BUILD_TYPE "Release")
 
 if(WIN32)
- set (FLAGS "/DWIN32 /EHsc /DBOOST_ALL_NO_LIB /openmp  /DCCPiReconstructionIterative_EXPORTS")
+ set (FLAGS "/DWIN32 /EHsc /DBOOST_ALL_NO_LIB /openmp /DCCPiCore_EXPORTS")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
   
   set (EXTRA_LIBRARIES 
@@ -73,10 +73,13 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/utils.c
 	    )
-
+target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
+include_directories(cilreg PUBLIC 
+                      ${LIBRARY_INC}/include 
+		              ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/  )
 if (UNIX)
 message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
-install(TARGETS cilreg 
+install(TARGETS cilreg
 	LIBRARY DESTINATION lib
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
 	)
@@ -88,6 +91,7 @@ message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
 	)
 endif()
+
 
 #add_executable(regularizer_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regularizer.cpp)
 
