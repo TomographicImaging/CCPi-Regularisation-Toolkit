@@ -10,6 +10,7 @@ set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version"
 
 # conda orchestrated build
 message("CIL_VERSION ${CIL_VERSION}")
+#include (GenerateExportHeader)
 
 find_package(PythonInterp REQUIRED)
 if (PYTHONINTERP_FOUND)
@@ -76,7 +77,14 @@ add_library(cilreg SHARED
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
 include_directories(cilreg PUBLIC 
                       ${LIBRARY_INC}/include 
+					  ${CMAKE_CURRENT_SOURCE_DIR}
 		              ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/  )
+#GENERATE_EXPORT_HEADER( cilreg
+#             BASE_NAME cilreg
+#             EXPORT_MACRO_NAME CCPiCore_EXPORTS
+#             EXPORT_FILE_NAME CCPiCore_Exports.h
+#             STATIC_DEFINE cilreg_BUILT_AS_STATIC
+#)
 if (UNIX)
 message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
 install(TARGETS cilreg

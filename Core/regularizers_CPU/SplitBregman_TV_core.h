@@ -24,6 +24,7 @@ limitations under the License.
 #include "omp.h"
 
 #include "utils.h"
+#include "CCPiDefines.h"
 
 /* C-OMP implementation of Split Bregman - TV denoising-regularization model (2D/3D)
 *
@@ -54,15 +55,15 @@ extern "C" {
 #endif
 
 //float copyIm(float *A, float *B, int dimX, int dimY, int dimZ);
-float gauss_seidel2D(float *U, float *A, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
-float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
-float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
-float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY);
+CCPI_EXPORT float gauss_seidel2D(float *U, float *A, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
+CCPI_EXPORT float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
+CCPI_EXPORT float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
+CCPI_EXPORT float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY);
 
-float gauss_seidel3D(float *U, float *A, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda, float mu);
-float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
-float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
-float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float gauss_seidel3D(float *U, float *A, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda, float mu);
+CCPI_EXPORT float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
+CCPI_EXPORT float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
+CCPI_EXPORT float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ);
 
 #ifdef __cplusplus
 }

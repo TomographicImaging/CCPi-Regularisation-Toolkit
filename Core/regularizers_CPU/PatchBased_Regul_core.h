@@ -25,6 +25,7 @@ limitations under the License.
 #include <memory.h>
 #include <stdio.h>
 #include "omp.h"
+#include "CCPiDefines.h"
 
 /* C-OMP implementation of  patch-based (PB) regularization (2D and 3D cases).
 * This method finds self-similar patches in data and performs one fixed point iteration to mimimize the PB penalty function
@@ -61,9 +62,9 @@ TestTemporalSmoothing.m
 #ifdef __cplusplus
 extern "C" {
 #endif
-float pad_crop(float *A, float *Ap, int OldSizeX, int OldSizeY, int OldSizeZ, int NewSizeX, int NewSizeY, int NewSizeZ, int padXY, int switchpad_crop);
-float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, int SimilW, float h, float lambda);
-float PB_FUNC3D(float *A, float *B, int dimX, int dimY, int dimZ, int padXY, int SearchW, int SimilW, float h, float lambda);
+CCPI_EXPORT float pad_crop(float *A, float *Ap, int OldSizeX, int OldSizeY, int OldSizeZ, int NewSizeX, int NewSizeY, int NewSizeZ, int padXY, int switchpad_crop);
+CCPI_EXPORT float PB_FUNC2D(float *A, float *B, int dimX, int dimY, int padXY, int SearchW, int SimilW, float h, float lambda);
+CCPI_EXPORT float PB_FUNC3D(float *A, float *B, int dimX, int dimY, int dimZ, int padXY, CCPI_EXPORT int SearchW, int SimilW, float h, float lambda);
 #ifdef __cplusplus
 }
 #endif
