@@ -21,12 +21,13 @@ limitations under the License.
 //#include <math.h>
 #include <stdlib.h>
 #include <memory.h>
+#include "CCPiDefines.h"
 //#include <stdio.h>
 #include "omp.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
 #ifdef __cplusplus
 }
 #endif
