@@ -592,6 +592,8 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, double d_epsil, int switcher) {
 	// the result is in the following list
 	bp::list result;
+	
+	std::cout << "Calling LLT_model" << std::endl;
 
 	int number_of_dims, dimX, dimY, dimZ, ll, j, count;
 	//const int  *dim_array;
@@ -644,7 +646,8 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		np::ndarray npD1 = np::zeros(shape, dtype);
 		np::ndarray npD2 = np::zeros(shape, dtype);
 		
-
+        //result.append<np::ndarray>(npU);
+		
 		U = reinterpret_cast<float *>(npU.get_data());
 		U_old = reinterpret_cast<float *>(npU_old.get_data());
 		D1 = reinterpret_cast<float *>(npD1.get_data());
@@ -657,7 +660,7 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		re_old = 0.0f;
 
 		for (ll = 0; ll < iter; ll++) {
-
+			std::cout << "iteration " << ll << " of " << iter << " count " << count <<std::endl;
 			copyIm(U, U_old, dimX, dimY, dimZ);
 
 			/*estimate inner derrivatives */
@@ -683,9 +686,11 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 			re_old = re;
 
 		} /*end of iterations*/
-		  //printf("HO iterations stopped at iteration: %i\n", ll);
-
+		  printf("HO iterations stopped at iteration: %i\n", ll);
 		result.append<np::ndarray>(npU);
+		std::cout << "npU shape " << bp::extract<char const *>(bp::str(shape)) <<std::endl;
+		std::cout << "npU  " << bp::extract<char const *>(bp::str(npU)) <<std::endl;
+		
 	}
 	else if (number_of_dims == 3) {
 		/*3D case*/
@@ -766,6 +771,11 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		if (switcher != 0) result.append<np::ndarray>(npMap);
 
 	}
+	std::cout << "Call to LLT_model ended" << std::endl;
+	std::cout << "result length " << bp::len(result) << std::endl;
+	//std::cout << "npU shape " << bp::extract<char const *>(bp::str(shape)) <<std::endl;
+	std::cout << "npU  " << bp::extract<char const *>(bp::str(result[0])) <<std::endl;
+			
 	return result;
 }
 

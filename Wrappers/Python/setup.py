@@ -32,8 +32,9 @@ extra_compile_args = []
 extra_link_args = []
 extra_libraries = ['cilreg']
 
-extra_include_dirs += [os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
-                       	   os.path.join(".." , ".." , "Core",  "regularizers_GPU") , 
+extra_include_dirs += [os.path.join(".." , ".." , "Core"),
+					   os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
+                       os.path.join(".." , ".." , "Core",  "regularizers_GPU") , 
 						   "."]
 
 if platform.system() == 'Windows':
@@ -57,7 +58,7 @@ setup(
 	description='CCPi Core Imaging Library - Image Regularizers',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ccpi.imaging.cpu_regularizers",
+    ext_modules = [Extension("ccpi.filters.cpu_regularizers",
                              sources=[os.path.join("." , "fista_module.cpp" ),
                                      # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "FGP_TV_core.c"),
 									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "SplitBregman_TV_core.c"),
@@ -73,7 +74,7 @@ setup(
     
     ],
 	zip_safe = False,	
-	packages = {'ccpi','ccpi.imaging'},
+	packages = {'ccpi','ccpi.filters'},
 )
 
 
