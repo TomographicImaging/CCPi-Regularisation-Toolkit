@@ -19,7 +19,7 @@ requirements:
     - python
     - numpy
     #- astra-toolbox
-    - ccpi-regularizers
+    - ccpi-regularizer
 
 
 	
