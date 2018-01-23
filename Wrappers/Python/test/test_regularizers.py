@@ -161,7 +161,16 @@ out2 = Regularizer.LLT_model(input=u0, regularization_parameter=25,
                           tolerance_constant=0.001,
                           number_of_iterations=300)
 print ("call ended??")
-print (out2[0].shape)
+
+i = 0
+while(i < len(out2)):
+    shape = " not applicable"
+    if type (out2[i]) == np.ndarray:
+        shape = out2[i].shape
+    print ("len out2[{0}] type {1} shape {2}".format(i, type(out2[i]) , shape))
+    i += 1
+    
+#print ("out2", out2)
 pars = out2[-2]
 
 reg_output.append(out2)
@@ -184,24 +193,24 @@ imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 # #   u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
 # #   ImDen = PB_Regul_CPU(single(u0), 3, 1, 0.08, 0.05); 
 
-# out2 = Regularizer.PatchBased_Regul(input=u0, regularization_parameter=0.05,
-                       # searching_window_ratio=3,
-                       # similarity_window_ratio=1,
-                       # PB_filtering_parameter=0.08)
-# pars = out2[-2]
-# reg_output.append(out2)
+out2 = Regularizer.PatchBased_Regul(input=u0, regularization_parameter=0.05,
+                       searching_window_ratio=3,
+                       similarity_window_ratio=1,
+                       PB_filtering_parameter=0.08)
+pars = out2[-2]
+reg_output.append(out2)
 
-# a=fig.add_subplot(2,3,5)
+a=fig.add_subplot(2,3,5)
 
 
-# textstr = out2[-1]
+textstr = out2[-1]
 
-# # these are matplotlib.patch.Patch properties
-# props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# # place a text box in upper left in axes coords
-# a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
-        # verticalalignment='top', bbox=props)
-# imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+# place a text box in upper left in axes coords
+a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
+        verticalalignment='top', bbox=props)
+imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
 
 # ###################### TGV_PD #########################################
@@ -211,25 +220,25 @@ imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 # #   u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550);
 
 
-# out2 = Regularizer.TGV_PD(input=u0, regularization_parameter=0.05,
-                           # first_order_term=1.3,
-                           # second_order_term=1,
-                           # number_of_iterations=550)
-# pars = out2[-2]
-# reg_output.append(out2)
+out2 = Regularizer.TGV_PD(input=u0, regularization_parameter=0.05,
+                           first_order_term=1.3,
+                           second_order_term=1,
+                           number_of_iterations=550)
+pars = out2[-2]
+reg_output.append(out2)
 
-# a=fig.add_subplot(2,3,6)
-
-
-# textstr = out2[-1]
+a=fig.add_subplot(2,3,6)
 
 
-# # these are matplotlib.patch.Patch properties
-# props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# # place a text box in upper left in axes coords
-# a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
-         # verticalalignment='top', bbox=props)
-# imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
+textstr = out2[-1]
+
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+# place a text box in upper left in axes coords
+a.text(0.05, 0.95, textstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 
 
 plt.show()
