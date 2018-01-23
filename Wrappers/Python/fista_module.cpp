@@ -593,8 +593,6 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 	// the result is in the following list
 	bp::list result;
 	
-	std::cout << "Calling LLT_model" << std::endl;
-
 	int number_of_dims, dimX, dimY, dimZ, ll, j, count;
 	//const int  *dim_array;
 	float *U0, *U = NULL, *U_old = NULL, *D1 = NULL, *D2 = NULL, *D3 = NULL, lambda, tau, re, re1, epsil, re_old;
@@ -660,7 +658,6 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		re_old = 0.0f;
 
 		for (ll = 0; ll < iter; ll++) {
-			std::cout << "iteration " << ll << " of " << iter << " count " << count <<std::endl;
 			copyIm(U, U_old, dimX, dimY, dimZ);
 
 			/*estimate inner derrivatives */
@@ -686,23 +683,9 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 			re_old = re;
 
 		} /*end of iterations*/
-		  printf("HO iterations stopped at iteration: %i\n", ll);
+		//  printf("HO iterations stopped at iteration: %i\n", ll);
 		result.append<np::ndarray>(npU);
-		std::cout << "npU shape " << bp::extract<char const *>(bp::str(shape)) <<std::endl;
-		//std::cout << "npU  " << bp::extract<char const *>(bp::str(npU)) <<std::endl;
 		
-		std::cout << "npU  should be " ;
-		int i = 0 ; 
-		while (i < npU.get_nd() ) {
-		    std::cout << npU.shape(i++) << " " ;
-		}
-		std::cout << std::endl;
-		i = 0 ; 
-		np::ndarray inside = bp::extract<np::ndarray>(result[0]);  
-	   while (i < inside.get_nd() ) {
-	       std::cout << inside.shape(i++) << " " ;
-	   }
-	   std::cout << std::endl;
 	}
 	else if (number_of_dims == 3) {
 		/*3D case*/
@@ -783,19 +766,6 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		if (switcher != 0) result.append<np::ndarray>(npMap);
 
 	}
-	std::cout << "Call to LLT_model ended" << std::endl;
-	std::cout << "result length " << bp::len(result) << std::endl;
-	//std::cout << "npU shape " << bp::extract<char const *>(bp::str(shape)) <<std::endl;
-	std::cout << "result[0]  " << bp::extract<char const *>(bp::str(result[0])) <<std::endl;
-	//std::cout << "result[0]  " << result[0].shape(0) << " " << result[0].shape(1) <<  " " << result[0].shape(2) <<std::endl;		
-	std::cout << "result[0] is " ;
-	int i = 0 ; 
-		np::ndarray inside = bp::extract<np::ndarray>(result[0]);  
-	   while (i < inside.get_nd() ) {
-	       std::cout << inside.shape(i++) << " " ;
-	   }
-	   
-	std::cout << std::endl;
 	return result;
 }
 
