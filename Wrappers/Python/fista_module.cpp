@@ -689,8 +689,20 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		  printf("HO iterations stopped at iteration: %i\n", ll);
 		result.append<np::ndarray>(npU);
 		std::cout << "npU shape " << bp::extract<char const *>(bp::str(shape)) <<std::endl;
-		std::cout << "npU  " << bp::extract<char const *>(bp::str(npU)) <<std::endl;
+		//std::cout << "npU  " << bp::extract<char const *>(bp::str(npU)) <<std::endl;
 		
+		std::cout << "npU  should be " ;
+		int i = 0 ; 
+		while (i < npU.get_nd() ) {
+		    std::cout << npU.shape(i++) << " " ;
+		}
+		std::cout << std::endl;
+		i = 0 ; 
+		np::ndarray inside = bp::extract<np::ndarray>(result[0]);  
+	   while (i < inside.get_nd() ) {
+	       std::cout << inside.shape(i++) << " " ;
+	   }
+	   std::cout << std::endl;
 	}
 	else if (number_of_dims == 3) {
 		/*3D case*/
@@ -774,8 +786,16 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 	std::cout << "Call to LLT_model ended" << std::endl;
 	std::cout << "result length " << bp::len(result) << std::endl;
 	//std::cout << "npU shape " << bp::extract<char const *>(bp::str(shape)) <<std::endl;
-	std::cout << "npU  " << bp::extract<char const *>(bp::str(result[0])) <<std::endl;
-			
+	std::cout << "result[0]  " << bp::extract<char const *>(bp::str(result[0])) <<std::endl;
+	//std::cout << "result[0]  " << result[0].shape(0) << " " << result[0].shape(1) <<  " " << result[0].shape(2) <<std::endl;		
+	std::cout << "result[0] is " ;
+	int i = 0 ; 
+		np::ndarray inside = bp::extract<np::ndarray>(result[0]);  
+	   while (i < inside.get_nd() ) {
+	       std::cout << inside.shape(i++) << " " ;
+	   }
+	   
+	std::cout << std::endl;
 	return result;
 }
 
