@@ -35,7 +35,8 @@ if (Boost_FOUND)
 endif()
 	
 ## Build the regularizers package as a library
-message("Creating Iterative Reconstruction CGLS as shared library")
+message("Creating Regularizers as shared library")
+
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
 set(CMAKE_BUILD_TYPE "Release")
@@ -85,6 +86,9 @@ include_directories(cilreg PUBLIC
 #             EXPORT_FILE_NAME CCPiCore_Exports.h
 #             STATIC_DEFINE cilreg_BUILT_AS_STATIC
 #)
+
+## Install
+
 if (UNIX)
 message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
 install(TARGETS cilreg
@@ -98,6 +102,32 @@ message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
 	ARCHIVE DESTINATION lib
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
 	)
+endif()
+
+# GPU Regularizers
+
+find_package(CUDA)
+if (CUDA_FOUND)
+  CUDA_ADD_LIBRARY(cilregcuda SHARED
+	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/Diffus_HO/Diff4th_GPU_kernel.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/NL_Regul/NLM_GPU_kernel.cu
+  )
+  if (UNIX)
+    message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
+    install(TARGETS cilregcuda
+	LIBRARY DESTINATION lib
+	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+	)
+  elseif(WIN32)
+    message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
+    install(TARGETS cilregcuda
+	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION lib
+	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+	)
+  endif()
+else()
+  message("CUDA NOT FOUND")
 endif()
 
 
