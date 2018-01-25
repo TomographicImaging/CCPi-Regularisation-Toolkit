@@ -237,3 +237,29 @@ extern "C" void NLM_GPU_kernel(float *A, float* B, float *Eucl_Vec, int N, int M
     checkCudaErrors( cudaMemcpy(B,Bd,N*M*Z*sizeof(float),cudaMemcpyDeviceToHost) );
     cudaFree(Ad); cudaFree(Bd); cudaFree(Eucl_Vec_d);
 }
+
+float pad_crop(float *A, float *Ap, int OldSizeX, int OldSizeY, int OldSizeZ, int NewSizeX, int NewSizeY, int NewSizeZ, int padXY, int switchpad_crop)
+{
+    /* padding-cropping function */
+    int i,j,k;    
+    if (NewSizeZ > 1) {    
+           for (i=0; i < NewSizeX; i++) {
+            for (j=0; j < NewSizeY; j++) {
+              for (k=0; k < NewSizeZ; k++) {
+                if (((i >= padXY) && (i < NewSizeX-padXY)) &&  ((j >= padXY) && (j < NewSizeY-padXY)) &&  ((k >= padXY) && (k < NewSizeZ-padXY))) {
+                    if (switchpad_crop == 0)  Ap[NewSizeX*NewSizeY*k + i*NewSizeY+j] = A[OldSizeX*OldSizeY*(k - padXY) + (i-padXY)*(OldSizeY)+(j-padXY)];
+                    else  Ap[OldSizeX*OldSizeY*(k - padXY) + (i-padXY)*(OldSizeY)+(j-padXY)] = A[NewSizeX*NewSizeY*k + i*NewSizeY+j];
+                }
+            }}}   
+    }
+    else {
+        for (i=0; i < NewSizeX; i++) {
+            for (j=0; j < NewSizeY; j++) {
+                if (((i >= padXY) && (i < NewSizeX-padXY)) &&  ((j >= padXY) && (j < NewSizeY-padXY))) {
+                    if (switchpad_crop == 0)  Ap[i*NewSizeY+j] = A[(i-padXY)*(OldSizeY)+(j-padXY)];
+                    else  Ap[(i-padXY)*(OldSizeY)+(j-padXY)] = A[i*NewSizeY+j];
+                }
+            }}
+    }
+    return *Ap;
+}
