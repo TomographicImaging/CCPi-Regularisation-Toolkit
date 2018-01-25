@@ -74,14 +74,14 @@ def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
         
     # Running CUDA code here
     #Diff4th_GPU_kernel(A_L, B_L, N, M, Z, (float)sigma, iter, (float)tau, lambda);    
-#    Diff4th_GPU_kernel(
-#            #<float*> A_L.data, <float*> B_L.data,
-#            &A_L[0,0], &B_L[0,0], 
-#                       N, M, 0, 
-#                       edge_preserving_parameter,
-#                       iterations , 
-#                       tau, 
-#                       regularization_parameter)
+    Diff4th_GPU_kernel(
+            #<float*> A_L.data, <float*> B_L.data,
+            &A_L[0,0], &B_L[0,0], 
+                       N, M, 0, 
+                       edge_preserving_parameter,
+                       iterations , 
+                       tau, 
+                       regularization_parameter)
     # copy the processed B_L to a smaller B
     for i in range(N):
         for j in range(M):
@@ -131,14 +131,14 @@ def Diff4thHajiaboli3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
         
     # Running CUDA code here
     #Diff4th_GPU_kernel(A_L, B_L, N, M, Z, (float)sigma, iter, (float)tau, lambda);    
-#    Diff4th_GPU_kernel(
-#            #<float*> A_L.data, <float*> B_L.data,
-#            &A_L[0,0,0], &B_L[0,0,0], 
-#                       N, M, Z, 
-#                       edge_preserving_parameter,
-#                       iterations , 
-#                       tau, 
-#                       regularization_parameter)
+    Diff4th_GPU_kernel(
+            #<float*> A_L.data, <float*> B_L.data,
+            &A_L[0,0,0], &B_L[0,0,0], 
+                       N, M, Z, 
+                       edge_preserving_parameter,
+                       iterations , 
+                       tau, 
+                       regularization_parameter)
     # copy the processed B_L to a smaller B
     for i in range(N):
         for j in range(M):
@@ -152,3 +152,46 @@ def Diff4thHajiaboli3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     return B
 
 		
+def NML(inputData, 
+                     regularization_parameter, 
+                     iterations, 
+                     edge_preserving_parameter):
+    if inputData.ndim == 2:
+        return NML2D(inputData,  
+                     regularization_parameter, 
+                     iterations, 
+                     edge_preserving_parameter)
+    elif inputData.ndim == 3:
+        return NML3D(inputData,  
+                     regularization_parameter, 
+                     iterations, 
+                     edge_preserving_parameter)
+
+    #SearchW_real  = (int) mxGetScalar(prhs[1]); /* the searching window ratio */
+    #SimilW =  (int) mxGetScalar(prhs[2]);  /* the similarity window ratio */
+    #h =  (float) mxGetScalar(prhs[3]);  /* parameter for the PB filtering function */
+    #lambda = (float) mxGetScalar(prhs[4]);
+
+def NML2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     SearchW_real, 
+                     SimilW, 
+                     h,
+                     lambdaf):    
+    N, M = inputData.shape       
+    if h < 0:
+        raise ValueError('Parameter for the PB filtering function must be > 0') 
+             
+    SearchW = SearchW_real + 2*SimilW;
+    
+    SearchW_full = 2*SearchW + 1; #/* the full searching window  size */
+    SimilW_full = 2*SimilW + 1;   #/* the full similarity window  size */
+    h2 = h*h;
+    
+    padXY = SearchW + 2*SimilW; #/* padding sizes */
+    newsizeX = N + 2*(padXY); #/* the X size of the padded array */
+    newsizeY = M + 2*(padXY); #/* the Y size of the padded array */
+    newsizeZ = Z + 2*(padXY); #/* the Z size of the padded array */
+    
+    B = np.zeros((N,M), dtype=np.float )
+    
+    
