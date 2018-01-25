@@ -351,7 +351,7 @@ class FISTA():
             #end
             del proj_geomT
             del vol_geomT
-        else
+        else:
             #% divergen beam geometry
             #fprintf('%s \n', 'Calculating Lipshitz constant for divergen beam geometry...');
             niter = 8; #% number of iteration for PM
@@ -391,7 +391,7 @@ class FISTA():
     
     
     def setRegularizer(self, regularizer):
-        if regularizer
+        #if regularizer
         self.pars['regularizer'] = regularizer
         
     

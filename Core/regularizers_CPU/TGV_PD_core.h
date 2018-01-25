@@ -24,6 +24,7 @@ limitations under the License.
 #include <stdio.h>
 #include "omp.h"
 #include "utils.h"
+#include "CCPiDefines.h"
 
 /* C-OMP implementation of Primal-Dual denoising method for
 * Total Generilized Variation (TGV)-L2 model (2D case only)
@@ -54,13 +55,13 @@ limitations under the License.
 extern "C" {
 #endif
 /* 2D functions */
-float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, int dimZ, float sigma);
-float ProjP_2D(float *P1, float *P2, int dimX, int dimY, int dimZ, float alpha1);
-float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float sigma);
-float ProjQ_2D(float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float alpha0);
-float DivProjP_2D(float *U, float *A, float *P1, float *P2, int dimX, int dimY, int dimZ, float lambda, float tau);
-float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float tau);
-float newU(float *U, float *U_old, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, int dimZ, float sigma);
+CCPI_EXPORT float ProjP_2D(float *P1, float *P2, int dimX, int dimY, int dimZ, float alpha1);
+CCPI_EXPORT float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float sigma);
+CCPI_EXPORT float ProjQ_2D(float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float alpha0);
+CCPI_EXPORT float DivProjP_2D(float *U, float *A, float *P1, float *P2, int dimX, int dimY, int dimZ, float lambda, float tau);
+CCPI_EXPORT float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, int dimZ, float tau);
+CCPI_EXPORT float newU(float *U, float *U_old, int dimX, int dimY, int dimZ);
 //float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
 #ifdef __cplusplus
 }

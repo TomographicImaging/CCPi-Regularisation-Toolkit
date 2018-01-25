@@ -592,7 +592,7 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, double d_epsil, int switcher) {
 	// the result is in the following list
 	bp::list result;
-
+	
 	int number_of_dims, dimX, dimY, dimZ, ll, j, count;
 	//const int  *dim_array;
 	float *U0, *U = NULL, *U_old = NULL, *D1 = NULL, *D2 = NULL, *D3 = NULL, lambda, tau, re, re1, epsil, re_old;
@@ -644,7 +644,8 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		np::ndarray npD1 = np::zeros(shape, dtype);
 		np::ndarray npD2 = np::zeros(shape, dtype);
 		
-
+        //result.append<np::ndarray>(npU);
+		
 		U = reinterpret_cast<float *>(npU.get_data());
 		U_old = reinterpret_cast<float *>(npU_old.get_data());
 		D1 = reinterpret_cast<float *>(npD1.get_data());
@@ -657,7 +658,6 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 		re_old = 0.0f;
 
 		for (ll = 0; ll < iter; ll++) {
-
 			copyIm(U, U_old, dimX, dimY, dimZ);
 
 			/*estimate inner derrivatives */
@@ -683,9 +683,9 @@ bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, d
 			re_old = re;
 
 		} /*end of iterations*/
-		  //printf("HO iterations stopped at iteration: %i\n", ll);
-
+		//  printf("HO iterations stopped at iteration: %i\n", ll);
 		result.append<np::ndarray>(npU);
+		
 	}
 	else if (number_of_dims == 3) {
 		/*3D case*/

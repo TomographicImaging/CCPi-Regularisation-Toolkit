@@ -15,7 +15,7 @@ from enum import Enum
 import timeit
 #from PIL import Image
 #from Regularizer import Regularizer
-from ccpi.imaging.Regularizer import Regularizer
+from ccpi.filters.Regularizer import Regularizer
 
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
@@ -47,8 +47,8 @@ def nrmse(im1, im2):
 # u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
 
 
-#filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
-filename = r"/home/ofn77899/Reconstruction/CCPi-FISTA_Reconstruction/data/lena_gray_512.tif"
+filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
+#filename = r"/home/ofn77899/Reconstruction/CCPi-FISTA_Reconstruction/data/lena_gray_512.tif"
 #filename = r'/home/algol/Documents/Python/STD_test_images/lena_gray_512.tif'
 
 #reader = vtk.vtkTIFFReader()
@@ -96,7 +96,7 @@ if use_object:
     # reg.setParameter(input=u0, regularization_parameter=10., #number_of_iterations=30,
               #tolerance_constant=1e-4, 
               #TV_Penalty=Regularizer.TotalVariationPenalty.l1)
-    plotme = reg() [0]
+    plotme = reg(output_all=True) [0]
     pars = reg.pars
     textstr = reg.printParametersToString() 
     
@@ -127,8 +127,8 @@ imgplot = plt.imshow(plotme,cmap="gray")
 
 ###################### FGP_TV #########################################
 # u = FGP_TV(single(u0), 0.05, 100, 1e-04);
-out2 = Regularizer.FGP_TV(input=u0, regularization_parameter=0.0005,
-                          number_of_iterations=50)
+out2 = Regularizer.FGP_TV(input=u0, regularization_parameter=5e-4,
+                          number_of_iterations=10, output_all=True)
 pars = out2[-2]
 
 reg_output.append(out2)
@@ -154,10 +154,23 @@ imgplot = plt.imshow(reg_output[-1][0],cmap="gray")
 #Den = LLT_model(single(u0), 25, 0.0003, 300, 0.0001, 0); 
 #input, regularization_parameter , time_step, number_of_iterations,
 #                  tolerance_constant, restrictive_Z_smoothing=0
+
+del out2
 out2 = Regularizer.LLT_model(input=u0, regularization_parameter=25,
                           time_step=0.0003,
-                          tolerance_constant=0.0001,
+                          tolerance_constant=0.001,
                           number_of_iterations=300)
+print ("call ended??")
+
+i = 0
+while(i < len(out2)):
+    shape = " not applicable"
+    if type (out2[i]) == np.ndarray:
+        shape = out2[i].shape
+    print ("len out2[{0}] type {1} shape {2}".format(i, type(out2[i]) , shape))
+    i += 1
+    
+#print ("out2", out2)
 pars = out2[-2]
 
 reg_output.append(out2)

@@ -3,9 +3,11 @@ ECHO CIL_VERSION Not Defined.
 exit 1
 )
 
-xcopy /e "%RECIPE_DIR%\.." "%SRC_DIR%"
+mkdir "%SRC_DIR%\ccpifista"
+xcopy /e "%RECIPE_DIR%\.." "%SRC_DIR%\ccpifista"
 
-%PYTHON% setup.py -q bdist_egg
+cd "%SRC_DIR%\ccpifista"
+::%PYTHON% setup-fista.py -q bdist_egg
 :: %PYTHON% setup.py install --single-version-externally-managed --record=record.txt
-%PYTHON% setup.py install
+%PYTHON% setup-fista.py install
 if errorlevel 1 exit 1

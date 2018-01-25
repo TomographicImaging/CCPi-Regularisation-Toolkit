@@ -51,9 +51,12 @@ float PB_FUNC2D(float *Ap, float *Bp, int dimX, int dimY, int padXY, int SearchW
     int i, j, i_n, j_n, i_m, j_m, i_p, j_p, i_l, j_l, i1, j1, i2, j2, i3, j3, i5,j5, count, SimilW_full;
     float *Eucl_Vec, h2, denh2, normsum, Weight, Weight_norm, value, denom, WeightGlob, t1;
     
-    float A[dimX*dimY], B[dimX*dimY];
-
-    //fill the structures
+    //float A[dimX*dimY], B[dimX*dimY];
+	float *A , *B;
+	A = (float*) calloc (dimX*dimY,sizeof(float));
+	B = (float*) calloc (dimX*dimY,sizeof(float));
+    
+	//fill the structures
     int index=0;
     for (i=0;i<dimX;i++){
     	for (j=0;j<dimY;j++){
