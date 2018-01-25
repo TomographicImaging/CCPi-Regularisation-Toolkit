@@ -58,8 +58,28 @@ setup(
 	description='CCPi Core Imaging Library - Image Regularizers',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
+    ext_modules = [Extension("ccpi.filters.gpu_regularizers",
+                             sources=[ 
+                                     os.path.join("." , "src", "fista_module_gpu.pyx" ),
+                                     #os.path.join("." , "src", "multiply.pyx" )
+                                       ],
+                             include_dirs=extra_include_dirs, 
+							 library_dirs=extra_library_dirs, 
+							 extra_compile_args=extra_compile_args, 
+							 libraries=extra_libraries ), 
+    
+    ],
+	zip_safe = False,	
+	packages = {'ccpi','ccpi.filters'},
+)
+
+setup(
+    name='ccpi',
+	description='CCPi Core Imaging Library - Image Regularizers',
+	version=cil_version,
+    cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension("ccpi.filters.cpu_regularizers",
-                             sources=[os.path.join("." , "fista_module.cpp" ),
+                             sources=[os.path.join("." , "src", "fista_module.cpp" ),
                                      # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "FGP_TV_core.c"),
 									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "SplitBregman_TV_core.c"),
 									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "LLT_model_core.c"),
