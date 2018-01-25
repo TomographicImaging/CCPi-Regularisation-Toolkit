@@ -25,6 +25,17 @@
  * Linux/Matlab compilation:
  * compile in terminal: nvcc -Xcompiler -fPIC -shared -o Diff4th_GPU_kernel.o Diff4th_GPU_kernel.cu
  * then compile in Matlab: mex -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart Diff4thHajiaboli_GPU.cpp Diff4th_GPU_kernel.o
+ 
+ void mexFunction(
+int nlhs, mxArray *plhs[],
+int nrhs, const mxArray *prhs[])
+where:
+prhs Array of pointers to the INPUT mxArrays
+nrhs int number of INPUT mxArrays
+
+nlhs Array of pointers to the OUTPUT mxArrays
+plhs int number of OUTPUT mxArrays
+
  */
 
 void mexFunction(
