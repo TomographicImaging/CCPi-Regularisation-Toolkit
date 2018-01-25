@@ -251,45 +251,33 @@ class Regularizer():
     def SplitBregman_TV(input, regularization_parameter , **kwargs):
         start_time = timeit.default_timer()
         reg = Regularizer(Regularizer.Algorithm.SplitBregman_TV)
-        out = []
         a = reg(input, regularization_parameter, **kwargs) 
-        out.append(a)
-        out.append(reg.pars)
         txt = reg.printParametersToString()
         txt += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-        out.append(txt)
-        return out
+        return a, reg.pars, txt
         
     @staticmethod
     def FGP_TV(input, regularization_parameter , **kwargs):
         start_time = timeit.default_timer()
         reg = Regularizer(Regularizer.Algorithm.FGP_TV)
-        out = []
         a = reg(input, regularization_parameter, **kwargs) 
-        out.append(a)
-        out.append(reg.pars)
         txt = reg.printParametersToString()
         txt += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-        out.append(txt)
-        return out
+        return a, reg.pars, txt
     
     @staticmethod
     def LLT_model(input, regularization_parameter , time_step, number_of_iterations,
                   tolerance_constant, restrictive_Z_smoothing=0):
         start_time = timeit.default_timer()
         reg = Regularizer(Regularizer.Algorithm.LLT_model)
-        out = []
         a = reg(input, regularization_parameter, time_step=time_step, 
                         number_of_iterations=number_of_iterations,
                         tolerance_constant=tolerance_constant, 
                         restrictive_Z_smoothing=restrictive_Z_smoothing) 
         
-        out.append(a)
-        out.append(reg.pars)
         txt = reg.printParametersToString()
         txt += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-        out.append(txt)
-        return out
+        return a, reg.pars, txt
     
     @staticmethod
     def PatchBased_Regul(input, regularization_parameter,
@@ -298,18 +286,14 @@ class Regularizer():
                         PB_filtering_parameter):
         start_time = timeit.default_timer()
         reg = Regularizer(Regularizer.Algorithm.PatchBased_Regul)   
-        out = []
         a = reg(input, 
                         regularization_parameter,
                         searching_window_ratio=searching_window_ratio, 
                         similarity_window_ratio=similarity_window_ratio,
                         PB_filtering_parameter=PB_filtering_parameter )
-        out.append(a)    
-        out.append(reg.pars)
         txt = reg.printParametersToString()
         txt += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-        out.append(txt)
-        return out
+        return a, reg.pars, txt
     
     @staticmethod
     def TGV_PD(input, regularization_parameter , first_order_term, 
@@ -321,14 +305,11 @@ class Regularizer():
                         first_order_term=first_order_term, 
                         second_order_term=second_order_term,
                         number_of_iterations=number_of_iterations) 
-        out = []
-        out.append(a)
-        out.append(reg.pars)
         txt = reg.printParametersToString()
         txt += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-        out.append(txt)
         
-        return out
+        
+        return a, reg.pars, txt
     
     def printParametersToString(self):
         txt = r''
