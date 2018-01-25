@@ -31,12 +31,12 @@ def Diff4thHajiaboli(inputData,
                      regularization_parameter, 
                      iterations, 
                      edge_preserving_parameter):
-    if inputData.ndims == 2:
+    if inputData.ndim == 2:
         return Diff4thHajiaboli2D(inputData,  
                      regularization_parameter, 
                      iterations, 
                      edge_preserving_parameter)
-    elif inputData.ndims == 3:
+    elif inputData.ndim == 3:
         return Diff4thHajiaboli3D(inputData,  
                      regularization_parameter, 
                      iterations, 
