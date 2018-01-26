@@ -61,7 +61,6 @@ setup(
     ext_modules = [Extension("ccpi.filters.gpu_regularizers",
                              sources=[ 
                                      os.path.join("." , "src", "fista_module_gpu.pyx" ),
-                                     #os.path.join("." , "src", "multiply.pyx" )
                                        ],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 
