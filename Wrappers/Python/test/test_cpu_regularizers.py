@@ -5,17 +5,12 @@ Created on Fri Aug  4 11:10:05 2017
 @author: ofn77899
 """
 
-#from ccpi.viewer.CILViewer2D import Converter
-#import vtk
 
 import matplotlib.pyplot as plt
 import numpy as np
 import os    
 from enum import Enum
 import timeit
-#from PIL import Image
-#from Regularizer import Regularizer
-#from ccpi.filters.Regularizer import Regularizer
 from ccpi.filters.cpu_regularizers import SplitBregman_TV , FGP_TV , LLT_model, \
                                                                   PatchBased_Regul , TGV_PD
 
@@ -67,8 +62,10 @@ filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
 Im = plt.imread(filename)                     
 Im = np.asarray(Im, dtype='float32')
 
-perc = 0.05
-u0 = Im + (perc* np.random.normal(size=np.shape(Im)))
+perc = 0.15
+u0 = Im + np.random.normal(loc = Im ,
+                                  scale = perc * Im , 
+                                  size = np.shape(Im))
 # map the u0 u0->u0>0
 f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
 u0 = f(u0).astype('float32')
@@ -78,7 +75,8 @@ fig = plt.figure()
 
 a=fig.add_subplot(2,3,1)
 a.set_title('noise')
-imgplot = plt.imshow(u0,cmap="gray")
+imgplot = plt.imshow(u0#,cmap="gray"
+                     )
 
 reg_output = []
 ##############################################################################
@@ -100,7 +98,7 @@ out = SplitBregman_TV (pars['input'], pars['regularization_parameter'],
                               pars['number_of_iterations'],
                               pars['tolerance_constant'],
                               pars['TV_penalty'])  
-plotme = out[0]
+splitbregman = out[0]
 txtstr = printParametersToString(pars) 
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -114,7 +112,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(plotme,\
+imgplot = plt.imshow(splitbregman,\
                      #cmap="gray"
                      )
 
@@ -124,16 +122,18 @@ start_time = timeit.default_timer()
 pars = {'algorithm' : FGP_TV , \
         'input' : u0,
         'regularization_parameter':5e-4, \
-'number_of_iterations' :10 ,\
-'tolerance_constant':0.001,\
-'TV_penalty': 0
+        'number_of_iterations' :10 ,\
+        'tolerance_constant':0.001,\
+        'TV_penalty': 0
 }
 
-out = FGP_TV (pars['input'], pars['regularization_parameter'],
-                              pars['number_of_iterations'],
-                              pars['tolerance_constant'],
-                              pars['TV_penalty'])  
-plotme = out[0]
+out = FGP_TV (pars['input'], 
+              pars['regularization_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['TV_penalty'])  
+
+fgp = out[0]
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)       
@@ -144,7 +144,7 @@ a=fig.add_subplot(2,3,3)
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
-imgplot = plt.imshow(plotme, \
+imgplot = plt.imshow(fgp, \
                      #cmap="gray"
                      )
 # place a text box in upper left in axes coords
@@ -152,11 +152,6 @@ a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
 
 ###################### LLT_model #########################################
-# * u0 = Im + .03*randn(size(Im)); % adding noise
-# [Den] = LLT_model(single(u0), 10, 0.1, 1);
-#Den = LLT_model(single(u0), 25, 0.0003, 300, 0.0001, 0); 
-#input, regularization_parameter , time_step, number_of_iterations,
-#                  tolerance_constant, restrictive_Z_smoothing=0
 
 start_time = timeit.default_timer()
 
@@ -164,18 +159,18 @@ pars = {'algorithm': LLT_model , \
         'input' : u0,
         'regularization_parameter': 25,\
         'time_step':0.0003, \
-'number_of_iterations' :300,\
-'tolerance_constant':0.001,\
-'restrictive_Z_smoothing': 0
+        'number_of_iterations' :300,\
+        'tolerance_constant':0.001,\
+        'restrictive_Z_smoothing': 0
 }
 out = LLT_model(pars['input'], 
-                              pars['regularization_parameter'],
-                              pars['time_step'] , 
-                              pars['number_of_iterations'],
-                              pars['tolerance_constant'],
-                              pars['restrictive_Z_smoothing'] )
+                pars['regularization_parameter'],
+                pars['time_step'] , 
+                pars['number_of_iterations'],
+                pars['tolerance_constant'],
+                pars['restrictive_Z_smoothing'] )
 
-plotme = out[0]
+llt = out[0]
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -186,7 +181,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(plotme,\
+imgplot = plt.imshow(llt,\
                      #cmap="gray"
                      )
 
@@ -202,15 +197,15 @@ pars = {'algorithm': PatchBased_Regul , \
         'input' : u0,
         'regularization_parameter': 0.05,\
         'searching_window_ratio':3, \
-'similarity_window_ratio':1,\
-'PB_filtering_parameter': 0.08
+        'similarity_window_ratio':1,\
+        'PB_filtering_parameter': 0.08
 }
-out = PatchBased_Regul(
-        pars['input'], pars['regularization_parameter'],
-                                  pars['searching_window_ratio'] , 
-                                  pars['similarity_window_ratio'] , 
-                                  pars['PB_filtering_parameter'])
-plotme = out[0]
+out = PatchBased_Regul(pars['input'], 
+                       pars['regularization_parameter'],
+                       pars['searching_window_ratio'] , 
+                       pars['similarity_window_ratio'] , 
+                       pars['PB_filtering_parameter'])
+pbr = out[0]
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -223,7 +218,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(plotme #,cmap="gray"
+imgplot = plt.imshow(pbr #,cmap="gray"
                      )
 
 
@@ -240,13 +235,14 @@ pars = {'algorithm': TGV_PD , \
         'regularization_parameter':0.05,\
         'first_order_term': 1.3,\
         'second_order_term': 1, \
-'number_of_iterations': 550
-}
-out = TGV_PD(pars['input'], pars['regularization_parameter'],
-                                  pars['first_order_term'] , 
-                                  pars['second_order_term'] , 
-                                  pars['number_of_iterations'])
-plotme = out[0]
+        'number_of_iterations': 550
+        }
+out = TGV_PD(pars['input'],
+             pars['regularization_parameter'],
+             pars['first_order_term'] , 
+             pars['second_order_term'] , 
+             pars['number_of_iterations'])
+tgv = out[0]
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -257,7 +253,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(plotme #, cmap="gray")
+imgplot = plt.imshow(tgv #, cmap="gray")
                      )
 
 
