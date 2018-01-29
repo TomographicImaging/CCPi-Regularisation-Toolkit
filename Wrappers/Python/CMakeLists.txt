@@ -62,13 +62,22 @@ elseif(UNIX)
 endif()
 
 
-#set (BOOST_PYTHON_LIB ${Boost_${BOOST_PYTHON}_LIBRARY})
-#set (BOOST_NUMPY_LIB ${Boost_${BOOST_NUMPY}_LIBRARY})
-
-list(GET Boost_LIBRARIES 0 place )
-get_filename_component(BOOST_PYTHON_LIB ${place} NAME_WE )
-list(GET Boost_LIBRARIES 1 place )
-get_filename_component(BOOST_NUMPY_LIB ${place} NAME_WE )
+if (WIN32)
+  list(GET Boost_LIBRARIES 0 place )
+  get_filename_component(BOOST_PYTHON_LIB ${place} NAME_WE )
+  list(GET Boost_LIBRARIES 1 place )
+  get_filename_component(BOOST_NUMPY_LIB ${place} NAME_WE )
+else()
+  # on linux the library looks like libboost_numpy3.so:
+  # we need to get rid of the lib at the beginning
+  list(GET Boost_LIBRARIES 0 place )
+  get_filename_component(place2 ${place} NAME_WE )
+  string(REGEX REPLACE "^lib.*" "\\1" $BOOST_PYTHON_LIB "${place2}")
+  
+  list(GET Boost_LIBRARIES 1 place )
+  get_filename_component(place2 ${place} NAME_WE )
+  string(REGEX REPLACE "^lib.*" "\\1" $BOOST_NUMPY_LIB "${place2}")
+endif()
 
 message ("found " ${BOOST_PYTHON_LIB})
 message ("found " ${BOOST_NUMPY_LIB})
