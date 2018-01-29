@@ -8,7 +8,10 @@ ROBOCOPY /E "%RECIPE_DIR%\..\.." "%SRC_DIR%\ccpi"
 ROBOCOPY /E "%RECIPE_DIR%\..\..\..\Core" "%SRC_DIR%\Core"
 cd %SRC_DIR%\ccpi\Python
 
-%PYTHON% setup.py build_ext
+:: issue cmake to create setup.py
+cmake . 
+
+%PYTHON% setup-regularizers.py build_ext
 if errorlevel 1 exit 1
-%PYTHON% setup.py install
+%PYTHON% setup-regularizers.py install
 if errorlevel 1 exit 1

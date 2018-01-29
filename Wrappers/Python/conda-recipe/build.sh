@@ -11,7 +11,9 @@ cd $SRC_DIR/ccpi/Python
 
 echo "$SRC_DIR/ccpi/Python"
 
-$PYTHON setup.py build_ext
-$PYTHON setup.py install
+cmake . 
+
+$PYTHON setup-regularizers.py build_ext
+$PYTHON setup-regularizers.py install
 
 

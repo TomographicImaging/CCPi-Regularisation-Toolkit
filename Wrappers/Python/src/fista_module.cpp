@@ -1028,13 +1028,13 @@ bp::list TGV_PD(np::ndarray input, double d_lambda, double d_alpha1, double d_al
 	return result;
 }
 
-BOOST_PYTHON_MODULE(cpu_regularizers)
+BOOST_PYTHON_MODULE(cpu_regularizers_boost)
 {
 	np::initialize();
 
 	//To specify that this module is a package
 	bp::object package = bp::scope();
-	package.attr("__path__") = "cpu_regularizers";
+	package.attr("__path__") = "cpu_regularizers_boost";
 
 	np::dtype dt1 = np::dtype::get_builtin<uint8_t>();
 	np::dtype dt2 = np::dtype::get_builtin<uint16_t>();

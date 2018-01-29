@@ -21,6 +21,7 @@ requirements:
     - cil_regularizer
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
+    - cmake 
 
   run:
     - python ==2.7 # [py27]
