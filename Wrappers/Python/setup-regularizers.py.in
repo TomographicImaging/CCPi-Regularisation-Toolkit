@@ -33,35 +33,26 @@ extra_link_args = []
 extra_libraries = ['cilreg']
 
 extra_include_dirs += [os.path.join(".." , ".." , "Core"),
-					   os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
+                       os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
                        os.path.join(".." , ".." , "Core",  "regularizers_GPU") , 
 						   "."]
 
-if platform.system() == 'Windows':
-    
-						   
+if platform.system() == 'Windows':				   
     extra_compile_args[0:] = ['/DWIN32','/EHsc','/DBOOST_ALL_NO_LIB' , '/openmp' ]   
-    
-    if sys.version_info.major == 3 :   
-        extra_libraries += ['boost_python3-vc140-mt-1_64', 'boost_numpy3-vc140-mt-1_64']
-    else:
-        extra_libraries += ['boost_python-vc90-mt-1_64', 'boost_numpy-vc90-mt-1_64']
 else:
     extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x']
-    if sys.version_info.major == 3:
-        extra_libraries += ['boost_python3', 'boost_numpy3','gomp']
-    else:
-        extra_libraries += ['boost_python', 'boost_numpy','gomp']
+    extra_libraries += [@EXTRA_OMP_LIB@]
+    
+extra_libraries += ["@BOOST_PYTHON_LIB@", "@BOOST_NUMPY_LIB@"]
+
 
 setup(
     name='ccpi',
 	description='CCPi Core Imaging Library - Image Regularizers',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ccpi.filters.gpu_regularizers",
-                             sources=[ 
-                                     os.path.join("." , "src", "gpu_regularizers.pyx" ),
-                                       ],
+    ext_modules = [Extension("ccpi.filters.cpu_regularizers_boost",
+                             sources=[os.path.join("." , "src", "fista_module.cpp" )],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 
 							 extra_compile_args=extra_compile_args, 
@@ -77,16 +68,8 @@ setup(
 	description='CCPi Core Imaging Library - Image Regularizers',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ccpi.filters.cpu_regularizers",
-                             sources=[os.path.join("." , "src", "fista_module.cpp" ),
-                                             os.path.join("." , "src", "cpu_regularizers.pyx" ) 
-                                     # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "FGP_TV_core.c"),
-									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "SplitBregman_TV_core.c"),
-									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "LLT_model_core.c"),
-									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "PatchBased_Regul_core.c"),
-									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "TGV_PD_core.c"),
-									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "utils.c")
-                                        ],
+    ext_modules = [Extension("ccpi.filters.cpu_regularizers_cython",
+                             sources=[os.path.join("." , "src", "cpu_regularizers.pyx" ) ],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 
 							 extra_compile_args=extra_compile_args, 
@@ -98,3 +81,4 @@ setup(
 )
 
 
+@SETUP_GPU_WRAPPERS@

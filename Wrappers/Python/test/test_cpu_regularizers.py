@@ -11,8 +11,9 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.cpu_regularizers import SplitBregman_TV , FGP_TV , LLT_model, \
-                                                                  PatchBased_Regul , TGV_PD
+from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV , FGP_TV ,\
+                                                 LLT_model, PatchBased_Regul ,\
+                                                 TGV_PD
 
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
