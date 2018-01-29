@@ -72,11 +72,11 @@ else()
   # we need to get rid of the lib at the beginning
   list(GET Boost_LIBRARIES 0 place )
   get_filename_component(place2 ${place} NAME_WE )
-  string(REGEX REPLACE "^lib.*" "\\1" $BOOST_PYTHON_LIB "${place2}")
+  string(REGEX REPLACE "^lib(.*)" "\\1" BOOST_PYTHON_LIB "${place2}")
   
   list(GET Boost_LIBRARIES 1 place )
   get_filename_component(place2 ${place} NAME_WE )
-  string(REGEX REPLACE "^lib.*" "\\1" $BOOST_NUMPY_LIB "${place2}")
+  string(REGEX REPLACE "^lib(.*)" "\\1" BOOST_NUMPY_LIB "${place2}")
 endif()
 
 message ("found " ${BOOST_PYTHON_LIB})
