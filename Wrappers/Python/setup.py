@@ -60,7 +60,7 @@ setup(
     cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension("ccpi.filters.gpu_regularizers",
                              sources=[ 
-                                     os.path.join("." , "src", "fista_module_gpu.pyx" ),
+                                     os.path.join("." , "src", "gpu_regularizers.pyx" ),
                                        ],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 
@@ -79,6 +79,7 @@ setup(
     cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension("ccpi.filters.cpu_regularizers",
                              sources=[os.path.join("." , "src", "fista_module.cpp" ),
+                                             os.path.join("." , "src", "cpu_regularizers.pyx" ) 
                                      # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "FGP_TV_core.c"),
 									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "SplitBregman_TV_core.c"),
 									 # os.path.join("@CMAKE_SOURCE_DIR@" , "main_func" ,  "regularizers_CPU", "LLT_model_core.c"),
