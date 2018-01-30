@@ -44,7 +44,25 @@ def Diff4thHajiaboli(inputData,
                      regularization_parameter, 
                      iterations, 
                      edge_preserving_parameter)
-                        
+        
+def NML(inputData, 
+                     SearchW_real, 
+                     SimilW, 
+                     h,
+                     lambdaf):
+    if inputData.ndim == 2:
+        return NML2D(inputData, 
+                     SearchW_real, 
+                     SimilW, 
+                     h,
+                     lambdaf)
+    elif inputData.ndim == 3:
+        return NML3D(inputData, 
+                     SearchW_real, 
+                     SimilW, 
+                     h,
+                     lambdaf)
+                    
 def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularization_parameter, 
                      int iterations, 
@@ -160,25 +178,6 @@ def Diff4thHajiaboli3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
      
     return B
 
-def NML(inputData, 
-                     regularization_parameter, 
-                     iterations, 
-                     edge_preserving_parameter):
-    if inputData.ndim == 2:
-        return NML2D(inputData,  
-                     regularization_parameter, 
-                     iterations, 
-                     edge_preserving_parameter)
-    elif inputData.ndim == 3:
-        return NML3D(inputData,  
-                     regularization_parameter, 
-                     iterations, 
-                     edge_preserving_parameter)
-
-    #SearchW_real  = (int) mxGetScalar(prhs[1]); /* the searching window ratio */
-    #SimilW =  (int) mxGetScalar(prhs[2]);  /* the similarity window ratio */
-    #h =  (float) mxGetScalar(prhs[3]);  /* parameter for the PB filtering function */
-    #lambda = (float) mxGetScalar(prhs[4]);
 
 def NML2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      SearchW_real, 

@@ -89,7 +89,8 @@ message ("found " ${BOOST_NUMPY_LIB})
 find_package(CUDA)
 if (CUDA_FOUND)
   message("CUDA FOUND")
-  set (SETUP_GPU_WRAPPERS "setup( \n\
+  set (SETUP_GPU_WRAPPERS "extra_libraries += ['cilregcuda']\n\
+setup( \n\
     name='ccpi', \n\
  	description='CCPi Core Imaging Library - Image Regularizers GPU',\n\
  	version=cil_version,\n\
