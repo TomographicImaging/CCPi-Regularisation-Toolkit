@@ -62,7 +62,7 @@ if(WIN32)
   message("library lib: ${LIBRARY_LIB}")
   
 elseif(UNIX)
-   set (FLAGS "-O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS -std=c++0x")  
+   set (FLAGS "-O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS ")  
    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
    set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   
@@ -70,6 +70,7 @@ elseif(UNIX)
 		${Boost_LIBRARIES}
 		#"tiff"
 		"gomp"
+		"m"
 		)
    
 endif()
