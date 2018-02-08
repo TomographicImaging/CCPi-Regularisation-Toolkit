@@ -123,6 +123,8 @@ endif()
 
 find_package(CUDA)
 if (CUDA_FOUND)
+  set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
+  message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
   CUDA_ADD_LIBRARY(cilregcuda SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/Diffus_HO/Diff4th_GPU_kernel.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/NL_Regul/NLM_GPU_kernel.cu
