@@ -27,6 +27,10 @@ def printParametersToString(pars):
             txt += '\n'
         return txt
 ###############################################################################
+def rmse(im1, im2):
+    a, b = im1.shape
+    rmse = np.sqrt(np.sum((im1 - im2) ** 2) / float(a * b))    
+    return rmse
         
 filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
 #filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
@@ -99,11 +103,20 @@ pars = {'algorithm' : NML , \
 'h':0.05 ,#
 'lambda' : 0.08
 }
+pars = {
+        'input' : u0,
+        'regularization_parameter': 0.05,\
+        'searching_window_ratio':3, \
+        'similarity_window_ratio':1,\
+        'PB_filtering_parameter': 0.06
+}
 nml = NML(pars['input'], 
-                     pars['SearchW_real'], 
-                     pars['SimilW'], 
-                     pars['h'],
-                     pars['lambda'])
+                     pars['searching_window_ratio'], 
+                     pars['similarity_window_ratio'], 
+                     pars['PB_filtering_parameter'],
+                     pars['regularization_parameter'])
+rms = rmse(Im, nml)
+pars['rmse'] = rms
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
