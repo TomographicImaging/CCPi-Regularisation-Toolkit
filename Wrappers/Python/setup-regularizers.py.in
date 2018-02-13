@@ -52,7 +52,7 @@ setup(
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension("ccpi.filters.cpu_regularizers_boost",
-                             sources=[os.path.join("." , "src", "fista_module.cpp" )],
+                             sources=[os.path.join("." , "src", "cpu_regularizers.cpp" )],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 
 							 extra_compile_args=extra_compile_args, 
