@@ -33,7 +33,14 @@ if (Boost_FOUND)
    message("Boost library dir " ${Boost_LIBRARY_DIRS})
    message("Boost libraries " ${Boost_LIBRARIES})
 endif()
-	
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 ## Build the regularizers package as a library
 message("Creating Regularizers as shared library")
 
@@ -42,7 +49,9 @@ message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 set(CMAKE_BUILD_TYPE "Release")
 
 if(WIN32)
- set (FLAGS "/DWIN32 /EHsc /DBOOST_ALL_NO_LIB /openmp /DCCPiCore_EXPORTS")
+  set (FLAGS "/DWIN32 /EHsc /DBOOST_ALL_NO_LIB /DCCPiCore_EXPORTS /openmp")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+  set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
   
   set (EXTRA_LIBRARIES 
@@ -53,14 +62,20 @@ if(WIN32)
   message("library lib: ${LIBRARY_LIB}")
   
 elseif(UNIX)
-   set (FLAGS "-fopenmp -O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS -std=c++0x")  
+   set (FLAGS "-O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS ")  
+   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+   set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+  
    set (EXTRA_LIBRARIES 
 		${Boost_LIBRARIES}
 		#"tiff"
 		"gomp"
+		"m"
 		)
    
 endif()
+message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
+
 ## Build the regularizers package as a library
 message("Adding regularizers as shared library")
 
@@ -108,6 +123,8 @@ endif()
 
 find_package(CUDA)
 if (CUDA_FOUND)
+  set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
+  message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
   CUDA_ADD_LIBRARY(cilregcuda SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/Diffus_HO/Diff4th_GPU_kernel.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/NL_Regul/NLM_GPU_kernel.cu

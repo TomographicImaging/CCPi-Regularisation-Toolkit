@@ -412,13 +412,13 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 
 			/*Taking a step towards minus of the gradient*/
 			Grad_func2D(P1, P2, D, R1, R2, lambda, dimX, dimY);
-
-
-
-
-			/*updating R and t*/
-			tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-			Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);
+  
+            /* projection step */
+            Proj_func2D(P1, P2, methTV, dimX, dimY);
+            
+            /*updating R and t*/
+            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+            Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);
 
 			/* calculate norm */
 			re = 0.0f; re1 = 0.0f;
@@ -429,7 +429,7 @@ bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int me
 			}
 			re = sqrt(re) / sqrt(re1);
 			if (re < epsil)  count++;
-			if (count > 3) {
+			if (count > 4) {
 				Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
 				funcval = 0.0f;
 				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);

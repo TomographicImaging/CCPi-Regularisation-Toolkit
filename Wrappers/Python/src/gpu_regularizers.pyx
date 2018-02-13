@@ -31,19 +31,22 @@ cdef extern float pad_crop(float *A, float *Ap,
                            int padXY, int switchpad_crop);
 
 def Diff4thHajiaboli(inputData, 
-                     regularization_parameter, 
+                     edge_preserv_parameter, 
                      iterations, 
-                     edge_preserving_parameter):
+                     time_marching_parameter,
+                     regularization_parameter):
     if inputData.ndim == 2:
         return Diff4thHajiaboli2D(inputData,  
-                     regularization_parameter, 
+                     edge_preserv_parameter, 
                      iterations, 
-                     edge_preserving_parameter)
+                     time_marching_parameter,
+                     regularization_parameter)
     elif inputData.ndim == 3:
         return Diff4thHajiaboli3D(inputData,  
-                     regularization_parameter, 
+                     edge_preserv_parameter, 
                      iterations, 
-                     edge_preserving_parameter)
+                     time_marching_parameter,
+                     regularization_parameter)
         
 def NML(inputData, 
                      SearchW_real, 
@@ -64,18 +67,16 @@ def NML(inputData,
                      lambdaf)
                     
 def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-                     float regularization_parameter, 
+                     float edge_preserv_parameter, 
                      int iterations, 
-                     float edge_preserving_parameter):
+                     float time_marching_parameter,
+                     float regularization_parameter):
     
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     N = dims[0] + 2;
     M = dims[1] + 2;
-    
-    #time step is sufficiently small for an explicit methods
-    tau = 0.01
     
     #A_L = (float*)mxGetData(mxCreateNumericMatrix(N, M, mxSINGLE_CLASS, mxREAL));
     #B_L = (float*)mxGetData(mxCreateNumericMatrix(N, M, mxSINGLE_CLASS, mxREAL));
@@ -102,9 +103,9 @@ def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             #<float*> A_L.data, <float*> B_L.data,
             &A_L[0,0], &B_L[0,0], 
                        N, M, 0, 
-                       edge_preserving_parameter,
+                       edge_preserv_parameter,
                        iterations , 
-                       tau, 
+                       time_marching_parameter, 
                        regularization_parameter);
     # copy the processed B_L to a smaller B
     for i in range(N):
@@ -120,9 +121,10 @@ def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     return B
 
 def Diff4thHajiaboli3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-                     float regularization_parameter, 
+                     float edge_preserv_parameter, 
                      int iterations, 
-                     float edge_preserving_parameter):
+                     float time_marching_parameter,
+                     float regularization_parameter):
     
     cdef long dims[3]
     dims[0] = inputData.shape[0]
@@ -132,8 +134,6 @@ def Diff4thHajiaboli3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     M = dims[1] + 2
     Z = dims[2] + 2
     
-    # Time Step is small for an explicit methods
-    tau = 0.0007;
     
     #A_L = (float*)mxGetData(mxCreateNumericMatrix(N, M, mxSINGLE_CLASS, mxREAL));
     #B_L = (float*)mxGetData(mxCreateNumericMatrix(N, M, mxSINGLE_CLASS, mxREAL));
@@ -162,9 +162,9 @@ def Diff4thHajiaboli3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
             #<float*> A_L.data, <float*> B_L.data,
             &A_L[0,0,0], &B_L[0,0,0], 
                        N, M, Z, 
-                       edge_preserving_parameter,
+                       edge_preserv_parameter,
                        iterations , 
-                       tau, 
+                       time_marching_parameter, 
                        regularization_parameter);
     # copy the processed B_L to a smaller B
     for i in range(N):

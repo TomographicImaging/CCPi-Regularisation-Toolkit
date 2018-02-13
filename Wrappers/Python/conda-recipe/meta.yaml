@@ -11,9 +11,8 @@ build:
   
 requirements:
   build:
-    - python ==2.7 # [py27]
-    - python ==3.5 # [py35]
-    - numpy
+    - python
+    - numpy x.x
     - setuptools
     - boost ==1.64.0
     - boost-cpp ==1.64.0
@@ -24,9 +23,8 @@ requirements:
     - cmake 
 
   run:
-    - python ==2.7 # [py27]
-    - python ==3.5 # [py35]
-    - numpy
+    - python
+    - numpy x.x
     - boost ==1.64
     - cil_regularizer
     - vc 14 # [win and py35] 
