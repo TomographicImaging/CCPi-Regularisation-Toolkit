@@ -25,6 +25,7 @@ cdef extern void NLM_GPU_kernel(float *A, float* B, float *Eucl_Vec,
                                 int N, int M,  int Z, int dimension, 
                                 int SearchW, int SimilW, 
                                 int SearchW_real, float denh2, float lambdaf);
+cdef extern void TV_ROF_GPU(float* A, float* B, int N, int M, int Z, int iter, float tau, float lambdaf);
 cdef extern float pad_crop(float *A, float *Ap, 
                            int OldSizeX, int OldSizeY, int OldSizeZ, 
                            int NewSizeX, int NewSizeY, int NewSizeZ, 
@@ -65,6 +66,22 @@ def NML(inputData,
                      SimilW, 
                      h,
                      lambdaf)
+
+def ROF_TV(inputData,
+                     iterations, 
+                     time_marching_parameter,
+                     regularization_parameter):
+    if inputData.ndim == 2:
+        return ROFTV2D(inputData, 
+                     iterations, 
+                     time_marching_parameter,
+                     regularization_parameter)
+    elif inputData.ndim == 3:
+        return ROFTV3D(inputData, 
+                     iterations, 
+                     time_marching_parameter,
+                     regularization_parameter)
+
                     
 def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float edge_preserv_parameter, 
@@ -311,4 +328,49 @@ def NML3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
              padXY, 
              switchpad_crop)
     
+    return B                   
+                     
+def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     int iterations, 
+                     float time_marching_parameter,
+                     float regularization_parameter):
+    
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] B = \
+		    np.zeros([dims[0],dims[1]], dtype='float32')
+          
+    # Running CUDA code here    
+    TV_ROF_GPU(            
+            &inputData[0,0], &B[0,0], 
+                       dims[0], dims[1], 0, 
+                       iterations , 
+                       time_marching_parameter, 
+                       regularization_parameter);   
+     
+    return B
+    
+def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     int iterations, 
+                     float time_marching_parameter,
+                     float regularization_parameter):
+    
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] B = \
+		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+          
+    # Running CUDA code here    
+    TV_ROF_GPU(            
+            &inputData[0,0,0], &B[0,0,0], 
+                       dims[0], dims[1], dims[2], 
+                       iterations , 
+                       time_marching_parameter, 
+                       regularization_parameter);   
+     
     return B
