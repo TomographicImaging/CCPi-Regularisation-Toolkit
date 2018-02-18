@@ -67,7 +67,7 @@ def NML(inputData,
                      h,
                      lambdaf)
 
-def ROF_TV(inputData,
+def ROF_TV_GPU(inputData,
                      iterations, 
                      time_marching_parameter,
                      regularization_parameter):
