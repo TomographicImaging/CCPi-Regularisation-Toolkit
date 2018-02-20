@@ -28,6 +28,7 @@ limitations under the License.
 extern "C" {
 #endif
 CCPI_EXPORT float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int dimY);
 #ifdef __cplusplus
 }
 #endif

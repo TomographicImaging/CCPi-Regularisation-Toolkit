@@ -14,6 +14,7 @@ import timeit
 from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV , FGP_TV ,\
                                                  LLT_model, PatchBased_Regul ,\
                                                  TGV_PD
+from ccpi.filters.cpu_regularizers_cython import ROF_TV
 
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
@@ -81,7 +82,7 @@ u0 = f(u0).astype('float32')
 ## plot 
 fig = plt.figure()
 
-a=fig.add_subplot(2,3,1)
+a=fig.add_subplot(2,4,1)
 a.set_title('noise')
 imgplot = plt.imshow(u0,cmap="gray"
                      )
@@ -114,7 +115,7 @@ txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
     
 
-a=fig.add_subplot(2,3,2)
+a=fig.add_subplot(2,4,2)
 
 
 # these are matplotlib.patch.Patch properties
@@ -152,7 +153,7 @@ txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)       
 
 
-a=fig.add_subplot(2,3,3)
+a=fig.add_subplot(2,4,3)
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -190,7 +191,7 @@ pars['rmse'] = rms
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
-a=fig.add_subplot(2,3,4)
+a=fig.add_subplot(2,4,4)
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -230,7 +231,7 @@ txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
 
-a=fig.add_subplot(2,3,5)
+a=fig.add_subplot(2,4,5)
 
 
 # these are matplotlib.patch.Patch properties
@@ -268,7 +269,7 @@ pars['rmse'] = rms
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
-a=fig.add_subplot(2,3,6)
+a=fig.add_subplot(2,4,6)
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -276,6 +277,40 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(tgv, cmap="gray")
+
+# ###################### ROF_TV #########################################
+
+start_time = timeit.default_timer()
+
+pars = {'algorithm': ROF_TV , \
+        'input' : u0,\
+        'regularization_parameter':1,\
+        'marching_step': 0.003,\
+        'number_of_iterations': 300
+        }
+rof = ROF_TV(pars['input'],
+             pars['number_of_iterations'],
+             pars['regularization_parameter'],
+             pars['marching_step'] 
+             )
+#tgv = out
+rms = rmse(Im, rof)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(2,4,7)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+# place a text box in upper left in axes coords
+a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(tgv, cmap="gray")
+
+
+
 plt.show()
 
 ################################################################################
@@ -320,7 +355,7 @@ plt.show()
 ##imgplot = plt.imshow(Im)
 #sliceNo = 32
 #
-#a=fig3D.add_subplot(2,3,1)
+#a=fig3D.add_subplot(2,4,1)
 #a.set_title('noise')
 #imgplot = plt.imshow(u0.T[sliceNo])
 #
@@ -346,7 +381,7 @@ plt.show()
 #pars = out2[-2]
 #reg_output3d.append(out2)
 #
-#a=fig3D.add_subplot(2,3,2)
+#a=fig3D.add_subplot(2,4,2)
 #
 #
 #textstr = out2[-1]
@@ -366,7 +401,7 @@ plt.show()
 #pars = out2[-2]
 #reg_output3d.append(out2)
 #
-#a=fig3D.add_subplot(2,3,2)
+#a=fig3D.add_subplot(2,4,2)
 #
 #
 #textstr = out2[-1]
@@ -392,7 +427,7 @@ plt.show()
 #pars = out2[-2]
 #reg_output3d.append(out2)
 #
-#a=fig3D.add_subplot(2,3,2)
+#a=fig3D.add_subplot(2,4,2)
 #
 #
 #textstr = out2[-1]
@@ -418,7 +453,7 @@ plt.show()
 #pars = out2[-2]
 #reg_output3d.append(out2)
 #
-#a=fig3D.add_subplot(2,3,2)
+#a=fig3D.add_subplot(2,4,2)
 #
 #
 #textstr = out2[-1]
@@ -446,7 +481,7 @@ plt.show()
 #pars = out2[-2]
 #reg_output3d.append(out2)
 #
-#a=fig3D.add_subplot(2,3,2)
+#a=fig3D.add_subplot(2,4,2)
 #
 #
 #textstr = out2[-1]
