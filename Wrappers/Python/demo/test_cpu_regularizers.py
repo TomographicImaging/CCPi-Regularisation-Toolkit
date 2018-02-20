@@ -284,9 +284,9 @@ start_time = timeit.default_timer()
 
 pars = {'algorithm': ROF_TV , \
         'input' : u0,\
-        'regularization_parameter':0.07,\
-        'marching_step': 1.3,\
-        'number_of_iterations': 550
+        'regularization_parameter':1,\
+        'marching_step': 0.003,\
+        'number_of_iterations': 300
         }
 rof = ROF_TV(pars['input'],
              pars['number_of_iterations'],
