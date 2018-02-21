@@ -6,8 +6,6 @@ Created on Tue Jan 30 10:24:26 2018
 @author: ofn77899
 """
 
-
-
 import matplotlib.pyplot as plt
 import numpy as np
 import os    
@@ -146,3 +144,43 @@ imgplot = plt.imshow((nml - u0)**2, cmap="gray")
 
 plt.show()
         
+        
+## Rudin-Osher-Fatemi (ROF) TV regularization
+start_time = timeit.default_timer()
+
+pars = {
+        'input' : u0,
+        'regularization_parameter': 1,\
+        'time_marching_parameter': 0.003, \
+        'number_of_iterations':300        
+	}
+
+rof_tv = GPU_ROF_TV(pars['input'], 
+                     pars['number_of_iterations'], 
+                     pars['time_marching_parameter'], 
+                     pars['number_of_iterations'])
+                     
+rms = rmse(Im, rof_tv)
+pars['rmse'] = rms
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(2,4,1)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=12,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(nml, cmap="gray")
+
+a=fig.add_subplot(2,4,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+# place a text box in upper left in axes coords
+a.text(0.05, 0.95, 'rof_tv - u0', transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow((rof_tv - u0)**2, cmap="gray")
+
+plt.show()
