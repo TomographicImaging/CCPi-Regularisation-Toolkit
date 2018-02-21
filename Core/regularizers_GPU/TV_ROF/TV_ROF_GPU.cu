@@ -306,7 +306,7 @@ __host__ __device__ int sign (float x)
 
 /////////////////////////////////////////////////
 // HOST FUNCTION
-extern "C" void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambda)
+extern "C" void TV_ROF_GPU_kernel(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambda)
 {
 	    // set up device
 		int dev = 0;

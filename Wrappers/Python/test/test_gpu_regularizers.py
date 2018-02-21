@@ -13,7 +13,7 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML
+from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML, GPU_ROF_TV
 ###############################################################################
 def printParametersToString(pars):
         txt = r''

@@ -25,7 +25,7 @@ cdef extern void NLM_GPU_kernel(float *A, float* B, float *Eucl_Vec,
                                 int N, int M,  int Z, int dimension, 
                                 int SearchW, int SimilW, 
                                 int SearchW_real, float denh2, float lambdaf);
-cdef extern void TV_ROF_GPU(float* A, float* B, int N, int M, int Z, int iter, float tau, float lambdaf);
+cdef extern void TV_ROF_GPU_kernel(float* A, float* B, int N, int M, int Z, int iter, float tau, float lambdaf);
 cdef extern float pad_crop(float *A, float *Ap, 
                            int OldSizeX, int OldSizeY, int OldSizeZ, 
                            int NewSizeX, int NewSizeY, int NewSizeZ, 
@@ -67,7 +67,7 @@ def NML(inputData,
                      h,
                      lambdaf)
 
-def ROF_TV_GPU(inputData,
+def GPU_ROF_TV(inputData,
                      iterations, 
                      time_marching_parameter,
                      regularization_parameter):
@@ -343,7 +343,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
 		    np.zeros([dims[0],dims[1]], dtype='float32')
           
     # Running CUDA code here    
-    TV_ROF_GPU(            
+    TV_ROF_GPU_kernel(            
             &inputData[0,0], &B[0,0], 
                        dims[0], dims[1], 0, 
                        iterations , 
@@ -366,7 +366,7 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
           
     # Running CUDA code here    
-    TV_ROF_GPU(            
+    TV_ROF_GPU_kernel(            
             &inputData[0,0,0], &B[0,0,0], 
                        dims[0], dims[1], dims[2], 
                        iterations , 
