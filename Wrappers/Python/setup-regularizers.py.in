@@ -34,7 +34,9 @@ extra_libraries = ['cilreg']
 
 extra_include_dirs += [os.path.join(".." , ".." , "Core"),
                        os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
-                       os.path.join(".." , ".." , "Core",  "regularizers_GPU") , 
+                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "Diffus_HO" ) , 
+                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "NL_Regul" ) , 
+                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "TV_ROF" ) , 
 						   "."]
 
 if platform.system() == 'Windows':				   
