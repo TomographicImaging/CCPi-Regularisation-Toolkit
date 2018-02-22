@@ -284,9 +284,9 @@ start_time = timeit.default_timer()
 
 pars = {'algorithm': ROF_TV , \
         'input' : u0,\
-        'regularization_parameter':1,\
-        'marching_step': 0.003,\
-        'number_of_iterations': 300
+        'regularization_parameter':25,\
+        'marching_step': 0.001,\
+        'number_of_iterations': 350
         }
 rof = ROF_TV(pars['input'],
              pars['number_of_iterations'],
@@ -307,9 +307,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(tgv, cmap="gray")
-
-
+imgplot = plt.imshow(rof, cmap="gray")
 
 plt.show()
 

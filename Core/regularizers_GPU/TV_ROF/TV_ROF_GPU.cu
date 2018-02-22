@@ -312,7 +312,7 @@ extern "C" void TV_ROF_GPU_kernel(float* Input, float* Output, int N, int M, int
 		int dev = 0;
 		CHECK(cudaSetDevice(dev));
 		
-        float *d_input, *d_update, *d_D1, *d_D2;
+        float *d_input, *d_update, *d_D1, *d_D2;        
         
         CHECK(cudaMalloc((void**)&d_input,N*M*Z*sizeof(float)));
         CHECK(cudaMalloc((void**)&d_update,N*M*Z*sizeof(float)));

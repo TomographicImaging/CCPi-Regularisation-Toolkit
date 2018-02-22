@@ -93,7 +93,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, 'd4h - u0', transform=a.transAxes, fontsize=12,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow((d4h - u0), cmap="gray")
+imgplot = plt.imshow((d4h - u0)**2,  vmin=0, vmax=0.03, cmap="gray")
+plt.colorbar(ticks=[0, 0.03], orientation='vertical')
 
 
 ## Patch Based Regul NML
@@ -142,7 +143,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, 'nml - u0', transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow((nml - u0), cmap="gray")
+imgplot = plt.imshow((nml - u0)**2,  vmin=0, vmax=0.03, cmap="gray")
+plt.colorbar(ticks=[0, 0.03], orientation='vertical')
 
         
         
@@ -152,9 +154,9 @@ start_time = timeit.default_timer()
 pars = {
 'algorithm' : GPU_ROF_TV , \
         'input' : u0,
-        'regularization_parameter': 1,\
-        'time_marching_parameter': 0.003, \
-        'number_of_iterations':300        
+        'regularization_parameter': 25,\
+        'time_marching_parameter': 0.001, \
+        'number_of_iterations':350        
 	}
 
 rof_tv = GPU_ROF_TV(pars['input'], 
@@ -183,6 +185,6 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, 'rof_tv - u0', transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow((rof_tv - u0), cmap="gray")
-
+imgplot = plt.imshow((rof_tv - u0)**2, vmin=0, vmax=0.03, cmap="gray")
+plt.colorbar(ticks=[0, 0.03], orientation='vertical')
 plt.show()

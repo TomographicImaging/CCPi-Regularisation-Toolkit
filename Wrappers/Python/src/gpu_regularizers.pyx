@@ -345,7 +345,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     # Running CUDA code here    
     TV_ROF_GPU_kernel(            
             &inputData[0,0], &B[0,0], 
-                       dims[0], dims[1], 0, 
+                       dims[0], dims[1], 1, 
                        iterations , 
                        time_marching_parameter, 
                        regularization_parameter);   
