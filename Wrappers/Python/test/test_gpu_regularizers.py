@@ -154,9 +154,9 @@ start_time = timeit.default_timer()
 pars = {
 'algorithm' : GPU_ROF_TV , \
         'input' : u0,
-        'regularization_parameter': 25,\
-        'time_marching_parameter': 0.001, \
-        'number_of_iterations':350        
+        'regularization_parameter': 0.04,\
+        'time_marching_parameter': 0.0025, \
+        'number_of_iterations':300        
 	}
 
 rof_tv = GPU_ROF_TV(pars['input'], 

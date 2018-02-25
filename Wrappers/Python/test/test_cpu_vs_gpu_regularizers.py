@@ -58,8 +58,8 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm': ROF_TV , \
         'input' : u0,\
-        'regularization_parameter':12,\
-        'time_marching_parameter': 0.001,\
+        'regularization_parameter':0.04,\
+        'time_marching_parameter': 0.0025,\
         'number_of_iterations': 600
         }
 print ("#################ROF TV CPU#####################")

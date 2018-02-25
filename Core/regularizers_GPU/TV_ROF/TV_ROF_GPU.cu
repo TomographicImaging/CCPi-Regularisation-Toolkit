@@ -54,7 +54,7 @@ limitations under the License.
     
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
-#define EPS 1.0e-4
+#define EPS 1.0e-5
     
 #define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
 
@@ -71,7 +71,7 @@ __host__ __device__ int sign (float x)
     /* differences 1 */
     __global__ void D1_func2D(float* Input, float* D1, int N, int M)      
     {
-		int i1, j1, i2, j2;
+		int i1, j1, i2;
 		float NOMx_1,NOMy_1,NOMy_0,denom1,denom2,T1;
 		int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -84,7 +84,6 @@ __host__ __device__ int sign (float x)
                 i1 = i + 1; if (i1 >= N) i1 = i-1;
                 i2 = i - 1; if (i2 < 0) i2 = i+1;
                 j1 = j + 1; if (j1 >= M) j1 = j-1;
-                j2 = j - 1; if (j2 < 0) j2 = j+1; 
 		
 		     /* Forward-backward differences */
                 NOMx_1 = Input[j1*N + i] - Input[index]; /* x+ */
@@ -102,7 +101,7 @@ __host__ __device__ int sign (float x)
     /* differences 2 */
     __global__ void D2_func2D(float* Input, float* D2, int N, int M)      
     {
-		int i1, j1, i2, j2;
+		int i1, j1, j2;
 		float NOMx_1,NOMy_1,NOMx_0,denom1,denom2,T2;
 		int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -113,7 +112,6 @@ __host__ __device__ int sign (float x)
             
             /* boundary conditions (Neumann reflections) */
                 i1 = i + 1; if (i1 >= N) i1 = i-1;
-                i2 = i - 1; if (i2 < 0) i2 = i+1;
                 j1 = j + 1; if (j1 >= M) j1 = j-1;
                 j2 = j - 1; if (j2 < 0) j2 = j+1; 
 		
@@ -149,7 +147,7 @@ __host__ __device__ int sign (float x)
                 dv1 = D1[index] - D1[j2*N + i];
                 dv2 = D2[index] - D2[j*N + i2];                                
                 
-                Update[index] =  Update[index] + tau*((dv1 + dv2) - lambda*(Update[index] - Input[index]));      
+                Update[index] =  Update[index] + tau*(2.0f*lambda*(dv1 + dv2) - (Update[index] - Input[index]));      
 		
 		}  
 	}   
@@ -299,21 +297,22 @@ __host__ __device__ int sign (float x)
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    Update[index] = Update[index] + tau*lambda*(dv1 + dv2 + dv3) + tau*(Update[index] - Input[index]);   
+                    Update[index] = Update[index] + tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
 		
 		}  
 	}
 
 /////////////////////////////////////////////////
 // HOST FUNCTION
-extern "C" void TV_ROF_GPU_kernel(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambda)
+extern "C" void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambda)
 {
 	    // set up device
 		int dev = 0;
 		CHECK(cudaSetDevice(dev));
 		
-        float *d_input, *d_update, *d_D1, *d_D2;        
+        float *d_input, *d_update, *d_D1, *d_D2;
         
+	if (Z == 0) Z = 1;
         CHECK(cudaMalloc((void**)&d_input,N*M*Z*sizeof(float)));
         CHECK(cudaMalloc((void**)&d_update,N*M*Z*sizeof(float)));
         CHECK(cudaMalloc((void**)&d_D1,N*M*Z*sizeof(float)));
@@ -346,7 +345,7 @@ extern "C" void TV_ROF_GPU_kernel(float* Input, float* Output, int N, int M, int
             CHECK(cudaFree(d_D3));         
         }
         else {
-			// TV - 2D case
+	    // TV - 2D case
             dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
             dim3 dimGrid(idivup(N,BLKXSIZE2D), idivup(M,BLKYSIZE2D));
              

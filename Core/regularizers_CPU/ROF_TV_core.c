@@ -268,7 +268,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    B[index] = B[index] + tau*lambda*(dv1 + dv2 + dv3) + tau*(A[index] - B[index]);
+                    B[index] = B[index] + tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
                 }}}		
     }
     else {
@@ -284,10 +284,9 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 
                 /* divergence components  */
                 dv1 = D1[index] - D1[j2*dimX + i];
-                dv2 = D2[index] - D2[j*dimX + i2];
-                
-                //B[index] =  B[index] + tau*lambda*(dv1 + dv2) + tau*(A[index] - B[index]);
-                B[index] =  B[index] + tau*((dv1 + dv2) - lambda*(B[index] - A[index]));                
+                dv2 = D2[index] - D2[j*dimX + i2];                
+
+                B[index] =  B[index] + tau*(2.0f*lambda*(dv1 + dv2) - (B[index] - A[index]));                
             }}
     }
     return *B;
