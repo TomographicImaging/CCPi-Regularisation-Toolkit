@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */ 
 
-#include "TV_ROF_GPU.h"
+#include "TV_ROF_GPU_core.h"
 
 /* C-OMP implementation of ROF-TV denoising/regularization model [1] (2D/3D case)
 *

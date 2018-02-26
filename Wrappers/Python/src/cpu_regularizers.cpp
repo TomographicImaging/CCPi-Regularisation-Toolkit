@@ -27,7 +27,7 @@ limitations under the License.
 #include "boost/tuple/tuple.hpp"
 
 #include "SplitBregman_TV_core.h"
-#include "FGP_TV_core.h"
+//#include "FGP_TV_core.h"
 #include "LLT_model_core.h"
 #include "PatchBased_Regul_core.h"
 #include "TGV_PD_core.h"
@@ -305,289 +305,289 @@ bp::list SplitBregman_TV(np::ndarray input, double d_mu, int iter, double d_epsi
 
 
 
-bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int methTV) {
+//bp::list FGP_TV(np::ndarray input, double d_mu, int iter, double d_epsil, int methTV) {
 
-	// the result is in the following list
-	bp::list result;
+	//// the result is in the following list
+	//bp::list result;
 
-	int number_of_dims, dimX, dimY, dimZ, ll, j, count;
-	float *A, *D = NULL, *D_old = NULL, *P1 = NULL, *P2 = NULL, *P3 = NULL, *P1_old = NULL, *P2_old = NULL, *P3_old = NULL, *R1 = NULL, *R2 = NULL, *R3 = NULL;
-	float lambda, tk, tkp1, re, re1, re_old, epsil, funcval;
+	//int number_of_dims, dimX, dimY, dimZ, ll, j, count;
+	//float *A, *D = NULL, *D_old = NULL, *P1 = NULL, *P2 = NULL, *P3 = NULL, *P1_old = NULL, *P2_old = NULL, *P3_old = NULL, *R1 = NULL, *R2 = NULL, *R3 = NULL;
+	//float lambda, tk, tkp1, re, re1, re_old, epsil, funcval;
 
-	//number_of_dims = mxGetNumberOfDimensions(prhs[0]);
-	//dim_array = mxGetDimensions(prhs[0]);
+	////number_of_dims = mxGetNumberOfDimensions(prhs[0]);
+	////dim_array = mxGetDimensions(prhs[0]);
 
-	number_of_dims = input.get_nd();
-	int dim_array[3];
+	//number_of_dims = input.get_nd();
+	//int dim_array[3];
 
-	dim_array[0] = input.shape(0);
-	dim_array[1] = input.shape(1);
-	if (number_of_dims == 2) {
-		dim_array[2] = -1;
-	}
-	else {
-		dim_array[2] = input.shape(2);
-	}
-	// Parameter handling is be done in Python
-	///*Handling Matlab input data*/
-	//if ((nrhs < 2) || (nrhs > 5)) mexErrMsgTxt("At least 2 parameters is required: Image(2D/3D), Regularization parameter. The full list of parameters: Image(2D/3D), Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1')");
-
-	///*Handling Matlab input data*/
-	//A = (float *)mxGetData(prhs[0]); /*noisy image (2D/3D) */
-	A = reinterpret_cast<float *>(input.get_data());
-
-	//mu = (float)mxGetScalar(prhs[1]); /* regularization parameter */
-	lambda = (float)d_mu;
-
-	//iter = 35; /* default iterations number */
-
-	//epsil = 0.0001; /* default tolerance constant */
-	epsil = (float)d_epsil;
-	//methTV = 0;  /* default isotropic TV penalty */
-	//if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5))  iter = (int)mxGetScalar(prhs[2]); /* iterations number */
-	//if ((nrhs == 4) || (nrhs == 5))  epsil = (float)mxGetScalar(prhs[3]); /* tolerance constant */
-	//if (nrhs == 5) {
-	//	char *penalty_type;
-	//	penalty_type = mxArrayToString(prhs[4]); /* choosing TV penalty: 'iso' or 'l1', 'iso' is the default */
-	//	if ((strcmp(penalty_type, "l1") != 0) && (strcmp(penalty_type, "iso") != 0)) mexErrMsgTxt("Choose TV type: 'iso' or 'l1',");
-	//	if (strcmp(penalty_type, "l1") == 0)  methTV = 1;  /* enable 'l1' penalty */
-	//	mxFree(penalty_type);
+	//dim_array[0] = input.shape(0);
+	//dim_array[1] = input.shape(1);
+	//if (number_of_dims == 2) {
+		//dim_array[2] = -1;
 	//}
-	//if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) { mexErrMsgTxt("The input image must be in a single precision"); }
+	//else {
+		//dim_array[2] = input.shape(2);
+	//}
+	//// Parameter handling is be done in Python
+	/////*Handling Matlab input data*/
+	////if ((nrhs < 2) || (nrhs > 5)) mexErrMsgTxt("At least 2 parameters is required: Image(2D/3D), Regularization parameter. The full list of parameters: Image(2D/3D), Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1')");
 
-	//plhs[1] = mxCreateNumericMatrix(1, 1, mxSINGLE_CLASS, mxREAL);
-	bp::tuple shape1 = bp::make_tuple(dim_array[0], dim_array[1]);
-	np::dtype dtype = np::dtype::get_builtin<float>();
-	np::ndarray out1 = np::zeros(shape1, dtype);
+	/////*Handling Matlab input data*/
+	////A = (float *)mxGetData(prhs[0]); /*noisy image (2D/3D) */
+	//A = reinterpret_cast<float *>(input.get_data());
+
+	////mu = (float)mxGetScalar(prhs[1]); /* regularization parameter */
+	//lambda = (float)d_mu;
+
+	////iter = 35; /* default iterations number */
+
+	////epsil = 0.0001; /* default tolerance constant */
+	//epsil = (float)d_epsil;
+	////methTV = 0;  /* default isotropic TV penalty */
+	////if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5))  iter = (int)mxGetScalar(prhs[2]); /* iterations number */
+	////if ((nrhs == 4) || (nrhs == 5))  epsil = (float)mxGetScalar(prhs[3]); /* tolerance constant */
+	////if (nrhs == 5) {
+	////	char *penalty_type;
+	////	penalty_type = mxArrayToString(prhs[4]); /* choosing TV penalty: 'iso' or 'l1', 'iso' is the default */
+	////	if ((strcmp(penalty_type, "l1") != 0) && (strcmp(penalty_type, "iso") != 0)) mexErrMsgTxt("Choose TV type: 'iso' or 'l1',");
+	////	if (strcmp(penalty_type, "l1") == 0)  methTV = 1;  /* enable 'l1' penalty */
+	////	mxFree(penalty_type);
+	////}
+	////if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) { mexErrMsgTxt("The input image must be in a single precision"); }
+
+	////plhs[1] = mxCreateNumericMatrix(1, 1, mxSINGLE_CLASS, mxREAL);
+	//bp::tuple shape1 = bp::make_tuple(dim_array[0], dim_array[1]);
+	//np::dtype dtype = np::dtype::get_builtin<float>();
+	//np::ndarray out1 = np::zeros(shape1, dtype);
 	
-	//float *funcvalA = (float *)mxGetData(plhs[1]);
-	float * funcvalA = reinterpret_cast<float *>(out1.get_data());
-	//if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) { mexErrMsgTxt("The input image must be in a single precision"); }
+	////float *funcvalA = (float *)mxGetData(plhs[1]);
+	//float * funcvalA = reinterpret_cast<float *>(out1.get_data());
+	////if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) { mexErrMsgTxt("The input image must be in a single precision"); }
 
-	/*Handling Matlab output data*/
-	dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
+	///*Handling Matlab output data*/
+	//dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
 
-	tk = 1.0f;
-	tkp1 = 1.0f;
-	count = 1;
-	re_old = 0.0f;
+	//tk = 1.0f;
+	//tkp1 = 1.0f;
+	//count = 1;
+	//re_old = 0.0f;
 
-	if (number_of_dims == 2) {
-		dimZ = 1; /*2D case*/
-		/*D = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		D_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		P1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		P2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		P1_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		P2_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		R1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-		R2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));*/
+	//if (number_of_dims == 2) {
+		//dimZ = 1; /*2D case*/
+		///*D = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//D_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P1_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P2_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//R1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+		//R2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));*/
 
-		bp::tuple shape = bp::make_tuple(dim_array[0], dim_array[1]);
-		np::dtype dtype = np::dtype::get_builtin<float>();
+		//bp::tuple shape = bp::make_tuple(dim_array[0], dim_array[1]);
+		//np::dtype dtype = np::dtype::get_builtin<float>();
 
 
-		np::ndarray npD      = np::zeros(shape, dtype);
-		np::ndarray npD_old  = np::zeros(shape, dtype);
-		np::ndarray npP1     = np::zeros(shape, dtype);
-		np::ndarray npP2     = np::zeros(shape, dtype);
-		np::ndarray npP1_old = np::zeros(shape, dtype);
-		np::ndarray npP2_old = np::zeros(shape, dtype);
-		np::ndarray npR1     = np::zeros(shape, dtype);
-		np::ndarray npR2     = np::zeros(shape, dtype);
+		//np::ndarray npD      = np::zeros(shape, dtype);
+		//np::ndarray npD_old  = np::zeros(shape, dtype);
+		//np::ndarray npP1     = np::zeros(shape, dtype);
+		//np::ndarray npP2     = np::zeros(shape, dtype);
+		//np::ndarray npP1_old = np::zeros(shape, dtype);
+		//np::ndarray npP2_old = np::zeros(shape, dtype);
+		//np::ndarray npR1     = np::zeros(shape, dtype);
+		//np::ndarray npR2     = np::zeros(shape, dtype);
 
-		D      = reinterpret_cast<float *>(npD.get_data());
-		D_old  = reinterpret_cast<float *>(npD_old.get_data());
-		P1     = reinterpret_cast<float *>(npP1.get_data());
-		P2     = reinterpret_cast<float *>(npP2.get_data());
-		P1_old = reinterpret_cast<float *>(npP1_old.get_data());
-		P2_old = reinterpret_cast<float *>(npP2_old.get_data());
-		R1     = reinterpret_cast<float *>(npR1.get_data());
-		R2     = reinterpret_cast<float *>(npR2.get_data());
+		//D      = reinterpret_cast<float *>(npD.get_data());
+		//D_old  = reinterpret_cast<float *>(npD_old.get_data());
+		//P1     = reinterpret_cast<float *>(npP1.get_data());
+		//P2     = reinterpret_cast<float *>(npP2.get_data());
+		//P1_old = reinterpret_cast<float *>(npP1_old.get_data());
+		//P2_old = reinterpret_cast<float *>(npP2_old.get_data());
+		//R1     = reinterpret_cast<float *>(npR1.get_data());
+		//R2     = reinterpret_cast<float *>(npR2.get_data());
 
-		/* begin iterations */
-		for (ll = 0; ll<iter; ll++) {
-			/* computing the gradient of the objective function */
-			Obj_func2D(A, D, R1, R2, lambda, dimX, dimY);
+		///* begin iterations */
+		//for (ll = 0; ll<iter; ll++) {
+			///* computing the gradient of the objective function */
+			//Obj_func2D(A, D, R1, R2, lambda, dimX, dimY);
 
-			/*Taking a step towards minus of the gradient*/
-			Grad_func2D(P1, P2, D, R1, R2, lambda, dimX, dimY);
+			///*Taking a step towards minus of the gradient*/
+			//Grad_func2D(P1, P2, D, R1, R2, lambda, dimX, dimY);
   
-            /* projection step */
-            Proj_func2D(P1, P2, methTV, dimX, dimY);
+            ///* projection step */
+            //Proj_func2D(P1, P2, methTV, dimX, dimY);
             
-            /*updating R and t*/
-            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-            Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);
+            ///*updating R and t*/
+            //tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+            //Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);
 
-			/* calculate norm */
-			re = 0.0f; re1 = 0.0f;
-			for (j = 0; j<dimX*dimY*dimZ; j++)
-			{
-				re += pow(D[j] - D_old[j], 2);
-				re1 += pow(D[j], 2);
-			}
-			re = sqrt(re) / sqrt(re1);
-			if (re < epsil)  count++;
-			if (count > 4) {
-				Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
-				funcval = 0.0f;
-				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
-				//funcvalA[0] = sqrt(funcval);
-				float fv = sqrt(funcval);
-				std::memcpy(funcvalA, &fv, sizeof(float));
-				break;
-			}
+			///* calculate norm */
+			//re = 0.0f; re1 = 0.0f;
+			//for (j = 0; j<dimX*dimY*dimZ; j++)
+			//{
+				//re += pow(D[j] - D_old[j], 2);
+				//re1 += pow(D[j], 2);
+			//}
+			//re = sqrt(re) / sqrt(re1);
+			//if (re < epsil)  count++;
+			//if (count > 4) {
+				//Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
+				//funcval = 0.0f;
+				//for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
+				////funcvalA[0] = sqrt(funcval);
+				//float fv = sqrt(funcval);
+				//std::memcpy(funcvalA, &fv, sizeof(float));
+				//break;
+			//}
 
-			/* check that the residual norm is decreasing */
-			if (ll > 2) {
-				if (re > re_old) {
-					Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
-					funcval = 0.0f;
-					for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
-					//funcvalA[0] = sqrt(funcval);
-					float fv = sqrt(funcval);
-					std::memcpy(funcvalA, &fv, sizeof(float));
-					break;
-				}
-			}
-			re_old = re;
-			/*printf("%f %i %i \n", re, ll, count); */
+			///* check that the residual norm is decreasing */
+			//if (ll > 2) {
+				//if (re > re_old) {
+					//Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
+					//funcval = 0.0f;
+					//for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
+					////funcvalA[0] = sqrt(funcval);
+					//float fv = sqrt(funcval);
+					//std::memcpy(funcvalA, &fv, sizeof(float));
+					//break;
+				//}
+			//}
+			//re_old = re;
+			///*printf("%f %i %i \n", re, ll, count); */
 
-			/*storing old values*/
-			copyIm(D, D_old, dimX, dimY, dimZ);
-			copyIm(P1, P1_old, dimX, dimY, dimZ);
-			copyIm(P2, P2_old, dimX, dimY, dimZ);
-			tk = tkp1;
+			///*storing old values*/
+			//copyIm(D, D_old, dimX, dimY, dimZ);
+			//copyIm(P1, P1_old, dimX, dimY, dimZ);
+			//copyIm(P2, P2_old, dimX, dimY, dimZ);
+			//tk = tkp1;
 
-			/* calculating the objective function value */
-			if (ll == (iter - 1)) {
-				Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
-				funcval = 0.0f;
-				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
-				//funcvalA[0] = sqrt(funcval);
-				float fv = sqrt(funcval);
-				std::memcpy(funcvalA, &fv, sizeof(float));
-			}
-		}
-		//printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
-		result.append<np::ndarray>(npD);
-		result.append<np::ndarray>(out1);
-		result.append<int>(ll);
-	}
-	if (number_of_dims == 3) {
-		/*D = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		D_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		P1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		P2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		P3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		P1_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		P2_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		P3_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		R1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		R2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-		R3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));*/
-		bp::tuple shape = bp::make_tuple(dim_array[0], dim_array[1], dim_array[2]);
-		np::dtype dtype = np::dtype::get_builtin<float>();
+			///* calculating the objective function value */
+			//if (ll == (iter - 1)) {
+				//Obj_func2D(A, D, P1, P2, lambda, dimX, dimY);
+				//funcval = 0.0f;
+				//for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
+				////funcvalA[0] = sqrt(funcval);
+				//float fv = sqrt(funcval);
+				//std::memcpy(funcvalA, &fv, sizeof(float));
+			//}
+		//}
+		////printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
+		//result.append<np::ndarray>(npD);
+		//result.append<np::ndarray>(out1);
+		//result.append<int>(ll);
+	//}
+	//if (number_of_dims == 3) {
+		///*D = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//D_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P1_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P2_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//P3_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//R1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//R2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+		//R3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));*/
+		//bp::tuple shape = bp::make_tuple(dim_array[0], dim_array[1], dim_array[2]);
+		//np::dtype dtype = np::dtype::get_builtin<float>();
 		
-		np::ndarray npD      = np::zeros(shape, dtype);
-		np::ndarray npD_old  = np::zeros(shape, dtype);
-		np::ndarray npP1     = np::zeros(shape, dtype);
-		np::ndarray npP2     = np::zeros(shape, dtype);
-		np::ndarray npP3     = np::zeros(shape, dtype);
-		np::ndarray npP1_old = np::zeros(shape, dtype);
-		np::ndarray npP2_old = np::zeros(shape, dtype);
-		np::ndarray npP3_old = np::zeros(shape, dtype);
-		np::ndarray npR1     = np::zeros(shape, dtype);
-		np::ndarray npR2     = np::zeros(shape, dtype);
-		np::ndarray npR3     = np::zeros(shape, dtype);
+		//np::ndarray npD      = np::zeros(shape, dtype);
+		//np::ndarray npD_old  = np::zeros(shape, dtype);
+		//np::ndarray npP1     = np::zeros(shape, dtype);
+		//np::ndarray npP2     = np::zeros(shape, dtype);
+		//np::ndarray npP3     = np::zeros(shape, dtype);
+		//np::ndarray npP1_old = np::zeros(shape, dtype);
+		//np::ndarray npP2_old = np::zeros(shape, dtype);
+		//np::ndarray npP3_old = np::zeros(shape, dtype);
+		//np::ndarray npR1     = np::zeros(shape, dtype);
+		//np::ndarray npR2     = np::zeros(shape, dtype);
+		//np::ndarray npR3     = np::zeros(shape, dtype);
 
-		D      = reinterpret_cast<float *>(npD.get_data());
-		D_old  = reinterpret_cast<float *>(npD_old.get_data());
-		P1     = reinterpret_cast<float *>(npP1.get_data());
-		P2     = reinterpret_cast<float *>(npP2.get_data());
-		P3     = reinterpret_cast<float *>(npP3.get_data());
-		P1_old = reinterpret_cast<float *>(npP1_old.get_data());
-		P2_old = reinterpret_cast<float *>(npP2_old.get_data());
-		P3_old = reinterpret_cast<float *>(npP3_old.get_data());
-		R1     = reinterpret_cast<float *>(npR1.get_data());
-		R2     = reinterpret_cast<float *>(npR2.get_data());
-		R3     = reinterpret_cast<float *>(npR3.get_data());
-		/* begin iterations */
-		for (ll = 0; ll<iter; ll++) {
-			/* computing the gradient of the objective function */
-			Obj_func3D(A, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
-			/*Taking a step towards minus of the gradient*/
-			Grad_func3D(P1, P2, P3, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
+		//D      = reinterpret_cast<float *>(npD.get_data());
+		//D_old  = reinterpret_cast<float *>(npD_old.get_data());
+		//P1     = reinterpret_cast<float *>(npP1.get_data());
+		//P2     = reinterpret_cast<float *>(npP2.get_data());
+		//P3     = reinterpret_cast<float *>(npP3.get_data());
+		//P1_old = reinterpret_cast<float *>(npP1_old.get_data());
+		//P2_old = reinterpret_cast<float *>(npP2_old.get_data());
+		//P3_old = reinterpret_cast<float *>(npP3_old.get_data());
+		//R1     = reinterpret_cast<float *>(npR1.get_data());
+		//R2     = reinterpret_cast<float *>(npR2.get_data());
+		//R3     = reinterpret_cast<float *>(npR3.get_data());
+		///* begin iterations */
+		//for (ll = 0; ll<iter; ll++) {
+			///* computing the gradient of the objective function */
+			//Obj_func3D(A, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
+			///*Taking a step towards minus of the gradient*/
+			//Grad_func3D(P1, P2, P3, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
 
-			/* projection step */
-			Proj_func3D(P1, P2, P3, dimX, dimY, dimZ);
+			///* projection step */
+			//Proj_func3D(P1, P2, P3, dimX, dimY, dimZ);
 
-			/*updating R and t*/
-			tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-			Rupd_func3D(P1, P1_old, P2, P2_old, P3, P3_old, R1, R2, R3, tkp1, tk, dimX, dimY, dimZ);
+			///*updating R and t*/
+			//tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+			//Rupd_func3D(P1, P1_old, P2, P2_old, P3, P3_old, R1, R2, R3, tkp1, tk, dimX, dimY, dimZ);
 
-			/* calculate norm - stopping rules*/
-			re = 0.0f; re1 = 0.0f;
-			for (j = 0; j<dimX*dimY*dimZ; j++)
-			{
-				re += pow(D[j] - D_old[j], 2);
-				re1 += pow(D[j], 2);
-			}
-			re = sqrt(re) / sqrt(re1);
-			/* stop if the norm residual is less than the tolerance EPS */
-			if (re < epsil)  count++;
-			if (count > 3) {
-				Obj_func3D(A, D, P1, P2, P3, lambda, dimX, dimY, dimZ);
-				funcval = 0.0f;
-				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
-				//funcvalA[0] = sqrt(funcval);
-				float fv = sqrt(funcval);
-				std::memcpy(funcvalA, &fv, sizeof(float));
-				break;
-			}
+			///* calculate norm - stopping rules*/
+			//re = 0.0f; re1 = 0.0f;
+			//for (j = 0; j<dimX*dimY*dimZ; j++)
+			//{
+				//re += pow(D[j] - D_old[j], 2);
+				//re1 += pow(D[j], 2);
+			//}
+			//re = sqrt(re) / sqrt(re1);
+			///* stop if the norm residual is less than the tolerance EPS */
+			//if (re < epsil)  count++;
+			//if (count > 3) {
+				//Obj_func3D(A, D, P1, P2, P3, lambda, dimX, dimY, dimZ);
+				//funcval = 0.0f;
+				//for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
+				////funcvalA[0] = sqrt(funcval);
+				//float fv = sqrt(funcval);
+				//std::memcpy(funcvalA, &fv, sizeof(float));
+				//break;
+			//}
 
-			/* check that the residual norm is decreasing */
-			if (ll > 2) {
-				if (re > re_old) {
-					Obj_func3D(A, D, P1, P2, P3, lambda, dimX, dimY, dimZ);
-					funcval = 0.0f;
-					for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
-					//funcvalA[0] = sqrt(funcval);
-					float fv = sqrt(funcval);
-					std::memcpy(funcvalA, &fv, sizeof(float));
-					break;
-				}
-			}
+			///* check that the residual norm is decreasing */
+			//if (ll > 2) {
+				//if (re > re_old) {
+					//Obj_func3D(A, D, P1, P2, P3, lambda, dimX, dimY, dimZ);
+					//funcval = 0.0f;
+					//for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
+					////funcvalA[0] = sqrt(funcval);
+					//float fv = sqrt(funcval);
+					//std::memcpy(funcvalA, &fv, sizeof(float));
+					//break;
+				//}
+			//}
 
-			re_old = re;
-			/*printf("%f %i %i \n", re, ll, count); */
+			//re_old = re;
+			///*printf("%f %i %i \n", re, ll, count); */
 
-			/*storing old values*/
-			copyIm(D, D_old, dimX, dimY, dimZ);
-			copyIm(P1, P1_old, dimX, dimY, dimZ);
-			copyIm(P2, P2_old, dimX, dimY, dimZ);
-			copyIm(P3, P3_old, dimX, dimY, dimZ);
-			tk = tkp1;
+			///*storing old values*/
+			//copyIm(D, D_old, dimX, dimY, dimZ);
+			//copyIm(P1, P1_old, dimX, dimY, dimZ);
+			//copyIm(P2, P2_old, dimX, dimY, dimZ);
+			//copyIm(P3, P3_old, dimX, dimY, dimZ);
+			//tk = tkp1;
 
-			if (ll == (iter - 1)) {
-				Obj_func3D(A, D, P1, P2, P3, lambda, dimX, dimY, dimZ);
-				funcval = 0.0f;
-				for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
-				//funcvalA[0] = sqrt(funcval);
-				float fv = sqrt(funcval);
-				std::memcpy(funcvalA, &fv, sizeof(float));
-			}
+			//if (ll == (iter - 1)) {
+				//Obj_func3D(A, D, P1, P2, P3, lambda, dimX, dimY, dimZ);
+				//funcval = 0.0f;
+				//for (j = 0; j<dimX*dimY*dimZ; j++) funcval += pow(D[j], 2);
+				////funcvalA[0] = sqrt(funcval);
+				//float fv = sqrt(funcval);
+				//std::memcpy(funcvalA, &fv, sizeof(float));
+			//}
 
-		}
-		//printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
-		result.append<np::ndarray>(npD);
-		result.append<np::ndarray>(out1);
-		result.append<int>(ll);
-	}
+		//}
+		////printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
+		//result.append<np::ndarray>(npD);
+		//result.append<np::ndarray>(out1);
+		//result.append<int>(ll);
+	//}
 
-	return result;
-}
+	//return result;
+//}
 
 bp::list LLT_model(np::ndarray input, double d_lambda, double d_tau, int iter, double d_epsil, int switcher) {
 	// the result is in the following list

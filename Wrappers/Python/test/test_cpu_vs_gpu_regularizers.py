@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os    
 import timeit
-from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML, GPU_ROF_TV
-from ccpi.filters.cpu_regularizers_cython import ROF_TV
+from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML, TV_ROF_GPU
+from ccpi.filters.cpu_regularizers_cython import TV_ROF_CPU
 ###############################################################################
 def printParametersToString(pars):
         txt = r''
@@ -64,7 +64,7 @@ pars = {'algorithm': ROF_TV , \
         }
 print ("#################ROF TV CPU#####################")
 start_time = timeit.default_timer()
-rof_cpu = ROF_TV(pars['input'],
+rof_cpu = TV_ROF_CPU(pars['input'],
              pars['number_of_iterations'],
              pars['regularization_parameter'],
              pars['time_marching_parameter'] 
@@ -89,7 +89,7 @@ plt.title('{}'.format('CPU results'))
 
 print ("#################ROF TV GPU#####################")
 start_time = timeit.default_timer()
-rof_gpu = GPU_ROF_TV(pars['input'], 
+rof_gpu = TV_ROF_GPU(pars['input'], 
                      pars['number_of_iterations'], 
                      pars['time_marching_parameter'], 
                      pars['regularization_parameter'])

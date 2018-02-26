@@ -37,7 +37,7 @@ limitations under the License.
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
  
-float FGP_TV_CPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+float TV_FGP_CPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
 	int ll, j, DimTotal;
 	float re, re1;

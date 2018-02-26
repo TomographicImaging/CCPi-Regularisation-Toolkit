@@ -47,7 +47,7 @@ limitations under the License.
 extern "C" {
 #endif
 CCPI_EXPORT float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambda, float tau, int dimY, int dimX, int dimZ);
-CCPI_EXPORT float TV_ROF(float *Input, float *Output, int dimX, int dimY, int dimZ, int iterationsNumb, float tau, float lambda);
+CCPI_EXPORT float TV_ROF_CPU(float *Input, float *Output, int dimX, int dimY, int dimZ, int iterationsNumb, float tau, float lambda);
 CCPI_EXPORT float D1_func(float *A, float *D1, int dimY, int dimX, int dimZ);
 CCPI_EXPORT float D2_func(float *A, float *D2, int dimY, int dimX, int dimZ);
 CCPI_EXPORT float D3_func(float *A, float *D3, int dimY, int dimX, int dimZ);

@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */ 
 
-#include "FGP_TV_GPU_core.h"
+#include "TV_FGP_GPU_core.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -341,7 +341,7 @@ __global__ void copy_kernel3D(float *Input, float* Output, int N, int M, int Z, 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" void FGP_TV_GPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+extern "C" void TV_FGP_GPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
