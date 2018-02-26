@@ -396,7 +396,7 @@ def TVFGP2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     # Running CUDA code here    
     TV_FGP_GPU(            
             &inputData[0,0], &B[0,0],                        
-                       regularization_parameter , 
+                       regularization_parameter, 
                        iterations, 
                        tolerance_param,
                        methodTV,
