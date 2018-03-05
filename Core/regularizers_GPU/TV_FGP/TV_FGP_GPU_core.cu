@@ -25,7 +25,7 @@ limitations under the License.
  *
  * Input Parameters:
  * 1. Noisy image/volume 
- * 2. lambda - regularization parameter 
+ * 2. lambdaPar - regularization parameter 
  * 3. Number of iterations
  * 4. eplsilon: tolerance constant 
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
@@ -341,7 +341,7 @@ __global__ void copy_kernel3D(float *Input, float* Output, int N, int M, int Z, 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" void TV_FGP_GPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+extern "C" void TV_FGP_GPU(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -383,13 +383,13 @@ extern "C" void TV_FGP_GPU(float *Input, float *Output, float lambda, int iter, 
         cudaMemset(R2, 0, ImSize*sizeof(float));
 
         /********************** Run CUDA 2D kernel here ********************/    
-        multip = (1.0f/(8.0f*lambda));
+        multip = (1.0f/(8.0f*lambdaPar));
     
         /* The main kernel */
         for (i = 0; i < iter; i++) {
         
             /* computing the gradient of the objective function */
-            Obj_func2D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, dimX, dimY, ImSize, lambda);
+            Obj_func2D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, dimX, dimY, ImSize, lambdaPar);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
             
@@ -493,13 +493,13 @@ extern "C" void TV_FGP_GPU(float *Input, float *Output, float lambda, int iter, 
             cudaMemset(R2, 0, ImSize*sizeof(float));
             cudaMemset(R3, 0, ImSize*sizeof(float));
             /********************** Run CUDA 3D kernel here ********************/    
-            multip = (1.0f/(8.0f*lambda));
+            multip = (1.0f/(8.0f*lambdaPar));
     
             /* The main kernel */
         for (i = 0; i < iter; i++) {
         
             /* computing the gradient of the objective function */
-            Obj_func3D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, R3, dimX, dimY, dimZ, ImSize, lambda);
+            Obj_func3D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, R3, dimX, dimY, dimZ, ImSize, lambdaPar);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         

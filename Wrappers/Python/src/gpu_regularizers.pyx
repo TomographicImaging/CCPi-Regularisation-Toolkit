@@ -26,7 +26,7 @@ cdef extern void NLM_GPU_kernel(float *A, float* B, float *Eucl_Vec,
                                 int SearchW, int SimilW, 
                                 int SearchW_real, float denh2, float lambdaf);
 cdef extern void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambdaf);
-cdef extern void TV_FGP_GPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
+cdef extern void TV_FGP_GPU(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
 
 cdef extern float pad_crop(float *A, float *Ap, 
                            int OldSizeX, int OldSizeY, int OldSizeZ, 

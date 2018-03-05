@@ -19,7 +19,7 @@
 
 #include "ROF_TV_core.h"
 
-#define EPS 1.0e-4
+#define EPS 1.0e-5
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -46,7 +46,7 @@ int sign(float x) {
  */
 
 /* Running iterations of TV-ROF function */
-float TV_ROF_CPU(float *Input, float *Output, int dimX, int dimY, int dimZ, int iterationsNumb, float tau, float lambda)
+float TV_ROF_CPU_main(float *Input, float *Output, int dimX, int dimY, int dimZ, int iterationsNumb, float tau, float lambda)
 {
     float *D1, *D2, *D3;
     int i, DimTotal;

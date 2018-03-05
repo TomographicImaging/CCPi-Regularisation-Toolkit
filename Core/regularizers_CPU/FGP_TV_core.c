@@ -23,7 +23,7 @@ limitations under the License.
  *
  * Input Parameters:
  * 1. Noisy image/volume 
- * 2. lambda - regularization parameter 
+ * 2. lambdaPar - regularization parameter 
  * 3. Number of iterations
  * 4. eplsilon: tolerance constant 
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
@@ -37,7 +37,7 @@ limitations under the License.
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
  
-float TV_FGP_CPU(float *Input, float *Output, float lambda, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
 	int ll, j, DimTotal;
 	float re, re1;
@@ -62,13 +62,13 @@ float TV_FGP_CPU(float *Input, float *Output, float lambda, int iter, float epsi
         for(ll=0; ll<iter; ll++) {
             
             /* computing the gradient of the objective function */
-            Obj_func2D(Input, Output, R1, R2, lambda, dimX, dimY);
+            Obj_func2D(Input, Output, R1, R2, lambdaPar, dimX, dimY);
             
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<dimX*dimY; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}            
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func2D(P1, P2, Output, R1, R2, lambda, dimX, dimY);
+            Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, dimX, dimY);
             
             /* projection step */
             Proj_func2D(P1, P2, methodTV, dimX, dimY);
@@ -117,13 +117,13 @@ float TV_FGP_CPU(float *Input, float *Output, float lambda, int iter, float epsi
         for(ll=0; ll<iter; ll++) {
             
             /* computing the gradient of the objective function */
-            Obj_func3D(Input, Output, R1, R2, R3, lambda, dimX, dimY, dimZ);
+            Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
             
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<dimX*dimY*dimZ; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}  
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func3D(P1, P2, P3, Output, R1, R2, R3, lambda, dimX, dimY, dimZ);
+            Grad_func3D(P1, P2, P3, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
             
             /* projection step */
             Proj_func3D(P1, P2, P3, methodTV, dimX, dimY, dimZ);

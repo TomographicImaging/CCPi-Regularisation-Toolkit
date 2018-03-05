@@ -1040,7 +1040,6 @@ BOOST_PYTHON_MODULE(cpu_regularizers_boost)
 	np::dtype dt2 = np::dtype::get_builtin<uint16_t>();
 
 	def("SplitBregman_TV", SplitBregman_TV);
-	def("FGP_TV", FGP_TV);
 	def("LLT_model", LLT_model);
 	def("PatchBased_Regul", PatchBased_Regul);
 	def("TGV_PD", TGV_PD);

@@ -11,10 +11,9 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV , FGP_TV ,\
-                                                 LLT_model, PatchBased_Regul ,\
+from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV, LLT_model, PatchBased_Regul ,\
                                                  TGV_PD
-from ccpi.filters.cpu_regularizers_cython import ROF_TV
+from ccpi.filters.cpu_regularizers_cython import TV_ROF_CPU, TV_FGP_CPU
 
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
@@ -128,21 +127,25 @@ imgplot = plt.imshow(splitbregman,\
                      )
 
 ###################### FGP_TV #########################################
-# u = FGP_TV(single(u0), 0.05, 100, 1e-04);
+
 start_time = timeit.default_timer()
-pars = {'algorithm' : FGP_TV , \
+pars = {'algorithm' : TV_FGP_CPU , \
         'input' : u0,
         'regularization_parameter':0.05, \
         'number_of_iterations' :200 ,\
-        'tolerance_constant':1e-4,\
-        'TV_penalty': 0
+        'tolerance_constant':1e-5,\
+        'methodTV': 0 ,\
+        'nonneg': 0 ,\
+        'printingOut': 0
 }
 
-out = FGP_TV (pars['input'], 
+out = TV_FGP_CPU (pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['TV_penalty'])  
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['printingOut'])  
 
 fgp = out[0]
 rms = rmse(Im, fgp)
@@ -282,13 +285,13 @@ imgplot = plt.imshow(tgv, cmap="gray")
 
 start_time = timeit.default_timer()
 
-pars = {'algorithm': ROF_TV , \
+pars = {'algorithm': TV_ROF_CPU , \
         'input' : u0,\
         'regularization_parameter':0.04,\
         'marching_step': 0.0025,\
         'number_of_iterations': 300
         }
-rof = ROF_TV(pars['input'],
+rof = TV_ROF_CPU(pars['input'],
              pars['number_of_iterations'],
              pars['regularization_parameter'],
              pars['marching_step'] 
