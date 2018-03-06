@@ -111,11 +111,9 @@ rms = rmse(Im, splitbregman)
 pars['rmse'] = rms
 txtstr = printParametersToString(pars) 
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-    
+print (txtstr)   
 
 a=fig.add_subplot(2,4,2)
-
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -130,14 +128,14 @@ imgplot = plt.imshow(splitbregman,\
 
 start_time = timeit.default_timer()
 pars = {'algorithm' : TV_FGP_CPU , \
-        'input' : u0,
+        'input' : u0,\
         'regularization_parameter':0.07, \
         'number_of_iterations' :300 ,\
         'tolerance_constant':0.00001,\
         'methodTV': 0 ,\
         'nonneg': 0 ,\
-        'printingOut': 0
-}
+        'printingOut': 0 
+        }
 
 out = TV_FGP_CPU (pars['input'], 
               pars['regularization_parameter'],

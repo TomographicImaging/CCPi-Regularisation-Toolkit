@@ -93,7 +93,7 @@ def TV_FGP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     return outputData        
             
 def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
- float regularization_parameter,
+                     float regularization_parameter,
                      int iterationsNumb, 
                      float tolerance_param,
                      int methodTV,
@@ -109,11 +109,10 @@ def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
            
     #/* Run ROF iterations for 3D data */
     TV_FGP_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularization_parameter,
-					   iterationsNumb, 
+                       iterationsNumb, 
                        tolerance_param,
                        methodTV,
                        nonneg,
                        printM,
                        dims[0], dims[1], dims[2])
-
     return outputData 
