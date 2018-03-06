@@ -46,7 +46,7 @@ int sign(float x) {
  */
 
 /* Running iterations of TV-ROF function */
-float TV_ROF_CPU_main(float *Input, float *Output, int dimX, int dimY, int dimZ, int iterationsNumb, float tau, float lambda)
+float TV_ROF_CPU_mainfloat TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
 {
     float *D1, *D2, *D3;
     int i, DimTotal;
@@ -68,7 +68,7 @@ float TV_ROF_CPU_main(float *Input, float *Output, int dimX, int dimY, int dimZ,
             D1_func(Output, D1, dimX, dimY, dimZ);
             D2_func(Output, D2, dimX, dimY, dimZ);           
             if (dimZ > 1) D3_func(Output, D3, dimX, dimY, dimZ); 			
-            TV_kernel(D1, D2, D3, Output, Input, lambda, tau, dimX, dimY, dimZ);  		          
+            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, dimX, dimY, dimZ);  		          
 		}           
     free(D1);free(D2); free(D3);
     return *Output;

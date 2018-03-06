@@ -37,7 +37,7 @@ limitations under the License.
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
  
-float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
 	int ll, j, DimTotal;
 	float re, re1;
@@ -47,7 +47,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iter, fl
 	
 	if (dimZ <= 1) {
 		/*2D case */				
-		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;		
+		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
 		DimTotal = dimX*dimY;
 		
 		Output_prev = (float *) malloc( DimTotal * sizeof(float) );
@@ -59,7 +59,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iter, fl
 		R2 = (float *) malloc( DimTotal * sizeof(float) );
 		
 		/* begin iterations */
-        for(ll=0; ll<iter; ll++) {
+        for(ll=0; ll<iterationsNumb; ll++) {
             
             /* computing the gradient of the objective function */
             Obj_func2D(Input, Output, R1, R2, lambdaPar, dimX, dimY);
@@ -114,7 +114,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iter, fl
 		R3 = (float *) malloc( DimTotal * sizeof(float) );
 		
 		    /* begin iterations */
-        for(ll=0; ll<iter; ll++) {
+        for(ll=0; ll<iterationsNumb; ll++) {
             
             /* computing the gradient of the objective function */
             Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
