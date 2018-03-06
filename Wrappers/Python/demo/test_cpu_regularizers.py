@@ -137,7 +137,7 @@ pars = {'algorithm' : TV_FGP_CPU , \
         'printingOut': 0 
         }
 
-out = TV_FGP_CPU (pars['input'], 
+fgp = TV_FGP_CPU(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
@@ -145,7 +145,6 @@ out = TV_FGP_CPU (pars['input'],
               pars['nonneg'],
               pars['printingOut'])  
 
-fgp = out[0]
 rms = rmse(Im, fgp)
 pars['rmse'] = rms
 
@@ -154,7 +153,7 @@ txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)       
 
 
-a=fig.add_subplot(2,4,4)
+a=fig.add_subplot(2,4,3)
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -168,7 +167,6 @@ a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
 
 
 ###################### LLT_model #########################################
-"""
 start_time = timeit.default_timer()
 
 pars = {'algorithm': LLT_model , \
@@ -203,8 +201,6 @@ a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(llt,\
                      cmap="gray"
                      )
-"""
-
 # ###################### PatchBased_Regul #########################################
 # # Quick 2D denoising example in Matlab:   
 # #   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
@@ -286,7 +282,7 @@ start_time = timeit.default_timer()
 
 pars = {'algorithm': TV_ROF_CPU , \
         'input' : u0,\
-        'regularization_parameter':0.04,\
+        'regularization_parameter':0.07,\
         'marching_step': 0.0025,\
         'number_of_iterations': 300
         }
