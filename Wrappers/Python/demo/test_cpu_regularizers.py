@@ -131,9 +131,9 @@ imgplot = plt.imshow(splitbregman,\
 start_time = timeit.default_timer()
 pars = {'algorithm' : TV_FGP_CPU , \
         'input' : u0,
-        'regularization_parameter':0.05, \
-        'number_of_iterations' :200 ,\
-        'tolerance_constant':1e-5,\
+        'regularization_parameter':0.07, \
+        'number_of_iterations' :300 ,\
+        'tolerance_constant':0.00001,\
         'methodTV': 0 ,\
         'nonneg': 0 ,\
         'printingOut': 0
@@ -156,7 +156,7 @@ txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)       
 
 
-a=fig.add_subplot(2,4,3)
+a=fig.add_subplot(2,4,4)
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -168,8 +168,9 @@ imgplot = plt.imshow(fgp, \
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
 
-###################### LLT_model #########################################
 
+###################### LLT_model #########################################
+"""
 start_time = timeit.default_timer()
 
 pars = {'algorithm': LLT_model , \
@@ -204,7 +205,7 @@ a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(llt,\
                      cmap="gray"
                      )
-
+"""
 
 # ###################### PatchBased_Regul #########################################
 # # Quick 2D denoising example in Matlab:   
@@ -292,8 +293,8 @@ pars = {'algorithm': TV_ROF_CPU , \
         'number_of_iterations': 300
         }
 rof = TV_ROF_CPU(pars['input'],
-             pars['number_of_iterations'],
-             pars['regularization_parameter'],
+			 pars['regularization_parameter'],
+             pars['number_of_iterations'],             
              pars['marching_step'] 
              )
 #tgv = out

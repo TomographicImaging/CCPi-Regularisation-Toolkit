@@ -45,10 +45,10 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int
                 j1 = j + 1; if (j == dimY-1) j1 = j;
                 
                 /* Forward differences */
-                NOMx_2 = pow(U[j1*dimX + i] - U[index],2); /* x+ */
-                NOMy_2 = pow(U[j*dimX + i1] - U[index],2); /* y+ */
-                E_Grad += sqrt(NOMx_2 + NOMy_2); /* gradient term energy */
-                E_Data += 0.5f * lambda*(pow((U[index]-U0[index]),2)); /* fidelity term energy */
+                NOMx_2 = powf(U[j1*dimX + i] - U[index],2); /* x+ */
+                NOMy_2 = powf(U[j*dimX + i1] - U[index],2); /* y+ */
+                E_Grad += sqrtf(NOMx_2 + NOMy_2); /* gradient term energy */
+                E_Data += 0.5f * lambda*(powf((U[index]-U0[index]),2)); /* fidelity term energy */
 			}
 		}
 		E_val[0] = E_Grad + E_Data;

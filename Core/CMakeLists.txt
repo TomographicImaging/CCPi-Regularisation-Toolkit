@@ -88,7 +88,7 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/utils.c
 	    )
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )

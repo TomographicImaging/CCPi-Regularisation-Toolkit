@@ -21,14 +21,11 @@ cimport numpy as np
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
-def TV_ROF_CPU(inputData, regularization_parameter, iterationsNumb
-           marching_step_parameter):
+def TV_ROF_CPU(inputData, regularization_parameter, iterationsNumb, marching_step_parameter):
     if inputData.ndim == 2:
-        return TV_ROF_2D(inputData, regularization_parameter, iterationsNumb
-                         marching_step_parameter)
+        return TV_ROF_2D(inputData, regularization_parameter, iterationsNumb, marching_step_parameter)
     elif inputData.ndim == 3:
-        return TV_ROF_3D(inputData, regularization_parameter, iterationsNumb
-                         marching_step_parameter)
+        return TV_ROF_3D(inputData, regularization_parameter, iterationsNumb, marching_step_parameter)
 
 def TV_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularization_parameter,
@@ -47,10 +44,9 @@ def TV_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     return outputData
             
 def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-                     int iterations,
+                     int iterationsNumb,
                      float regularization_parameter,
-                     float marching_step_parameter
-                     ):
+                     float marching_step_parameter):
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]

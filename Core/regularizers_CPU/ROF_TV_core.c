@@ -46,7 +46,7 @@ int sign(float x) {
  */
 
 /* Running iterations of TV-ROF function */
-float TV_ROF_CPU_mainfloat TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
+float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
 {
     float *D1, *D2, *D3;
     int i, DimTotal;
@@ -132,9 +132,9 @@ float D1_func(float *A, float *D1, int dimX, int dimY, int dimZ)
                 NOMy_0 = A[index] - A[(j)*dimX + i2]; /* y- */
                 
                 denom1 = NOMx_1*NOMx_1;
-                denom2 = 0.5*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
+                denom2 = 0.5f*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
                 denom2 = denom2*denom2;
-                T1 = sqrt(denom1 + denom2 + EPS);
+                T1 = sqrtf(denom1 + denom2 + EPS);
                 D1[index] = NOMx_1/T1;
             }}
     }
@@ -170,11 +170,11 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
                     
                     
                     denom1 = NOMy_1*NOMy_1;
-                    denom2 = 0.5*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
+                    denom2 = 0.5f*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
                     denom2 = denom2*denom2;
-                    denom3 = 0.5*(sign(NOMz_1) + sign(NOMz_0))*(MIN(fabs(NOMz_1),fabs(NOMz_0)));
+                    denom3 = 0.5f*(sign(NOMz_1) + sign(NOMz_0))*(MIN(fabs(NOMz_1),fabs(NOMz_0)));
                     denom3 = denom3*denom3;
-                    T2 = sqrt(denom1 + denom2 + denom3 + EPS);
+                    T2 = sqrtf(denom1 + denom2 + denom3 + EPS);
                     D2[index] = NOMy_1/T2;
                 }}}
     }
@@ -196,9 +196,9 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
                 /*NOMy_0 = A[(i)*dimY + j] - A[(i)*dimY + j2]; */  /* y- */
                 
                 denom1 = NOMy_1*NOMy_1;
-                denom2 = 0.5*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
+                denom2 = 0.5f*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
                 denom2 = denom2*denom2;
-                T2 = sqrt(denom1 + denom2 + EPS);
+                T2 = sqrtf(denom1 + denom2 + EPS);
                 D2[index] = NOMy_1/T2;
             }}
     }
@@ -233,11 +233,11 @@ float D3_func(float *A, float *D3, int dimY, int dimX, int dimZ)
                 /*NOMz_0 = A[(dimX*dimY)*k + (i)*dimY + j] - A[(dimX*dimY)*k2 + (i)*dimY + j]; */ /* z- */
                 
                 denom1 = NOMz_1*NOMz_1;
-                denom2 = 0.5*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
+                denom2 = 0.5f*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
                 denom2 = denom2*denom2;
-                denom3 = 0.5*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
+                denom3 = 0.5f*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
                 denom3 = denom3*denom3;
-                T3 = sqrt(denom1 + denom2 + denom3 + EPS);
+                T3 = sqrtf(denom1 + denom2 + denom3 + EPS);
                 D3[index] = NOMz_1/T3;
             }}}
     return *D3;
