@@ -11,7 +11,8 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML, GPU_ROF_TV
+from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML, TV_ROF_GPU
+
 ###############################################################################
 def printParametersToString(pars):
         txt = r''
@@ -152,17 +153,18 @@ plt.colorbar(ticks=[0, 0.03], orientation='vertical')
 start_time = timeit.default_timer()
 
 pars = {
-'algorithm' : GPU_ROF_TV , \
+'algorithm' : TV_ROF_GPU , \
         'input' : u0,
         'regularization_parameter': 0.04,\
-        'time_marching_parameter': 0.0025, \
-        'number_of_iterations':300        
+        'number_of_iterations':300,\
+        'time_marching_parameter': 0.0025
+        
 	}
 
-rof_tv = GPU_ROF_TV(pars['input'], 
+rof_tv = TV_ROF_GPU(pars['input'], 
+                     pars['regularization_parameter'],
                      pars['number_of_iterations'], 
-                     pars['time_marching_parameter'], 
-                     pars['regularization_parameter'])
+                     pars['time_marching_parameter'])
                      
 rms = rmse(Im, rof_tv)
 pars['rmse'] = rms
