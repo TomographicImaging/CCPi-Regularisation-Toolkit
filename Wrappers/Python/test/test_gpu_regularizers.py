@@ -11,8 +11,8 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML, TV_ROF_GPU
-
+from ccpi.filters.gpu_regularizers import Diff4thHajiaboli, NML
+from ccpi.filters.regularizers import ROF_TV, FGP_TV
 ###############################################################################
 def printParametersToString(pars):
         txt = r''
@@ -151,20 +151,19 @@ plt.colorbar(ticks=[0, 0.03], orientation='vertical')
         
 ## Rudin-Osher-Fatemi (ROF) TV regularization
 start_time = timeit.default_timer()
-
 pars = {
-'algorithm' : TV_ROF_GPU , \
+'algorithm' : ROF_TV , \
         'input' : u0,
         'regularization_parameter': 0.04,\
         'number_of_iterations':300,\
         'time_marching_parameter': 0.0025
         
 	}
-
+	
 rof_tv = TV_ROF_GPU(pars['input'], 
                      pars['regularization_parameter'],
                      pars['number_of_iterations'], 
-                     pars['time_marching_parameter'])
+                     pars['time_marching_parameter'],'gpu')
                      
 rms = rmse(Im, rof_tv)
 pars['rmse'] = rms
@@ -190,3 +189,51 @@ a.text(0.05, 0.95, 'rof_tv - u0', transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow((rof_tv - u0)**2, vmin=0, vmax=0.03, cmap="gray")
 plt.colorbar(ticks=[0, 0.03], orientation='vertical')
 plt.show()
+
+## Fast-Gradient Projection TV regularization
+"""
+start_time = timeit.default_timer()
+
+pars = {'algorithm' : FGP_TV, \
+        'input' : u0,\
+        'regularization_parameter':0.04, \
+        'number_of_iterations' :1200 ,\
+        'tolerance_constant':0.00001,\
+        'methodTV': 0 ,\
+        'nonneg': 0 ,\
+        'printingOut': 0 
+        }
+
+fgp_gpu = FGP_TV(pars['input'], 
+              pars['regularization_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['printingOut'],'gpu')
+                                   
+rms = rmse(Im, fgp_gpu)
+pars['rmse'] = rms
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(2,4,4)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=12,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(fgp_gpu, cmap="gray")
+
+a=fig.add_subplot(2,4,8)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+# place a text box in upper left in axes coords
+a.text(0.05, 0.95, 'fgp_gpu - u0', transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow((fgp_gpu - u0)**2, vmin=0, vmax=0.03, cmap="gray")
+plt.colorbar(ticks=[0, 0.03], orientation='vertical')
+plt.show()
+"""

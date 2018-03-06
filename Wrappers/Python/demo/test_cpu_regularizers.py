@@ -11,10 +11,8 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV, LLT_model, PatchBased_Regul ,\
-                                                 TGV_PD
-from ccpi.filters.cpu_regularizers_cython import TV_ROF_CPU, TV_FGP_CPU
-
+from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV, LLT_model, PatchBased_Regul, TGV_PD
+from ccpi.filters.regularizers import ROF_TV, FGP_TV
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
 #NRMSE a normalization of the root of the mean squared error
@@ -127,7 +125,7 @@ imgplot = plt.imshow(splitbregman,\
 ###################### FGP_TV #########################################
 
 start_time = timeit.default_timer()
-pars = {'algorithm' : TV_FGP_CPU , \
+pars = {'algorithm' : FGP_TV , \
         'input' : u0,\
         'regularization_parameter':0.07, \
         'number_of_iterations' :300 ,\
@@ -137,13 +135,13 @@ pars = {'algorithm' : TV_FGP_CPU , \
         'printingOut': 0 
         }
 
-fgp = TV_FGP_CPU(pars['input'], 
+fgp = FGP_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['printingOut'])  
+              pars['printingOut'], 'cpu')  
 
 rms = rmse(Im, fgp)
 pars['rmse'] = rms
@@ -280,18 +278,17 @@ imgplot = plt.imshow(tgv, cmap="gray")
 
 start_time = timeit.default_timer()
 
-pars = {'algorithm': TV_ROF_CPU , \
+pars = {'algorithm': ROF_TV , \
         'input' : u0,\
         'regularization_parameter':0.07,\
         'marching_step': 0.0025,\
         'number_of_iterations': 300
         }
-rof = TV_ROF_CPU(pars['input'],
+rof = ROF_TV(pars['input'],
 			 pars['regularization_parameter'],
              pars['number_of_iterations'],             
-             pars['marching_step'] 
-             )
-#tgv = out
+             pars['marching_step'], 'cpu')
+
 rms = rmse(Im, rof)
 pars['rmse'] = rms
 

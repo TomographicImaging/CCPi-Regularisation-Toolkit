@@ -3,7 +3,7 @@
 """
 Created on Thu Feb 22 11:39:43 2018
 
-Testing CPU implementation against GPU one
+Testing CPU implementation against the GPU one
 
 @author: Daniil Kazantsev
 """
@@ -12,8 +12,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-#from ccpi.filters.cpu_regularizers_cython import TV_ROF_CPU, TV_FGP_CPU
-#from ccpi.filters.gpu_regularizers import TV_ROF_GPU, TV_FGP_GPU
 from ccpi.filters.regularizers import ROF_TV, FGP_TV
 
 ###############################################################################
