@@ -304,12 +304,11 @@ __host__ __device__ int sign (float x)
 
 /////////////////////////////////////////////////
 // HOST FUNCTION
-extern "C" void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambda)
+extern "C" void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z)
 {
 	    // set up device
 		int dev = 0;
 		CHECK(cudaSetDevice(dev));
-		
         float *d_input, *d_update, *d_D1, *d_D2;
         
 	if (Z == 0) Z = 1;
@@ -331,14 +330,14 @@ extern "C" void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int
             
             for(int n=0; n < iter; n++) {
                 /* calculate differences */
-                D1_func3D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M, Z);				
+                D1_func3D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
-				D2_func3D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M, Z);				                
+				D2_func3D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M, Z);
                 CHECK(cudaDeviceSynchronize());        
-                D3_func3D<<<dimGrid,dimBlock>>>(d_update, d_D3, N, M, Z);				
+                D3_func3D<<<dimGrid,dimBlock>>>(d_update, d_D3, N, M, Z);
                 CHECK(cudaDeviceSynchronize());        
                 /*running main kernel*/
-                TV_kernel3D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_D3, d_update, d_input, lambda, tau, N, M, Z);
+                TV_kernel3D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_D3, d_update, d_input, lambdaPar, tau, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
             }
             
@@ -351,12 +350,12 @@ extern "C" void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int
              
             for(int n=0; n < iter; n++) {
                 /* calculate differences */
-                D1_func2D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M);				
+                D1_func2D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M);
                 CHECK(cudaDeviceSynchronize());
-				D2_func2D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M);				
+				D2_func2D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M);
                 CHECK(cudaDeviceSynchronize());        
                 /*running main kernel*/
-                TV_kernel2D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_update, d_input, lambda, tau, N, M);
+                TV_kernel2D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_update, d_input, lambdaPar, tau, N, M);
                 CHECK(cudaDeviceSynchronize());
             }
         }        

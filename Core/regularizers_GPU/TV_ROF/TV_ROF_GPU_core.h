@@ -3,6 +3,6 @@
 #include "CCPiDefines.h"
 #include <stdio.h>
 
-extern "C" CCPI_EXPORT void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambda);
+extern "C" CCPI_EXPORT void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
 
 #endif 

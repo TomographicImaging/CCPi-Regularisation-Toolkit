@@ -11,7 +11,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Author: Edoardo Pasca
+Author: Edoardo Pasca, Daniil Kazantsev
 """
 
 import cython
@@ -25,14 +25,16 @@ cdef extern void NLM_GPU_kernel(float *A, float* B, float *Eucl_Vec,
                                 int N, int M,  int Z, int dimension, 
                                 int SearchW, int SimilW, 
                                 int SearchW_real, float denh2, float lambdaf);
-cdef extern void TV_ROF_GPU(float* Input, float* Output, int N, int M, int Z, int iter, float tau, float lambdaf);
-cdef extern void TV_FGP_GPU(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
+cdef extern void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
+#cdef extern void TV_FGP_GPU(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
+# correct the function
+cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
 
 cdef extern float pad_crop(float *A, float *Ap, 
                            int OldSizeX, int OldSizeY, int OldSizeZ, 
                            int NewSizeX, int NewSizeY, int NewSizeZ, 
                            int padXY, int switchpad_crop);
-
+#Diffusion 4th order regularizer
 def Diff4thHajiaboli(inputData, 
                      edge_preserv_parameter, 
                      iterations, 
@@ -50,7 +52,7 @@ def Diff4thHajiaboli(inputData,
                      iterations, 
                      time_marching_parameter,
                      regularization_parameter)
-        
+# patch-based nonlocal regularization
 def NML(inputData, 
                      SearchW_real, 
                      SimilW, 
@@ -68,23 +70,37 @@ def NML(inputData,
                      SimilW, 
                      h,
                      lambdaf)
-
-def GPU_ROF_TV(inputData,
+# Total-variation Rudin-Osher-Fatemi (ROF)
+def TV_ROF_GPU(inputData,
+                     regularization_parameter,
                      iterations, 
-                     time_marching_parameter,
-                     regularization_parameter):
+                     time_marching_parameter):
     if inputData.ndim == 2:
         return ROFTV2D(inputData, 
-                     iterations, 
-                     time_marching_parameter,
-                     regularization_parameter)
+                     regularization_parameter,
+                     iterations,
+                     time_marching_parameter)
     elif inputData.ndim == 3:
         return ROFTV3D(inputData, 
+                     regularization_parameter
                      iterations, 
-                     time_marching_parameter,
-                     regularization_parameter)
-
-                    
+                     time_marching_parameter)
+# Total-variation Fast-Gradient-Projection (FGP)
+def TV_FGP_GPU(inputData,
+                     regularization_parameter,
+                     iterations, 
+                     time_marching_parameter):
+    if inputData.ndim == 2:
+        return FGPTV2D(inputData, 
+                     regularization_parameter,
+                     iterations,
+                     time_marching_parameter)
+    elif inputData.ndim == 3:
+        return FGPTV3D(inputData, 
+                     regularization_parameter
+                     iterations, 
+                     time_marching_parameter)
+#****************************************************************#
 def Diff4thHajiaboli2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float edge_preserv_parameter, 
                      int iterations, 
@@ -333,52 +349,51 @@ def NML3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     return B                   
                      
 def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularization_parameter,
                      int iterations, 
-                     float time_marching_parameter,
-                     float regularization_parameter):
+                     float time_marching_parameter):
     
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] B = \
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
           
     # Running CUDA code here    
-    TV_ROF_GPU(            
-            &inputData[0,0], &B[0,0], 
-                       dims[0], dims[1], 1, 
+    TV_ROF_GPU_main(            
+            &inputData[0,0], &outputData[0,0], 
+                       regularization_parameter,
                        iterations , 
                        time_marching_parameter, 
-                       regularization_parameter);   
+                       dims[0], dims[1], 1);   
      
-    return B
+    return outputData
     
 def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularization_parameter,
                      int iterations, 
-                     float time_marching_parameter,
-                     float regularization_parameter):
+                     float time_marching_parameter):
     
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     dims[2] = inputData.shape[2]
 
-    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] B = \
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
           
     # Running CUDA code here    
-    TV_ROF_GPU(            
-            &inputData[0,0,0], &B[0,0,0], 
-                       dims[0], dims[1], dims[2], 
+    TV_ROF_GPU_main(            
+            &inputData[0,0,0], &outputData[0,0,0], 
+                       regularization_parameter,
                        iterations , 
                        time_marching_parameter, 
-                       regularization_parameter);   
+                       dims[0], dims[1], dims[2]);   
      
-    return B
+    return outputData
 
-
-def TVFGP2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularization_parameter,
                      int iterations, 
                      float tolerance_param,
@@ -390,12 +405,12 @@ def TVFGP2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] B = \
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
           
     # Running CUDA code here    
     TV_FGP_GPU(            
-            &inputData[0,0], &B[0,0],                        
+            &inputData[0,0], &outputData[0,0],                        
                        regularization_parameter, 
                        iterations, 
                        tolerance_param,
@@ -404,9 +419,9 @@ def TVFGP2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        printM,
                        dims[0], dims[1], 1);   
      
-    return B
+    return outputData
     
-def TVFGP3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
                      float regularization_parameter,
                      int iterations, 
                      float tolerance_param,
@@ -419,12 +434,12 @@ def TVFGP3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     dims[1] = inputData.shape[1]
     dims[2] = inputData.shape[2]
 
-    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] B = \
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
           
     # Running CUDA code here    
     TV_FGP_GPU(            
-            &inputData[0,0,0], &B[0,0,0], 
+            &inputData[0,0,0], &outputData[0,0,0], 
                        regularization_parameter , 
                        iterations, 
                        tolerance_param,
@@ -433,7 +448,7 @@ def TVFGP3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        printM,
                        dims[0], dims[1], dims[2]);   
      
-    return B    
+    return outputData    
     
     
     
