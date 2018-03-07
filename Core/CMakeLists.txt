@@ -88,7 +88,7 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
-		${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/utils.c
 	    )
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
@@ -129,6 +129,8 @@ if (CUDA_FOUND)
   CUDA_ADD_LIBRARY(cilregcuda SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/Diffus_HO/Diff4th_GPU_kernel.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/NL_Regul/NLM_GPU_kernel.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_ROF/TV_ROF_GPU_core.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_FGP/TV_FGP_GPU_core.cu
   )
   if (UNIX)
     message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")

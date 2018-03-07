@@ -18,6 +18,7 @@ limitations under the License.
 */
 
 #include "utils.h"
+#include <math.h>
 
 /* Copy Image */
 float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
@@ -34,7 +35,7 @@ float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
 float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int dimY)
 {
 	int i, j, i1, j1, index;
-	float NOMx_2, NOMy_2, E_Grad, E_Data;
+	float NOMx_2, NOMy_2, E_Grad=0.0f, E_Data=0.0f;
 	
 	/* first calculate \grad U_xy*/	
         for(j=0; j<dimY; j++) {
@@ -44,11 +45,11 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int
                 i1 = i + 1; if (i == dimX-1) i1 = i;
                 j1 = j + 1; if (j == dimY-1) j1 = j;
                 
-                /* Forward differences */
-                NOMx_2 = pow(U[j1*dimX + i] - U[index],2); /* x+ */
-                NOMy_2 = pow(U[j*dimX + i1] - U[index],2); /* y+ */
-                E_Grad += sqrt(NOMx_2 + NOMy_2); /* gradient term energy */
-                E_Data += 0.5f * lambda*(pow((U[index]-U0[index]),2)); /* fidelity term energy */
+                /* Forward differences */                
+                NOMx_2 = powf((float)(U[j1*dimX + i] - U[index]),2); /* x+ */
+                NOMy_2 = powf((float)(U[j*dimX + i1] - U[index]),2); /* y+ */
+                E_Grad += sqrtf((float)(NOMx_2) + (float)(NOMy_2)); /* gradient term energy */
+                E_Data += 0.5f * lambda*(powf((float)(U[index]-U0[index]),2)); /* fidelity term energy */
 			}
 		}
 		E_val[0] = E_Grad + E_Data;

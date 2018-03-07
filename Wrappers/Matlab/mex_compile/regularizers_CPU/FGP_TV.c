@@ -53,9 +53,9 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, iter, dimX, dimY, dimZ, ll, j, count, methTV;
+    int number_of_dims, iter, dimX, dimY, dimZ, methTV;
     const int  *dim_array;
-    float *A, *D=NULL, *D_old=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_old=NULL, *P2_old=NULL, *P3_old=NULL, *R1=NULL, *R2=NULL, *R3=NULL, lambda, tk, tkp1, re, re1, re_old, epsil;
+    float *Input, *Output, lambda, epsil;
     
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     dim_array = mxGetDimensions(prhs[0]);
@@ -63,9 +63,9 @@ void mexFunction(
     /*Handling Matlab input data*/
     if ((nrhs < 2) || (nrhs > 5)) mexErrMsgTxt("At least 2 parameters is required: Image(2D/3D), Regularization parameter. The full list of parameters: Image(2D/3D), Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1')");
     
-    A  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
+    Input  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
-    iter = 50; /* default iterations number */
+    iter = 300; /* default iterations number */
     epsil = 0.0001; /* default tolerance constant */
     methTV = 0;  /* default isotropic TV penalty */
     
@@ -78,139 +78,17 @@ void mexFunction(
         if (strcmp(penalty_type, "l1") == 0)  methTV = 1;  /* enable 'l1' penalty */
         mxFree(penalty_type);
     }
-    /*output function value (last iteration) */
-    plhs[1] = mxCreateNumericMatrix(1, 1, mxSINGLE_CLASS, mxREAL);  
-    float *funcvalA = (float *) mxGetData(plhs[1]);
         
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
     
     /*Handling Matlab output data*/
-    dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
-    
-    tk = 1.0f;
-    tkp1=1.0f;
-    count = 0;
-    re_old = 0.0f;
+    dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];       
     
     if (number_of_dims == 2) {
         dimZ = 1; /*2D case*/
-        D = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        D_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        P1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        P2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        P1_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        P2_old = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        R1 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        R2 = (float*)mxGetPr(mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        
-        /* begin iterations */
-        for(ll=0; ll<iter; ll++) {
-            
-            /* computing the gradient of the objective function */
-            Obj_func2D(A, D, R1, R2, lambda, dimX, dimY);
-            
-            /*Taking a step towards minus of the gradient*/
-            Grad_func2D(P1, P2, D, R1, R2, lambda, dimX, dimY);
-            
-            /* projection step */
-            Proj_func2D(P1, P2, methTV, dimX, dimY);
-            
-            /*updating R and t*/
-            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-            Rupd_func2D(P1, P1_old, P2, P2_old, R1, R2, tkp1, tk, dimX, dimY);                
-            
-            /* calculate norm */
-            re = 0.0f; re1 = 0.0f;
-            for(j=0; j<dimX*dimY*dimZ; j++)
-            {
-                re += pow(D[j] - D_old[j],2);
-                re1 += pow(D[j],2);
-            }
-            re = sqrt(re)/sqrt(re1);
-            if (re < epsil)  count++;
-            if (count > 4) {
-                Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY); 
-                break; }
-            
-            /* check that the residual norm is decreasing */
-            if (ll > 2) {
-                if (re > re_old) {
-                    Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY);                                   
-                    break; }}            
-            re_old = re;
-            /*printf("%f %i %i \n", re, ll, count); */                      
-          
-            /*storing old values*/
-            copyIm(D, D_old, dimX, dimY, dimZ);
-            copyIm(P1, P1_old, dimX, dimY, dimZ);
-            copyIm(P2, P2_old, dimX, dimY, dimZ);
-            tk = tkp1;
-            
-            /* calculating the objective function value */
-            if (ll == (iter-1)) Obj_func_CALC2D(A, D, funcvalA, lambda, dimX, dimY);            
-        }
-        printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
-    }
-    if (number_of_dims == 3) {
-        D = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        D_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        P1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        P2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        P3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        P1_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        P2_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        P3_old = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        R1 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        R2 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        R3 = (float*)mxGetPr(mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-        
-        /* begin iterations */
-        for(ll=0; ll<iter; ll++) {
-            
-            /* computing the gradient of the objective function */
-            Obj_func3D(A, D, R1, R2, R3,lambda, dimX, dimY, dimZ);
-            
-            /*Taking a step towards minus of the gradient*/
-            Grad_func3D(P1, P2, P3, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
-            
-            /* projection step */
-            Proj_func3D(P1, P2, P3, dimX, dimY, dimZ);
-            
-            /*updating R and t*/
-            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-            Rupd_func3D(P1, P1_old, P2, P2_old, P3, P3_old, R1, R2, R3, tkp1, tk, dimX, dimY, dimZ);
-            
-            /* calculate norm - stopping rules*/
-            re = 0.0f; re1 = 0.0f;
-            for(j=0; j<dimX*dimY*dimZ; j++)
-            {
-                re += pow(D[j] - D_old[j],2);
-                re1 += pow(D[j],2);
-            }
-            re = sqrt(re)/sqrt(re1);
-            /* stop if the norm residual is less than the tolerance EPS */
-            if (re < epsil)  count++;
-            if (count > 3) {
-                Obj_func_CALC3D(A, D, funcvalA, lambda, dimX, dimY, dimZ);                            
-                break;}
-            
-            /* check that the residual norm is decreasing */
-            if (ll > 2) {
-                if (re > re_old) {
-                Obj_func_CALC3D(A, D, funcvalA, lambda, dimX, dimY, dimZ);
-                }}            
-            re_old = re;
-            /*printf("%f %i %i \n", re, ll, count); */
-            
-            /*storing old values*/
-            copyIm(D, D_old, dimX, dimY, dimZ);
-            copyIm(P1, P1_old, dimX, dimY, dimZ);
-            copyIm(P2, P2_old, dimX, dimY, dimZ);
-            copyIm(P3, P3_old, dimX, dimY, dimZ);
-            tk = tkp1;
-            
-            if (ll == (iter-1)) Obj_func_CALC3D(A, D, funcvalA, lambda, dimX, dimY, dimZ);            
-        }
-        printf("FGP-TV iterations stopped at iteration %i with the function value %f \n", ll, funcvalA[0]);
-    }
+        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+        TV_FGP_CPU_main(Input, Output, lambda, iter, epsil, methTV, 0, 0, dimX, dimY, dimZ);
+    } 
+    if (number_of_dims == 3) {          
+    }   
 }

@@ -19,7 +19,7 @@
 
 #include "ROF_TV_core.h"
 
-#define EPS 1.0e-4
+#define EPS 1.0e-5
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -46,7 +46,7 @@ int sign(float x) {
  */
 
 /* Running iterations of TV-ROF function */
-float TV_ROF(float *Input, float *Output, int dimX, int dimY, int dimZ, int iterationsNumb, float tau, float lambda)
+float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
 {
     float *D1, *D2, *D3;
     int i, DimTotal;
@@ -68,7 +68,7 @@ float TV_ROF(float *Input, float *Output, int dimX, int dimY, int dimZ, int iter
             D1_func(Output, D1, dimX, dimY, dimZ);
             D2_func(Output, D2, dimX, dimY, dimZ);           
             if (dimZ > 1) D3_func(Output, D3, dimX, dimY, dimZ); 			
-            TV_kernel(D1, D2, D3, Output, Input, lambda, tau, dimX, dimY, dimZ);  		          
+            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, dimX, dimY, dimZ);  		          
 		}           
     free(D1);free(D2); free(D3);
     return *Output;
@@ -132,9 +132,9 @@ float D1_func(float *A, float *D1, int dimX, int dimY, int dimZ)
                 NOMy_0 = A[index] - A[(j)*dimX + i2]; /* y- */
                 
                 denom1 = NOMx_1*NOMx_1;
-                denom2 = 0.5*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
+                denom2 = 0.5f*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
                 denom2 = denom2*denom2;
-                T1 = sqrt(denom1 + denom2 + EPS);
+                T1 = sqrtf(denom1 + denom2 + EPS);
                 D1[index] = NOMx_1/T1;
             }}
     }
@@ -170,11 +170,11 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
                     
                     
                     denom1 = NOMy_1*NOMy_1;
-                    denom2 = 0.5*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
+                    denom2 = 0.5f*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
                     denom2 = denom2*denom2;
-                    denom3 = 0.5*(sign(NOMz_1) + sign(NOMz_0))*(MIN(fabs(NOMz_1),fabs(NOMz_0)));
+                    denom3 = 0.5f*(sign(NOMz_1) + sign(NOMz_0))*(MIN(fabs(NOMz_1),fabs(NOMz_0)));
                     denom3 = denom3*denom3;
-                    T2 = sqrt(denom1 + denom2 + denom3 + EPS);
+                    T2 = sqrtf(denom1 + denom2 + denom3 + EPS);
                     D2[index] = NOMy_1/T2;
                 }}}
     }
@@ -196,9 +196,9 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
                 /*NOMy_0 = A[(i)*dimY + j] - A[(i)*dimY + j2]; */  /* y- */
                 
                 denom1 = NOMy_1*NOMy_1;
-                denom2 = 0.5*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
+                denom2 = 0.5f*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
                 denom2 = denom2*denom2;
-                T2 = sqrt(denom1 + denom2 + EPS);
+                T2 = sqrtf(denom1 + denom2 + EPS);
                 D2[index] = NOMy_1/T2;
             }}
     }
@@ -233,11 +233,11 @@ float D3_func(float *A, float *D3, int dimY, int dimX, int dimZ)
                 /*NOMz_0 = A[(dimX*dimY)*k + (i)*dimY + j] - A[(dimX*dimY)*k2 + (i)*dimY + j]; */ /* z- */
                 
                 denom1 = NOMz_1*NOMz_1;
-                denom2 = 0.5*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
+                denom2 = 0.5f*(sign(NOMx_1) + sign(NOMx_0))*(MIN(fabs(NOMx_1),fabs(NOMx_0)));
                 denom2 = denom2*denom2;
-                denom3 = 0.5*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
+                denom3 = 0.5f*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
                 denom3 = denom3*denom3;
-                T3 = sqrt(denom1 + denom2 + denom3 + EPS);
+                T3 = sqrtf(denom1 + denom2 + denom3 + EPS);
                 D3[index] = NOMz_1/T3;
             }}}
     return *D3;
@@ -268,7 +268,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    B[index] = B[index] + tau*lambda*(dv1 + dv2 + dv3) + tau*(A[index] - B[index]);
+                    B[index] = B[index] + tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
                 }}}		
     }
     else {
@@ -284,10 +284,9 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 
                 /* divergence components  */
                 dv1 = D1[index] - D1[j2*dimX + i];
-                dv2 = D2[index] - D2[j*dimX + i2];
-                
-                //B[index] =  B[index] + tau*lambda*(dv1 + dv2) + tau*(A[index] - B[index]);
-                B[index] =  B[index] + tau*((dv1 + dv2) - lambda*(B[index] - A[index]));                
+                dv2 = D2[index] - D2[j*dimX + i2];                
+
+                B[index] =  B[index] + tau*(2.0f*lambda*(dv1 + dv2) - (B[index] - A[index]));                
             }}
     }
     return *B;

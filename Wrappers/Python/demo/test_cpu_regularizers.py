@@ -11,11 +11,8 @@ import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV , FGP_TV ,\
-                                                 LLT_model, PatchBased_Regul ,\
-                                                 TGV_PD
-from ccpi.filters.cpu_regularizers_cython import ROF_TV
-
+from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV, LLT_model, PatchBased_Regul, TGV_PD
+from ccpi.filters.regularizers import ROF_TV, FGP_TV
 ###############################################################################
 #https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
 #NRMSE a normalization of the root of the mean squared error
@@ -112,11 +109,9 @@ rms = rmse(Im, splitbregman)
 pars['rmse'] = rms
 txtstr = printParametersToString(pars) 
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-    
+print (txtstr)   
 
 a=fig.add_subplot(2,4,2)
-
 
 # these are matplotlib.patch.Patch properties
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -128,23 +123,26 @@ imgplot = plt.imshow(splitbregman,\
                      )
 
 ###################### FGP_TV #########################################
-# u = FGP_TV(single(u0), 0.05, 100, 1e-04);
+
 start_time = timeit.default_timer()
 pars = {'algorithm' : FGP_TV , \
-        'input' : u0,
-        'regularization_parameter':0.05, \
-        'number_of_iterations' :200 ,\
-        'tolerance_constant':1e-4,\
-        'TV_penalty': 0
-}
+        'input' : u0,\
+        'regularization_parameter':0.07, \
+        'number_of_iterations' :300 ,\
+        'tolerance_constant':0.00001,\
+        'methodTV': 0 ,\
+        'nonneg': 0 ,\
+        'printingOut': 0 
+        }
 
-out = FGP_TV (pars['input'], 
+fgp = FGP_TV(pars['input'], 
               pars['regularization_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['TV_penalty'])  
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['printingOut'], 'cpu')  
 
-fgp = out[0]
 rms = rmse(Im, fgp)
 pars['rmse'] = rms
 
@@ -165,8 +163,8 @@ imgplot = plt.imshow(fgp, \
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
 
-###################### LLT_model #########################################
 
+###################### LLT_model #########################################
 start_time = timeit.default_timer()
 
 pars = {'algorithm': LLT_model , \
@@ -201,8 +199,6 @@ a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(llt,\
                      cmap="gray"
                      )
-
-
 # ###################### PatchBased_Regul #########################################
 # # Quick 2D denoising example in Matlab:   
 # #   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
@@ -284,16 +280,15 @@ start_time = timeit.default_timer()
 
 pars = {'algorithm': ROF_TV , \
         'input' : u0,\
-        'regularization_parameter':1,\
-        'marching_step': 0.003,\
+        'regularization_parameter':0.07,\
+        'marching_step': 0.0025,\
         'number_of_iterations': 300
         }
 rof = ROF_TV(pars['input'],
-             pars['number_of_iterations'],
-             pars['regularization_parameter'],
-             pars['marching_step'] 
-             )
-#tgv = out
+			 pars['regularization_parameter'],
+             pars['number_of_iterations'],             
+             pars['marching_step'], 'cpu')
+
 rms = rmse(Im, rof)
 pars['rmse'] = rms
 
@@ -307,9 +302,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 # place a text box in upper left in axes coords
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(tgv, cmap="gray")
-
-
+imgplot = plt.imshow(rof, cmap="gray")
 
 plt.show()
 

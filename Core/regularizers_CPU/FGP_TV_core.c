@@ -22,245 +22,299 @@ limitations under the License.
 /* C-OMP implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
  *
  * Input Parameters:
- * 1. Noisy image/volume [REQUIRED]
- * 2. lambda - regularization parameter [REQUIRED]
- * 3. Number of iterations [OPTIONAL parameter]
- * 4. eplsilon: tolerance constant [OPTIONAL parameter]
- * 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
+ * 1. Noisy image/volume 
+ * 2. lambdaPar - regularization parameter 
+ * 3. Number of iterations
+ * 4. eplsilon: tolerance constant 
+ * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
+ * 6. nonneg: 'nonnegativity (0 is OFF by default) 
+ * 7. print information: 0 (off) or 1 (on) 
  *
  * Output:
  * [1] Filtered/regularized image
- * [2] last function value 
- *
- * Example of image denoising:
- * figure;
- * Im = double(imread('lena_gray_256.tif'))/255;  % loading image
- * u0 = Im + .05*randn(size(Im)); % adding noise
- * u = FGP_TV(single(u0), 0.05, 100, 1e-04);
  *
  * This function is based on the Matlab's code and paper by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
- *
- * D. Kazantsev, 2016-17
- *
  */
-
-/* 2D-case related Functions */
-/*****************************************************************/
-float Obj_func_CALC2D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY)
-{   
-    int i,j;
-    float f1, f2, val1, val2;
-    
-    /*data-related term */
-    f1 = 0.0f;
-    for(i=0; i<dimX*dimY; i++) f1 += pow(D[i] - A[i],2);    
-    
-    /*TV-related term */
-    f2 = 0.0f;
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
-            /* boundary conditions  */
-            if (i == dimX-1) {val1 = 0.0f;} else {val1 = A[(i+1)*dimY + (j)] - A[(i)*dimY + (j)];}
-            if (j == dimY-1) {val2 = 0.0f;} else {val2 = A[(i)*dimY + (j+1)] - A[(i)*dimY + (j)];}    
-            f2 += sqrt(pow(val1,2) + pow(val2,2));
-        }}  
-    
-    /* sum of two terms */
-    funcvalA[0] = 0.5f*f1 + lambda*f2;     
-    return *funcvalA;
+ 
+float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+{
+	int ll, j, DimTotal;
+	float re, re1;
+	float tk = 1.0f;
+    float tkp1=1.0f;
+    int count = 0;
+	
+	if (dimZ <= 1) {
+		/*2D case */
+		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
+		DimTotal = dimX*dimY;
+		
+		Output_prev = (float *) malloc( DimTotal * sizeof(float) );
+		P1 = (float *) malloc( DimTotal * sizeof(float) );
+		P2 = (float *) malloc( DimTotal * sizeof(float) );
+		P1_prev = (float *) malloc( DimTotal * sizeof(float) );
+		P2_prev = (float *) malloc( DimTotal * sizeof(float) );
+		R1 = (float *) malloc( DimTotal * sizeof(float) );
+		R2 = (float *) malloc( DimTotal * sizeof(float) );
+		
+		/* begin iterations */
+        for(ll=0; ll<iterationsNumb; ll++) {
+            
+            /* computing the gradient of the objective function */
+            Obj_func2D(Input, Output, R1, R2, lambdaPar, dimX, dimY);
+            
+            /* apply nonnegativity */
+            if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}            
+            
+            /*Taking a step towards minus of the gradient*/
+            Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, dimX, dimY);
+            
+            /* projection step */
+            Proj_func2D(P1, P2, methodTV, DimTotal);
+            
+            /*updating R and t*/
+            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+            Rupd_func2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
+            
+            /* check early stopping criteria */
+            re = 0.0f; re1 = 0.0f;
+            for(j=0; j<DimTotal; j++)
+            {
+                re += pow(Output[j] - Output_prev[j],2);
+                re1 += pow(Output[j],2);
+            }
+            re = sqrt(re)/sqrt(re1);
+            if (re < epsil)  count++;
+				if (count > 4) break;
+            
+            /*storing old values*/
+            copyIm(Output, Output_prev, dimX, dimY, 1);
+            copyIm(P1, P1_prev, dimX, dimY, 1);
+            copyIm(P2, P2_prev, dimX, dimY, 1);
+            tk = tkp1;
+        }
+        if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
+		free(Output_prev); free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2);		
+	}
+	else {
+		/*3D case*/
+		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;		
+		DimTotal = dimX*dimY*dimZ;
+		
+		Output_prev = (float *) malloc( DimTotal * sizeof(float) );
+		P1 = (float *) malloc( DimTotal * sizeof(float) );
+		P2 = (float *) malloc( DimTotal * sizeof(float) );
+		P3 = (float *) malloc( DimTotal * sizeof(float) );
+		P1_prev = (float *) malloc( DimTotal * sizeof(float) );
+		P2_prev = (float *) malloc( DimTotal * sizeof(float) );
+		P3_prev = (float *) malloc( DimTotal * sizeof(float) );
+		R1 = (float *) malloc( DimTotal * sizeof(float) );
+		R2 = (float *) malloc( DimTotal * sizeof(float) );
+		R3 = (float *) malloc( DimTotal * sizeof(float) );
+		
+		    /* begin iterations */
+        for(ll=0; ll<iterationsNumb; ll++) {
+            
+            /* computing the gradient of the objective function */
+            Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
+            
+            /* apply nonnegativity */
+            if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}  
+            
+            /*Taking a step towards minus of the gradient*/
+            Grad_func3D(P1, P2, P3, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
+            
+            /* projection step */
+            Proj_func3D(P1, P2, P3, methodTV, DimTotal);
+            
+            /*updating R and t*/
+            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+            Rupd_func3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
+            
+            /* calculate norm - stopping rules*/
+            re = 0.0f; re1 = 0.0f;
+            for(j=0; j<DimTotal; j++)
+            {
+                re += pow(Output[j] - Output_prev[j],2);
+                re1 += pow(Output[j],2);
+            }
+            re = sqrt(re)/sqrt(re1);
+            /* stop if the norm residual is less than the tolerance EPS */
+            if (re < epsil)  count++;
+            if (count > 4) break;            
+                        
+            /*storing old values*/
+            copyIm(Output, Output_prev, dimX, dimY, dimZ);
+            copyIm(P1, P1_prev, dimX, dimY, dimZ);
+            copyIm(P2, P2_prev, dimX, dimY, dimZ);
+            copyIm(P3, P3_prev, dimX, dimY, dimZ);
+            tk = tkp1;            
+        }	
+		if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
+		free(Output_prev); free(P1); free(P2); free(P3); free(P1_prev); free(P2_prev); free(P3_prev); free(R1); free(R2); free(R3);
+	}
+	return *Output;
 }
 
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
 {
-	float val1, val2;
-	int i, j;
-#pragma omp parallel for shared(A,D,R1,R2) private(i,j,val1,val2)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			/* boundary conditions  */
-			if (i == 0) { val1 = 0.0f; }
-			else { val1 = R1[(i - 1)*dimY + (j)]; }
-			if (j == 0) { val2 = 0.0f; }
-			else { val2 = R2[(i)*dimY + (j - 1)]; }
-			D[(i)*dimY + (j)] = A[(i)*dimY + (j)] - lambda*(R1[(i)*dimY + (j)] + R2[(i)*dimY + (j)] - val1 - val2);
-		}
-	}
-	return *D;
+    float val1, val2;
+    int i,j,index;
+#pragma omp parallel for shared(A,D,R1,R2) private(index,i,j,val1,val2)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+			index = j*dimX+i;
+            /* boundary conditions  */
+            if (i == 0) {val1 = 0.0f;} else {val1 = R1[j*dimX + (i-1)];}
+            if (j == 0) {val2 = 0.0f;} else {val2 = R2[(j-1)*dimX + i];}
+            D[index] = A[index] - lambda*(R1[index] + R2[index] - val1 - val2);
+        }}
+    return *D;
 }
 float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
 {
-	float val1, val2, multip;
-	int i, j;
-	multip = (1.0f / (8.0f*lambda));
-#pragma omp parallel for shared(P1,P2,D,R1,R2,multip) private(i,j,val1,val2)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			/* boundary conditions */
-			if (i == dimX - 1) val1 = 0.0f; else val1 = D[(i)*dimY + (j)] - D[(i + 1)*dimY + (j)];
-			if (j == dimY - 1) val2 = 0.0f; else val2 = D[(i)*dimY + (j)] - D[(i)*dimY + (j + 1)];
-			P1[(i)*dimY + (j)] = R1[(i)*dimY + (j)] + multip*val1;
-			P2[(i)*dimY + (j)] = R2[(i)*dimY + (j)] + multip*val2;
-		}
-	}
-	return 1;
+    float val1, val2, multip;
+    int i,j,index;
+    multip = (1.0f/(8.0f*lambda));
+#pragma omp parallel for shared(P1,P2,D,R1,R2,multip) private(index,i,j,val1,val2)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+			index = j*dimX+i;
+            /* boundary conditions */
+            if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[j*dimX + (i+1)];
+            if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(j+1)*dimX + i];
+            P1[index] = R1[index] + multip*val1;
+            P2[index] = R2[index] + multip*val2;
+        }}
+    return 1;
 }
-float Proj_func2D(float *P1, float *P2, int methTV, int dimX, int dimY)
+float Proj_func2D(float *P1, float *P2, int methTV, int DimTotal)
 {
-	float val1, val2, denom;
-	int i, j;
-	if (methTV == 0) {
-		/* isotropic TV*/
-#pragma omp parallel for shared(P1,P2) private(i,j,denom)
-		for (i = 0; i<dimX; i++) {
-			for (j = 0; j<dimY; j++) {
-				denom = pow(P1[(i)*dimY + (j)], 2) + pow(P2[(i)*dimY + (j)], 2);
-				if (denom > 1) {
-					P1[(i)*dimY + (j)] = P1[(i)*dimY + (j)] / sqrt(denom);
-					P2[(i)*dimY + (j)] = P2[(i)*dimY + (j)] / sqrt(denom);
-				}
-			}
-		}
-	}
-	else {
-		/* anisotropic TV*/
-#pragma omp parallel for shared(P1,P2) private(i,j,val1,val2)
-		for (i = 0; i<dimX; i++) {
-			for (j = 0; j<dimY; j++) {
-				val1 = fabs(P1[(i)*dimY + (j)]);
-				val2 = fabs(P2[(i)*dimY + (j)]);
-				if (val1 < 1.0f) { val1 = 1.0f; }
-				if (val2 < 1.0f) { val2 = 1.0f; }
-				P1[(i)*dimY + (j)] = P1[(i)*dimY + (j)] / val1;
-				P2[(i)*dimY + (j)] = P2[(i)*dimY + (j)] / val2;
-			}
-		}
-	}
-	return 1;
+    float val1, val2, denom, sq_denom;
+    int i;
+    if (methTV == 0) {
+        /* isotropic TV*/
+#pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
+        for(i=0; i<DimTotal; i++) {
+                denom = powf(P1[i],2) +  powf(P2[i],2);
+                if (denom > 1.0f) {
+					sq_denom = 1.0f/sqrtf(denom);
+                    P1[i] = P1[i]*sq_denom;
+                    P2[i] = P2[i]*sq_denom;
+                }
+            }
+    }
+    else {
+        /* anisotropic TV*/
+#pragma omp parallel for shared(P1,P2) private(i,val1,val2)
+        for(i=0; i<DimTotal; i++) {
+                val1 = fabs(P1[i]);
+                val2 = fabs(P2[i]);
+                if (val1 < 1.0f) {val1 = 1.0f;}
+                if (val2 < 1.0f) {val2 = 1.0f;}
+                P1[i] = P1[i]/val1;
+                P2[i] = P2[i]/val2;
+            }
+    }
+    return 1;
 }
-float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int dimX, int dimY)
+float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int DimTotal)
 {
-	int i, j;
-	float multip;
-	multip = ((tk - 1.0f) / tkp1);
-#pragma omp parallel for shared(P1,P2,P1_old,P2_old,R1,R2,multip) private(i,j)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			R1[(i)*dimY + (j)] = P1[(i)*dimY + (j)] + multip*(P1[(i)*dimY + (j)] - P1_old[(i)*dimY + (j)]);
-			R2[(i)*dimY + (j)] = P2[(i)*dimY + (j)] + multip*(P2[(i)*dimY + (j)] - P2_old[(i)*dimY + (j)]);
-		}
-	}
-	return 1;
+    int i;
+    float multip;
+    multip = ((tk-1.0f)/tkp1);
+#pragma omp parallel for shared(P1,P2,P1_old,P2_old,R1,R2,multip) private(i)
+    for(i=0; i<DimTotal; i++) {       
+            R1[i] = P1[i] + multip*(P1[i] - P1_old[i]);
+            R2[i] = P2[i] + multip*(P2[i] - P2_old[i]);
+        }
+    return 1;
 }
 
 /* 3D-case related Functions */
 /*****************************************************************/
-float Obj_func_CALC3D(float *A, float *D, float *funcvalA, float lambda, int dimX, int dimY, int dimZ)
-{   
-    int i,j,k;
-    float f1, f2, val1, val2, val3;
-    
-    /*data-related term */
-    f1 = 0.0f;
-    for(i=0; i<dimX*dimY*dimZ; i++) f1 += pow(D[i] - A[i],2);    
-    
-    /*TV-related term */
-    f2 = 0.0f;
+float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
+{
+    float val1, val2, val3;
+    int i,j,k,index;
+#pragma omp parallel for shared(A,D,R1,R2,R3) private(index,i,j,k,val1,val2,val3)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
             for(k=0; k<dimZ; k++) {
-            /* boundary conditions  */
-            if (i == dimX-1) {val1 = 0.0f;} else {val1 = A[(dimX*dimY)*k + (i+1)*dimY + (j)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}
-            if (j == dimY-1) {val2 = 0.0f;} else {val2 = A[(dimX*dimY)*k + (i)*dimY + (j+1)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}    
-            if (k == dimZ-1) {val3 = 0.0f;} else {val3 = A[(dimX*dimY)*(k+1) + (i)*dimY + (j)] - A[(dimX*dimY)*k + (i)*dimY + (j)];}    
-            f2 += sqrt(pow(val1,2) + pow(val2,2)  + pow(val3,2));
-        }}}     
-    /* sum of two terms */
-    funcvalA[0] = 0.5f*f1 + lambda*f2;     
-    return *funcvalA;
-}
-
-float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
-{
-	float val1, val2, val3;
-	int i, j, k;
-#pragma omp parallel for shared(A,D,R1,R2,R3) private(i,j,k,val1,val2,val3)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			for (k = 0; k<dimZ; k++) {
-				/* boundary conditions */
-				if (i == 0) { val1 = 0.0f; }
-				else { val1 = R1[(dimX*dimY)*k + (i - 1)*dimY + (j)]; }
-				if (j == 0) { val2 = 0.0f; }
-				else { val2 = R2[(dimX*dimY)*k + (i)*dimY + (j - 1)]; }
-				if (k == 0) { val3 = 0.0f; }
-				else { val3 = R3[(dimX*dimY)*(k - 1) + (i)*dimY + (j)]; }
-				D[(dimX*dimY)*k + (i)*dimY + (j)] = A[(dimX*dimY)*k + (i)*dimY + (j)] - lambda*(R1[(dimX*dimY)*k + (i)*dimY + (j)] + R2[(dimX*dimY)*k + (i)*dimY + (j)] + R3[(dimX*dimY)*k + (i)*dimY + (j)] - val1 - val2 - val3);
-			}
-		}
-	}
-	return *D;
+				index = (dimX*dimY)*k + j*dimX+i;
+                /* boundary conditions */
+                if (i == 0) {val1 = 0.0f;} else {val1 = R1[(dimX*dimY)*k + j*dimX + (i-1)];}
+                if (j == 0) {val2 = 0.0f;} else {val2 = R2[(dimX*dimY)*k + (j-1)*dimX + i];}
+                if (k == 0) {val3 = 0.0f;} else {val3 = R3[(dimX*dimY)*(k-1) + j*dimX + i];}
+                D[index] = A[index] - lambda*(R1[index] + R2[index] + R3[index] - val1 - val2 - val3);
+            }}}
+    return *D;
 }
 float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
 {
-	float val1, val2, val3, multip;
-	int i, j, k;
-	multip = (1.0f / (8.0f*lambda));
-#pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(i,j,k,val1,val2,val3)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			for (k = 0; k<dimZ; k++) {
-				/* boundary conditions */
-				if (i == dimX - 1) val1 = 0.0f; else val1 = D[(dimX*dimY)*k + (i)*dimY + (j)] - D[(dimX*dimY)*k + (i + 1)*dimY + (j)];
-				if (j == dimY - 1) val2 = 0.0f; else val2 = D[(dimX*dimY)*k + (i)*dimY + (j)] - D[(dimX*dimY)*k + (i)*dimY + (j + 1)];
-				if (k == dimZ - 1) val3 = 0.0f; else val3 = D[(dimX*dimY)*k + (i)*dimY + (j)] - D[(dimX*dimY)*(k + 1) + (i)*dimY + (j)];
-				P1[(dimX*dimY)*k + (i)*dimY + (j)] = R1[(dimX*dimY)*k + (i)*dimY + (j)] + multip*val1;
-				P2[(dimX*dimY)*k + (i)*dimY + (j)] = R2[(dimX*dimY)*k + (i)*dimY + (j)] + multip*val2;
-				P3[(dimX*dimY)*k + (i)*dimY + (j)] = R3[(dimX*dimY)*k + (i)*dimY + (j)] + multip*val3;
-			}
-		}
-	}
-	return 1;
+    float val1, val2, val3, multip;
+    int i,j,k, index;
+    multip = (1.0f/(8.0f*lambda));
+#pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+            for(k=0; k<dimZ; k++) {
+				index = (dimX*dimY)*k + j*dimX+i;				
+                /* boundary conditions */
+                if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[(dimX*dimY)*k + j*dimX + (i+1)];
+                if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(dimX*dimY)*k + (j+1)*dimX + i];
+                if (k == dimZ-1) val3 = 0.0f; else val3 = D[index] - D[(dimX*dimY)*(k+1) + j*dimX + i];
+                P1[index] = R1[index] + multip*val1;
+                P2[index] = R2[index] + multip*val2;
+                P3[index] = R3[index] + multip*val3;
+            }}}
+    return 1;
 }
-float Proj_func3D(float *P1, float *P2, float *P3, int dimX, int dimY, int dimZ)
+float Proj_func3D(float *P1, float *P2, float *P3, int methTV, int DimTotal)
+{		
+    float val1, val2, val3, denom, sq_denom;
+    int i;
+    if (methTV == 0) {
+	/* isotropic TV*/
+	#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3,sq_denom)
+    for(i=0; i<DimTotal; i++) {        
+				denom = powf(P1[i],2) + powf(P2[i],2) + powf(P3[i],2);
+                if (denom > 1.0f) {
+					sq_denom = 1.0f/sqrtf(denom);
+                    P1[i] = P1[i]*sq_denom;
+                    P2[i] = P2[i]*sq_denom;
+                    P3[i] = P3[i]*sq_denom;
+                }
+			}
+	}    
+    else {
+    /* anisotropic TV*/
+#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3)
+    for(i=0; i<DimTotal; i++) {
+                val1 = fabs(P1[i]);
+                val2 = fabs(P2[i]);
+                val3 = fabs(P3[i]);
+                if (val1 < 1.0f) {val1 = 1.0f;}
+                if (val2 < 1.0f) {val2 = 1.0f;}
+                if (val3 < 1.0f) {val3 = 1.0f;}                
+                P1[i] = P1[i]/val1;
+                P2[i] = P2[i]/val2;
+                P3[i] = P3[i]/val3;
+            }
+		}
+    return 1;
+}
+float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int DimTotal)
 {
-	float val1, val2, val3;
-	int i, j, k;
-#pragma omp parallel for shared(P1,P2,P3) private(i,j,k,val1,val2,val3)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			for (k = 0; k<dimZ; k++) {
-				val1 = fabs(P1[(dimX*dimY)*k + (i)*dimY + (j)]);
-				val2 = fabs(P2[(dimX*dimY)*k + (i)*dimY + (j)]);
-				val3 = fabs(P3[(dimX*dimY)*k + (i)*dimY + (j)]);
-				if (val1 < 1.0f) { val1 = 1.0f; }
-				if (val2 < 1.0f) { val2 = 1.0f; }
-				if (val3 < 1.0f) { val3 = 1.0f; }
-
-				P1[(dimX*dimY)*k + (i)*dimY + (j)] = P1[(dimX*dimY)*k + (i)*dimY + (j)] / val1;
-				P2[(dimX*dimY)*k + (i)*dimY + (j)] = P2[(dimX*dimY)*k + (i)*dimY + (j)] / val2;
-				P3[(dimX*dimY)*k + (i)*dimY + (j)] = P3[(dimX*dimY)*k + (i)*dimY + (j)] / val3;
-			}
-		}
-	}
-	return 1;
+    int i;
+    float multip;
+    multip = ((tk-1.0f)/tkp1);
+#pragma omp parallel for shared(P1,P2,P3,P1_old,P2_old,P3_old,R1,R2,R3,multip) private(i)
+    for(i=0; i<DimTotal; i++) {
+                R1[i] = P1[i] + multip*(P1[i] - P1_old[i]);
+                R2[i] = P2[i] + multip*(P2[i] - P2_old[i]);
+                R3[i] = P3[i] + multip*(P3[i] - P3_old[i]);
+            }
+    return 1;
 }
-float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int dimX, int dimY, int dimZ)
-{
-	int i, j, k;
-	float multip;
-	multip = ((tk - 1.0f) / tkp1);
-#pragma omp parallel for shared(P1,P2,P3,P1_old,P2_old,P3_old,R1,R2,R3,multip) private(i,j,k)
-	for (i = 0; i<dimX; i++) {
-		for (j = 0; j<dimY; j++) {
-			for (k = 0; k<dimZ; k++) {
-				R1[(dimX*dimY)*k + (i)*dimY + (j)] = P1[(dimX*dimY)*k + (i)*dimY + (j)] + multip*(P1[(dimX*dimY)*k + (i)*dimY + (j)] - P1_old[(dimX*dimY)*k + (i)*dimY + (j)]);
-				R2[(dimX*dimY)*k + (i)*dimY + (j)] = P2[(dimX*dimY)*k + (i)*dimY + (j)] + multip*(P2[(dimX*dimY)*k + (i)*dimY + (j)] - P2_old[(dimX*dimY)*k + (i)*dimY + (j)]);
-				R3[(dimX*dimY)*k + (i)*dimY + (j)] = P3[(dimX*dimY)*k + (i)*dimY + (j)] + multip*(P3[(dimX*dimY)*k + (i)*dimY + (j)] - P3_old[(dimX*dimY)*k + (i)*dimY + (j)]);
-			}
-		}
-	}
-	return 1;
-}
-
-
