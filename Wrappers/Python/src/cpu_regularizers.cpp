@@ -27,7 +27,6 @@ limitations under the License.
 #include "boost/tuple/tuple.hpp"
 
 #include "SplitBregman_TV_core.h"
-//#include "FGP_TV_core.h"
 #include "LLT_model_core.h"
 #include "PatchBased_Regul_core.h"
 #include "TGV_PD_core.h"
