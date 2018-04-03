@@ -21,6 +21,10 @@ cimport numpy as np
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
+
+#****************************************************************#
+#********************** Total-variation ROF *********************#
+#****************************************************************#
 def TV_ROF_CPU(inputData, regularization_parameter, iterationsNumb, marching_step_parameter):
     if inputData.ndim == 2:
         return TV_ROF_2D(inputData, regularization_parameter, iterationsNumb, marching_step_parameter)
@@ -58,8 +62,12 @@ def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     # Run ROF iterations for 3D data 
     TV_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularization_parameter, iterationsNumb, marching_step_parameter, dims[0], dims[1], dims[2])
 
-    return outputData    
-                     
+    return outputData
+
+#****************************************************************#
+#********************** Total-variation FGP *********************#
+#****************************************************************#
+#******** Total-variation Fast-Gradient-Projection (FGP)*********#
 def TV_FGP_CPU(inputData, regularization_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, printM):
     if inputData.ndim == 2:
         return TV_FGP_2D(inputData, regularization_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, printM)
