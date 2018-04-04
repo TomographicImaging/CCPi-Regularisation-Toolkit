@@ -28,7 +28,7 @@ set (CIL_VERSION_PATCH 1)
 set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}' CACHE INTERNAL "Core Imaging Library version" FORCE)
 
 # set the Python variables for the Conda environment
-include(${CMAKE_SOURCE_DIR}/CMake/FindAnacondaEnvironment.cmake)
+#include(${CMAKE_SOURCE_DIR}/CMake/FindAnacondaEnvironment.cmake)
 
 add_subdirectory(Core)
 add_subdirectory(Wrappers)
