@@ -34,8 +34,7 @@ extra_libraries = ['cilreg']
 
 extra_include_dirs += [os.path.join(".." , ".." , "Core"),
                        os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
-                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "Diffus_HO" ) , 
-                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "NL_Regul" ) , 
+                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "TV_FGP" ) , 
                        os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "TV_ROF" ) , 
 						   "."]
 
@@ -47,23 +46,6 @@ else:
     
 extra_libraries += ["@BOOST_PYTHON_LIB@", "@BOOST_NUMPY_LIB@"]
 
-
-setup(
-    name='ccpi',
-	description='CCPi Core Imaging Library - Image Regularizers',
-	version=cil_version,
-    cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ccpi.filters.cpu_regularizers_boost",
-                             sources=[os.path.join("." , "src", "cpu_regularizers.cpp" )],
-                             include_dirs=extra_include_dirs, 
-							 library_dirs=extra_library_dirs, 
-							 extra_compile_args=extra_compile_args, 
-							 libraries=extra_libraries ), 
-    
-    ],
-	zip_safe = False,	
-	packages = {'ccpi','ccpi.filters'},
-)
 
 setup(
     name='ccpi',
