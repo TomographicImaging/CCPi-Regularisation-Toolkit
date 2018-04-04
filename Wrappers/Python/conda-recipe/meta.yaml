@@ -14,8 +14,8 @@ requirements:
     - python
     - numpy x.x
     - setuptools
-    - boost ==1.64.0
-    - boost-cpp ==1.64.0
+    #- boost ==1.64.0
+    #- boost-cpp ==1.64.0
     - cython
     - cil_regularizer
     - vc 14 # [win and py35] 
@@ -25,7 +25,7 @@ requirements:
   run:
     - python
     - numpy x.x
-    - boost ==1.64
+    #- boost ==1.64
     - cil_regularizer
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
