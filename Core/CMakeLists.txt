@@ -84,10 +84,10 @@ message("Adding regularizers as shared library")
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=multicore -openmp -fPIC")
 add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/FGP_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/LLT_model_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/LLT_model_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/utils.c
 	    )
