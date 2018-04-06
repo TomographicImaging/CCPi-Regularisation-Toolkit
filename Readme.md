@@ -1,7 +1,7 @@
-# CCPi-Regularisation Toolkit (CCPi-RUT)
+# CCPi-Regularisation Toolkit (CCPi-RGL)
 
 **Iterative image reconstruction (IIR) methods normally require regularisation to stabilise convergence and make the reconstruction problem more well-posed. 
-CCPi-RUT software consist of 2D/3D regularisation modules which frequently used for IIR. 
+CCPi-RGL software consist of 2D/3D regularisation modules which frequently used for IIR. 
 The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 ## Prerequisites: 
@@ -13,14 +13,21 @@ The core modules are written in C-OMP and CUDA languages and wrappers for Matlab
 
 ## Package modules (regularisers):
 
-1. Rudin-Osher-Fatemi Total Variation (explicit PDE minimisation scheme) [2D/3D GPU/CPU] (1)
-2. Fast-Gradient-Projection Total Variation [2D/3D GPU/CPU] (2)
+1. Rudin-Osher-Fatemi Total Variation (explicit PDE minimisation scheme) [2D/3D GPU/CPU]
+2. Fast-Gradient-Projection Total Variation [2D/3D GPU/CPU]
 
 ### Installation:
 
 #### Python (conda-build)
 ```
-     export CIL_VERSION=0.9.2
+	export CIL_VERSION=0.9.2
+	conda build recipes/regularizers --numpy 1.12 --python 3.5 
+	conda install cil_regularizer=0.9.2 --use-local --force
+	cd Wrappers/Python
+	conda build conda-recipe --numpy 1.12 --python 3.5 
+	conda install ccpi-regularizer=0.9.2 --use-local --force
+	cd test/
+	python test_cpu_vs_gpu_regularizers.py
 ```
 #### Matlab 
 
@@ -33,5 +40,5 @@ The core modules are written in C-OMP and CUDA languages and wrappers for Matlab
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 ### Acknowledgments:
-CCPi-RUT software is a product of the [CCPi](https://www.ccpi.ac.uk/) group and STFC SCD software developers. Any relevant questions/comments can be e-mailed to Daniil Kazantsev at dkazanc@hotmail.com
+CCPi-RGL software is a product of the [CCPi](https://www.ccpi.ac.uk/) group and STFC SCD software developers. Any relevant questions/comments can be e-mailed to Daniil Kazantsev at dkazanc@hotmail.com
 

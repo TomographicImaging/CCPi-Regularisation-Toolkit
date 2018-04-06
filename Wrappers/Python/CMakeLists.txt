@@ -24,15 +24,6 @@ if (PYTHONINTERP_FOUND)
   endif()
 endif()
 
-find_package(Boost  REQUIRED
-	COMPONENTS ${BOOST_PYTHON} ${BOOST_NUMPY})
-
-if (Boost_FOUND)
-   message("Boost version " ${Boost_VERSION})
-   message("Boost include dir " ${Boost_INCLUDE_DIRS})
-   message("Boost library dir " ${Boost_LIBRARY_DIRS})
-   message("Boost libraries " ${Boost_LIBRARIES})
-endif()
 	
 ## Build the regularizers package as a library
 message("Creating Regularizers as shared library")
@@ -46,7 +37,7 @@ if(WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
   
   set (EXTRA_LIBRARIES 
-        ${Boost_LIBRARIES}
+        #${Boost_LIBRARIES}
 		#"tiff"
 		)
 		
@@ -55,34 +46,11 @@ if(WIN32)
 elseif(UNIX)
    set (FLAGS "-fopenmp -O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS -std=c++0x")  
    set (EXTRA_LIBRARIES 
-		${Boost_LIBRARIES}
+		#${Boost_LIBRARIES}
 		#"tiff"
 		"gomp"
 		)
 endif()
-
-
-if (WIN32)
-  list(GET Boost_LIBRARIES 0 place )
-  get_filename_component(BOOST_PYTHON_LIB ${place} NAME_WE )
-  list(GET Boost_LIBRARIES 1 place )
-  get_filename_component(BOOST_NUMPY_LIB ${place} NAME_WE )
-else()
-  # on linux the library looks like libboost_numpy3.so:
-  # we need to get rid of the lib at the beginning
-  list(GET Boost_LIBRARIES 0 place )
-  get_filename_component(place2 ${place} NAME_WE )
-  string(REGEX REPLACE "^lib(.*)" "\\1" BOOST_PYTHON_LIB "${place2}")
-  
-  list(GET Boost_LIBRARIES 1 place )
-  get_filename_component(place2 ${place} NAME_WE )
-  string(REGEX REPLACE "^lib(.*)" "\\1" BOOST_NUMPY_LIB "${place2}")
-endif()
-
-message ("found " ${BOOST_PYTHON_LIB})
-message ("found " ${BOOST_NUMPY_LIB})
-
-
 
 # GPU Regularizers
 

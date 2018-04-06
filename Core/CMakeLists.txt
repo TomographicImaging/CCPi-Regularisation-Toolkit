@@ -24,15 +24,15 @@ if (PYTHONINTERP_FOUND)
   endif()
 endif()
 
-find_package(Boost  REQUIRED
-	COMPONENTS ${BOOST_PYTHON} ${BOOST_NUMPY})
-
-if (Boost_FOUND)
-   message("Boost version " ${Boost_VERSION})
-   message("Boost include dir " ${Boost_INCLUDE_DIRS})
-   message("Boost library dir " ${Boost_LIBRARY_DIRS})
-   message("Boost libraries " ${Boost_LIBRARIES})
-endif()
+#find_package(Boost  REQUIRED
+#	COMPONENTS ${BOOST_PYTHON} ${BOOST_NUMPY})
+#
+#if (Boost_FOUND)
+#   message("Boost version " ${Boost_VERSION})
+#   message("Boost include dir " ${Boost_INCLUDE_DIRS})
+#   message("Boost library dir " ${Boost_LIBRARY_DIRS})
+#   message("Boost libraries " ${Boost_LIBRARIES})
+#endif()
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -55,7 +55,7 @@ if(WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
   
   set (EXTRA_LIBRARIES 
-        ${Boost_LIBRARIES}
+        #${Boost_LIBRARIES}
 		#"tiff"
 		)
 		
@@ -67,7 +67,7 @@ elseif(UNIX)
    set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   
    set (EXTRA_LIBRARIES 
-		${Boost_LIBRARIES}
+		#${Boost_LIBRARIES}
 		#"tiff"
 		"gomp"
 		"m"
@@ -84,10 +84,10 @@ message("Adding regularizers as shared library")
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=multicore -openmp -fPIC")
 add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/FGP_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/LLT_model_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/LLT_model_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/utils.c
 	    )
@@ -127,8 +127,6 @@ if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
   message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
   CUDA_ADD_LIBRARY(cilregcuda SHARED
-	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/Diffus_HO/Diff4th_GPU_kernel.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/NL_Regul/NLM_GPU_kernel.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_ROF/TV_ROF_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_FGP/TV_FGP_GPU_core.cu
   )
