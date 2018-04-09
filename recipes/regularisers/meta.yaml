@@ -1,5 +1,5 @@
 package:
-  name: cil_regularizer
+  name: cil_regulariser
   version: {{ environ['CIL_VERSION'] }}
 
 #source:
@@ -37,4 +37,4 @@ requirements:
 about:
   home: http://www.ccpi.ac.uk
   license: Apache v2.0
-  summary: Regularizer package from CCPi
+  summary: Regulariser package from CCPi

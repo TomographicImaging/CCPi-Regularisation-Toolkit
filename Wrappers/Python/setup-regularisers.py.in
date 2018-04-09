@@ -33,9 +33,9 @@ extra_link_args = []
 extra_libraries = ['cilreg']
 
 extra_include_dirs += [os.path.join(".." , ".." , "Core"),
-                       os.path.join(".." , ".." , "Core",  "regularizers_CPU"),
-                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "TV_FGP" ) , 
-                       os.path.join(".." , ".." , "Core",  "regularizers_GPU" , "TV_ROF" ) , 
+                       os.path.join(".." , ".." , "Core",  "regularisers_CPU"),
+                       os.path.join(".." , ".." , "Core",  "regularisers_GPU" , "TV_FGP" ) , 
+                       os.path.join(".." , ".." , "Core",  "regularisers_GPU" , "TV_ROF" ) , 
 						   "."]
 
 if platform.system() == 'Windows':				   
@@ -46,11 +46,11 @@ else:
     
 setup(
     name='ccpi',
-	description='CCPi Core Imaging Library - Image Regularizers',
+	description='CCPi Core Imaging Library - Image regularisers',
 	version=cil_version,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ccpi.filters.cpu_regularizers_cython",
-                             sources=[os.path.join("." , "src", "cpu_regularizers.pyx" ) ],
+    ext_modules = [Extension("ccpi.filters.cpu_regularisers_cython",
+                             sources=[os.path.join("." , "src", "cpu_regularisers.pyx" ) ],
                              include_dirs=extra_include_dirs, 
 							 library_dirs=extra_library_dirs, 
 							 extra_compile_args=extra_compile_args, 

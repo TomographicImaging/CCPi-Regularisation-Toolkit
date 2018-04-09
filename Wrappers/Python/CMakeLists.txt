@@ -1,7 +1,7 @@
 #   Copyright 2018 Edoardo Pasca
 cmake_minimum_required (VERSION 3.0)
 
-project(RegularizerPython)
+project(regulariserPython)
 #https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
 
 # The version number.
@@ -25,8 +25,8 @@ if (PYTHONINTERP_FOUND)
 endif()
 
 	
-## Build the regularizers package as a library
-message("Creating Regularizers as shared library")
+## Build the regularisers package as a library
+message("Creating Regularisers as shared library")
 
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
@@ -52,7 +52,7 @@ elseif(UNIX)
 		)
 endif()
 
-# GPU Regularizers
+# GPU regularisers
 
 find_package(CUDA)
 if (CUDA_FOUND)
@@ -60,12 +60,12 @@ if (CUDA_FOUND)
   set (SETUP_GPU_WRAPPERS "extra_libraries += ['cilregcuda']\n\
 setup( \n\
     name='ccpi', \n\
- 	description='CCPi Core Imaging Library - Image Regularizers GPU',\n\
+ 	description='CCPi Core Imaging Library - Image regularisers GPU',\n\
  	version=cil_version,\n\
     cmdclass = {'build_ext': build_ext},\n\
-    ext_modules = [Extension('ccpi.filters.gpu_regularizers',\n\
+    ext_modules = [Extension('ccpi.filters.gpu_regularisers',\n\
                               sources=[ \n\
-                                      os.path.join('.' , 'src', 'gpu_regularizers.pyx' ),\n\
+                                      os.path.join('.' , 'src', 'gpu_regularisers.pyx' ),\n\
                                         ],\n\
                              include_dirs=extra_include_dirs, \n\
  							 library_dirs=extra_library_dirs, \n\
@@ -80,9 +80,9 @@ else()
   set(SETUP_GPU_WRAPPERS "#CUDA NOT FOUND")
 endif()
 
-configure_file("setup-regularizers.py.in" "setup-regularizers.py")
+configure_file("setup-regularisers.py.in" "setup-regularisers.py")
 
 
-#add_executable(regularizer_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regularizer.cpp)
+#add_executable(regulariser_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regulariser.cpp)
 
-#target_link_libraries (regularizer_test LINK_PUBLIC regularizers_lib)
+#target_link_libraries (regulariser_test LINK_PUBLIC regularisers_lib)

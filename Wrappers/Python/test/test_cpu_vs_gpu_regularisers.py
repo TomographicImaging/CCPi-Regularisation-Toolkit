@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularizers import ROF_TV, FGP_TV
+from ccpi.filters.regularisers import ROF_TV, FGP_TV
 
 ###############################################################################
 def printParametersToString(pars):
@@ -54,7 +54,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure(1)
-plt.suptitle('Comparison of ROF-TV regularizer using CPU and GPU implementations')
+plt.suptitle('Comparison of ROF-TV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -62,14 +62,14 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : u0,\
-        'regularization_parameter':0.04,\
+        'regularisation_parameter':0.04,\
         'number_of_iterations': 1200,\
         'time_marching_parameter': 0.0025        
         }
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
 rof_cpu = ROF_TV(pars['input'],
-             pars['regularization_parameter'],
+             pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],'cpu')
 rms = rmse(Im, rof_cpu)
@@ -92,7 +92,7 @@ plt.title('{}'.format('CPU results'))
 print ("##############ROF TV GPU##################")
 start_time = timeit.default_timer()
 rof_gpu = ROF_TV(pars['input'], 
-                     pars['regularization_parameter'],
+                     pars['regularisation_parameter'],
                      pars['number_of_iterations'], 
                      pars['time_marching_parameter'],'gpu')
                      
@@ -132,7 +132,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure(2)
-plt.suptitle('Comparison of FGP-TV regularizer using CPU and GPU implementations')
+plt.suptitle('Comparison of FGP-TV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -140,7 +140,7 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
-        'regularization_parameter':0.04, \
+        'regularisation_parameter':0.04, \
         'number_of_iterations' :1200 ,\
         'tolerance_constant':0.00001,\
         'methodTV': 0 ,\
@@ -151,7 +151,7 @@ pars = {'algorithm' : FGP_TV, \
 print ("#############FGP TV CPU####################")
 start_time = timeit.default_timer()
 fgp_cpu = FGP_TV(pars['input'], 
-              pars['regularization_parameter'],
+              pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
@@ -179,7 +179,7 @@ plt.title('{}'.format('CPU results'))
 print ("##############FGP TV GPU##################")
 start_time = timeit.default_timer()
 fgp_gpu = FGP_TV(pars['input'], 
-              pars['regularization_parameter'],
+              pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],

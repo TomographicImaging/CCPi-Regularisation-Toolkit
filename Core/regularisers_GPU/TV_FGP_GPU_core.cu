@@ -493,7 +493,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             cudaMemset(R2, 0, ImSize*sizeof(float));
             cudaMemset(R3, 0, ImSize*sizeof(float));
             /********************** Run CUDA 3D kernel here ********************/    
-            multip = (1.0f/(8.0f*lambdaPar));
+            multip = (1.0f/(26.0f*lambdaPar));
     
             /* The main kernel */
         for (i = 0; i < iter; i++) {

@@ -1,7 +1,7 @@
 #   Copyright 2018 Edoardo Pasca
 cmake_minimum_required (VERSION 3.0)
 
-project(RegularizerLibrary)
+project(RGL)
 #https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
 
 # The version number.
@@ -41,8 +41,8 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-## Build the regularizers package as a library
-message("Creating Regularizers as shared library")
+## Build the regularisers package as a library
+message("Creating Regularisers as a shared library")
 
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
@@ -76,26 +76,26 @@ elseif(UNIX)
 endif()
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
-## Build the regularizers package as a library
-message("Adding regularizers as shared library")
+## Build the regularisers package as a library
+message("Adding regularisers as a shared library")
 
 #set(CMAKE_C_COMPILER /apps/pgi/linux86-64/17.4/bin/pgcc)
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=tesla:cc20 -openmp")
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=multicore -openmp -fPIC")
 add_library(cilreg SHARED
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/FGP_TV_core.c
-	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/LLT_model_core.c
-	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/PatchBased_Regul_core.c
-	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/SplitBregman_TV_core.c
-	    #${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/TGV_PD_core.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/ROF_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/utils.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/LLT_model_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchBased_Regul_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SplitBregman_TV_core.c
+	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_PD_core.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.c
 	    )
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
 include_directories(cilreg PUBLIC 
                       ${LIBRARY_INC}/include 
 					  ${CMAKE_CURRENT_SOURCE_DIR}
-		              ${CMAKE_CURRENT_SOURCE_DIR}/regularizers_CPU/  )
+		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/  )
 #GENERATE_EXPORT_HEADER( cilreg
 #             BASE_NAME cilreg
 #             EXPORT_MACRO_NAME CCPiCore_EXPORTS
@@ -120,15 +120,15 @@ message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
 	)
 endif()
 
-# GPU Regularizers
+# GPU Regularisers
 
 find_package(CUDA)
 if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
   message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
   CUDA_ADD_LIBRARY(cilregcuda SHARED
-	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_ROF_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_FGP_GPU_core.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
   )
   if (UNIX)
     message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
@@ -149,6 +149,6 @@ else()
 endif()
 
 
-#add_executable(regularizer_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regularizer.cpp)
+#add_executable(regulariser_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regulariser.cpp)
 
-#target_link_libraries (regularizer_test LINK_PUBLIC regularizers_lib)
+#target_link_libraries (regulariser_test LINK_PUBLIC regularisers_lib)
