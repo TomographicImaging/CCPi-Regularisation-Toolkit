@@ -1,19 +1,19 @@
-% compile mex's in Matlab once
+% execute this mex file in Matlab once
 copyfile ../../../Core/regularizers_CPU/ regularizers_CPU/
-copyfile ../../../Core/regularizers_GPU/ regularizers_GPU/
 copyfile ../../../Core/CCPiDefines.h regularizers_CPU/
 
 cd regularizers_CPU/
 
-% compile C regularizers
-
+fprintf('%s \n', 'Compiling CPU regularizers...');
 mex ROF_TV.c ROF_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile ROF_TV.mex* ../installed/
+
 mex FGP_TV.c FGP_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile FGP_TV.mex* ../installed/
 
-delete ROF_TV_core.c ROF_TV_core.h FGP_TV_core.c FGP_TV_core.h utils.c utils.h CCPiDefines.h
+delete ROF_TV_core* FGP_TV_core* utils.c utils.h CCPiDefines.h
 
-% compile CUDA-based regularizers
-%cd regularizers_GPU/
+fprintf('%s \n', 'All successfully compiled!');
 
 cd ../../
 cd demos

@@ -50,13 +50,11 @@ float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 {
     float *D1, *D2, *D3;
     int i, DimTotal;
-    DimTotal = dimX*dimY*dimZ;
+    DimTotal = dimX*dimY*dimZ;    
     
-      
-    D1 = (float *) malloc( DimTotal * sizeof(float) );
-    D2 = (float *) malloc( DimTotal * sizeof(float) );   
-    D3 = (float *) malloc( DimTotal * sizeof(float) );   
-	
+    D1 = calloc(DimTotal, sizeof(float));
+    D2 = calloc(DimTotal, sizeof(float));
+    D3 = calloc(DimTotal, sizeof(float));
 	   
     /* copy into output */
     copyIm(Input, Output, dimX, dimY, dimZ);
@@ -268,7 +266,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    B[index] = B[index] + tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
+                    B[index] = B[index] + tau*(lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
                 }}}		
     }
     else {
@@ -286,7 +284,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 dv1 = D1[index] - D1[j2*dimX + i];
                 dv2 = D2[index] - D2[j*dimX + i2];                
 
-                B[index] =  B[index] + tau*(2.0f*lambda*(dv1 + dv2) - (B[index] - A[index]));                
+                B[index] =  B[index] + tau*(lambda*(dv1 + dv2) - (B[index] - A[index]));                
             }}
     }
     return *B;

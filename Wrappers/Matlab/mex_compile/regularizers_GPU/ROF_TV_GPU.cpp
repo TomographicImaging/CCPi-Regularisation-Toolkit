@@ -18,7 +18,7 @@
  */
 #include "matrix.h"
 #include "mex.h"
-#include "ROF_TV_core.h"
+#include "TV_ROF_GPU_core.h"
 
 /* ROF-TV denoising/regularization model [1] (2D/3D case)
  * (MEX wrapper for MATLAB)
@@ -69,5 +69,5 @@ void mexFunction(
     }    
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     
-    TV_ROF_CPU_main(Input, Output, lambda, iter_numb, tau, dimX, dimY, dimZ);    
+    TV_ROF_GPU_main(Input, Output, lambda, iter_numb, tau, dimX, dimY, dimZ);    
 }

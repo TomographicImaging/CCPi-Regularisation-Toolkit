@@ -50,13 +50,13 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
 		DimTotal = dimX*dimY;
 		
-		Output_prev = (float *) malloc( DimTotal * sizeof(float) );
-		P1 = (float *) malloc( DimTotal * sizeof(float) );
-		P2 = (float *) malloc( DimTotal * sizeof(float) );
-		P1_prev = (float *) malloc( DimTotal * sizeof(float) );
-		P2_prev = (float *) malloc( DimTotal * sizeof(float) );
-		R1 = (float *) malloc( DimTotal * sizeof(float) );
-		R2 = (float *) malloc( DimTotal * sizeof(float) );
+        Output_prev = calloc(DimTotal, sizeof(float));
+        P1 = calloc(DimTotal, sizeof(float));
+        P2 = calloc(DimTotal, sizeof(float));
+        P1_prev = calloc(DimTotal, sizeof(float));
+        P2_prev = calloc(DimTotal, sizeof(float));        
+        R1 = calloc(DimTotal, sizeof(float));
+        R2 = calloc(DimTotal, sizeof(float)); 
 		
 		/* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
@@ -100,18 +100,18 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 	else {
 		/*3D case*/
 		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;		
-		DimTotal = dimX*dimY*dimZ;
-		
-		Output_prev = (float *) malloc( DimTotal * sizeof(float) );
-		P1 = (float *) malloc( DimTotal * sizeof(float) );
-		P2 = (float *) malloc( DimTotal * sizeof(float) );
-		P3 = (float *) malloc( DimTotal * sizeof(float) );
-		P1_prev = (float *) malloc( DimTotal * sizeof(float) );
-		P2_prev = (float *) malloc( DimTotal * sizeof(float) );
-		P3_prev = (float *) malloc( DimTotal * sizeof(float) );
-		R1 = (float *) malloc( DimTotal * sizeof(float) );
-		R2 = (float *) malloc( DimTotal * sizeof(float) );
-		R3 = (float *) malloc( DimTotal * sizeof(float) );
+		DimTotal = dimX*dimY*dimZ;        
+        
+        Output_prev = calloc(DimTotal, sizeof(float));
+        P1 = calloc(DimTotal, sizeof(float));
+        P2 = calloc(DimTotal, sizeof(float));
+        P3 = calloc(DimTotal, sizeof(float));
+        P1_prev = calloc(DimTotal, sizeof(float));
+        P2_prev = calloc(DimTotal, sizeof(float));        
+        P3_prev = calloc(DimTotal, sizeof(float));        
+        R1 = calloc(DimTotal, sizeof(float));
+        R2 = calloc(DimTotal, sizeof(float)); 
+        R3 = calloc(DimTotal, sizeof(float)); 
 		
 		    /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
