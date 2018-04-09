@@ -3,7 +3,7 @@
 """
 Created on Wed Feb 21 13:34:32 2018
 # quality metrics
-@author: algol
+@authors: Daniil Kazantsev, Edoardo Pasca
 """
 import numpy as np
 

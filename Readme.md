@@ -29,8 +29,8 @@ can also be used as image denoising iterative filters. The core modules are writ
 	cd Wrappers/Python
 	conda build conda-recipe --numpy 1.12 --python 3.5 
 	conda install ccpi-regulariser=0.9.2 --use-local --force
-	cd test/
-	python test_cpu_vs_gpu_regularisers.py
+	cd demos/
+	python demo_cpu_regularisers.py.py # to run CPU demo
 ```
 ### Matlab
 ```
