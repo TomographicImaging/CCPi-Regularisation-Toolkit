@@ -1,24 +1,27 @@
-# CCPi-Regularisation Toolkit (CCPi-RGL)
+# CCPi-Regularization Toolkit (CCPi-RGL)
 
-**Iterative image reconstruction (IIR) methods normally require regularisation to stabilise convergence and make the reconstruction problem more well-posed. 
-CCPi-RGL software consist of 2D/3D regularisation modules which frequently used for IIR. 
-The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
+**Iterative image reconstruction (IIR) methods normally require regularization to stabilize the convergence and make the reconstruction problem more well-posed. 
+CCPi-RGL software consist of 2D/3D regularization modules for single-channel and multi-channel reconstruction problems. The modules especially suited for IIR, however,
+can also be used as image denoising iterative filters. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 ## Prerequisites: 
 
- * MATLAB (www.mathworks.com/products/matlab/)
- * Python (ver. 3.5); Cython
+ * MATLAB (www.mathworks.com/products/matlab/) OR
+ * Python (tested ver. 3.5); Cython
  * C compilers
  * nvcc (CUDA SDK) compilers
 
 ## Package modules (regularisers):
 
-1. Rudin-Osher-Fatemi Total Variation (explicit PDE minimisation scheme) [2D/3D GPU/CPU]
-2. Fast-Gradient-Projection Total Variation [2D/3D GPU/CPU]
+### Single-channel
+1. Rudin-Osher-Fatemi (ROF) Total Variation (explicit PDE minimisation scheme) [2D/3D GPU/CPU]; (Ref. 1)
+2. Fast-Gradient-Projection (FGP) Total Variation [2D/3D GPU/CPU]; (Ref. 2)
 
-### Installation:
+### Multi-channel
 
-#### Python (conda-build)
+## Installation:
+
+### Python (conda-build)
 ```
 	export CIL_VERSION=0.9.2
 	conda build recipes/regularizers --numpy 1.12 --python 3.5 
@@ -29,7 +32,12 @@ The core modules are written in C-OMP and CUDA languages and wrappers for Matlab
 	cd test/
 	python test_cpu_vs_gpu_regularizers.py
 ```
-#### Matlab 
+### Matlab
+```
+	cd /Wrappers/Matlab/mex_compile
+	compileCPU_mex.m % to compile CPU modules
+	compileGPU_mex.m % to compile GPU modules (see instructions in the file)
+```
 
 ### References:
 1. Rudin, L.I., Osher, S. and Fatemi, E., 1992. Nonlinear total variation based noise removal algorithms. Physica D: nonlinear phenomena, 60(1-4), pp.259-268.

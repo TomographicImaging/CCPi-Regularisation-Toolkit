@@ -127,8 +127,8 @@ if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
   message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
   CUDA_ADD_LIBRARY(cilregcuda SHARED
-	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_ROF/TV_ROF_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_FGP/TV_FGP_GPU_core.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_ROF_GPU_core.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularizers_GPU/TV_FGP_GPU_core.cu
   )
   if (UNIX)
     message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")

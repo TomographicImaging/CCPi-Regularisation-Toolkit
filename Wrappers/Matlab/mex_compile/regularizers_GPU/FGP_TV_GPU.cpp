@@ -18,9 +18,9 @@
  */
 #include "matrix.h"
 #include "mex.h"
-#include "FGP_TV_core.h"
+#include "TV_FGP_GPU_core.h"
 
-/* C-OMP implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
+/* GPU (CUDA) implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
  *
  * Input Parameters:
  * 1. Noisy image/volume
@@ -37,7 +37,6 @@
  * This function is based on the Matlab's code and paper by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
-
 
 void mexFunction(
         int nlhs, mxArray *plhs[],
@@ -92,5 +91,5 @@ void mexFunction(
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     
     /* running the function */
-    TV_FGP_CPU_main(Input, Output, lambda, iter, epsil, methTV, nonneg, printswitch, dimX, dimY, dimZ);
+    TV_FGP_GPU_main(Input, Output, lambda, iter, epsil, methTV, nonneg, printswitch, dimX, dimY, dimZ);    
 }

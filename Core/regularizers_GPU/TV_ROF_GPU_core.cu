@@ -147,7 +147,7 @@ __host__ __device__ int sign (float x)
                 dv1 = D1[index] - D1[j2*N + i];
                 dv2 = D2[index] - D2[j*N + i2];                                
                 
-                Update[index] =  Update[index] + tau*(2.0f*lambda*(dv1 + dv2) - (Update[index] - Input[index]));      
+                Update[index] =  Update[index] + tau*(lambda*(dv1 + dv2) - (Update[index] - Input[index]));      
 		
 		}  
 	}   
@@ -297,7 +297,7 @@ __host__ __device__ int sign (float x)
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    Update[index] = Update[index] + tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
+                    Update[index] = Update[index] + tau*(lambda*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
 		
 		}  
 	}
