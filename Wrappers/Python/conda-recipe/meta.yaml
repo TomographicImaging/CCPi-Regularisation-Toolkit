@@ -1,5 +1,5 @@
 package:
-  name: ccpi-regularizer
+  name: ccpi-regulariser
   version: {{ environ['CIL_VERSION'] }}
 
 
@@ -17,7 +17,7 @@ requirements:
     #- boost ==1.64.0
     #- boost-cpp ==1.64.0
     - cython
-    - cil_regularizer
+    - cil_regulariser
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
     - cmake 
@@ -26,7 +26,7 @@ requirements:
     - python
     - numpy x.x
     #- boost ==1.64
-    - cil_regularizer
+    - cil_regulariser
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
 

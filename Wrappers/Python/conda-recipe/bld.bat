@@ -11,7 +11,7 @@ cd %SRC_DIR%\ccpi\Python
 :: issue cmake to create setup.py
 cmake . 
 
-%PYTHON% setup-regularizers.py build_ext
+%PYTHON% setup-regularisers.py build_ext
 if errorlevel 1 exit 1
-%PYTHON% setup-regularizers.py install
+%PYTHON% setup-regularisers.py install
 if errorlevel 1 exit 1

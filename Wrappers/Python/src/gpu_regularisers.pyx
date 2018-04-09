@@ -23,23 +23,23 @@ cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, i
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
 def TV_ROF_GPU(inputData,
-                     regularization_parameter,
+                     regularisation_parameter,
                      iterations, 
                      time_marching_parameter):
     if inputData.ndim == 2:
         return ROFTV2D(inputData, 
-                     regularization_parameter,
+                     regularisation_parameter,
                      iterations,
                      time_marching_parameter)
     elif inputData.ndim == 3:
         return ROFTV3D(inputData, 
-                     regularization_parameter,
+                     regularisation_parameter,
                      iterations, 
                      time_marching_parameter)
                      
 # Total-variation Fast-Gradient-Projection (FGP)
 def TV_FGP_GPU(inputData,
-                     regularization_parameter,
+                     regularisation_parameter,
                      iterations, 
                      tolerance_param,
                      methodTV,
@@ -47,7 +47,7 @@ def TV_FGP_GPU(inputData,
                      printM):
     if inputData.ndim == 2:
         return FGPTV2D(inputData,
-                     regularization_parameter,
+                     regularisation_parameter,
                      iterations, 
                      tolerance_param,
                      methodTV,
@@ -55,7 +55,7 @@ def TV_FGP_GPU(inputData,
                      printM)
     elif inputData.ndim == 3:
         return FGPTV3D(inputData,
-                     regularization_parameter,
+                     regularisation_parameter,
                      iterations, 
                      tolerance_param,
                      methodTV,
@@ -66,7 +66,7 @@ def TV_FGP_GPU(inputData,
 #********************** Total-variation ROF *********************#
 #****************************************************************#
 def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-                     float regularization_parameter,
+                     float regularisation_parameter,
                      int iterations, 
                      float time_marching_parameter):
     
@@ -80,7 +80,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     # Running CUDA code here    
     TV_ROF_GPU_main(            
             &inputData[0,0], &outputData[0,0], 
-                       regularization_parameter,
+                       regularisation_parameter,
                        iterations , 
                        time_marching_parameter, 
                        dims[0], dims[1], 1);   
@@ -88,7 +88,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     return outputData
     
 def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-                     float regularization_parameter,
+                     float regularisation_parameter,
                      int iterations, 
                      float time_marching_parameter):
     
@@ -103,7 +103,7 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     # Running CUDA code here    
     TV_ROF_GPU_main(            
             &inputData[0,0,0], &outputData[0,0,0], 
-                       regularization_parameter,
+                       regularisation_parameter,
                        iterations , 
                        time_marching_parameter, 
                        dims[0], dims[1], dims[2]);   
@@ -114,7 +114,7 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #****************************************************************#
 #******** Total-variation Fast-Gradient-Projection (FGP)*********#
 def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-                     float regularization_parameter,
+                     float regularisation_parameter,
                      int iterations, 
                      float tolerance_param,
                      int methodTV,
@@ -130,7 +130,7 @@ def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
           
     # Running CUDA code here    
     TV_FGP_GPU_main(&inputData[0,0], &outputData[0,0],                        
-                       regularization_parameter, 
+                       regularisation_parameter, 
                        iterations, 
                        tolerance_param,
                        methodTV,
@@ -141,7 +141,7 @@ def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     return outputData
     
 def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-                     float regularization_parameter,
+                     float regularisation_parameter,
                      int iterations, 
                      float tolerance_param,
                      int methodTV,
@@ -159,7 +159,7 @@ def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     # Running CUDA code here    
     TV_FGP_GPU_main(            
             &inputData[0,0,0], &outputData[0,0,0], 
-                       regularization_parameter , 
+                       regularisation_parameter , 
                        iterations, 
                        tolerance_param,
                        methodTV,

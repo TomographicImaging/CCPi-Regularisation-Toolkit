@@ -1,7 +1,7 @@
-# CCPi-Regularization Toolkit (CCPi-RGL)
+# CCPi-Regularisation Toolkit (CCPi-RGL)
 
-**Iterative image reconstruction (IIR) methods normally require regularization to stabilize the convergence and make the reconstruction problem more well-posed. 
-CCPi-RGL software consist of 2D/3D regularization modules for single-channel and multi-channel reconstruction problems. The modules especially suited for IIR, however,
+**Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem more well-posed. 
+CCPi-RGL software consist of 2D/3D regularisation modules for single-channel and multi-channel reconstruction problems. The modules especially suited for IIR, however,
 can also be used as image denoising iterative filters. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 ## Prerequisites: 
@@ -24,13 +24,13 @@ can also be used as image denoising iterative filters. The core modules are writ
 ### Python (conda-build)
 ```
 	export CIL_VERSION=0.9.2
-	conda build recipes/regularizers --numpy 1.12 --python 3.5 
-	conda install cil_regularizer=0.9.2 --use-local --force
+	conda build recipes/regularisers --numpy 1.12 --python 3.5 
+	conda install cil_regulariser=0.9.2 --use-local --force
 	cd Wrappers/Python
 	conda build conda-recipe --numpy 1.12 --python 3.5 
-	conda install ccpi-regularizer=0.9.2 --use-local --force
+	conda install ccpi-regulariser=0.9.2 --use-local --force
 	cd test/
-	python test_cpu_vs_gpu_regularizers.py
+	python test_cpu_vs_gpu_regularisers.py
 ```
 ### Matlab
 ```

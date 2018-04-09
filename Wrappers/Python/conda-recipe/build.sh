@@ -13,7 +13,7 @@ echo "$SRC_DIR/ccpi/Python"
 
 cmake . 
 
-$PYTHON setup-regularizers.py build_ext
-$PYTHON setup-regularizers.py install
+$PYTHON setup-regularisers.py build_ext
+$PYTHON setup-regularisers.py install
 
 

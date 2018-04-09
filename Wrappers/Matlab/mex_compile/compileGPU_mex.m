@@ -9,12 +9,12 @@
 
 % tested on Ubuntu 16.04/MATLAB 2016b
 
-copyfile ../../../Core/regularizers_GPU/ regularizers_GPU/
-copyfile ../../../Core/CCPiDefines.h regularizers_GPU/
+copyfile ../../../Core/regularisers_GPU/ regularisers_GPU/
+copyfile ../../../Core/CCPiDefines.h regularisers_GPU/
 
-cd regularizers_GPU/
+cd regularisers_GPU/
 
-fprintf('%s \n', 'Compiling GPU regularizers (CUDA)...');
+fprintf('%s \n', 'Compiling GPU regularisers (CUDA)...');
 !/usr/local/cuda/bin/nvcc -O0 -c TV_ROF_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu ROF_TV_GPU.cpp TV_ROF_GPU_core.o
 movefile ROF_TV_GPU.mex* ../installed/

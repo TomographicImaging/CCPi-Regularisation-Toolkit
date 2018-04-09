@@ -5,24 +5,13 @@ Created on Fri Aug  4 11:10:05 2017
 @author: ofn77899
 """
 
-
 import matplotlib.pyplot as plt
 import numpy as np
 import os    
 from enum import Enum
 import timeit
-from ccpi.filters.cpu_regularizers_boost import SplitBregman_TV, LLT_model, PatchBased_Regul, TGV_PD
-from ccpi.filters.regularizers import ROF_TV, FGP_TV
+from ccpi.filters.regularisers import ROF_TV, FGP_TV
 ###############################################################################
-#https://stackoverflow.com/questions/13875989/comparing-image-in-url-to-image-in-filesystem-in-python/13884956#13884956
-#NRMSE a normalization of the root of the mean squared error
-#NRMSE is simply 1 - [RMSE / (maxval - minval)]. Where maxval is the maximum
-# intensity from the two images being compared, and respectively the same for
-# minval. RMSE is given by the square root of MSE: 
-# sqrt[(sum(A - B) ** 2) / |A|],
-# where |A| means the number of elements in A. By doing this, the maximum value
-# given by RMSE is maxval.
-
 def nrmse(im1, im2):
     a, b = im1.shape
     rmse = np.sqrt(np.sum((im2 - im1) ** 2) / float(a * b))
@@ -51,17 +40,8 @@ def printParametersToString(pars):
 #  2D Regularizers
 #
 ###############################################################################
-#Example:
-# figure;
-# Im = double(imread('lena_gray_256.tif'))/255;  % loading image
-# u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
-# u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
-
 # assumes the script is launched from the test directory
 filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
-#filename = r"C:\Users\ofn77899\Documents\GitHub\CCPi-FISTA_reconstruction\data\lena_gray_512.tif"
-#filename = r"/home/ofn77899/Reconstruction/CCPi-FISTA_Reconstruction/data/lena_gray_512.tif"
-#filename = r'/home/algol/Documents/Python/STD_test_images/lena_gray_512.tif'
 
 Im = plt.imread(filename)                     
 Im = np.asarray(Im, dtype='float32')
@@ -86,48 +66,14 @@ imgplot = plt.imshow(u0,cmap="gray"
 
 reg_output = []
 ##############################################################################
-# Call regularizer
-
-####################### SplitBregman_TV #####################################
-# u = SplitBregman_TV(single(u0), 10, 30, 1e-04);
-
-start_time = timeit.default_timer()
-pars = {'algorithm' : SplitBregman_TV , \
-        'input' : u0,
-        'regularization_parameter':15. , \
-        'number_of_iterations' :40 ,\
-        'tolerance_constant':0.0001 , \
-        'TV_penalty': 0
-}
-
-out = SplitBregman_TV (pars['input'], pars['regularization_parameter'],
-                              pars['number_of_iterations'],
-                              pars['tolerance_constant'],
-                              pars['TV_penalty'])  
-splitbregman = out[0]
-rms = rmse(Im, splitbregman)
-pars['rmse'] = rms
-txtstr = printParametersToString(pars) 
-txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)   
-
-a=fig.add_subplot(2,4,2)
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# place a text box in upper left in axes coords
-a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-imgplot = plt.imshow(splitbregman,\
-                     cmap="gray"
-                     )
+# Call regularisers
 
 ###################### FGP_TV #########################################
 
 start_time = timeit.default_timer()
 pars = {'algorithm' : FGP_TV , \
         'input' : u0,\
-        'regularization_parameter':0.07, \
+        'regularisation_parameter':0.07, \
         'number_of_iterations' :300 ,\
         'tolerance_constant':0.00001,\
         'methodTV': 0 ,\
@@ -136,7 +82,7 @@ pars = {'algorithm' : FGP_TV , \
         }
 
 fgp = FGP_TV(pars['input'], 
-              pars['regularization_parameter'],
+              pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
@@ -163,129 +109,18 @@ imgplot = plt.imshow(fgp, \
 a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
         verticalalignment='top', bbox=props)
 
-
-###################### LLT_model #########################################
-start_time = timeit.default_timer()
-
-pars = {'algorithm': LLT_model , \
-        'input' : u0,
-        'regularization_parameter': 5,\
-        'time_step':0.00035, \
-        'number_of_iterations' :350,\
-        'tolerance_constant':0.0001,\
-        'restrictive_Z_smoothing': 0
-}
-out = LLT_model(pars['input'], 
-                pars['regularization_parameter'],
-                pars['time_step'] , 
-                pars['number_of_iterations'],
-                pars['tolerance_constant'],
-                pars['restrictive_Z_smoothing'] )
-
-llt = out[0]
-rms = rmse(Im, out[0])
-pars['rmse'] = rms
-
-txtstr = printParametersToString(pars)
-txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-a=fig.add_subplot(2,4,4)
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# place a text box in upper left in axes coords
-a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
-         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(llt,\
-                     cmap="gray"
-                     )
-# ###################### PatchBased_Regul #########################################
-# # Quick 2D denoising example in Matlab:   
-# #   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
-# #   u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
-# #   ImDen = PB_Regul_CPU(single(u0), 3, 1, 0.08, 0.05); 
-
-start_time = timeit.default_timer()
-
-pars = {'algorithm': PatchBased_Regul , \
-        'input' : u0,
-        'regularization_parameter': 0.05,\
-        'searching_window_ratio':3, \
-        'similarity_window_ratio':1,\
-        'PB_filtering_parameter': 0.06
-}
-out = PatchBased_Regul(pars['input'], 
-                       pars['regularization_parameter'],
-                       pars['searching_window_ratio'] , 
-                       pars['similarity_window_ratio'] , 
-                       pars['PB_filtering_parameter'])
-pbr = out[0]
-rms = rmse(Im, out[0])
-pars['rmse'] = rms
-
-txtstr = printParametersToString(pars)
-txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-
-a=fig.add_subplot(2,4,5)
-
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# place a text box in upper left in axes coords
-a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-imgplot = plt.imshow(pbr ,cmap="gray")
-
-
-# ###################### TGV_PD #########################################
-# # Quick 2D denoising example in Matlab:   
-# #   Im = double(imread('lena_gray_256.tif'))/255;  % loading image
-# #   u0 = Im + .03*randn(size(Im)); u0(u0<0) = 0; % adding noise
-# #   u = PrimalDual_TGV(single(u0), 0.02, 1.3, 1, 550);
-
-start_time = timeit.default_timer()
-
-pars = {'algorithm': TGV_PD , \
-        'input' : u0,\
-        'regularization_parameter':0.07,\
-        'first_order_term': 1.3,\
-        'second_order_term': 1, \
-        'number_of_iterations': 550
-        }
-out = TGV_PD(pars['input'],
-             pars['regularization_parameter'],
-             pars['first_order_term'] , 
-             pars['second_order_term'] , 
-             pars['number_of_iterations'])
-tgv = out[0]
-rms = rmse(Im, out[0])
-pars['rmse'] = rms
-
-txtstr = printParametersToString(pars)
-txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-a=fig.add_subplot(2,4,6)
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-# place a text box in upper left in axes coords
-a.text(0.05, 0.95, txtstr, transform=a.transAxes, fontsize=14,
-         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(tgv, cmap="gray")
-
 # ###################### ROF_TV #########################################
 
 start_time = timeit.default_timer()
 
 pars = {'algorithm': ROF_TV , \
         'input' : u0,\
-        'regularization_parameter':0.07,\
+        'regularisation_parameter':0.07,\
         'marching_step': 0.0025,\
         'number_of_iterations': 300
         }
 rof = ROF_TV(pars['input'],
-			 pars['regularization_parameter'],
+			 pars['regularisation_parameter'],
              pars['number_of_iterations'],             
              pars['marching_step'], 'cpu')
 

@@ -14,12 +14,12 @@
 
 cmake_minimum_required (VERSION 3.0)
 
-project(FISTA)
+project(RGL)
 #https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
 
 # The version number.
-set (FISTA_VERSION_MAJOR 1)
-set (FISTA_VERSION_MINOR 0)
+set (RGL_VERSION_MAJOR 1)
+set (RGL_VERSION_MINOR 0)
 
 set (CIL_VERSION_MAJOR 0)
 set (CIL_VERSION_MINOR 9)

@@ -3,7 +3,7 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Srikanth Nagella, Edoardo Pasca
+Copyright 2017 Srikanth Nagella, Edoardo Pasca, Daniil Kazantsev
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
