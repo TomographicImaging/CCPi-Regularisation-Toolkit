@@ -100,8 +100,8 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.04, \
-        'number_of_iterations' :1200 ,\
-        'tolerance_constant':0.00001,\
+        'number_of_iterations' :2000 ,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0 ,\
         'printingOut': 0 
