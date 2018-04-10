@@ -106,7 +106,7 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        regularisation_parameter,
                        iterations , 
                        time_marching_parameter, 
-                       dims[0], dims[1], dims[2]);   
+                       dims[2], dims[1], dims[0]);   
      
     return outputData
 #****************************************************************#
@@ -165,6 +165,6 @@ def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        methodTV,
                        nonneg,
                        printM,
-                       dims[0], dims[1], dims[2]);   
+                       dims[2], dims[1], dims[0]);   
      
     return outputData    

@@ -27,7 +27,7 @@ def printParametersToString(pars):
             txt += '\n'
         return txt
 ###############################################################################
-
+#%%
 filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
 
 # read image
@@ -135,22 +135,24 @@ imgplot = plt.imshow(fgp_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
 # Uncomment to test 3D regularisation performance 
+#%%
 """
 N = 512
 slices = 20
 
+filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
 Im = plt.imread(filename)
 Im = np.asarray(Im, dtype='float32')
 
 Im = Im/255
 perc = 0.05
 
-noisyVol = np.zeros((N,N,slices),dtype='float32')
-idealVol = np.zeros((N,N,slices),dtype='float32')
+noisyVol = np.zeros((slices,N,N),dtype='float32')
+idealVol = np.zeros((slices,N,N),dtype='float32')
 
 for i in range (slices):
-    noisyVol[:,:,i] = Im + np.random.normal(loc = 0 , scale = perc * Im , size = np.shape(Im))
-    idealVol[:,:,i] = Im
+    noisyVol[i,:,:] = Im + np.random.normal(loc = 0 , scale = perc * Im , size = np.shape(Im))
+    idealVol[i,:,:] = Im
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________ROF-TV (3D)_________________")
@@ -161,7 +163,7 @@ fig = plt.figure(3)
 plt.suptitle('Performance of ROF-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy 15th slice of a volume')
-imgplot = plt.imshow(noisyVol[:,:,10],cmap="gray")
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 
 # set parameters
 pars = {'algorithm': ROF_TV, \
@@ -189,7 +191,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(rof_cpu3D[:,:,10], cmap="gray")
+imgplot = plt.imshow(rof_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using ROF-TV'))
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -201,7 +203,7 @@ fig = plt.figure(4)
 plt.suptitle('Performance of FGP-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
-imgplot = plt.imshow(noisyVol[:,:,10],cmap="gray")
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 
 # set parameters
 pars = {'algorithm' : FGP_TV, \
@@ -238,6 +240,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(fgp_cpu3D[:,:,10], cmap="gray")
+imgplot = plt.imshow(fgp_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using FGP-TV'))
 """
+#%%

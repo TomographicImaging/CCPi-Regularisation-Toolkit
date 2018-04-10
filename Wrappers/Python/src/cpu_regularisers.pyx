@@ -48,8 +48,8 @@ def TV_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     return outputData
             
 def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-                     int iterationsNumb,
                      float regularisation_parameter,
+                     int iterationsNumb,
                      float marching_step_parameter):
     cdef long dims[3]
     dims[0] = inputData.shape[0]
@@ -60,7 +60,7 @@ def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
             np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
            
     # Run ROF iterations for 3D data 
-    TV_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, iterationsNumb, marching_step_parameter, dims[0], dims[1], dims[2])
+    TV_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, iterationsNumb, marching_step_parameter, dims[2], dims[1], dims[0])
 
     return outputData
 
@@ -122,5 +122,5 @@ def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        methodTV,
                        nonneg,
                        printM,
-                       dims[0], dims[1], dims[2])
+                       dims[2], dims[1], dims[0])
     return outputData 
