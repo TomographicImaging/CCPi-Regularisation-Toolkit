@@ -31,7 +31,7 @@ def printParametersToString(pars):
 filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
 
 # read image
-Im = plt.imread(filename)                     
+Im = plt.imread(filename)
 Im = np.asarray(Im, dtype='float32')
 
 Im = Im/255
