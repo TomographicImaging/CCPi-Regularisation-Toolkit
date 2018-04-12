@@ -1,8 +1,6 @@
 import unittest
 import numpy as np
-import os
 from ccpi.filters.regularisers import ROF_TV, FGP_TV
-import matplotlib.pyplot as plt
 
 def rmse(im1, im2):
     rmse = np.sqrt(np.sum((im1 - im2) ** 2) / float(im1.size))
@@ -14,13 +12,16 @@ class TestRegularisers(unittest.TestCase):
         pass
 
     def test_cpu_regularisers(self):
-        filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
+        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         
+        Im = np.load('testLena.npy');
+        """
         # read noiseless image
         Im = plt.imread(filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
+        """
         tolerance = 1e-05
         rms_rof_exp = 0.006812507 #expected value for ROF model
         rms_fgp_exp = 0.019152347 #expected value for FGP model
@@ -80,13 +81,11 @@ class TestRegularisers(unittest.TestCase):
         """
         self.assertTrue(res)
     def test_gpu_regularisers(self):
-        filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
+        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         
-        # read noiseless image
-        Im = plt.imread(filename)
-        Im = np.asarray(Im, dtype='float32')
+        Im = np.load('testLena.npy');
 
-        Im = Im/255
+        #Im = Im/255
         tolerance = 1e-05
         rms_rof_exp = 0.006812507 #expected value for ROF model
         rms_fgp_exp = 0.019152347 #expected value for FGP model
