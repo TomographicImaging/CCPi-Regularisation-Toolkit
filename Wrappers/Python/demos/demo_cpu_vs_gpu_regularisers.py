@@ -22,6 +22,8 @@ def printParametersToString(pars):
                 txt += "{0} = {1}".format(key, value.__name__)
             elif key == 'input':
                 txt += "{0} = {1}".format(key, np.shape(value))
+            elif key == 'refdata':
+                txt += "{0} = {1}".format(key, np.shape(value))
             else:
                 txt += "{0} = {1}".format(key, value)
             txt += '\n'

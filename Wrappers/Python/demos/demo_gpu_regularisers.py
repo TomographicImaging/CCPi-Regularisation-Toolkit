@@ -22,6 +22,8 @@ def printParametersToString(pars):
                 txt += "{0} = {1}".format(key, value.__name__)
             elif key == 'input':
                 txt += "{0} = {1}".format(key, np.shape(value))
+            elif key == 'refdata':
+                txt += "{0} = {1}".format(key, np.shape(value))
             else:
                 txt += "{0} = {1}".format(key, value)
             txt += '\n'
@@ -192,7 +194,7 @@ plt.title('{}'.format('GPU results'))
 
 # Uncomment to test 3D regularisation performance 
 #%%
-
+"""
 N = 512
 slices = 20
 
@@ -314,7 +316,7 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 
 # set parameters
 pars = {'algorithm' : FGP_dTV, \
-        'input' : noisyVol,\ 
+        'input' : noisyVol,\
         'refdata' : noisyRef,\
         'regularisation_parameter':0.04, \
         'number_of_iterations' :300 ,\
@@ -352,5 +354,5 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(fgp_dTV_gpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the GPU using FGP-dTV'))
-
+"""
 #%%

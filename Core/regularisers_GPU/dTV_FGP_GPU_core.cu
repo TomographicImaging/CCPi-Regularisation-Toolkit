@@ -72,7 +72,7 @@ struct square { __host__ __device__ float operator()(float x) { return x * x; } 
 /*****************2D modules*********************/
 /************************************************/
 
-__global__ void GradNorm_func2D(float *Refd, float *Refd_x, float *Refd_y, float eta, int N, int M, int ImSize)
+__global__ void GradNorm_func2D_kernel(float *Refd, float *Refd_x, float *Refd_y, float eta, int N, int M, int ImSize)
 {
     
     float val1, val2, gradX, gradY, magn;
@@ -97,7 +97,7 @@ __global__ void GradNorm_func2D(float *Refd, float *Refd_x, float *Refd_y, float
     return;
 }
 
-__global__ void ProjectVect_func2D(float *R1, float *R2, float *Refd_x, float *Refd_y, int N, int M, int ImSize)
+__global__ void ProjectVect_func2D_kernel(float *R1, float *R2, float *Refd_x, float *Refd_y, int N, int M, int ImSize)
 {
     
     float in_prod;
@@ -116,7 +116,7 @@ __global__ void ProjectVect_func2D(float *R1, float *R2, float *Refd_x, float *R
 }
 
 
-__global__ void Obj_func2D_kernel(float *Ad, float *D, float *R1, float *R2, int N, int M, int ImSize, float lambda)
+__global__ void Obj_dfunc2D_kernel(float *Ad, float *D, float *R1, float *R2, int N, int M, int ImSize, float lambda)
 {
     
     float val1,val2;
@@ -137,7 +137,7 @@ __global__ void Obj_func2D_kernel(float *Ad, float *D, float *R1, float *R2, int
     return;
 }
 
-__global__ void Grad_func2D_kernel(float *P1, float *P2, float *D, float *R1, float *R2,  float *Refd_x, float *Refd_y, int N, int M, int ImSize, float multip)
+__global__ void Grad_dfunc2D_kernel(float *P1, float *P2, float *D, float *R1, float *R2,  float *Refd_x, float *Refd_y, int N, int M, int ImSize, float multip)
 {
     
     float val1,val2,in_prod;
@@ -165,7 +165,7 @@ __global__ void Grad_func2D_kernel(float *P1, float *P2, float *D, float *R1, fl
     return;
 }
 
-__global__ void Proj_func2D_iso_kernel(float *P1, float *P2, int N, int M, int ImSize)
+__global__ void Proj_dfunc2D_iso_kernel(float *P1, float *P2, int N, int M, int ImSize)
 {
     
     float denom;    
@@ -184,7 +184,7 @@ __global__ void Proj_func2D_iso_kernel(float *P1, float *P2, int N, int M, int I
     }
     return;
 }
-__global__ void Proj_func2D_aniso_kernel(float *P1, float *P2, int N, int M, int ImSize)
+__global__ void Proj_dfunc2D_aniso_kernel(float *P1, float *P2, int N, int M, int ImSize)
 {
     
     float val1, val2;    
@@ -204,7 +204,7 @@ __global__ void Proj_func2D_aniso_kernel(float *P1, float *P2, int N, int M, int
     }
     return;
 }
-__global__ void Rupd_func2D_kernel(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, float multip2, int N, int M, int ImSize)
+__global__ void Rupd_dfunc2D_kernel(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, float multip2, int N, int M, int ImSize)
 {
     //calculate each thread global index
     const int xIndex=blockIdx.x*blockDim.x+threadIdx.x;
@@ -218,7 +218,7 @@ __global__ void Rupd_func2D_kernel(float *P1, float *P1_old, float *P2, float *P
     }
     return;
 }
-__global__ void nonneg2D_kernel(float* Output, int N, int M, int num_total)
+__global__ void dTVnonneg2D_kernel(float* Output, int N, int M, int num_total)
 {
     int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
     int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
@@ -229,7 +229,7 @@ __global__ void nonneg2D_kernel(float* Output, int N, int M, int num_total)
         if (Output[index] < 0.0f) Output[index] = 0.0f;
     }
 }
-__global__ void copy_kernel2D(float *Input, float* Output, int N, int M, int num_total)
+__global__ void dTVcopy_kernel2D(float *Input, float* Output, int N, int M, int num_total)
 {
     int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
     int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
@@ -240,7 +240,7 @@ __global__ void copy_kernel2D(float *Input, float* Output, int N, int M, int num
         Output[index] = Input[index];
     }
 }
-__global__ void ResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
+__global__ void dTVResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
 {
     int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
     int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
@@ -254,7 +254,7 @@ __global__ void ResidCalc2D_kernel(float *Input1, float *Input2, float* Output, 
 /************************************************/
 /*****************3D modules*********************/
 /************************************************/
-__global__ void GradNorm_func3D(float *Refd, float *Refd_x, float *Refd_y, float *Refd_z, float eta, int N, int M, int Z, int ImSize)
+__global__ void GradNorm_func3D_kernel(float *Refd, float *Refd_x, float *Refd_y, float *Refd_z, float eta, int N, int M, int Z, int ImSize)
 {
     
     float val1, val2, val3, gradX, gradY, gradZ, magn;
@@ -283,7 +283,7 @@ __global__ void GradNorm_func3D(float *Refd, float *Refd_x, float *Refd_y, float
     return;
 }
 
-__global__ void ProjectVect_func3D(float *R1, float *R2, float *R3, float *Refd_x, float *Refd_y, float *Refd_z, int N, int M, int Z, int ImSize)
+__global__ void ProjectVect_func3D_kernel(float *R1, float *R2, float *R3, float *Refd_x, float *Refd_y, float *Refd_z, int N, int M, int Z, int ImSize)
 {
     
     float in_prod;
@@ -305,7 +305,7 @@ __global__ void ProjectVect_func3D(float *R1, float *R2, float *R3, float *Refd_
 }
 
 
-__global__ void Obj_func3D_kernel(float *Ad, float *D, float *R1, float *R2, float *R3, int N, int M, int Z, int ImSize, float lambda)
+__global__ void Obj_dfunc3D_kernel(float *Ad, float *D, float *R1, float *R2, float *R3, int N, int M, int Z, int ImSize, float lambda)
 {
     
     float val1,val2,val3;
@@ -327,7 +327,7 @@ __global__ void Obj_func3D_kernel(float *Ad, float *D, float *R1, float *R2, flo
     return;
 }
 
-__global__ void Grad_func3D_kernel(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float *Refd_x, float *Refd_y, float *Refd_z, int N, int M, int Z, int ImSize, float multip)
+__global__ void Grad_dfunc3D_kernel(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float *Refd_x, float *Refd_y, float *Refd_z, int N, int M, int Z, int ImSize, float multip)
 {
     
     float val1,val2,val3,in_prod;
@@ -358,7 +358,7 @@ __global__ void Grad_func3D_kernel(float *P1, float *P2, float *P3, float *D, fl
     return;
 }
 
-__global__ void Proj_func3D_iso_kernel(float *P1, float *P2, float *P3, int N, int M, int Z, int ImSize)
+__global__ void Proj_dfunc3D_iso_kernel(float *P1, float *P2, float *P3, int N, int M, int Z, int ImSize)
 {
     
     float denom,sq_denom;    
@@ -382,7 +382,7 @@ __global__ void Proj_func3D_iso_kernel(float *P1, float *P2, float *P3, int N, i
     return;
 }
 
-__global__ void Proj_func3D_aniso_kernel(float *P1, float *P2, float *P3, int N, int M, int Z, int ImSize)
+__global__ void Proj_dfunc3D_aniso_kernel(float *P1, float *P2, float *P3, int N, int M, int Z, int ImSize)
 {
     
     float val1, val2, val3;    
@@ -408,7 +408,7 @@ __global__ void Proj_func3D_aniso_kernel(float *P1, float *P2, float *P3, int N,
 }
 
 
-__global__ void Rupd_func3D_kernel(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, float multip2, int N, int M, int Z, int ImSize)
+__global__ void Rupd_dfunc3D_kernel(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, float multip2, int N, int M, int Z, int ImSize)
 {
     //calculate each thread global index
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -425,7 +425,7 @@ __global__ void Rupd_func3D_kernel(float *P1, float *P1_old, float *P2, float *P
     return;
 }
 
-__global__ void nonneg3D_kernel(float* Output, int N, int M, int Z, int num_total)
+__global__ void dTVnonneg3D_kernel(float* Output, int N, int M, int Z, int num_total)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -438,7 +438,7 @@ __global__ void nonneg3D_kernel(float* Output, int N, int M, int Z, int num_tota
     }
 }
 
-__global__ void copy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
+__global__ void dTVcopy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
 {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -451,7 +451,7 @@ __global__ void copy_kernel3D(float *Input, float* Output, int N, int M, int Z, 
     }
 }
 
-__global__ void ResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
+__global__ void dTVResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
 {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -517,7 +517,7 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
         /******************** Run CUDA 2D kernel here ********************/
         multip = (1.0f/(8.0f*lambdaPar));
         /* calculate gradient vectors for the reference */
-        GradNorm_func2D<<<dimGrid,dimBlock>>>(d_InputRef, InputRef_x, InputRef_y, eta, dimX, dimY, ImSize);
+        GradNorm_func2D_kernel<<<dimGrid,dimBlock>>>(d_InputRef, InputRef_x, InputRef_y, eta, dimX, dimY, ImSize);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() );
     
@@ -525,41 +525,41 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
         for (i = 0; i < iter; i++) {
         
             /*projects a 2D vector field R-1,2 onto the orthogonal complement of another 2D vector field InputRef_xy*/         
-            ProjectVect_func2D<<<dimGrid,dimBlock>>>(R1, R2, InputRef_x, InputRef_y, dimX, dimY, ImSize);
+            ProjectVect_func2D_kernel<<<dimGrid,dimBlock>>>(R1, R2, InputRef_x, InputRef_y, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
             
             /* computing the gradient of the objective function */
-            Obj_func2D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, dimX, dimY, ImSize, lambdaPar);
+            Obj_dfunc2D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, dimX, dimY, ImSize, lambdaPar);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
             
             if (nonneg != 0) {
-            nonneg2D_kernel<<<dimGrid,dimBlock>>>(d_update, dimX, dimY, ImSize);
+            dTVnonneg2D_kernel<<<dimGrid,dimBlock>>>(d_update, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() ); }
                     
             /*Taking a step towards minus of the gradient*/
-            Grad_func2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, d_update, R1, R2, InputRef_x, InputRef_y, dimX, dimY, ImSize, multip);
+            Grad_dfunc2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, d_update, R1, R2, InputRef_x, InputRef_y, dimX, dimY, ImSize, multip);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             /* projection step */
-            if (methodTV == 0) Proj_func2D_iso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, ImSize); /*isotropic TV*/
-            else Proj_func2D_aniso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, ImSize); /*anisotropic TV*/            
+            if (methodTV == 0) Proj_dfunc2D_iso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, ImSize); /*isotropic TV*/
+            else Proj_dfunc2D_aniso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, ImSize); /*anisotropic TV*/            
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
             multip2 = ((tk-1.0f)/tkp1);
         
-            Rupd_func2D_kernel<<<dimGrid,dimBlock>>>(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, multip2, dimX, dimY, ImSize);
+            Rupd_dfunc2D_kernel<<<dimGrid,dimBlock>>>(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, multip2, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             if (epsil != 0.0f) {
                 /* calculate norm - stopping rules using the Thrust library */
-                ResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, ImSize);
+                dTVResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
@@ -572,16 +572,16 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
                 if (re < epsil)  count++;
                     if (count > 4) break;       
              
-                copy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
+                dTVcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );                                              
             }
         
-            copy_kernel2D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, ImSize);
+            dTVcopy_kernel2D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
-            copy_kernel2D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, ImSize);
+            dTVcopy_kernel2D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );       
  
@@ -651,7 +651,7 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
             /********************** Run CUDA 3D kernel here ********************/    
             multip = (1.0f/(26.0f*lambdaPar));
             /* calculate gradient vectors for the reference */
-            GradNorm_func3D<<<dimGrid,dimBlock>>>(d_InputRef, InputRef_x, InputRef_y, InputRef_z, eta, dimX, dimY, dimZ, ImSize);
+            GradNorm_func3D_kernel<<<dimGrid,dimBlock>>>(d_InputRef, InputRef_x, InputRef_y, InputRef_z, eta, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
     
@@ -659,41 +659,41 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
         for (i = 0; i < iter; i++) {
 
 			/*projects a 3D vector field R-1,2,3 onto the orthogonal complement of another 3D vector field InputRef_xyz*/
-            ProjectVect_func3D<<<dimGrid,dimBlock>>>(R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ, ImSize);
+            ProjectVect_func3D_kernel<<<dimGrid,dimBlock>>>(R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             /* computing the gradient of the objective function */
-            Obj_func3D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, R3, dimX, dimY, dimZ, ImSize, lambdaPar);
+            Obj_dfunc3D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, R3, dimX, dimY, dimZ, ImSize, lambdaPar);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             if (nonneg != 0) {
-            nonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update, dimX, dimY, dimZ, ImSize);
+            dTVnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() ); }
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func3D_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, d_update, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ, ImSize, multip);
+            Grad_dfunc3D_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, d_update, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ, ImSize, multip);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             /* projection step */
-            if (methodTV == 0) Proj_func3D_iso_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, dimX, dimY, dimZ, ImSize); /* isotropic kernel */
-            else Proj_func3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, dimX, dimY, dimZ, ImSize); /* anisotropic kernel */
+            if (methodTV == 0) Proj_dfunc3D_iso_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, dimX, dimY, dimZ, ImSize); /* isotropic kernel */
+            else Proj_dfunc3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, dimX, dimY, dimZ, ImSize); /* anisotropic kernel */
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
             multip2 = ((tk-1.0f)/tkp1);
         
-            Rupd_func3D_kernel<<<dimGrid,dimBlock>>>(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, multip2, dimX, dimY, dimZ, ImSize);
+            Rupd_dfunc3D_kernel<<<dimGrid,dimBlock>>>(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, multip2, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
             
             if (epsil != 0.0f) {
                 /* calculate norm - stopping rules using the Thrust library */
-                ResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, dimZ, ImSize);
+                dTVResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, dimZ, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
@@ -706,20 +706,20 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
                 if (re < epsil)  count++;
                     if (count > 4) break;       
              
-                copy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, ImSize);
+                dTVcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );
             }
         
-            copy_kernel3D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, dimZ, ImSize);
+            dTVcopy_kernel3D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
-            copy_kernel3D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, dimZ, ImSize);
+            dTVcopy_kernel3D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );   
             
-            copy_kernel3D<<<dimGrid,dimBlock>>>(P3, P3_prev, dimX, dimY, dimZ, ImSize);
+            dTVcopy_kernel3D<<<dimGrid,dimBlock>>>(P3, P3_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );      
  

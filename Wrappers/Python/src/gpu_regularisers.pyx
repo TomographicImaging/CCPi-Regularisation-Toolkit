@@ -20,7 +20,7 @@ cimport numpy as np
 
 cdef extern void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
 cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
-cdef extern void dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
+cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
 def TV_ROF_GPU(inputData,
@@ -187,8 +187,7 @@ def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
           
     # Running CUDA code here    
-    TV_FGP_GPU_main(            
-            &inputData[0,0,0], &outputData[0,0,0], 
+    TV_FGP_GPU_main(&inputData[0,0,0], &outputData[0,0,0], 
                        regularisation_parameter , 
                        iterations, 
                        tolerance_param,
@@ -204,7 +203,7 @@ def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #****************************************************************#
 #******** Directional TV Fast-Gradient-Projection (FGP)*********#
 def FGPdTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-             np.ndarray[np.float32_t, ndim=3, mode="c"] refdata,
+             np.ndarray[np.float32_t, ndim=2, mode="c"] refdata,
                      float regularisation_parameter,
                      int iterations, 
                      float tolerance_param,

@@ -75,20 +75,20 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambd
             ProjectVect_func2D(R1, R2, InputRef_x, InputRef_y, dimX, dimY);
             
             /* computing the gradient of the objective function */
-            Obj_func2D(Input, Output, R1, R2, lambdaPar, dimX, dimY);
+            Obj_dfunc2D(Input, Output, R1, R2, lambdaPar, dimX, dimY);
             
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func2D(P1, P2, Output, R1, R2, InputRef_x, InputRef_y, lambdaPar, dimX, dimY);
+            Grad_dfunc2D(P1, P2, Output, R1, R2, InputRef_x, InputRef_y, lambdaPar, dimX, dimY);
             
             /* projection step */
-            Proj_func2D(P1, P2, methodTV, DimTotal);
+            Proj_dfunc2D(P1, P2, methodTV, DimTotal);
             
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-            Rupd_func2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
+            Rupd_dfunc2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
             
             /* check early stopping criteria */
             re = 0.0f; re1 = 0.0f;
@@ -139,20 +139,20 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambd
             ProjectVect_func3D(R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ);
             
             /* computing the gradient of the objective function */
-            Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
+            Obj_dfunc3D(Input, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
             
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}  
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func3D(P1, P2, P3, Output, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, lambdaPar, dimX, dimY, dimZ);
+            Grad_dfunc3D(P1, P2, P3, Output, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, lambdaPar, dimX, dimY, dimZ);
             
             /* projection step */
-            Proj_func3D(P1, P2, P3, methodTV, DimTotal);
+            Proj_dfunc3D(P1, P2, P3, methodTV, DimTotal);
             
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
-            Rupd_func3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
+            Rupd_dfunc3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
             
             /* calculate norm - stopping rules*/
             re = 0.0f; re1 = 0.0f;
@@ -220,7 +220,7 @@ float ProjectVect_func2D(float *R1, float *R2, float *B_x, float *B_y, int dimX,
     return 1;
 }
 
-float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
+float Obj_dfunc2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
 {
     float val1, val2;
     int i,j,index;
@@ -235,7 +235,7 @@ float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dim
         }}
     return *D;
 }
-float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float *B_x, float *B_y, float lambda, int dimX, int dimY)
+float Grad_dfunc2D(float *P1, float *P2, float *D, float *R1, float *R2, float *B_x, float *B_y, float lambda, int dimX, int dimY)
 {
     float val1, val2, multip, in_prod;
     int i,j,index;
@@ -258,7 +258,7 @@ float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float *B
         }}
     return 1;
 }
-float Proj_func2D(float *P1, float *P2, int methTV, int DimTotal)
+float Proj_dfunc2D(float *P1, float *P2, int methTV, int DimTotal)
 {
     float val1, val2, denom, sq_denom;
     int i;
@@ -288,7 +288,7 @@ float Proj_func2D(float *P1, float *P2, int methTV, int DimTotal)
     }
     return 1;
 }
-float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int DimTotal)
+float Rupd_dfunc2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int DimTotal)
 {
     int i;
     float multip;
@@ -348,7 +348,7 @@ float ProjectVect_func3D(float *R1, float *R2, float *R3, float *B_x, float *B_y
     return 1;
 }
 
-float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
+float Obj_dfunc3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
 {
     float val1, val2, val3;
     int i,j,k,index;
@@ -365,7 +365,7 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
             }}}
     return *D;
 }
-float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float *B_x, float *B_y, float *B_z, float lambda, int dimX, int dimY, int dimZ)
+float Grad_dfunc3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float *B_x, float *B_y, float *B_z, float lambda, int dimX, int dimY, int dimZ)
 {
     float val1, val2, val3, multip, in_prod;
     int i,j,k, index;
@@ -391,7 +391,7 @@ float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R
             }}}
     return 1;
 }
-float Proj_func3D(float *P1, float *P2, float *P3, int methTV, int DimTotal)
+float Proj_dfunc3D(float *P1, float *P2, float *P3, int methTV, int DimTotal)
 {		
     float val1, val2, val3, denom, sq_denom;
     int i;
@@ -425,7 +425,7 @@ float Proj_func3D(float *P1, float *P2, float *P3, int methTV, int DimTotal)
 		}
     return 1;
 }
-float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int DimTotal)
+float Rupd_dfunc3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int DimTotal)
 {
     int i;
     float multip;
