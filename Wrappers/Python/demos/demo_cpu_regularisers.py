@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, FGP_dTV
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -39,9 +39,14 @@ perc = 0.05
 u0 = Im + np.random.normal(loc = 0 ,
                                   scale = perc * Im , 
                                   size = np.shape(Im))
+u_ref = Im + np.random.normal(loc = 0 ,
+                                  scale = 0.01 * Im , 
+                                  size = np.shape(Im))
+ 
 # map the u0 u0->u0>0
 # f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
 u0 = u0.astype('float32')
+u_ref = u_ref.astype('float32')
 
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -134,9 +139,64 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(fgp_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_____________FGP-dTV (2D)__________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(3)
+plt.suptitle('Performance of FGP-dTV regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : FGP_dTV, \
+        'input' : u0,\
+        'refdata' : u_ref,\
+        'regularisation_parameter':0.04, \
+        'number_of_iterations' :2000 ,\
+        'tolerance_constant':1e-06,\
+        'eta_const':0.2,\
+        'methodTV': 0 ,\
+        'nonneg': 0 ,\
+        'printingOut': 0 
+        }
+        
+print ("#############FGP dTV CPU####################")
+start_time = timeit.default_timer()
+fgp_dtv_cpu = FGP_dTV(pars['input'], 
+              pars['refdata'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['eta_const'], 
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['printingOut'],'cpu')
+             
+rms = rmse(Im, fgp_dtv_cpu)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(fgp_dtv_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
+
+
+
 # Uncomment to test 3D regularisation performance 
 #%%
-"""
+
 N = 512
 slices = 20
 
@@ -148,10 +208,12 @@ Im = Im/255
 perc = 0.05
 
 noisyVol = np.zeros((slices,N,N),dtype='float32')
+noisyRef = np.zeros((slices,N,N),dtype='float32')
 idealVol = np.zeros((slices,N,N),dtype='float32')
 
 for i in range (slices):
     noisyVol[i,:,:] = Im + np.random.normal(loc = 0 , scale = perc * Im , size = np.shape(Im))
+    noisyRef[i,:,:] = Im + np.random.normal(loc = 0 , scale = 0.01 * Im , size = np.shape(Im))
     idealVol[i,:,:] = Im
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -159,7 +221,7 @@ print ("_______________ROF-TV (3D)_________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(3)
+fig = plt.figure(4)
 plt.suptitle('Performance of ROF-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy 15th slice of a volume')
@@ -199,7 +261,7 @@ print ("_______________FGP-TV (3D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(4)
+fig = plt.figure(5)
 plt.suptitle('Performance of FGP-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -242,5 +304,58 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(fgp_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using FGP-TV'))
-"""
+
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________FGP-dTV (3D)__________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(6)
+plt.suptitle('Performance of FGP-dTV regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+
+# set parameters
+pars = {'algorithm' : FGP_dTV, \
+        'input' : noisyVol,\ 
+        'refdata' : noisyRef,\
+        'regularisation_parameter':0.04, \
+        'number_of_iterations' :300 ,\
+        'tolerance_constant':0.00001,\
+        'eta_const':0.2,\
+        'methodTV': 0 ,\
+        'nonneg': 0 ,\
+        'printingOut': 0 
+        }
+        
+print ("#############FGP dTV CPU####################")
+start_time = timeit.default_timer()
+fgp_dTV_cpu3D = FGP_dTV(pars['input'],
+              pars['refdata'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['eta_const'],
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['printingOut'],'cpu')
+             
+             
+rms = rmse(idealVol, fgp_dTV_cpu3D)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(fgp_dTV_cpu3D[10,:,:], cmap="gray")
+plt.title('{}'.format('Recovered volume on the CPU using FGP-dTV'))
 #%%

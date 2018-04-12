@@ -52,7 +52,7 @@ void mexFunction(
     dim_array = mxGetDimensions(prhs[0]);
     
     /*Handling Matlab input data*/
-    if ((nrhs < 2) || (nrhs > 7)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D/3D), Regularization parameter. The full list of parameters: Image(2D/3D), Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1'), nonnegativity switch, print switch");
+    if ((nrhs < 2) || (nrhs > 7)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D/3D), Regularization parameter, Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1'), nonnegativity switch, print switch");
     
     Input  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */

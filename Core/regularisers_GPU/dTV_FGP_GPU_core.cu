@@ -17,27 +17,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */ 
 
-#include "TV_FGP_GPU_core.h"
+#include "dTV_FGP_GPU_core.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
-/* CUDA implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
+/* CUDA implementation of FGP-dTV [1,2] denoising/regularization model (2D/3D case)
+ * which employs structural similarity of the level sets of two images/volumes, see [1,2]
+ * The current implementation updates image 1 while image 2 is being fixed.
  *
  * Input Parameters:
- * 1. Noisy image/volume 
- * 2. lambdaPar - regularization parameter 
- * 3. Number of iterations
- * 4. eplsilon: tolerance constant 
- * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
- * 6. nonneg: 'nonnegativity (0 is OFF by default) 
- * 7. print information: 0 (off) or 1 (on) 
+ * 1. Noisy image/volume [REQUIRED]
+ * 2. Additional reference image/volume of the same dimensions as (1) [REQUIRED]
+ * 3. lambdaPar - regularization parameter [REQUIRED]
+ * 4. Number of iterations [OPTIONAL]
+ * 5. eplsilon: tolerance constant [OPTIONAL]
+ * 6. eta: smoothing constant to calculate gradient of the reference [OPTIONAL] * 
+ * 7. TV-type: methodTV - 'iso' (0) or 'l1' (1) [OPTIONAL]
+ * 8. nonneg: 'nonnegativity (0 is OFF by default) [OPTIONAL]
+ * 9. print information: 0 (off) or 1 (on) [OPTIONAL]
  *
  * Output:
- * [1] Filtered/regularized image
+ * [1] Filtered/regularized image/volume
  *
- * This function is based on the Matlab's code and paper by
+ * This function is based on the Matlab's codes and papers by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
+ * [2] M. J. Ehrhardt and M. M. Betcke, Multi-Contrast MRI Reconstruction with Structure-Guided Total Variation, SIAM Journal on Imaging Sciences 9(3), pp. 1084–1106
  */
+ 
 
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
 #define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
@@ -65,6 +71,51 @@ struct square { __host__ __device__ float operator()(float x) { return x * x; } 
 /************************************************/
 /*****************2D modules*********************/
 /************************************************/
+
+__global__ void GradNorm_func2D(float *Refd, float *Refd_x, float *Refd_y, float eta, int N, int M, int ImSize)
+{
+    
+    float val1, val2, gradX, gradY, magn;
+    //calculate each thread global index
+    const int xIndex=blockIdx.x*blockDim.x+threadIdx.x;
+    const int yIndex=blockIdx.y*blockDim.y+threadIdx.y;
+    
+    int index = xIndex + N*yIndex; 
+    
+    if ((xIndex < N) && (yIndex < M)) {        
+        /* boundary conditions */
+        if (xIndex >= N-1) val1 = 0.0f; else val1 =  Refd[(xIndex+1) + N*yIndex];
+        if (yIndex >= M-1) val2 = 0.0f; else val2 =  Refd[(xIndex) + N*(yIndex + 1)];        
+        
+            gradX = val1 - Refd[index];
+            gradY = val2 - Refd[index];
+            magn = pow(gradX,2) + pow(gradY,2);
+            magn = sqrt(magn + pow(eta,2));
+            Refd_x[index] = gradX/magn;
+            Refd_y[index] = gradY/magn;         
+    }
+    return;
+}
+
+__global__ void ProjectVect_func2D(float *R1, float *R2, float *Refd_x, float *Refd_y, int N, int M, int ImSize)
+{
+    
+    float in_prod;
+    //calculate each thread global index
+    const int xIndex=blockIdx.x*blockDim.x+threadIdx.x;
+    const int yIndex=blockIdx.y*blockDim.y+threadIdx.y;
+    
+    int index = xIndex + N*yIndex; 
+    
+    if ((xIndex < N) && (yIndex < M)) {
+        in_prod = R1[index]*Refd_x[index] + R2[index]*Refd_y[index];   /* calculate inner product */
+        R1[index] = R1[index] - in_prod*Refd_x[index];
+        R2[index] = R2[index] - in_prod*Refd_y[index];       
+    }
+    return;
+}
+
+
 __global__ void Obj_func2D_kernel(float *Ad, float *D, float *R1, float *R2, int N, int M, int ImSize, float lambda)
 {
     
@@ -79,16 +130,17 @@ __global__ void Obj_func2D_kernel(float *Ad, float *D, float *R1, float *R2, int
     if ((xIndex < N) && (yIndex < M)) {        
         if (xIndex <= 0) {val1 = 0.0f;} else {val1 = R1[(xIndex-1) + N*yIndex];}
         if (yIndex <= 0) {val2 = 0.0f;} else {val2 = R2[xIndex + N*(yIndex-1)];}
+        
         //Write final result to global memory
         D[index] = Ad[index] - lambda*(R1[index] + R2[index] - val1 - val2);
     }
     return;
 }
 
-__global__ void Grad_func2D_kernel(float *P1, float *P2, float *D, float *R1, float *R2, int N, int M, int ImSize, float multip)
+__global__ void Grad_func2D_kernel(float *P1, float *P2, float *D, float *R1, float *R2,  float *Refd_x, float *Refd_y, int N, int M, int ImSize, float multip)
 {
     
-    float val1,val2;
+    float val1,val2,in_prod;
     
     //calculate each thread global index
     const int xIndex=blockIdx.x*blockDim.x+threadIdx.x;
@@ -101,6 +153,10 @@ __global__ void Grad_func2D_kernel(float *P1, float *P2, float *D, float *R1, fl
         /* boundary conditions */
         if (xIndex >= N-1) val1 = 0.0f; else val1 = D[index] - D[(xIndex+1) + N*yIndex];
         if (yIndex >= M-1) val2 = 0.0f; else val2 = D[index] - D[(xIndex) + N*(yIndex + 1)];
+        
+        in_prod = val1*Refd_x[index] + val2*Refd_y[index];   /* calculate inner product */
+        val1 = val1 - in_prod*Refd_x[index];
+        val2 = val2 - in_prod*Refd_y[index];   
         
         //Write final result to global memory
         P1[index] = R1[index] + multip*val1;
@@ -198,6 +254,57 @@ __global__ void ResidCalc2D_kernel(float *Input1, float *Input2, float* Output, 
 /************************************************/
 /*****************3D modules*********************/
 /************************************************/
+__global__ void GradNorm_func3D(float *Refd, float *Refd_x, float *Refd_y, float *Refd_z, float eta, int N, int M, int Z, int ImSize)
+{
+    
+    float val1, val2, val3, gradX, gradY, gradZ, magn;
+    //calculate each thread global index
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if ((i < N) && (j < M) && (k < Z)) {  
+        /* boundary conditions */
+        if (i >= N-1) val1 = 0.0f; else val1 =  Refd[(N*M)*k + (i+1) + N*j];
+        if (j >= M-1) val2 = 0.0f; else val2 =  Refd[(N*M)*k + i + N*(j+1)];
+        if (k >= Z-1) val3 = 0.0f; else val3 =  Refd[(N*M)*(k+1) + i + N*j];
+        
+            gradX = val1 - Refd[index];
+            gradY = val2 - Refd[index];
+            gradZ = val3 - Refd[index];
+            magn = pow(gradX,2) + pow(gradY,2) + pow(gradZ,2);
+            magn = sqrt(magn + pow(eta,2));
+            Refd_x[index] = gradX/magn;
+            Refd_y[index] = gradY/magn;
+            Refd_z[index] = gradZ/magn;
+    }
+    return;
+}
+
+__global__ void ProjectVect_func3D(float *R1, float *R2, float *R3, float *Refd_x, float *Refd_y, float *Refd_z, int N, int M, int Z, int ImSize)
+{
+    
+    float in_prod;
+    //calculate each thread global index
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if ((i < N) && (j < M) && (k < Z)) {
+        in_prod = R1[index]*Refd_x[index] + R2[index]*Refd_y[index] + R3[index]*Refd_z[index]; /* calculate inner product */
+        
+        R1[index] = R1[index] - in_prod*Refd_x[index];
+        R2[index] = R2[index] - in_prod*Refd_y[index];
+        R3[index] = R3[index] - in_prod*Refd_z[index];
+    }
+    return;
+}
+
+
 __global__ void Obj_func3D_kernel(float *Ad, float *D, float *R1, float *R2, float *R3, int N, int M, int Z, int ImSize, float lambda)
 {
     
@@ -210,7 +317,7 @@ __global__ void Obj_func3D_kernel(float *Ad, float *D, float *R1, float *R2, flo
     
     int index = (N*M)*k + i + N*j;
     
-    if ((i < N) && (j < M) && (k < Z)) {      
+    if ((i < N) && (j < M) && (k < Z)) {
         if (i <= 0) {val1 = 0.0f;} else {val1 = R1[(N*M)*(k) + (i-1) + N*j];}
         if (j <= 0) {val2 = 0.0f;} else {val2 = R2[(N*M)*(k) + i + N*(j-1)];}
         if (k <= 0) {val3 = 0.0f;} else {val3 = R3[(N*M)*(k-1) + i + N*j];}
@@ -220,10 +327,10 @@ __global__ void Obj_func3D_kernel(float *Ad, float *D, float *R1, float *R2, flo
     return;
 }
 
-__global__ void Grad_func3D_kernel(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, int N, int M, int Z, int ImSize, float multip)
+__global__ void Grad_func3D_kernel(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float *Refd_x, float *Refd_y, float *Refd_z, int N, int M, int Z, int ImSize, float multip)
 {
     
-    float val1,val2,val3;
+    float val1,val2,val3,in_prod;
     
     //calculate each thread global index
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -232,11 +339,16 @@ __global__ void Grad_func3D_kernel(float *P1, float *P2, float *P3, float *D, fl
     
     int index = (N*M)*k + i + N*j;
     
-    if ((i < N) && (j < M) && (k <  Z)) {       
+    if ((i < N) && (j < M) && (k <  Z)) {
         /* boundary conditions */
         if (i >= N-1) val1 = 0.0f; else val1 = D[index] - D[(N*M)*(k) + (i+1) + N*j];
         if (j >= M-1) val2 = 0.0f; else val2 = D[index] - D[(N*M)*(k) + i + N*(j+1)];
-        if (k >= Z-1) val3 = 0.0f; else val3 = D[index] - D[(N*M)*(k+1) + i + N*j];
+        if (k >= Z-1) val3 = 0.0f; else val3 = D[index] - D[(N*M)*(k+1) + i + N*j];       
+        
+        in_prod = val1*Refd_x[index] + val2*Refd_y[index] + val3*Refd_z[index];   /* calculate inner product */
+        val1 = val1 - in_prod*Refd_x[index];
+        val2 = val2 - in_prod*Refd_y[index];
+        val3 = val3 - in_prod*Refd_z[index];
         
         //Write final result to global memory
         P1[index] = R1[index] + multip*val1;
@@ -338,10 +450,23 @@ __global__ void copy_kernel3D(float *Input, float* Output, int N, int M, int Z, 
         Output[index] = Input[index];
     }
 }
+
+__global__ void ResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input1[index] - Input2[index];
+    }
+}
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iter, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -358,7 +483,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
     if (dimZ <= 1) {
 		/*2D verson*/
 		int ImSize = dimX*dimY;    
-		float *d_input, *d_update=NULL, *d_update_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
+		float *d_input, *d_update=NULL, *d_update_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL, *InputRef_x=NULL, *InputRef_y=NULL, *d_InputRef=NULL;
    
 		dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
 		dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
@@ -373,21 +498,37 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
 		checkCudaErrors( cudaMalloc((void**)&P2_prev,ImSize*sizeof(float)) );
 		checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );
 		checkCudaErrors( cudaMalloc((void**)&R2,ImSize*sizeof(float)) );
+		checkCudaErrors( cudaMalloc((void**)&d_InputRef,ImSize*sizeof(float)) );
+		checkCudaErrors( cudaMalloc((void**)&InputRef_x,ImSize*sizeof(float)) );
+		checkCudaErrors( cudaMalloc((void**)&InputRef_y,ImSize*sizeof(float)) );
     
         checkCudaErrors( cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+        checkCudaErrors( cudaMemcpy(d_InputRef,InputRef,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+        
         cudaMemset(P1, 0, ImSize*sizeof(float));
         cudaMemset(P2, 0, ImSize*sizeof(float));
         cudaMemset(P1_prev, 0, ImSize*sizeof(float));
         cudaMemset(P2_prev, 0, ImSize*sizeof(float));
         cudaMemset(R1, 0, ImSize*sizeof(float));
         cudaMemset(R2, 0, ImSize*sizeof(float));
-
-        /********************** Run CUDA 2D kernel here ********************/    
+        cudaMemset(InputRef_x, 0, ImSize*sizeof(float));
+        cudaMemset(InputRef_y, 0, ImSize*sizeof(float));
+        
+        /******************** Run CUDA 2D kernel here ********************/
         multip = (1.0f/(8.0f*lambdaPar));
+        /* calculate gradient vectors for the reference */
+        GradNorm_func2D<<<dimGrid,dimBlock>>>(d_InputRef, InputRef_x, InputRef_y, eta, dimX, dimY, ImSize);
+        checkCudaErrors( cudaDeviceSynchronize() );
+        checkCudaErrors(cudaPeekAtLastError() );
     
         /* The main kernel */
         for (i = 0; i < iter; i++) {
         
+            /*projects a 2D vector field R-1,2 onto the orthogonal complement of another 2D vector field InputRef_xy*/         
+            ProjectVect_func2D<<<dimGrid,dimBlock>>>(R1, R2, InputRef_x, InputRef_y, dimX, dimY, ImSize);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
+            
             /* computing the gradient of the objective function */
             Obj_func2D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, dimX, dimY, ImSize, lambdaPar);
             checkCudaErrors( cudaDeviceSynchronize() );
@@ -399,7 +540,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             checkCudaErrors(cudaPeekAtLastError() ); }
                     
             /*Taking a step towards minus of the gradient*/
-            Grad_func2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, d_update, R1, R2, dimX, dimY, ImSize, multip);
+            Grad_func2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, d_update, R1, R2, InputRef_x, InputRef_y, dimX, dimY, ImSize, multip);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
@@ -434,7 +575,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
                 copy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );                                              
-            }                  
+            }
         
             copy_kernel2D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
@@ -446,7 +587,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
  
             tk = tkp1;
         }
-        if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", i);   
+        if (printM == 1) printf("FGP-dTV iterations stopped at iteration %i \n", i);   
             /***************************************************************/    
             //copy result matrix from device to host memory
             cudaMemcpy(Output,d_update,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
@@ -460,18 +601,23 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             cudaFree(P2_prev);
             cudaFree(R1);
             cudaFree(R2);
+            
+            cudaFree(d_InputRef);
+            cudaFree(InputRef_x);
+            cudaFree(InputRef_y);
     }
     else {
             /*3D verson*/
             int ImSize = dimX*dimY*dimZ;    
-            float *d_input, *d_update=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;
+            float *d_input, *d_update=NULL, *d_update_prev, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL, *InputRef_x=NULL, *InputRef_y=NULL, *InputRef_z=NULL, *d_InputRef=NULL;
    
             dim3 dimBlock(BLKXSIZE,BLKYSIZE,BLKZSIZE);
             dim3 dimGrid(idivup(dimX,BLKXSIZE), idivup(dimY,BLKYSIZE),idivup(dimZ,BLKZSIZE));
     
             /*allocate space for images on device*/
             checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
-            checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );            
+            checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
+            if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
             checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
             checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
             checkCudaErrors( cudaMalloc((void**)&P3,ImSize*sizeof(float)) );
@@ -481,8 +627,14 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );
             checkCudaErrors( cudaMalloc((void**)&R2,ImSize*sizeof(float)) );
             checkCudaErrors( cudaMalloc((void**)&R3,ImSize*sizeof(float)) );
+            checkCudaErrors( cudaMalloc((void**)&d_InputRef,ImSize*sizeof(float)) );
+            checkCudaErrors( cudaMalloc((void**)&InputRef_x,ImSize*sizeof(float)) );
+            checkCudaErrors( cudaMalloc((void**)&InputRef_y,ImSize*sizeof(float)) );
+            checkCudaErrors( cudaMalloc((void**)&InputRef_z,ImSize*sizeof(float)) );    
     
             checkCudaErrors( cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+            checkCudaErrors( cudaMemcpy(d_InputRef,InputRef,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+            
             cudaMemset(P1, 0, ImSize*sizeof(float));
             cudaMemset(P2, 0, ImSize*sizeof(float));
             cudaMemset(P3, 0, ImSize*sizeof(float));
@@ -492,11 +644,24 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             cudaMemset(R1, 0, ImSize*sizeof(float));
             cudaMemset(R2, 0, ImSize*sizeof(float));
             cudaMemset(R3, 0, ImSize*sizeof(float));
+            cudaMemset(InputRef_x, 0, ImSize*sizeof(float));
+            cudaMemset(InputRef_y, 0, ImSize*sizeof(float));
+            cudaMemset(InputRef_z, 0, ImSize*sizeof(float));
+            
             /********************** Run CUDA 3D kernel here ********************/    
             multip = (1.0f/(26.0f*lambdaPar));
+            /* calculate gradient vectors for the reference */
+            GradNorm_func3D<<<dimGrid,dimBlock>>>(d_InputRef, InputRef_x, InputRef_y, InputRef_z, eta, dimX, dimY, dimZ, ImSize);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
     
             /* The main kernel */
         for (i = 0; i < iter; i++) {
+
+			/*projects a 3D vector field R-1,2,3 onto the orthogonal complement of another 3D vector field InputRef_xyz*/
+            ProjectVect_func3D<<<dimGrid,dimBlock>>>(R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ, ImSize);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
         
             /* computing the gradient of the objective function */
             Obj_func3D_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, R1, R2, R3, dimX, dimY, dimZ, ImSize, lambdaPar);
@@ -509,7 +674,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             checkCudaErrors(cudaPeekAtLastError() ); }
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func3D_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, d_update, R1, R2, R3, dimX, dimY, dimZ, ImSize, multip);
+            Grad_func3D_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, d_update, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, dimX, dimY, dimZ, ImSize, multip);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
@@ -524,7 +689,27 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
         
             Rupd_func3D_kernel<<<dimGrid,dimBlock>>>(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, multip2, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
-            checkCudaErrors(cudaPeekAtLastError() );           
+            checkCudaErrors(cudaPeekAtLastError() );
+            
+            if (epsil != 0.0f) {
+                /* calculate norm - stopping rules using the Thrust library */
+                ResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, dimZ, ImSize);
+                checkCudaErrors( cudaDeviceSynchronize() );
+                checkCudaErrors(cudaPeekAtLastError() );               
+                
+                thrust::device_vector<float> d_vec(P1_prev, P1_prev + ImSize); 
+                float reduction = sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), square(), 0.0f, thrust::plus<float>()));
+                thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
+                float reduction2 = sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), square(), 0.0f, thrust::plus<float>()));
+                    
+                re = (reduction/reduction2);      
+                if (re < epsil)  count++;
+                    if (count > 4) break;       
+             
+                copy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, ImSize);
+                checkCudaErrors( cudaDeviceSynchronize() );
+                checkCudaErrors(cudaPeekAtLastError() );
+            }
         
             copy_kernel3D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
@@ -540,13 +725,14 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
  
             tk = tkp1;
         }
-        if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", i);   
+        if (printM == 1) printf("FGP-dTV iterations stopped at iteration %i \n", i);   
             /***************************************************************/    
             //copy result matrix from device to host memory
             cudaMemcpy(Output,d_update,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
     
             cudaFree(d_input);
-            cudaFree(d_update);            
+            cudaFree(d_update);
+            if (epsil != 0.0f) cudaFree(d_update_prev);
             cudaFree(P1);
             cudaFree(P2);
             cudaFree(P3);
@@ -554,8 +740,12 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             cudaFree(P2_prev);
             cudaFree(P3_prev);
             cudaFree(R1);
-            cudaFree(R2);        
-            cudaFree(R3);        
+            cudaFree(R2);
+            cudaFree(R3);
+            cudaFree(InputRef_x);
+            cudaFree(InputRef_y);
+            cudaFree(InputRef_z);
+            cudaFree(d_InputRef);
     } 
     cudaDeviceReset(); 
 }
