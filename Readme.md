@@ -5,7 +5,7 @@ CCPi-RGL software consist of 2D/3D regularisation modules for single-channel and
 can also be used as image denoising iterative filters. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 <div align="center">
-  <embed src="docs/images/probl.pdf" height="250">
+  <img src="docs/images/probl.png" height="250"><br>  
 </div>
 
 ## Prerequisites: 
