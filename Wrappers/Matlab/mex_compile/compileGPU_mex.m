@@ -1,13 +1,13 @@
 % execute this mex file in Matlab once
 
-%>>>>>>>>>>>>>>Important<<<<<<<<<<<<<<<<<<<
+%>>>>>>>>>>>>>>>>>Important<<<<<<<<<<<<<<<<<<<
 % In order to compile CUDA modules one needs to have nvcc-compiler
-% installed (see CUDA SDK)
-% check it under MATLAB with !nvcc --version
-% In the code bellow we provide a full path to nvcc compiler 
+% installed (see CUDA SDK), check it under MATLAB with !nvcc --version
+
+% In the code bellow we provide a full explicit path to nvcc compiler 
 % ! paths to matlab and CUDA sdk can be different, modify accordingly !
 
-% tested on Ubuntu 16.04/MATLAB 2016b
+% tested on Ubuntu 16.04/MATLAB 2016b/cuda7.5/gcc4.9
 
 copyfile ../../../Core/regularisers_GPU/ regularisers_GPU/
 copyfile ../../../Core/CCPiDefines.h regularisers_GPU/
@@ -23,11 +23,15 @@ movefile ROF_TV_GPU.mex* ../installed/
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu FGP_TV_GPU.cpp TV_FGP_GPU_core.o
 movefile FGP_TV_GPU.mex* ../installed/
 
+!/usr/local/cuda/bin/nvcc -O0 -c TV_SB_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
+mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu SB_TV_GPU.cpp TV_SB_GPU_core.o
+movefile SB_TV_GPU.mex* ../installed/
+
 !/usr/local/cuda/bin/nvcc -O0 -c dTV_FGP_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu FGP_dTV_GPU.cpp dTV_FGP_GPU_core.o
 movefile FGP_dTV_GPU.mex* ../installed/
 
-delete TV_ROF_GPU_core* TV_FGP_GPU_core* dTV_FGP_GPU_core* CCPiDefines.h
+delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* CCPiDefines.h utils_cu.h
 fprintf('%s \n', 'All successfully compiled!');
 
 cd ../../

@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "TV_FGP_GPU_core.h"
+#include "utils_cu.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -173,28 +174,6 @@ __global__ void nonneg2D_kernel(float* Output, int N, int M, int num_total)
         if (Output[index] < 0.0f) Output[index] = 0.0f;
     }
 }
-__global__ void copy_kernel2D(float *Input, float* Output, int N, int M, int num_total)
-{
-    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-    
-    int index = xIndex + N*yIndex;
-    
-    if (index < num_total)	{
-        Output[index] = Input[index];
-    }
-}
-__global__ void ResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
-{
-    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-    
-    int index = xIndex + N*yIndex;
-    
-    if (index < num_total)	{
-        Output[index] = Input1[index] - Input2[index];
-    }
-}   
 /************************************************/
 /*****************3D modules*********************/
 /************************************************/
@@ -294,8 +273,6 @@ __global__ void Proj_func3D_aniso_kernel(float *P1, float *P2, float *P3, int N,
     }
     return;
 }
-
-
 __global__ void Rupd_func3D_kernel(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, float multip2, int N, int M, int Z, int ImSize)
 {
     //calculate each thread global index
@@ -323,19 +300,6 @@ __global__ void nonneg3D_kernel(float* Output, int N, int M, int Z, int num_tota
     
     if (index < num_total)	{
         if (Output[index] < 0.0f) Output[index] = 0.0f;
-    }
-}
-
-__global__ void copy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
-{
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = blockDim.y * blockIdx.y + threadIdx.y;
-    int k = blockDim.z * blockIdx.z + threadIdx.z;
-    
-    int index = (N*M)*k + i + N*j;
-    
-    if (index < num_total)	{
-        Output[index] = Input[index];
     }
 }
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/

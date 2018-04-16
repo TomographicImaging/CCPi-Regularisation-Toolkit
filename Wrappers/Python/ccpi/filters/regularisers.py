@@ -42,6 +42,25 @@ def FGP_TV(inputData, regularisation_parameter,iterations,
     else:
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
+def SB_TV(inputData, regularisation_parameter, iterations,
+                     tolerance_param, methodTV, printM, device='cpu'):
+    if device == 'cpu':
+        return TV_SB_CPU(inputData,
+                     regularisation_parameter,
+                     iterations, 
+                     tolerance_param,
+                     methodTV,
+                     printM)
+    elif device == 'gpu':
+        return TV_SB_GPU(inputData,
+                     regularisation_parameter,
+                     iterations, 
+                     tolerance_param,
+                     methodTV,
+                     printM)
+    else:
+        raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
+                         .format(device))
 def FGP_dTV(inputData, refdata, regularisation_parameter, iterations,
                      tolerance_param, eta_const, methodTV, nonneg, printM, device='cpu'):
     if device == 'cpu':
