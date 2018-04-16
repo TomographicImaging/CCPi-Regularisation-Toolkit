@@ -132,7 +132,6 @@ if (CUDA_FOUND)
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_SB_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/dTV_FGP_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/utils_cu.h
   )
   if (UNIX)
     message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")

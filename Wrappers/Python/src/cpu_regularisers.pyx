@@ -20,7 +20,7 @@ cimport numpy as np
 
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
-cdef extern float TV_SB_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
+cdef extern float SB_TV_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
 
@@ -152,7 +152,7 @@ def TV_SB_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0],dims[1]], dtype='float32')
                    
     #/* Run SB-TV iterations for 2D data */
-    TV_SB_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, 
+    SB_TV_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, 
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,
@@ -176,7 +176,7 @@ def TV_SB_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
             np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
            
     #/* Run SB-TV iterations for 3D data */
-    TV_SB_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter,
+    SB_TV_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter,
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,
