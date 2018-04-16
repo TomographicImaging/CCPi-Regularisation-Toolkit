@@ -4,6 +4,10 @@
 CCPi-RGL software consist of 2D/3D regularisation modules for single-channel and multi-channel reconstruction problems. The modules especially suited for IIR, however,
 can also be used as image denoising iterative filters. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
+<div align="center">
+  <img src="docs/imgages/probl.pdf" height="300"><br>  
+</div>
+
 ## Prerequisites: 
 
  * MATLAB (www.mathworks.com/products/matlab/) OR
