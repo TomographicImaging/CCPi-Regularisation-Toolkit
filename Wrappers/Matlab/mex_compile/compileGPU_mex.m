@@ -31,7 +31,7 @@ movefile SB_TV_GPU.mex* ../installed/
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu FGP_dTV_GPU.cpp dTV_FGP_GPU_core.o
 movefile FGP_dTV_GPU.mex* ../installed/
 
-delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* CCPiDefines.h utils_cu.h
+delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* CCPiDefines.h
 fprintf('%s \n', 'All successfully compiled!');
 
 cd ../../

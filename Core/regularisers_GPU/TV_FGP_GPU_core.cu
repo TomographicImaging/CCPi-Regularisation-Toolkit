@@ -18,7 +18,6 @@ limitations under the License.
 */ 
 
 #include "TV_FGP_GPU_core.h"
-#include "utils_cu.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -302,6 +301,56 @@ __global__ void nonneg3D_kernel(float* Output, int N, int M, int Z, int num_tota
         if (Output[index] < 0.0f) Output[index] = 0.0f;
     }
 }
+__global__ void FGPcopy_kernel2D(float *Input, float* Output, int N, int M, int num_total)
+{
+    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+    
+    int index = xIndex + N*yIndex;
+    
+    if (index < num_total)	{
+        Output[index] = Input[index];
+    }
+}
+
+__global__ void FGPcopy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input[index];
+    }
+}
+
+__global__ void FGPResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
+{
+    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+    
+    int index = xIndex + N*yIndex;
+    
+    if (index < num_total)	{
+        Output[index] = Input1[index] - Input2[index];
+    }
+}
+
+__global__ void FGPResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input1[index] - Input2[index];
+    }
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
@@ -382,7 +431,7 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
         
             if (epsil != 0.0f) {
                 /* calculate norm - stopping rules using the Thrust library */
-                ResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, ImSize);
+                FGPResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
@@ -395,16 +444,16 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
                 if (re < epsil)  count++;
                     if (count > 4) break;       
              
-                copy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
+                FGPcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );                                              
             }                  
         
-            copy_kernel2D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, ImSize);
+            FGPcopy_kernel2D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
-            copy_kernel2D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, ImSize);
+            FGPcopy_kernel2D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );       
  
@@ -490,15 +539,15 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );           
         
-            copy_kernel3D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, dimZ, ImSize);
+            FGPcopy_kernel3D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );
         
-            copy_kernel3D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, dimZ, ImSize);
+            FGPcopy_kernel3D<<<dimGrid,dimBlock>>>(P2, P2_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );   
             
-            copy_kernel3D<<<dimGrid,dimBlock>>>(P3, P3_prev, dimX, dimY, dimZ, ImSize);
+            FGPcopy_kernel3D<<<dimGrid,dimBlock>>>(P3, P3_prev, dimX, dimY, dimZ, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
             checkCudaErrors(cudaPeekAtLastError() );      
  

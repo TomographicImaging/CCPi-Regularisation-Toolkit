@@ -18,7 +18,6 @@ limitations under the License.
 */ 
 
 #include "TV_SB_GPU_core.h"
-#include "utils_cu.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -312,6 +311,56 @@ __global__ void updBxBy3D_kernel(float *U, float *Dx, float *Dy, float *Dz, floa
     return;
 }
 
+__global__ void SBcopy_kernel2D(float *Input, float* Output, int N, int M, int num_total)
+{
+    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+    
+    int index = xIndex + N*yIndex;
+    
+    if (index < num_total)	{
+        Output[index] = Input[index];
+    }
+}
+
+__global__ void SBcopy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input[index];
+    }
+}
+
+__global__ void SBResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
+{
+    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+    
+    int index = xIndex + N*yIndex;
+    
+    if (index < num_total)	{
+        Output[index] = Input1[index] - Input2[index];
+    }
+}
+
+__global__ void SBResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input1[index] - Input2[index];
+    }
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -361,7 +410,7 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
         for (ll = 0; ll < iter; ll++) {
         
         /* storing old value */
-        copy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, DimTotal);
+        SBcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, DimTotal);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() );  
 
@@ -369,7 +418,7 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
         gauss_seidel2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_input, d_update_prev, Dx, Dy, Bx, By, lambda, mu, normConst, dimX, dimY, DimTotal);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() ); 
-        copy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, DimTotal);
+        SBcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, DimTotal);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() );  
         /* 2nd GS iteration */
@@ -388,7 +437,7 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
         
           if (epsil != 0.0f) {
                 /* calculate norm - stopping rules using the Thrust library */
-                ResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, d_res, dimX, dimY, DimTotal);
+                SBResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, d_res, dimX, dimY, DimTotal);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
@@ -452,7 +501,7 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
         for (ll = 0; ll < iter; ll++) {
         
         /* storing old value */
-        copy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, DimTotal);
+        SBcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, DimTotal);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() );
 
@@ -460,7 +509,7 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
         gauss_seidel3D_kernel<<<dimGrid,dimBlock>>>(d_update, d_input, d_update_prev, Dx, Dy, Dz, Bx, By, Bz, lambda, mu, normConst, dimX, dimY, dimZ, DimTotal);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() ); 
-        copy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, DimTotal);
+        SBcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, DimTotal);
         checkCudaErrors( cudaDeviceSynchronize() );
         checkCudaErrors(cudaPeekAtLastError() );  
         /* 2nd GS iteration */
@@ -479,7 +528,7 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
         
           if (epsil != 0.0f) {
                 /* calculate norm - stopping rules using the Thrust library */
-                ResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, d_res, dimX, dimY, dimZ, DimTotal);
+                SBResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, d_res, dimX, dimY, dimZ, DimTotal);
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
