@@ -20,6 +20,7 @@ cimport numpy as np
 
 cdef extern void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
 cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
+cdef extern void TV_SB_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int printM, int N, int M, int Z);
 cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
@@ -61,6 +62,27 @@ def TV_FGP_GPU(inputData,
                      tolerance_param,
                      methodTV,
                      nonneg,
+                     printM)
+# Total-variation Split Bregman (SB)
+def TV_SB_GPU(inputData,
+                     regularisation_parameter,
+                     iterations, 
+                     tolerance_param,
+                     methodTV,
+                     printM):
+    if inputData.ndim == 2:
+        return SBTV2D(inputData,
+                     regularisation_parameter,
+                     iterations, 
+                     tolerance_param,
+                     methodTV,
+                     printM)
+    elif inputData.ndim == 3:
+        return SBTV3D(inputData,
+                     regularisation_parameter,
+                     iterations, 
+                     tolerance_param,
+                     methodTV,
                      printM)
 # Directional Total-variation Fast-Gradient-Projection (FGP)
 def dTV_FGP_GPU(inputData,
@@ -197,7 +219,60 @@ def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        dims[2], dims[1], dims[0]);   
      
     return outputData 
+#***************************************************************#
+#********************** Total-variation SB *********************#
+#***************************************************************#
+#*************** Total-variation Split Bregman (SB)*************#
+def SBTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     int iterations, 
+                     float tolerance_param,
+                     int methodTV,
+                     int printM):
     
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+		    np.zeros([dims[0],dims[1]], dtype='float32')
+          
+    # Running CUDA code here    
+    TV_SB_GPU_main(&inputData[0,0], &outputData[0,0],                        
+                       regularisation_parameter, 
+                       iterations, 
+                       tolerance_param,
+                       methodTV,
+                       printM,
+                       dims[0], dims[1], 1);   
+     
+    return outputData
+    
+def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     int iterations, 
+                     float tolerance_param,
+                     int methodTV,
+                     int printM):
+    
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+          
+    # Running CUDA code here    
+    TV_SB_GPU_main(&inputData[0,0,0], &outputData[0,0,0], 
+                       regularisation_parameter , 
+                       iterations, 
+                       tolerance_param,
+                       methodTV,
+                       printM,
+                       dims[2], dims[1], dims[0]);
+     
+    return outputData 
 #****************************************************************#
 #**************Directional Total-variation FGP ******************#
 #****************************************************************#

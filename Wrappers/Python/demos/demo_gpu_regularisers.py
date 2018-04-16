@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, FGP_dTV
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -139,12 +139,59 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(fgp_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
 
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("____________SB-TV bench___________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(3)
+plt.suptitle('Performance of the SB-TV regulariser using the GPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : SB_TV, \
+        'input' : u0,\
+        'regularisation_parameter':0.04, \
+        'number_of_iterations' :150 ,\
+        'tolerance_constant':1e-06,\
+        'methodTV': 0 ,\
+        'printingOut': 0 
+        }
+
+print ("##############SB TV GPU##################")
+start_time = timeit.default_timer()
+sb_gpu = SB_TV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['printingOut'],'gpu')
+                                   
+rms = rmse(Im, sb_gpu)
+pars['rmse'] = rms
+pars['algorithm'] = SB_TV
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(sb_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
+
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________FGP-dTV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(3)
+fig = plt.figure(4)
 plt.suptitle('Performance of the FGP-dTV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -219,7 +266,7 @@ print ("_______________ROF-TV (3D)_________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(4)
+fig = plt.figure(5)
 plt.suptitle('Performance of ROF-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy 15th slice of a volume')
@@ -259,7 +306,7 @@ print ("_______________FGP-TV (3D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(5)
+fig = plt.figure(6)
 plt.suptitle('Performance of FGP-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -302,13 +349,58 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(fgp_gpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the GPU using FGP-TV'))
 
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________SB-TV (3D)__________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(7)
+plt.suptitle('Performance of SB-TV regulariser using the GPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+
+# set parameters
+pars = {'algorithm' : SB_TV, \
+        'input' : noisyVol,\
+        'regularisation_parameter':0.04, \
+        'number_of_iterations' :100 ,\
+        'tolerance_constant':1e-05,\
+        'methodTV': 0 ,\
+        'printingOut': 0 
+        }
+
+print ("#############SB TV GPU####################")
+start_time = timeit.default_timer()
+sb_gpu3D = SB_TV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['printingOut'],'gpu')
+
+rms = rmse(idealVol, sb_gpu3D)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(sb_gpu3D[10,:,:], cmap="gray")
+plt.title('{}'.format('Recovered volume on the GPU using SB-TV'))
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________FGP-dTV (3D)________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(6)
+fig = plt.figure(8)
 plt.suptitle('Performance of FGP-dTV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')

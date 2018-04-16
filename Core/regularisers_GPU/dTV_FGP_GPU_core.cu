@@ -240,6 +240,20 @@ __global__ void dTVcopy_kernel2D(float *Input, float* Output, int N, int M, int 
         Output[index] = Input[index];
     }
 }
+
+__global__ void dTVcopy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input[index];
+    }
+}
+
 __global__ void dTVResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
 {
     int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
@@ -250,7 +264,21 @@ __global__ void dTVResidCalc2D_kernel(float *Input1, float *Input2, float* Outpu
     if (index < num_total)	{
         Output[index] = Input1[index] - Input2[index];
     }
-}   
+}
+
+__global__ void dTVResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
+    
+    int index = (N*M)*k + i + N*j;
+    
+    if (index < num_total)	{
+        Output[index] = Input1[index] - Input2[index];
+    }
+}
+
 /************************************************/
 /*****************3D modules*********************/
 /************************************************/
@@ -435,32 +463,6 @@ __global__ void dTVnonneg3D_kernel(float* Output, int N, int M, int Z, int num_t
     
     if (index < num_total)	{
         if (Output[index] < 0.0f) Output[index] = 0.0f;
-    }
-}
-
-__global__ void dTVcopy_kernel3D(float *Input, float* Output, int N, int M, int Z, int num_total)
-{
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = blockDim.y * blockIdx.y + threadIdx.y;
-    int k = blockDim.z * blockIdx.z + threadIdx.z;
-    
-    int index = (N*M)*k + i + N*j;
-    
-    if (index < num_total)	{
-        Output[index] = Input[index];
-    }
-}
-
-__global__ void dTVResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
-{
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = blockDim.y * blockIdx.y + threadIdx.y;
-    int k = blockDim.z * blockIdx.z + threadIdx.z;
-    
-    int index = (N*M)*k + i + N*j;
-    
-    if (index < num_total)	{
-        Output[index] = Input1[index] - Input2[index];
     }
 }
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/

@@ -11,10 +11,13 @@ movefile ROF_TV.mex* ../installed/
 mex FGP_TV.c FGP_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile FGP_TV.mex* ../installed/
 
+mex SB_TV.c SB_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile SB_TV.mex* ../installed/
+
 mex FGP_dTV.c FGP_dTV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile FGP_dTV.mex* ../installed/
 
-delete ROF_TV_core* FGP_TV_core* FGP_dTV_core* utils* CCPiDefines.h
+delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* utils* CCPiDefines.h
 
 fprintf('%s \n', 'All successfully compiled!');
 
