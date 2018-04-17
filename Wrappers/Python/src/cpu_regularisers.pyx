@@ -21,6 +21,7 @@ cimport numpy as np
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 cdef extern float SB_TV_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
+cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxIter, float tol, int dimX, int dimY, int dimZ);
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
 
@@ -248,4 +249,29 @@ def dTV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        nonneg,
                        printM,
                        dims[2], dims[1], dims[0])
+    return outputData
+    
+#****************************************************************#
+#*********************Total Nuclear Variation********************#
+#****************************************************************#
+def TNV_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param):
+    if inputData.ndim == 2:
+        return 
+    elif inputData.ndim == 3:
+        return TNV_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param)
+
+def TNV_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     int iterationsNumb,
+                     float tolerance_param):
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+           
+    # Run TNV iterations for 3D (X,Y,Channels) data 
+    TNV_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, iterationsNumb, tolerance_param, dims[2], dims[1], dims[0])
     return outputData
