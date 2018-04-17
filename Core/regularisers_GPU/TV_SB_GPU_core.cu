@@ -35,7 +35,6 @@ limitations under the License.
 * Output:
 * 1. Filtered/regularized image
 *
-* This function is based on the Matlab's code and paper by
 * [1]. Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.
 */
 

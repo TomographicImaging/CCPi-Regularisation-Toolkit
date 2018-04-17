@@ -5,7 +5,7 @@ CCPi-RGL software consist of 2D/3D regularisation modules for single-channel and
 can also be used as image denoising iterative filters. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 <div align="center">
-  <img src="docs/images/probl.png" height="250"><br>  
+  <img src="docs/images/probl.png" height="225"><br>  
 </div>
 
 ## Prerequisites: 
@@ -24,6 +24,7 @@ can also be used as image denoising iterative filters. The core modules are writ
 
 ### Multi-channel
 1. Fast-Gradient-Projection (FGP) Directional Total Variation [2D/3D CPU/GPU]; (Ref. 3,2)
+2. Total Nuclear Variation (TNV) penalty [2D+channels CPU]; (Ref. 5)
 
 ## Installation:
 
@@ -36,7 +37,8 @@ can also be used as image denoising iterative filters. The core modules are writ
 	conda build conda-recipe --numpy 1.12 --python 3.5 
 	conda install ccpi-regulariser=0.9.2 --use-local --force
 	cd demos/
-	python demo_cpu_regularisers.py.py # to run CPU demo
+	python demo_cpu_regularisers.py # to run CPU demo
+	python demo_gpu_regularisers.py # to run GPU demo
 ```
 ### Matlab
 ```
@@ -50,6 +52,7 @@ can also be used as image denoising iterative filters. The core modules are writ
 2. Beck, A. and Teboulle, M., 2009. Fast gradient-based algorithms for constrained total variation image denoising and deblurring problems. IEEE Transactions on Image Processing, 18(11), pp.2419-2434.
 3. Ehrhardt, M.J. and Betcke, M.M., 2016. Multicontrast MRI reconstruction with structure-guided total variation. SIAM Journal on Imaging Sciences, 9(3), pp.1084-1106.
 4. Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.
+5. Duran, J., Moeller, M., Sbert, C. and Cremers, D., 2016. Collaborative total variation: a general framework for vectorial TV models. SIAM Journal on Imaging Sciences, 9(1), pp.116-151.
 
 ### License:
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

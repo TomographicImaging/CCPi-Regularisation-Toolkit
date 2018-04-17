@@ -2,7 +2,7 @@
 script which assigns a proper device core function based on a flag ('cpu' or 'gpu')
 """
 
-from ccpi.filters.cpu_regularisers_cython import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU
+from ccpi.filters.cpu_regularisers_cython import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU 
 from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU
 
 def ROF_TV(inputData, regularisation_parameter, iterations,
@@ -86,3 +86,8 @@ def FGP_dTV(inputData, refdata, regularisation_parameter, iterations,
     else:
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
+def TNV(inputData, regularisation_parameter, iterations, tolerance_param):
+        return TNV_CPU_pyx(inputData,
+                     regularisation_parameter,
+                     iterations, 
+                     tolerance_param)

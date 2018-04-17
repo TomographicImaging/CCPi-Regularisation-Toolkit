@@ -70,3 +70,14 @@ figure; imshow(u_fgp_dtv, [0 1]); title('FGP-dTV denoised image (CPU)');
 % tic; u_fgp_dtvG = FGP_dTV_GPU(single(u0), single(u_ref), lambda_reg, iter_fgp, epsil_tol, eta); toc; 
 % figure; imshow(u_fgp_dtvG, [0 1]); title('FGP-dTV denoised image (GPU)');
 %%
+fprintf('Denoise using the TNV prior (CPU) \n');
+slices = 5; N = 512;
+vol3D = zeros(N,N,slices, 'single');
+for i = 1:slices
+vol3D(:,:,i) = Im + .05*randn(size(Im)); 
+end
+vol3D(vol3D < 0) = 0;
+
+iter_tnv = 200; % number of TNV iterations
+tic; u_tnv = TNV(single(vol3D), lambda_reg, iter_tnv); toc; 
+figure; imshow(u_tnv(:,:,3), [0 1]); title('TNV denoised stack of channels (CPU)');

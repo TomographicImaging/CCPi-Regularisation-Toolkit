@@ -90,6 +90,7 @@ add_library(cilreg SHARED
 	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_PD_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_dTV_core.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.c
 	    )
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
