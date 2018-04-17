@@ -87,7 +87,7 @@ def FGP_dTV(inputData, refdata, regularisation_parameter, iterations,
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
 def TNV(inputData, regularisation_parameter, iterations, tolerance_param):
-        return TNV_CPU_pyx(inputData,
+        return TNV_CPU(inputData,
                      regularisation_parameter,
                      iterations, 
                      tolerance_param)
