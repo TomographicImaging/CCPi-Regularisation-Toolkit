@@ -29,6 +29,13 @@ float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
 	return *U;
 }
 
+/*static inline int8_t SIGN(int val) {
+ if (val < 0) return -1;
+ if (val==0) return 0;
+ return 1;
+}
+*/
+
 /* function that calculates TV energy (ROF model) 
  * min||\nabla u|| + 0.5*lambda*||u -u0||^2
  * */

@@ -46,6 +46,22 @@ figure; imshow(u_sb, [0 1]); title('SB-TV denoised image (CPU)');
 % tic; u_sbG = SB_TV_GPU(single(u0), lambda_reg, iter_sb, epsil_tol); toc; 
 % figure; imshow(u_sbG, [0 1]); title('SB-TV denoised image (GPU)');
 %%
+fprintf('Denoise using Nonlinear-Diffusion model (CPU) \n');
+iter_diff = 800; % number of diffusion iterations
+lambda_regDiff = 0.06; % regularisation for the diffusivity 
+sigmaPar = 0.04; % edge-preserving parameter
+tau_param = 0.025; % time-marching constant 
+tic; u_diff = NonlDiff(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+figure; imshow(u_diff, [0 1]); title('Diffusion denoised image (CPU)');
+%%
+% fprintf('Denoise using Nonlinear-Diffusion model (GPU) \n');
+% iter_diff = 800; % number of diffusion iterations
+% lambda_regDiff = 0.06; % regularisation for the diffusivity 
+% sigmaPar = 0.04; % edge-preserving parameter
+% tau_param = 0.025; % time-marching constant 
+% tic; u_diff_g = NonlDiff_GPU(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+% figure; imshow(u_diff_g, [0 1]); title('Diffusion denoised image (GPU)');
+%%
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
 
 fprintf('Denoise using the FGP-dTV model (CPU) \n');

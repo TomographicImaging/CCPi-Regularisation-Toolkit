@@ -12,12 +12,6 @@
 #define MAX(i,j) ((i)<(j) ? (j):(i))
 #define MIN(i,j) ((i)<(j) ? (i):(j))
 
-static inline int8_t SIGN(int val) {
- if (val < 0) return -1;
- if (val==0) return 0;
- return 1;
-}
-
 /*
 This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
