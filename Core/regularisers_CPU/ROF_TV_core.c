@@ -23,9 +23,11 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+/*sign function*/
 int sign(float x) {
     return (x > 0) - (x < 0);
 }
+
 
 /* C-OMP implementation of ROF-TV denoising/regularization model [1] (2D/3D case)
  *
@@ -41,8 +43,6 @@ int sign(float x) {
  *
  * This function is based on the paper by
  * [1] Rudin, Osher, Fatemi, "Nonlinear Total Variation based noise removal algorithms"
- *
- * D. Kazantsev, 2016-18
  */
 
 /* Running iterations of TV-ROF function */
@@ -90,8 +90,7 @@ float D1_func(float *A, float *D1, int dimX, int dimY, int dimZ)
                     j1 = j + 1; if (j1 >= dimY) j1 = j-1;
                     j2 = j - 1; if (j2 < 0) j2 = j+1;
                     k1 = k + 1; if (k1 >= dimZ) k1 = k-1;
-                    k2 = k - 1; if (k2 < 0) k2 = k+1;
-                    /*B[(dimX*dimY)*k + i*dimY+j] = 0.25*(A[(dimX*dimY)*k + (i1)*dimY + j] + A[(dimX*dimY)*k + (i2)*dimY + j] + A[(dimX*dimY)*k + (i)*dimY + j1] + A[(dimX*dimY)*k + (i)*dimY + j2]) -  A[(dimX*dimY)*k + i*dimY + j];*/
+                    k2 = k - 1; if (k2 < 0) k2 = k+1;                    
                     
                     /* Forward-backward differences */
                     NOMx_1 = A[(dimX*dimY)*k + j1*dimX + i] - A[index]; /* x+ */
@@ -104,9 +103,9 @@ float D1_func(float *A, float *D1, int dimX, int dimY, int dimZ)
                     
                     
                     denom1 = NOMx_1*NOMx_1;
-                    denom2 = 0.5*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
+                    denom2 = 0.5f*(sign(NOMy_1) + sign(NOMy_0))*(MIN(fabs(NOMy_1),fabs(NOMy_0)));
                     denom2 = denom2*denom2;
-                    denom3 = 0.5*(sign(NOMz_1) + sign(NOMz_0))*(MIN(fabs(NOMz_1),fabs(NOMz_0)));
+                    denom3 = 0.5f*(sign(NOMz_1) + sign(NOMz_0))*(MIN(fabs(NOMz_1),fabs(NOMz_0)));
                     denom3 = denom3*denom3;
                     T1 = sqrt(denom1 + denom2 + denom3 + EPS);
                     D1[index] = NOMx_1/T1;

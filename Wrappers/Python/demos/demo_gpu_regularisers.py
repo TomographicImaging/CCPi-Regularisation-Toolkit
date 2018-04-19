@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, NDF
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -50,7 +50,7 @@ u0 = u0.astype('float32')
 u_ref = u_ref.astype('float32')
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("____________ROF-TV bench___________________")
+print ("____________ROF-TV regulariser_____________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
@@ -92,7 +92,7 @@ plt.title('{}'.format('GPU results'))
 
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("____________FGP-TV bench___________________")
+print ("____________FGP-TV regulariser_____________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
@@ -141,7 +141,7 @@ plt.title('{}'.format('GPU results'))
 
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("____________SB-TV bench___________________")
+print ("____________SB-TV regulariser______________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
@@ -186,12 +186,60 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(sb_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
 
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________NDF regulariser_____________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(4)
+plt.suptitle('Performance of the NDF regulariser using the GPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : NDF, \
+        'input' : u0,\
+        'regularisation_parameter':0.06, \
+        'edge_parameter':0.04,\
+        'number_of_iterations' :1000 ,\
+        'time_marching_parameter':0.025,\
+        'penalty_type':  1
+        }
+
+print ("##############NDF GPU##################")
+start_time = timeit.default_timer()
+ndf_gpu = NDF(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['edge_parameter'], 
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'], 
+              pars['penalty_type'],'gpu')  
+             
+rms = rmse(Im, ndf_gpu)
+pars['rmse'] = rms
+pars['algorithm'] = NDF
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(ndf_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
+
+
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________FGP-dTV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(4)
+fig = plt.figure(5)
 plt.suptitle('Performance of the FGP-dTV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -266,7 +314,7 @@ print ("_______________ROF-TV (3D)_________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(5)
+fig = plt.figure(6)
 plt.suptitle('Performance of ROF-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy 15th slice of a volume')
@@ -306,7 +354,7 @@ print ("_______________FGP-TV (3D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(6)
+fig = plt.figure(7)
 plt.suptitle('Performance of FGP-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -354,7 +402,7 @@ print ("_______________SB-TV (3D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(7)
+fig = plt.figure(8)
 plt.suptitle('Performance of SB-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -395,12 +443,60 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(sb_gpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the GPU using SB-TV'))
 
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________NDF-TV (3D)_________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(9)
+plt.suptitle('Performance of NDF regulariser using the GPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+
+# set parameters
+pars = {'algorithm' : NDF, \
+        'input' : noisyVol,\
+        'regularisation_parameter':0.06, \
+        'edge_parameter':0.04,\
+        'number_of_iterations' :1000 ,\
+        'time_marching_parameter':0.025,\
+        'penalty_type':  1
+        }
+
+print ("#############NDF GPU####################")
+start_time = timeit.default_timer()
+ndf_gpu3D = NDF(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['edge_parameter'], 
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'], 
+              pars['penalty_type'],'gpu')
+
+rms = rmse(idealVol, ndf_gpu3D)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(ndf_gpu3D[10,:,:], cmap="gray")
+plt.title('{}'.format('Recovered volume on the GPU using NDF'))
+
+
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________FGP-dTV (3D)________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(8)
+fig = plt.figure(10)
 plt.suptitle('Performance of FGP-dTV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
