@@ -25,7 +25,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /*sign function*/
-int sign(float x) {
+int signNDFc(float x) {
     return (x > 0) - (x < 0);
 }
 
@@ -139,16 +139,16 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
                 
             if (penaltytype == 1){
             /* Huber penalty */
-            if (fabs(e1) > sigmaPar) e1 =  sign(e1);
+            if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
             else e1 = e1/sigmaPar;
             
-            if (fabs(w1) > sigmaPar) w1 =  sign(w1);
+            if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
             else w1 = w1/sigmaPar;
             
-            if (fabs(n1) > sigmaPar) n1 =  sign(n1);
+            if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
             else n1 = n1/sigmaPar;
             
-            if (fabs(s1) > sigmaPar) s1 =  sign(s1);
+            if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
             else s1 = s1/sigmaPar;
             }
             else if (penaltytype == 2) {
@@ -254,22 +254,22 @@ for(k=0; k<dimZ; k++) {
                 
              if (penaltytype == 1){
             /* Huber penalty */
-            if (fabs(e1) > sigmaPar) e1 =  sign(e1);
+            if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
             else e1 = e1/sigmaPar;
             
-            if (fabs(w1) > sigmaPar) w1 =  sign(w1);
+            if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
             else w1 = w1/sigmaPar;
             
-            if (fabs(n1) > sigmaPar) n1 =  sign(n1);
+            if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
             else n1 = n1/sigmaPar;
             
-            if (fabs(s1) > sigmaPar) s1 =  sign(s1);
+            if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
             else s1 = s1/sigmaPar;
             
-            if (fabs(u1) > sigmaPar) u1 =  sign(u1);
+            if (fabs(u1) > sigmaPar) u1 =  signNDFc(u1);
             else u1 = u1/sigmaPar;
             
-            if (fabs(d1) > sigmaPar) d1 =  sign(d1);
+            if (fabs(d1) > sigmaPar) d1 =  signNDFc(d1);
             else d1 = d1/sigmaPar;            
             }
             else if (penaltytype == 2) {

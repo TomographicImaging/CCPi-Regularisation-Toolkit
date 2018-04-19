@@ -62,6 +62,14 @@ tau_param = 0.025; % time-marching constant
 tic; u_diff = NonlDiff(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
 figure; imshow(u_diff(:,:,15), [0 1]); title('Diffusion denoised volume (CPU)');
 %%
+% fprintf('Denoise a volume using Nonlinear-Diffusion model (GPU) \n');
+% iter_diff = 300; % number of diffusion iterations
+% lambda_regDiff = 0.06; % regularisation for the diffusivity 
+% sigmaPar = 0.04; % edge-preserving parameter
+% tau_param = 0.025; % time-marching constant 
+% tic; u_diff_g = NonlDiff_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+% figure; imshow(u_diff_g(:,:,15), [0 1]); title('Diffusion denoised volume (GPU)');
+%%
 
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
 fprintf('Denoise a volume using the FGP-dTV model (CPU) \n');

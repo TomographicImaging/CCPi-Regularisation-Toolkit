@@ -21,6 +21,7 @@ cimport numpy as np
 cdef extern void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
 cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
 cdef extern void TV_SB_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int printM, int N, int M, int Z);
+cdef extern void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z);
 cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
@@ -114,6 +115,27 @@ def dTV_FGP_GPU(inputData,
                      methodTV,
                      nonneg,
                      printM)
+# Nonlocal Isotropic Diffusion (NDF)
+def NDF_GPU(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter,
+                     penalty_type):
+    if inputData.ndim == 2:
+        return NDF_GPU_2D(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter,
+                     penalty_type)
+    elif inputData.ndim == 3:
+        return NDF_GPU_3D(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter,
+                     penalty_type)                     
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
@@ -336,3 +358,48 @@ def FGPdTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        printM,
                        dims[2], dims[1], dims[0]);
     return outputData 
+
+#****************************************************************#
+#***************Nonlinear (Isotropic) Diffusion******************#
+#****************************************************************#
+def NDF_GPU_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     float edge_parameter,
+                     int iterationsNumb,                     
+                     float time_marching_parameter,
+                     int penalty_type):
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1]], dtype='float32')
+    
+    #rangecheck = penalty_type < 1 and penalty_type > 3
+    #if not rangecheck:
+#        raise ValueError('Choose penalty type as 1 for Huber, 2 - Perona-Malik, 3 - Tukey Biweight')
+    
+    # Run Nonlinear Diffusion iterations for 2D data 
+    # Running CUDA code here  
+    NonlDiff_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[0], dims[1], 1)    
+    return outputData
+            
+def NDF_GPU_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     float edge_parameter,
+                     int iterationsNumb,                     
+                     float time_marching_parameter,
+                     int penalty_type):
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')    
+       
+    # Run Nonlinear Diffusion iterations for  3D data 
+    # Running CUDA code here  
+    NonlDiff_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[2], dims[1], dims[0])
+
+    return outputData
