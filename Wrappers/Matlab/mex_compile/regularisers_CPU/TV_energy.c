@@ -36,7 +36,7 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, dimX, dimY, dimZ;
+    int number_of_dims, dimX, dimY, dimZ, type;
     const int  *dim_array;
     float *Input, *Input0, lambda;
     
@@ -44,11 +44,12 @@ void mexFunction(
     dim_array = mxGetDimensions(prhs[0]);
     
     /*Handling Matlab input data*/
-    if ((nrhs != 3)) mexErrMsgTxt("3 inputs: Two images or volumes of the same size required, estimated and the original (noisy), regularisation parameter");
+    if ((nrhs != 4)) mexErrMsgTxt("4 inputs: Two images or volumes of the same size required, estimated and the original (noisy), regularisation parameter, type");
     
     Input  = (float *) mxGetData(prhs[0]); /* Denoised Image/volume */
     Input0  = (float *) mxGetData(prhs[1]); /* Original (noisy) Image/volume */
     lambda =  (float) mxGetScalar(prhs[2]); /* regularisation parameter */
+    type =  (int) mxGetScalar(prhs[3]); /* type of energy */
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
     if (mxGetClassID(prhs[1]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
@@ -61,9 +62,9 @@ void mexFunction(
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
     
     if (number_of_dims == 2) {
-		TV_energy2D(Input, Input0, funcvalA, lambda, dimX, dimY);
+		TV_energy2D(Input, Input0, funcvalA, lambda, type, dimX, dimY);
 		}
     if (number_of_dims == 3) {
-        TV_energy3D(Input, Input0, funcvalA, lambda, dimX, dimY, dimZ);
+        TV_energy3D(Input, Input0, funcvalA, lambda, type, dimX, dimY, dimZ);
     }
 }

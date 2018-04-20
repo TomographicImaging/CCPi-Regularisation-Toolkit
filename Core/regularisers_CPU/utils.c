@@ -36,10 +36,11 @@ float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
 }
 */
 
-/* function that calculates TV energy (ROF model) 
- * min||\nabla u|| + 0.5*lambda*||u -u0||^2
+/* function that calculates TV energy
+ * type - 1:  2*lambda*min||\nabla u|| + ||u -u0||^2
+ * type - 2:  2*lambda*min||\nabla u|| 
  * */
-float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int dimY)
+float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY)
 {
 	int i, j, i1, j1, index;
 	float NOMx_2, NOMy_2, E_Grad=0.0f, E_Data=0.0f;
@@ -55,15 +56,16 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int
                 /* Forward differences */                
                 NOMx_2 = powf((float)(U[j1*dimX + i] - U[index]),2); /* x+ */
                 NOMy_2 = powf((float)(U[j*dimX + i1] - U[index]),2); /* y+ */
-                E_Grad += sqrtf((float)(NOMx_2) + (float)(NOMy_2)); /* gradient term energy */
-                E_Data += 0.5f * lambda*(powf((float)(U[index]-U0[index]),2)); /* fidelity term energy */
+                E_Grad += 2.0f*lambda*sqrtf((float)(NOMx_2) + (float)(NOMy_2)); /* gradient term energy */
+                E_Data += powf((float)(U[index]-U0[index]),2); /* fidelity term energy */
 			}
 		}
-		E_val[0] = E_Grad + E_Data;
+		if (type == 1) E_val[0] = E_Grad + E_Data;
+		if (type == 2) E_val[0] = E_Grad;
 		return *E_val;
 }
 
-float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int dimX, int dimY, int dimZ)
+float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ)
 {
 	int i, j, k, i1, j1, k1, index;
 	float NOMx_2, NOMy_2, NOMz_2, E_Grad=0.0f, E_Data=0.0f;
@@ -83,11 +85,12 @@ float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int dimX, int
                 NOMy_2 = powf((float)(U[(dimX*dimY)*k + j*dimX+i1] - U[index]),2); /* y+ */
                 NOMz_2 = powf((float)(U[(dimX*dimY)*k1 + j*dimX+i] - U[index]),2); /* z+ */
                 
-                E_Grad += sqrtf((float)(NOMx_2) + (float)(NOMy_2) + (float)(NOMz_2)); /* gradient term energy */
-                E_Data += 0.5f * lambda*(powf((float)(U[index]-U0[index]),2)); /* fidelity term energy */
+                E_Grad += 2.0f*lambda*sqrtf((float)(NOMx_2) + (float)(NOMy_2) + (float)(NOMz_2)); /* gradient term energy */
+                E_Data += (powf((float)(U[index]-U0[index]),2)); /* fidelity term energy */
 			}
 		}
 	}
-		E_val[0] = E_Grad + E_Data;
+		if (type == 1) E_val[0] = E_Grad + E_Data;
+		if (type == 2) E_val[0] = E_Grad;
 		return *E_val;
 }
