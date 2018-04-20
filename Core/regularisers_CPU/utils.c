@@ -62,3 +62,32 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int dimX, int
 		E_val[0] = E_Grad + E_Data;
 		return *E_val;
 }
+
+float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int dimX, int dimY, int dimZ)
+{
+	int i, j, k, i1, j1, k1, index;
+	float NOMx_2, NOMy_2, NOMz_2, E_Grad=0.0f, E_Data=0.0f;
+	
+	/* first calculate \grad U_xy*/	
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
+            for(k=0; k<dimZ; k++) {
+				index = (dimX*dimY)*k + j*dimX+i;
+                /* boundary conditions */
+                i1 = i + 1; if (i == dimX-1) i1 = i;
+                j1 = j + 1; if (j == dimY-1) j1 = j;
+                k1 = k + 1; if (k == dimZ-1) k1 = k;
+                
+                /* Forward differences */                
+                NOMx_2 = powf((float)(U[(dimX*dimY)*k + j1*dimX+i] - U[index]),2); /* x+ */
+                NOMy_2 = powf((float)(U[(dimX*dimY)*k + j*dimX+i1] - U[index]),2); /* y+ */
+                NOMz_2 = powf((float)(U[(dimX*dimY)*k1 + j*dimX+i] - U[index]),2); /* z+ */
+                
+                E_Grad += sqrtf((float)(NOMx_2) + (float)(NOMy_2) + (float)(NOMz_2)); /* gradient term energy */
+                E_Data += 0.5f * lambda*(powf((float)(U[index]-U0[index]),2)); /* fidelity term energy */
+			}
+		}
+	}
+		E_val[0] = E_Grad + E_Data;
+		return *E_val;
+}

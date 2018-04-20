@@ -23,6 +23,9 @@ movefile TNV.mex* ../installed/
 mex NonlDiff.c Diffusion_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile NonlDiff.mex* ../installed/
 
+mex TV_energy.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile TV_energy.mex* ../installed/
+
 delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* CCPiDefines.h
 
 fprintf('%s \n', 'All successfully compiled!');

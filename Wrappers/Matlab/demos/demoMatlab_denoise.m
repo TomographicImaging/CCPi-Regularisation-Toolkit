@@ -12,13 +12,14 @@ lambda_reg = 0.03; % regularsation parameter for all methods
 %%
 fprintf('Denoise using the ROF-TV model (CPU) \n');
 tau_rof = 0.0025; % time-marching constant 
-iter_rof = 2000; % number of ROF iterations
+iter_rof = 750; % number of ROF iterations
 tic; u_rof = ROF_TV(single(u0), lambda_reg, iter_rof, tau_rof); toc; 
+energyfunc_val_rof = TV_energy(single(u_rof),single(u0),lambda_reg);  % get energy function value
 figure; imshow(u_rof, [0 1]); title('ROF-TV denoised image (CPU)');
 %%
 % fprintf('Denoise using the ROF-TV model (GPU) \n');
 % tau_rof = 0.0025; % time-marching constant 
-% iter_rof = 2000; % number of ROF iterations
+% iter_rof = 750; % number of ROF iterations
 % tic; u_rofG = ROF_TV_GPU(single(u0), lambda_reg, iter_rof, tau_rof); toc;
 % figure; imshow(u_rofG, [0 1]); title('ROF-TV denoised image (GPU)');
 %%
@@ -26,7 +27,9 @@ fprintf('Denoise using the FGP-TV model (CPU) \n');
 iter_fgp = 1000; % number of FGP iterations
 epsil_tol =  1.0e-06; % tolerance
 tic; u_fgp = FGP_TV(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
+energyfunc_val_fgp = TV_energy(single(u_fgp),single(u0),lambda_reg); % get energy function value
 figure; imshow(u_fgp, [0 1]); title('FGP-TV denoised image (CPU)');
+
 %%
 % fprintf('Denoise using the FGP-TV model (GPU) \n');
 % iter_fgp = 1000; % number of FGP iterations
@@ -38,6 +41,7 @@ fprintf('Denoise using the SB-TV model (CPU) \n');
 iter_sb = 150; % number of SB iterations
 epsil_tol =  1.0e-06; % tolerance
 tic; u_sb = SB_TV(single(u0), lambda_reg, iter_sb, epsil_tol); toc; 
+energyfunc_val_sb = TV_energy(single(u_sb),single(u0),lambda_reg);  % get energy function value
 figure; imshow(u_sb, [0 1]); title('SB-TV denoised image (CPU)');
 %%
 % fprintf('Denoise using the SB-TV model (GPU) \n');
