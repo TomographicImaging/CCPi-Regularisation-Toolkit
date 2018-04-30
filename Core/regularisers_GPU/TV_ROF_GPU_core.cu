@@ -364,5 +364,5 @@ extern "C" void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, in
         CHECK(cudaFree(d_update));
         CHECK(cudaFree(d_D1));
         CHECK(cudaFree(d_D2));        
-        cudaDeviceReset(); 
+        //cudaDeviceReset(); 
 }

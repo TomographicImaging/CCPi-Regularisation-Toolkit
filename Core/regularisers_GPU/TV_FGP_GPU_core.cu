@@ -570,5 +570,5 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             cudaFree(R2);        
             cudaFree(R3);        
     } 
-    cudaDeviceReset(); 
+    //cudaDeviceReset(); 
 }

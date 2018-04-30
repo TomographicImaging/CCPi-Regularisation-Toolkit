@@ -350,5 +350,5 @@ extern "C" void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, 
         CHECK(cudaMemcpy(Output,d_output,N*M*Z*sizeof(float),cudaMemcpyDeviceToHost));
         CHECK(cudaFree(d_input));
         CHECK(cudaFree(d_output));
-        cudaDeviceReset(); 
+        //cudaDeviceReset(); 
 }

@@ -557,5 +557,5 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
             cudaFree(By);
             cudaFree(Bz);
     } 
-    cudaDeviceReset(); 
+    //cudaDeviceReset(); 
 }

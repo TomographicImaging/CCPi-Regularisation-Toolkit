@@ -749,5 +749,5 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
             cudaFree(InputRef_z);
             cudaFree(d_InputRef);
     } 
-    cudaDeviceReset(); 
+    //cudaDeviceReset(); 
 }
