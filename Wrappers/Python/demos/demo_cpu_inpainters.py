@@ -10,7 +10,7 @@ import numpy as np
 import os
 import timeit
 from scipy import io
-from ccpi.filters.regularisers import NDF_INP
+from ccpi.filters.regularisers import NDF_INP, NVM_INP
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -146,4 +146,45 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(ndf_inp_nonlinear, cmap="gray")
 plt.title('{}'.format('Nonlinear diffusion inpainting results'))
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("Inpainting using nonlocal vertical marching")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(4)
+plt.suptitle('Performance of NVM inpainting using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Missing data sinogram')
+imgplot = plt.imshow(sino_cut,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : NVM_INP, \
+        'input' : sino_cut_new,\
+        'maskData' : mask,\
+        'SW_increment': 1,\
+        'number_of_iterations' :20
+        }
+        
+start_time = timeit.default_timer()
+nvm_inp = NVM_INP(pars['input'],
+              pars['maskData'],
+              pars['SW_increment'],
+              pars['number_of_iterations'])
+             
+rms = rmse(sino_full, nvm_inp)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(nvm_inp, cmap="gray")
+plt.title('{}'.format('Nonlocal Vertical Marching inpainting results'))
 #%%
