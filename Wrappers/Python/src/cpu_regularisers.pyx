@@ -397,4 +397,4 @@ def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     SW_increment, iterationsNumb,  
     dims[0], dims[1], 1)    
     
-    return outputData
+    return (outputData, maskData_upd)

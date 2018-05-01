@@ -167,7 +167,7 @@ pars = {'algorithm' : NVM_INP, \
         }
         
 start_time = timeit.default_timer()
-nvm_inp = NVM_INP(pars['input'],
+(nvm_inp, mask_upd) = NVM_INP(pars['input'],
               pars['maskData'],
               pars['SW_increment'],
               pars['number_of_iterations'])
