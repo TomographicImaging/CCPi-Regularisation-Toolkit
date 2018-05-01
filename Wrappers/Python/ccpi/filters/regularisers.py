@@ -113,5 +113,4 @@ def NDF(inputData, regularisation_parameter, edge_parameter, iterations,
 def NDF_INP(inputData, maskData, regularisation_parameter, edge_parameter, iterations,
                      time_marching_parameter, penalty_type):
         return NDF_INPAINT_CPU(inputData, maskData, regularisation_parameter, 
-        edge_parameter, iterationsNumb, 
-        time_marching_parameter, penalty_type)
+        edge_parameter, iterations, time_marching_parameter, penalty_type)

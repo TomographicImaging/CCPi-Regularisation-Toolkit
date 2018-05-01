@@ -47,12 +47,18 @@ int signNDF_inc(float x) {
 
 float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ)
 {
-    int i;
+    int i,pointsone;
     float sigmaPar2;
     sigmaPar2 = sigmaPar/sqrt(2.0f);
     
     /* copy into output */
     copyIm(Input, Output, dimX, dimY, dimZ);
+    
+    pointsone = 0;
+    for (i=0; i<dimY*dimX*dimZ; i++) if (Mask[i] == 1) pointsone++;
+        
+    if (pointsone == 0) printf("%s \n", "Nothing to inpaint, zero mask!");
+    else {
     
     if (dimZ == 1) {
     /* running 2D diffusion iterations */
@@ -67,6 +73,7 @@ float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Outpu
             if (sigmaPar == 0.0f) LinearDiff_Inp_3D(Input, Mask, Output, lambdaPar, tau, dimX, dimY, dimZ);
             else NonLinearDiff_Inp_3D(Input, Mask, Output, lambdaPar, sigmaPar2, tau, penaltytype, dimX, dimY, dimZ);
 		}
+	}
 	}
     return *Output;
 }

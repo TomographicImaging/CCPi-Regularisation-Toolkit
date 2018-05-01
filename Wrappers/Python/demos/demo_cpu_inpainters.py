@@ -20,30 +20,36 @@ def printParametersToString(pars):
                 txt += "{0} = {1}".format(key, value.__name__)
             elif key == 'input':
                 txt += "{0} = {1}".format(key, np.shape(value))
-            elif key == 'refdata':
+            elif key == 'maskData':
                 txt += "{0} = {1}".format(key, np.shape(value))
             else:
                 txt += "{0} = {1}".format(key, value)
             txt += '\n'
         return txt
 ###############################################################################
-#%%
+
 # read sinogram and the mask
 filename = os.path.join(".." , ".." , ".." , "data" ,"SinoInpaint.mat")
 sino = io.loadmat(filename)
-sino_no_cut = sino.get('Sinogram')
+sino_full = sino.get('Sinogram')
 Mask = sino.get('Mask')
-[angles_dim,detectors_dim] = sino_no_cut.shape
-sinogram = sino_no_cut/np.max(sino_no_cut)
+[angles_dim,detectors_dim] = sino_full.shape
+sino_full = sino_full/np.max(sino_full)
 #apply mask to sinogram
-sino_cut = sinogram*(1-Mask)
+sino_cut = sino_full*(1-Mask)
+sino_cut_new = np.zeros((angles_dim,detectors_dim),'float32')
+#sino_cut_new = sino_cut.copy(order='c')
+sino_cut_new[:] = sino_cut[:]
+mask = np.zeros((angles_dim,detectors_dim),'uint8')
+#mask =Mask.copy(order='c')
+mask[:] = Mask[:]
 
 plt.figure(1)
 plt.subplot(121)
-plt.imshow(sino_cut,vmin=0.0, vmax=1)
+plt.imshow(sino_cut_new,vmin=0.0, vmax=1)
 plt.title('Missing Data sinogram')
 plt.subplot(122)
-plt.imshow(Mask)
+plt.imshow(mask)
 plt.title('Mask')
 plt.show()
 #%%
@@ -56,15 +62,15 @@ fig = plt.figure(2)
 plt.suptitle('Performance of linear inpainting using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Missing data sinogram')
-imgplot = plt.imshow(sino_cut,cmap="gray")
+imgplot = plt.imshow(sino_cut_new,cmap="gray")
 
 # set parameters
 pars = {'algorithm' : NDF_INP, \
-        'input' : sino_cut,\
-        'maskData' : Mask,\
-        'regularisation_parameter':6000,\
+        'input' : sino_cut_new,\
+        'maskData' : mask,\
+        'regularisation_parameter':1000,\
         'edge_parameter':0.0,\
-        'number_of_iterations' :5000 ,\
+        'number_of_iterations' :1000 ,\
         'time_marching_parameter':0.000075,\
         'penalty_type':1
         }
@@ -78,7 +84,7 @@ ndf_inp_linear = NDF_INP(pars['input'],
               pars['time_marching_parameter'], 
               pars['penalty_type'])
              
-rms = rmse(sinogram, ndf_inp_linear)
+rms = rmse(sino_full, ndf_inp_linear)
 pars['rmse'] = rms
 
 txtstr = printParametersToString(pars)
@@ -107,8 +113,8 @@ imgplot = plt.imshow(sino_cut,cmap="gray")
 
 # set parameters
 pars = {'algorithm' : NDF_INP, \
-        'input' : sino_cut,\
-        'maskData' : Mask,\
+        'input' : sino_cut_new,\
+        'maskData' : mask,\
         'regularisation_parameter':80,\
         'edge_parameter':0.00009,\
         'number_of_iterations' :1500 ,\
@@ -125,7 +131,7 @@ ndf_inp_nonlinear = NDF_INP(pars['input'],
               pars['time_marching_parameter'], 
               pars['penalty_type'])
              
-rms = rmse(sinogram, ndf_inp_nonlinear)
+rms = rmse(sino_full, ndf_inp_nonlinear)
 pars['rmse'] = rms
 
 txtstr = printParametersToString(pars)
