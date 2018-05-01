@@ -24,15 +24,6 @@ if (PYTHONINTERP_FOUND)
   endif()
 endif()
 
-#find_package(Boost  REQUIRED
-#	COMPONENTS ${BOOST_PYTHON} ${BOOST_NUMPY})
-#
-#if (Boost_FOUND)
-#   message("Boost version " ${Boost_VERSION})
-#   message("Boost include dir " ${Boost_INCLUDE_DIRS})
-#   message("Boost library dir " ${Boost_LIBRARY_DIRS})
-#   message("Boost libraries " ${Boost_LIBRARIES})
-#endif()
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -85,7 +76,7 @@ message("Adding regularisers as a shared library")
 add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c	    
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c
 	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/LLT_model_core.c
 	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchBased_Regul_core.c
 	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_PD_core.c
@@ -100,7 +91,8 @@ target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
 include_directories(cilreg PUBLIC 
                       ${LIBRARY_INC}/include 
 					  ${CMAKE_CURRENT_SOURCE_DIR}
-		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/  )
+		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
+		              ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
 #GENERATE_EXPORT_HEADER( cilreg
 #             BASE_NAME cilreg
 #             EXPORT_MACRO_NAME CCPiCore_EXPORTS
@@ -155,8 +147,3 @@ if (CUDA_FOUND)
 else()
   message("CUDA NOT FOUND")
 endif()
-
-
-#add_executable(regulariser_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regulariser.cpp)
-
-#target_link_libraries (regulariser_test LINK_PUBLIC regularisers_lib)

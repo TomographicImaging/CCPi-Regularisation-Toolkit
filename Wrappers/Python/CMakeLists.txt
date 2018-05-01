@@ -81,8 +81,3 @@ else()
 endif()
 
 configure_file("setup-regularisers.py.in" "setup-regularisers.py")
-
-
-#add_executable(regulariser_test ${CMAKE_CURRENT_SOURCE_DIR}/test/test_regulariser.cpp)
-
-#target_link_libraries (regulariser_test LINK_PUBLIC regularisers_lib)
