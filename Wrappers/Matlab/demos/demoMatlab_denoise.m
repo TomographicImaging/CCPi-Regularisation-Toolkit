@@ -1,8 +1,9 @@
 % Image (2D) denoising demo using CCPi-RGL
-clear
-close all
-addpath('../mex_compile/installed');
-addpath('../../../data/');
+clear; close all
+Path1 = sprintf(['..' filesep 'mex_compile' filesep 'installed'], 1i);
+Path2 = sprintf(['..' filesep '..' filesep '..' filesep 'data' filesep], 1i);
+addpath(Path1);
+addpath(Path2);
 
 Im = double(imread('lena_gray_512.tif'))/255;  % loading image
 u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;

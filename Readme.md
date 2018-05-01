@@ -16,17 +16,22 @@ the toolkit can be used independently to solve image denoising problems. The cor
  * C compilers
  * nvcc (CUDA SDK) compilers
 
-## Package modules (regularisers):
+## Package modules:
 
-### Single-channel
+### Single-channel (denoising):
 1. Rudin-Osher-Fatemi (ROF) Total Variation (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *1*)
 2. Fast-Gradient-Projection (FGP) Total Variation **2D/3D CPU/GPU** (Ref. *2*)
-3. Split-Bregman (SB) Total Variation **2D/3D CPU/GPU** (Ref. *4*)
-4. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *6*)
+3. Split-Bregman (SB) Total Variation **2D/3D CPU/GPU** (Ref. *5*)
+4. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *7*)
 
-### Multi-channel
-1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,2*)
-2. Total Nuclear Variation (TNV) penalty **2D+channels CPU** (Ref. *5*)
+### Multi-channel (denoising):
+1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,4,2*)
+2. Total Nuclear Variation (TNV) penalty **2D+channels CPU** (Ref. *6*)
+
+### Inpainting:
+1. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU** (Ref. *7*)
+2. Iterative nonlocal vertical marching method  **2D CPU**
+
 
 ## Installation:
 
@@ -56,11 +61,13 @@ the toolkit can be used independently to solve image denoising problems. The cor
 
 *3. Ehrhardt, M.J. and Betcke, M.M., 2016. Multicontrast MRI reconstruction with structure-guided total variation. SIAM Journal on Imaging Sciences, 9(3), pp.1084-1106.*
 
-*4. Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.*
+*4. Kazantsev, D., Jørgensen, J.S., Andersen, M., Lionheart, W.R., Lee, P.D. and Withers, P.J., 2018. Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography. Inverse Problems*
 
-*5. Duran, J., Moeller, M., Sbert, C. and Cremers, D., 2016. Collaborative total variation: a general framework for vectorial TV models. SIAM Journal on Imaging Sciences, 9(1), pp.116-151.*
+*5. Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.*
 
-*6. Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.*
+*6. Duran, J., Moeller, M., Sbert, C. and Cremers, D., 2016. Collaborative total variation: a general framework for vectorial TV models. SIAM Journal on Imaging Sciences, 9(1), pp.116-151.*
+
+*7. Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.*
 
 ### License:
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

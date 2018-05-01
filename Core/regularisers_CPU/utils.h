@@ -17,17 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//#include <matrix.h>
-//#include <math.h>
 #include <stdlib.h>
 #include <memory.h>
 #include "CCPiDefines.h"
-//#include <stdio.h>
 #include "omp.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 CCPI_EXPORT float copyIm(float *A, float *U, int dimX, int dimY, int dimZ);
+CCPI_EXPORT unsigned char copyIm_unchar(unsigned char *A, unsigned char *U, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float copyIm_roll(float *A, float *U, int dimX, int dimY, int roll_value, int switcher);
 CCPI_EXPORT float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY);
 CCPI_EXPORT float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ);
 #ifdef __cplusplus
