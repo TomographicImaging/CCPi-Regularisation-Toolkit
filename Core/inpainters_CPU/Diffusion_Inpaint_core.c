@@ -21,7 +21,7 @@
 #include "utils.h"
 
 /*sign function*/
-int signNDFc(float x) {
+int signNDF_inc(float x) {
     return (x > 0) - (x < 0);
 }
 
@@ -70,8 +70,6 @@ float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Outpu
 	}
     return *Output;
 }
-
-
 /********************************************************************/
 /***************************2D Functions*****************************/
 /********************************************************************/
@@ -141,16 +139,16 @@ float NonLinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, flo
 
             if (penaltytype == 1){
             /* Huber penalty */
-            if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
+            if (fabs(e1) > sigmaPar) e1 =  signNDF_inc(e1);
             else e1 = e1/sigmaPar;
             
-            if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
+            if (fabs(w1) > sigmaPar) w1 =  signNDF_inc(w1);
             else w1 = w1/sigmaPar;
             
-            if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
+            if (fabs(n1) > sigmaPar) n1 =  signNDF_inc(n1);
             else n1 = n1/sigmaPar;
             
-            if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
+            if (fabs(s1) > sigmaPar) s1 =  signNDF_inc(s1);
             else s1 = s1/sigmaPar;
             }
             else if (penaltytype == 2) {
@@ -263,23 +261,23 @@ for(k=0; k<dimZ; k++) {
                 
              if (penaltytype == 1){
             /* Huber penalty */
-            if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
+            if (fabs(e1) > sigmaPar) e1 =  signNDF_inc(e1);
             else e1 = e1/sigmaPar;
             
-            if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
+            if (fabs(w1) > sigmaPar) w1 =  signNDF_inc(w1);
             else w1 = w1/sigmaPar;
             
-            if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
+            if (fabs(n1) > sigmaPar) n1 =  signNDF_inc(n1);
             else n1 = n1/sigmaPar;
             
-            if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
+            if (fabs(s1) > sigmaPar) s1 =  signNDF_inc(s1);
             else s1 = s1/sigmaPar;
             
-            if (fabs(u1) > sigmaPar) u1 =  signNDFc(u1);
+            if (fabs(u1) > sigmaPar) u1 =  signNDF_inc(u1);
             else u1 = u1/sigmaPar;
             
-            if (fabs(d1) > sigmaPar) d1 =  signNDFc(d1);
-            else d1 = d1/sigmaPar;            
+            if (fabs(d1) > sigmaPar) d1 =  signNDF_inc(d1);
+            else d1 = d1/sigmaPar;
             }
             else if (penaltytype == 2) {
             /* Perona-Malik */
