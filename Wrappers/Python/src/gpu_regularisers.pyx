@@ -157,7 +157,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        regularisation_parameter,
                        iterations , 
                        time_marching_parameter, 
-                       dims[0], dims[1], 1);   
+                       dims[1], dims[0], 1);   
      
     return outputData
     
@@ -210,7 +210,7 @@ def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        methodTV,
                        nonneg,
                        printM,
-                       dims[0], dims[1], 1);   
+                       dims[1], dims[0], 1);   
      
     return outputData
     
@@ -266,7 +266,7 @@ def SBTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        tolerance_param,
                        methodTV,
                        printM,
-                       dims[0], dims[1], 1);   
+                       dims[1], dims[0], 1);   
      
     return outputData
     
@@ -325,7 +325,7 @@ def FGPdTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        methodTV,
                        nonneg,
                        printM,
-                       dims[0], dims[1], 1);   
+                       dims[1], dims[0], 1);   
      
     return outputData
     
@@ -381,7 +381,7 @@ def NDF_GPU_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     
     # Run Nonlinear Diffusion iterations for 2D data 
     # Running CUDA code here  
-    NonlDiff_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[0], dims[1], 1)    
+    NonlDiff_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[1], dims[0], 1)
     return outputData
             
 def NDF_GPU_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 

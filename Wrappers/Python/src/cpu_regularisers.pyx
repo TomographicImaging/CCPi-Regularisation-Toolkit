@@ -102,7 +102,7 @@ def TV_FGP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        methodTV,
                        nonneg,
                        printM,
-                       dims[0], dims[1], 1)
+                       dims[1],dims[0],1)
     
     return outputData        
             
@@ -161,7 +161,7 @@ def TV_SB_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        tolerance_param,
                        methodTV,
                        printM,
-                       dims[0], dims[1], 1)
+                       dims[1],dims[0],1)
     
     return outputData        
             
@@ -222,7 +222,7 @@ def dTV_FGP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        methodTV,                       
                        nonneg,
                        printM,
-                       dims[0], dims[1], 1)
+                       dims[1], dims[0], 1)
     
     return outputData        
             
@@ -301,7 +301,7 @@ def NDF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0],dims[1]], dtype='float32')   
     
     # Run Nonlinear Diffusion iterations for 2D data 
-    Diffusion_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[0], dims[1], 1)    
+    Diffusion_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[1], dims[0], 1)
     return outputData
             
 def NDF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
@@ -349,7 +349,7 @@ def NDF_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0],dims[1]], dtype='float32')
     
     # Run Inpaiting by Diffusion iterations for 2D data 
-    Diffusion_Inpaint_CPU_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[0], dims[1], 1)    
+    Diffusion_Inpaint_CPU_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[1], dims[0], 1)
     return outputData
             
 def NDF_INP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
@@ -396,7 +396,6 @@ def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     
     # Run Inpaiting by Nonlocal vertical marching method for 2D data 
     NonlocalMarching_Inpaint_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], &maskData_upd[0,0],
-    SW_increment, iterationsNumb,  
-    dims[0], dims[1], 1)    
+    SW_increment, iterationsNumb,dims[1], dims[0], 1)
     
     return (outputData, maskData_upd)
