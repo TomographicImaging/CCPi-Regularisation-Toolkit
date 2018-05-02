@@ -56,7 +56,9 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
             if (M[i] == 1) iterations_number++;
         }
     }
-    else iterations_number = iterationsNumb;
+    else iterations_number = (int)(iterationsNumb/dimX);
+    if (iterations_number > dimX) iterations_number = dimX;
+    
     if (iterations_number == 0) printf("%s \n", "Nothing to inpaint, zero mask!");
     else {
         
