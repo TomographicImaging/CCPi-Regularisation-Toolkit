@@ -55,7 +55,6 @@ plt.imshow(mask)
 plt.title('Mask')
 plt.show()
 #%%
-"""
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Inpainting using linear diffusion (2D)__")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -149,7 +148,6 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(ndf_inp_nonlinear, cmap="gray")
 plt.title('{}'.format('Nonlinear diffusion inpainting results'))
-"""
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("Inpainting using nonlocal vertical marching")
