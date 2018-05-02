@@ -30,7 +30,7 @@
  * 1. 2D image or sinogram with horizontal or inclined regions of missing data
  * 2. Mask of the same size as A in 'unsigned char' format  (ones mark the region to inpaint, zeros belong to the data)
  * 3. Linear increment to increase searching window size in iterations, values from 1-3 is a good choice
- 
+ *
  * Output:
  * 1. Inpainted image or a sinogram
  * 2. updated mask
@@ -38,11 +38,11 @@
  * Reference: TBA
  */
 
-float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int dimX, int dimY, int dimZ)
+float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ)
 {
     int i, j, i_m, j_m, counter, iter, iterations_number, W_fullsize, switchmask, switchcurr, counterElements;
     float *Gauss_weights;
-
+    
     /* copying M to M_upd */
     copyIm_unchar(M, M_upd, dimX, dimY, 1);
     
@@ -54,11 +54,11 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
         iterations_number = 0;
         for (i=0; i<dimY*dimX; i++) {
             if (M[i] == 1) iterations_number++;
-        }        
-        if ((int)(iterations_number/dimY) > dimX) iterations_number = dimX;    
+        }
+        if ((int)(iterations_number/dimY) > dimX) iterations_number = dimX;
     }
-    else iterations_number = iterationsNumb;    
-  
+    else iterations_number = iterationsNumb;
+    
     if (iterations_number == 0) printf("%s \n", "Nothing to inpaint, zero mask!");
     else {
         
@@ -83,54 +83,54 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
             }
             
             if (trigger == 0) {
-				/*Matlab*/
-			#pragma omp parallel for shared(Output, M_upd, Gauss_weights) private(i, j, switchmask, switchcurr) 
-             for(j=0; j<dimY; j++) {
-                 switchmask = 0;
-                 for(i=0; i<dimX; i++) {                
-                     switchcurr = 0;
-                     if ((M_upd[j*dimX + i] == 1) && (switchmask == 0)) {
-                         /* perform inpainting of the current pixel */
-                         inpaint_func(Output, M_upd, Gauss_weights, i, j, dimX, dimY, W_halfsize, W_fullsize);
-                         /* add value to the mask*/
-                         M_upd[j*dimX + i] = 0;
-                         switchmask = 1; switchcurr = 1;
-                     }
-                     if ((M_upd[j*dimX + i] == 0) && (switchmask == 1) && (switchcurr == 0)) {                        
-                         /* perform inpainting of the previous (i-1) pixel */
-                         inpaint_func(Output, M_upd, Gauss_weights, i-1, j, dimX, dimY, W_halfsize, W_fullsize);
-                         /* add value to the mask*/
-                         M_upd[(j)*dimX + i-1] = 0;                 
-                         switchmask = 0;                        
-                     }
-                 }
-             }   
-				}
-				else {
-					/*Python*/            
-            /* find a point in the mask to inpaint */
-#pragma omp parallel for shared(Output, M_upd, Gauss_weights) private(i, j, switchmask, switchcurr)            
-              for(i=0; i<dimX; i++) {
-                switchmask = 0;                
+                /*Matlab*/
+#pragma omp parallel for shared(Output, M_upd, Gauss_weights) private(i, j, switchmask, switchcurr)
                 for(j=0; j<dimY; j++) {
-                    switchcurr = 0;
-                    if ((M_upd[j*dimX + i] == 1) && (switchmask == 0)) {
-                        /* perform inpainting of the current pixel */
-                        inpaint_func(Output, M_upd, Gauss_weights, i, j, dimX, dimY, W_halfsize, W_fullsize);
-                        /* add value to the mask*/
-                        M_upd[j*dimX + i] = 0;
-                        switchmask = 1; switchcurr = 1;
-                    }
-                    if ((M_upd[j*dimX + i] == 0) && (switchmask == 1) && (switchcurr == 0)) {                        
-                        /* perform inpainting of the previous (j-1) pixel */
-                        inpaint_func(Output, M_upd, Gauss_weights, i, j-1, dimX, dimY, W_halfsize, W_fullsize);
-                        /* add value to the mask*/
-                        M_upd[(j-1)*dimX + i] = 0;                 
-                        switchmask = 0;                        
+                    switchmask = 0;
+                    for(i=0; i<dimX; i++) {
+                        switchcurr = 0;
+                        if ((M_upd[j*dimX + i] == 1) && (switchmask == 0)) {
+                            /* perform inpainting of the current pixel */
+                            inpaint_func(Output, M_upd, Gauss_weights, i, j, dimX, dimY, W_halfsize, W_fullsize);
+                            /* add value to the mask*/
+                            M_upd[j*dimX + i] = 0;
+                            switchmask = 1; switchcurr = 1;
+                        }
+                        if ((M_upd[j*dimX + i] == 0) && (switchmask == 1) && (switchcurr == 0)) {
+                            /* perform inpainting of the previous (i-1) pixel */
+                            inpaint_func(Output, M_upd, Gauss_weights, i-1, j, dimX, dimY, W_halfsize, W_fullsize);
+                            /* add value to the mask*/
+                            M_upd[(j)*dimX + i-1] = 0;
+                            switchmask = 0;
+                        }
                     }
                 }
             }
-		}
+            else {
+                /*Python*/
+                /* find a point in the mask to inpaint */
+#pragma omp parallel for shared(Output, M_upd, Gauss_weights) private(i, j, switchmask, switchcurr)
+                for(i=0; i<dimX; i++) {
+                    switchmask = 0;
+                    for(j=0; j<dimY; j++) {
+                        switchcurr = 0;
+                        if ((M_upd[j*dimX + i] == 1) && (switchmask == 0)) {
+                            /* perform inpainting of the current pixel */
+                            inpaint_func(Output, M_upd, Gauss_weights, i, j, dimX, dimY, W_halfsize, W_fullsize);
+                            /* add value to the mask*/
+                            M_upd[j*dimX + i] = 0;
+                            switchmask = 1; switchcurr = 1;
+                        }
+                        if ((M_upd[j*dimX + i] == 0) && (switchmask == 1) && (switchcurr == 0)) {
+                            /* perform inpainting of the previous (j-1) pixel */
+                            inpaint_func(Output, M_upd, Gauss_weights, i, j-1, dimX, dimY, W_halfsize, W_fullsize);
+                            /* add value to the mask*/
+                            M_upd[(j-1)*dimX + i] = 0;
+                            switchmask = 0;
+                        }
+                    }
+                }
+            }
             free(Gauss_weights);
             
             /* check if possible to terminate iterations earlier */

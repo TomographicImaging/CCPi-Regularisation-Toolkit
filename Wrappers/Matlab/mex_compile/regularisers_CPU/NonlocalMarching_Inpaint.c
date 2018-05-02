@@ -78,5 +78,5 @@ void mexFunction(
     if (number_of_dims == 3) {
         mexErrMsgTxt("Currently 2D supported only");        
     }           
-    NonlocalMarching_Inpaint_main(Input, Mask, Output, Mask_upd, SW_increment, iterations, dimX, dimY, dimZ);
+    NonlocalMarching_Inpaint_main(Input, Mask, Output, Mask_upd, SW_increment, iterations, 0, dimX, dimY, dimZ);
 }

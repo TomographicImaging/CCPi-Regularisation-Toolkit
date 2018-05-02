@@ -47,7 +47,7 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ);
 CCPI_EXPORT float inpaint_func(float *U, unsigned char *M_upd, float *Gauss_weights, int i, int j, int dimX, int dimY, int W_halfsize, int W_fullsize);
 #ifdef __cplusplus
 }

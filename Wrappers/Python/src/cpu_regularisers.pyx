@@ -26,7 +26,7 @@ cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxI
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
 cdef extern float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
-cdef extern float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int dimX, int dimY, int dimZ);
+cdef extern float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ);
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
@@ -396,6 +396,6 @@ def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     # Run Inpaiting by Nonlocal vertical marching method for 2D data 
     NonlocalMarching_Inpaint_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], 
                                   &maskData_upd[0,0],
-                                  SW_increment, iterationsNumb, dims[1], dims[0], 1)
+                                  SW_increment, iterationsNumb, 1, dims[1], dims[0], 1)
     
     return (outputData, maskData_upd)
