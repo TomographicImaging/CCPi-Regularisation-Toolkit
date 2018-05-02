@@ -55,6 +55,7 @@ plt.imshow(mask)
 plt.title('Mask')
 plt.show()
 #%%
+"""
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Inpainting using linear diffusion (2D)__")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -111,7 +112,7 @@ fig = plt.figure(3)
 plt.suptitle('Performance of nonlinear diffusion inpainting using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Missing data sinogram')
-imgplot = plt.imshow(sino_cut,cmap="gray")
+imgplot = plt.imshow(sino_cut_new,cmap="gray")
 
 # set parameters
 pars = {'algorithm' : NDF_INP, \
@@ -148,6 +149,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(ndf_inp_nonlinear, cmap="gray")
 plt.title('{}'.format('Nonlinear diffusion inpainting results'))
+"""
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("Inpainting using nonlocal vertical marching")
@@ -165,7 +167,7 @@ pars = {'algorithm' : NVM_INP, \
         'input' : sino_cut_new,\
         'maskData' : mask,\
         'SW_increment': 1,\
-        'number_of_iterations' :0
+        'number_of_iterations' : 150
         }
         
 start_time = timeit.default_timer()

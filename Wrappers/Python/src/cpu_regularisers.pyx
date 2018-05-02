@@ -27,7 +27,6 @@ cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output,
 
 cdef extern float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
 cdef extern float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int dimX, int dimY, int dimZ);
-
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
@@ -374,14 +373,14 @@ def NDF_INP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #*********************Inpainting WITH****************************#
 #***************Nonlocal Vertical Marching method****************#
 #****************************************************************#
-def NVM_INPAINT_CPU(inputData, maskData, SW_increment, iterations):
+def NVM_INPAINT_CPU(inputData, maskData, SW_increment, iterationsNumb):
     if inputData.ndim == 2:
-        return NVM_INP_2D(inputData, maskData, SW_increment, iterations)
+        return NVM_INP_2D(inputData, maskData, SW_increment, iterationsNumb)
     elif inputData.ndim == 3:
         return 
 
 def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-               np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,                     
+               np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,
                      int SW_increment,
                      int iterationsNumb):
     cdef long dims[2]
@@ -395,7 +394,8 @@ def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0],dims[1]], dtype='uint8')
     
     # Run Inpaiting by Nonlocal vertical marching method for 2D data 
-    NonlocalMarching_Inpaint_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], &maskData_upd[0,0],
-    SW_increment, iterationsNumb,dims[1], dims[0], 1)
+    NonlocalMarching_Inpaint_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], 
+                                  &maskData_upd[0,0],
+                                  SW_increment, iterationsNumb, dims[1], dims[0], 1)
     
     return (outputData, maskData_upd)

@@ -42,7 +42,7 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
 {
     int i, j, i_m, j_m, counter, iter, iterations_number, W_fullsize, switchmask, switchcurr, counterElements;
     float *Gauss_weights;
-    
+
     /* copying M to M_upd */
     copyIm_unchar(M, M_upd, dimX, dimY, 1);
     
@@ -54,11 +54,11 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
         iterations_number = 0;
         for (i=0; i<dimY*dimX; i++) {
             if (M[i] == 1) iterations_number++;
-        }
+        }        
+        if ((int)(iterations_number/dimY) > dimX) iterations_number = dimX;    
     }
-    else iterations_number = (int)(iterationsNumb/dimX);
-    if (iterations_number > dimX) iterations_number = dimX;
-    
+    else iterations_number = iterationsNumb;    
+  
     if (iterations_number == 0) printf("%s \n", "Nothing to inpaint, zero mask!");
     else {
         
@@ -81,11 +81,38 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
                     counter++;
                 }
             }
+            
+            if (trigger == 0) {
+				/*Matlab*/
+			#pragma omp parallel for shared(Output, M_upd, Gauss_weights) private(i, j, switchmask, switchcurr) 
+             for(j=0; j<dimY; j++) {
+                 switchmask = 0;
+                 for(i=0; i<dimX; i++) {                
+                     switchcurr = 0;
+                     if ((M_upd[j*dimX + i] == 1) && (switchmask == 0)) {
+                         /* perform inpainting of the current pixel */
+                         inpaint_func(Output, M_upd, Gauss_weights, i, j, dimX, dimY, W_halfsize, W_fullsize);
+                         /* add value to the mask*/
+                         M_upd[j*dimX + i] = 0;
+                         switchmask = 1; switchcurr = 1;
+                     }
+                     if ((M_upd[j*dimX + i] == 0) && (switchmask == 1) && (switchcurr == 0)) {                        
+                         /* perform inpainting of the previous (i-1) pixel */
+                         inpaint_func(Output, M_upd, Gauss_weights, i-1, j, dimX, dimY, W_halfsize, W_fullsize);
+                         /* add value to the mask*/
+                         M_upd[(j)*dimX + i-1] = 0;                 
+                         switchmask = 0;                        
+                     }
+                 }
+             }   
+				}
+				else {
+					/*Python*/            
             /* find a point in the mask to inpaint */
 #pragma omp parallel for shared(Output, M_upd, Gauss_weights) private(i, j, switchmask, switchcurr)            
-            for(j=0; j<dimY; j++) {
-                switchmask = 0;
-                for(i=0; i<dimX; i++) {                
+              for(i=0; i<dimX; i++) {
+                switchmask = 0;                
+                for(j=0; j<dimY; j++) {
                     switchcurr = 0;
                     if ((M_upd[j*dimX + i] == 1) && (switchmask == 0)) {
                         /* perform inpainting of the current pixel */
@@ -96,13 +123,14 @@ float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Outpu
                     }
                     if ((M_upd[j*dimX + i] == 0) && (switchmask == 1) && (switchcurr == 0)) {                        
                         /* perform inpainting of the previous (j-1) pixel */
-                        inpaint_func(Output, M_upd, Gauss_weights, i-1, j, dimX, dimY, W_halfsize, W_fullsize);
+                        inpaint_func(Output, M_upd, Gauss_weights, i, j-1, dimX, dimY, W_halfsize, W_fullsize);
                         /* add value to the mask*/
-                        M_upd[(j)*dimX + i-1] = 0;                 
+                        M_upd[(j-1)*dimX + i] = 0;                 
                         switchmask = 0;                        
                     }
                 }
             }
+		}
             free(Gauss_weights);
             
             /* check if possible to terminate iterations earlier */
