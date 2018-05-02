@@ -44,10 +44,28 @@ u0 = Im + np.random.normal(loc = 0 ,
 u_ref = Im + np.random.normal(loc = 0 ,
                                   scale = 0.01 * Im , 
                                   size = np.shape(Im))
+(N,M) = np.shape(u0)
 # map the u0 u0->u0>0
 # f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
 u0 = u0.astype('float32')
 u_ref = u_ref.astype('float32')
+"""
+M = M-100
+u_ref2 = np.zeros([N,M],dtype='float32')
+u_ref2[:,0:M] = u_ref[:,0:M]
+u_ref = u_ref2
+del u_ref2
+
+u02 = np.zeros([N,M],dtype='float32')
+u02[:,0:M] = u0[:,0:M]
+u0 = u02
+del u02
+
+Im2 = np.zeros([N,M],dtype='float32')
+Im2[:,0:M] = Im[:,0:M]
+Im = Im2
+del Im2
+"""
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________ROF-TV regulariser_____________")

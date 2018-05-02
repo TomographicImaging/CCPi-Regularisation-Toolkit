@@ -20,7 +20,7 @@ limitations under the License.
 #include "utils.h"
 #include <math.h>
 
-/* Copy Image */
+/* Copy Image (float) */
 float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
 {
 	int j;
@@ -29,12 +29,33 @@ float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
 	return *U;
 }
 
-/*static inline int8_t SIGN(int val) {
- if (val < 0) return -1;
- if (val==0) return 0;
- return 1;
+/* Copy Image */
+unsigned char copyIm_unchar(unsigned char *A, unsigned char *U, int dimX, int dimY, int dimZ)
+{
+	int j;
+#pragma omp parallel for shared(A, U) private(j)
+	for (j = 0; j<dimX*dimY*dimZ; j++)  U[j] = A[j];
+	return *U;
 }
-*/
+
+/*Roll image symmetrically from top to bottom*/
+float copyIm_roll(float *A, float *U, int dimX, int dimY, int roll_value, int switcher)
+{
+    int i, j;
+#pragma omp parallel for shared(U, A) private(i,j)
+    for (i=0; i<dimX; i++) {
+        for (j=0; j<dimY; j++) {
+            if (switcher == 0) {
+                if (j < (dimY - roll_value)) U[j*dimX + i] = A[(j+roll_value)*dimX + i];
+                else U[j*dimX + i] = A[(j - (dimY - roll_value))*dimX + i];
+            }
+            else {
+                if (j < roll_value) U[j*dimX + i] = A[(j+(dimY - roll_value))*dimX + i];
+                else U[j*dimX + i] = A[(j - roll_value)*dimX + i];
+            }
+        }}
+    return *U;
+}
 
 /* function that calculates TV energy
  * type - 1:  2*lambda*min||\nabla u|| + ||u -u0||^2
