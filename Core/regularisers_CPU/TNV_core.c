@@ -251,18 +251,19 @@ float gradient(float *u_upd, float *gradx_upd, float *grady_upd, int dimX, int d
     // Compute discrete gradient using forward differences
 #pragma omp parallel for shared(gradx_upd,grady_upd,u_upd) private(i, j, k, l)
     for(k = 0; k < dimZ; k++)   {
-        for(j = 0; j < dimX; j++)   {
-            l = j * dimY;
-            for(i = 0; i < dimY; i++)   {
+        for(j = 0; j < dimY; j++)   {
+            l = j * dimX;           
+            for(i = 0; i < dimX; i++)   {
                 // Derivatives in the x-direction
-                if(i != dimY-1)
+                if(i != dimX-1)
                     gradx_upd[(dimX*dimY)*k + i+l] = u_upd[(dimX*dimY)*k + i+1+l] - u_upd[(dimX*dimY)*k + i+l];
                 else
                     gradx_upd[(dimX*dimY)*k + i+l] = 0.0f;
                 
                 // Derivatives in the y-direction
-                if(j != dimX-1)
-                    grady_upd[(dimX*dimY)*k + i+l] = u_upd[(dimX*dimY)*k + i+dimY+l] -u_upd[(dimX*dimY)*k + i+l];
+                if(j != dimY-1)
+                    //grady_upd[(dimX*dimY)*k + i+l] = u_upd[(dimX*dimY)*k + i+dimY+l] -u_upd[(dimX*dimY)*k + i+l];
+                    grady_upd[(dimX*dimY)*k + i+l] = u_upd[(dimX*dimY)*k + i+(j+1)*dimX] -u_upd[(dimX*dimY)*k + i+l];
                 else
                     grady_upd[(dimX*dimY)*k + i+l] = 0.0f;
             }}}
@@ -301,8 +302,8 @@ float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int 
             
             for(k = 0; k < dimZ; k++)
             {
-                valuex = vx[(dimX*dimY)*k + (i)*dimY + (j)];
-                valuey = vy[(dimX*dimY)*k + (i)*dimY + (j)];
+                valuex = vx[(dimX*dimY)*k + (j)*dimX + (i)];
+                valuey = vy[(dimX*dimY)*k + (j)*dimX + (i)];
                 
                 M1 += (valuex * valuex);
                 M2 += (valuex * valuey);
@@ -412,9 +413,9 @@ float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int 
             
             for(k = 0; k < dimZ; k++)
             {
-                gx[(dimX*dimY)*k + (i)*dimY + (j)] = vx[(dimX*dimY)*k + (i)*dimY + (j)] * t1 + vy[(dimX*dimY)*k + (i)*dimY + (j)] * t2;
-                gy[(dimX*dimY)*k + (i)*dimY + (j)] = vx[(dimX*dimY)*k + (i)*dimY + (j)] * t2 + vy[(dimX*dimY)*k + (i)*dimY + (j)] * t3;
-            }
+                gx[(dimX*dimY)*k + j*dimX + i] = vx[(dimX*dimY)*k + j*dimX + i] * t1 + vy[(dimX*dimY)*k + j*dimX + i] * t2;
+                gy[(dimX*dimY)*k + j*dimX + i] = vx[(dimX*dimY)*k + j*dimX + i] * t2 + vy[(dimX*dimY)*k + j*dimX + i] * t3;
+            }           
             
             // Delete allocated memory
             free(proj);
@@ -428,20 +429,21 @@ float divergence(float *qx_upd, float *qy_upd, float *div_upd, int dimX, int dim
     int i, j, k, l;
 #pragma omp parallel for shared(qx_upd,qy_upd,div_upd) private(i, j, k, l)
     for(k = 0; k < dimZ; k++)   {
-        for(j = 0; j < dimX; j++)   {
-            l = j * dimY;
-            for(i = 0; i < dimY; i++)   {
-                if(i != dimY-1)
+        for(j = 0; j < dimY; j++)   {
+            l = j * dimX;            
+            for(i = 0; i < dimX; i++)   {
+                if(i != dimX-1)
                 {
                     // ux[k][i+l] = u[k][i+1+l] - u[k][i+l]
                     div_upd[(dimX*dimY)*k + i+1+l] -= qx_upd[(dimX*dimY)*k + i+l];
                     div_upd[(dimX*dimY)*k + i+l] += qx_upd[(dimX*dimY)*k + i+l];
                 }
                 
-                if(j != dimX-1)
+                if(j != dimY-1)
                 {
                     // uy[k][i+l] = u[k][i+width+l] - u[k][i+l]
-                    div_upd[(dimX*dimY)*k + i+dimY+l] -= qy_upd[(dimX*dimY)*k + i+l];
+                    //div_upd[(dimX*dimY)*k + i+dimY+l] -= qy_upd[(dimX*dimY)*k + i+l];
+                    div_upd[(dimX*dimY)*k + i+(j+1)*dimX] -= qy_upd[(dimX*dimY)*k + i+l];                    
                     div_upd[(dimX*dimY)*k + i+l] += qy_upd[(dimX*dimY)*k + i+l];
                 }
             }

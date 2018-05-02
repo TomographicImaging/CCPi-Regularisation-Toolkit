@@ -44,29 +44,30 @@ u0 = Im + np.random.normal(loc = 0 ,
 u_ref = Im + np.random.normal(loc = 0 ,
                                   scale = 0.01 * Im , 
                                   size = np.shape(Im))
- 
+(N,M) = np.shape(u0)
 # map the u0 u0->u0>0
 # f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
 u0 = u0.astype('float32')
 u_ref = u_ref.astype('float32')
 
 # change dims to check that modules work with non-squared images
-(N,M) = np.shape(u0)
-u_ref2 = np.zeros([N,M-100],dtype='float32')
-u_ref2[:,0:M-100] = u_ref[:,0:M-100]
+"""
+M = M-100
+u_ref2 = np.zeros([N,M],dtype='float32')
+u_ref2[:,0:M] = u_ref[:,0:M]
 u_ref = u_ref2
 del u_ref2
 
-u02 = np.zeros([N,M-100],dtype='float32')
-u02[:,0:M-100] = u0[:,0:M-100]
+u02 = np.zeros([N,M],dtype='float32')
+u02[:,0:M] = u0[:,0:M]
 u0 = u02
 del u02
 
-Im2 = np.zeros([N,M-100],dtype='float32')
-Im2[:,0:M-100] = Im[:,0:M-100]
+Im2 = np.zeros([N,M],dtype='float32')
+Im2[:,0:M] = Im[:,0:M]
 Im = Im2
 del Im2
-
+"""
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________ROF-TV (2D)_________________")
@@ -305,7 +306,6 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(fgp_dtv_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
-
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("__________Total nuclear Variation__________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -318,9 +318,8 @@ a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
 
 channelsNo = 5
-N = 512
-noisyVol = np.zeros((channelsNo,N,N),dtype='float32')
-idealVol = np.zeros((channelsNo,N,N),dtype='float32')
+noisyVol = np.zeros((channelsNo,N,M),dtype='float32')
+idealVol = np.zeros((channelsNo,N,M),dtype='float32')
 
 for i in range (channelsNo):
     noisyVol[i,:,:] = Im + np.random.normal(loc = 0 , scale = perc * Im , size = np.shape(Im))
@@ -361,24 +360,18 @@ plt.title('{}'.format('CPU results'))
 # Uncomment to test 3D regularisation performance 
 #%%
 """
-N = 512
 slices = 20
-
-filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
-Im = plt.imread(filename)
-Im = np.asarray(Im, dtype='float32')
-
-Im = Im/255
 perc = 0.05
 
-noisyVol = np.zeros((slices,N,N),dtype='float32')
-noisyRef = np.zeros((slices,N,N),dtype='float32')
-idealVol = np.zeros((slices,N,N),dtype='float32')
+noisyVol = np.zeros((slices,N,M),dtype='float32')
+noisyRef = np.zeros((slices,N,M),dtype='float32')
+idealVol = np.zeros((slices,N,M),dtype='float32')
 
 for i in range (slices):
     noisyVol[i,:,:] = Im + np.random.normal(loc = 0 , scale = perc * Im , size = np.shape(Im))
     noisyRef[i,:,:] = Im + np.random.normal(loc = 0 , scale = 0.01 * Im , size = np.shape(Im))
     idealVol[i,:,:] = Im
+
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________ROF-TV (3D)_________________")
@@ -419,6 +412,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(rof_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using ROF-TV'))
+
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________FGP-TV (3D)__________________")

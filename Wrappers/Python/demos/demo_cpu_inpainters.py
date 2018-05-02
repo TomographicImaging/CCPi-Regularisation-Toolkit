@@ -72,7 +72,7 @@ pars = {'algorithm' : NDF_INP, \
         'maskData' : mask,\
         'regularisation_parameter':5000,\
         'edge_parameter':0,\
-        'number_of_iterations' :1000 ,\
+        'number_of_iterations' :5000 ,\
         'time_marching_parameter':0.000075,\
         'penalty_type':0
         }
