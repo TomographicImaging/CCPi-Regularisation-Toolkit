@@ -37,12 +37,14 @@ Mask = sino.get('Mask')
 sino_full = sino_full/np.max(sino_full)
 #apply mask to sinogram
 sino_cut = sino_full*(1-Mask)
-sino_cut_new = np.zeros((angles_dim,detectors_dim),'float32')
+#sino_cut_new = np.zeros((angles_dim,detectors_dim),'float32')
 #sino_cut_new = sino_cut.copy(order='c')
-sino_cut_new[:] = sino_cut[:]
-mask = np.zeros((angles_dim,detectors_dim),'uint8')
+#sino_cut_new[:] = sino_cut[:]
+sino_cut_new = np.ascontiguousarray(sino_cut, dtype=np.float32);
+#mask = np.zeros((angles_dim,detectors_dim),'uint8')
 #mask =Mask.copy(order='c')
-mask[:] = Mask[:]
+#mask[:] = Mask[:]
+mask = np.ascontiguousarray(Mask, dtype=np.uint8);
 
 plt.figure(1)
 plt.subplot(121)
@@ -68,11 +70,11 @@ imgplot = plt.imshow(sino_cut_new,cmap="gray")
 pars = {'algorithm' : NDF_INP, \
         'input' : sino_cut_new,\
         'maskData' : mask,\
-        'regularisation_parameter':1000,\
-        'edge_parameter':0.0,\
+        'regularisation_parameter':5000,\
+        'edge_parameter':0,\
         'number_of_iterations' :1000 ,\
         'time_marching_parameter':0.000075,\
-        'penalty_type':1
+        'penalty_type':0
         }
         
 start_time = timeit.default_timer()
@@ -163,7 +165,7 @@ pars = {'algorithm' : NVM_INP, \
         'input' : sino_cut_new,\
         'maskData' : mask,\
         'SW_increment': 1,\
-        'number_of_iterations' :20
+        'number_of_iterations' :0
         }
         
 start_time = timeit.default_timer()

@@ -49,7 +49,7 @@ def TV_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0],dims[1]], dtype='float32')
                    
     # Run ROF iterations for 2D data 
-    TV_ROF_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, iterationsNumb, marching_step_parameter, dims[0], dims[1], 1)
+    TV_ROF_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, iterationsNumb, marching_step_parameter, dims[1], dims[0], 1)
     
     return outputData
             
@@ -333,18 +333,20 @@ def NDF_INPAINT_CPU(inputData, maskData, regularisation_parameter, edge_paramete
         return NDF_INP_3D(inputData, maskData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type)
 
 def NDF_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-               np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,
+                     np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,
                      float regularisation_parameter,
                      float edge_parameter,
                      int iterationsNumb,
                      float time_marching_parameter,
                      int penalty_type):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
-    
+
+
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
-            np.zeros([dims[0],dims[1]], dtype='float32')   
+            np.zeros([dims[0],dims[1]], dtype='float32')
     
     # Run Inpaiting by Diffusion iterations for 2D data 
     Diffusion_Inpaint_CPU_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[0], dims[1], 1)    
