@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, NDF
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, NDF, DIFF4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -207,7 +207,7 @@ plt.title('{}'.format('GPU results'))
 
 print ("--------Compare the results--------")
 tolerance = 1e-05
-diff_im = np.zeros(np.shape(rof_cpu))
+diff_im = np.zeros(np.shape(fgp_cpu))
 diff_im = abs(fgp_cpu - fgp_gpu)
 diff_im[diff_im > tolerance] = 1
 a=fig.add_subplot(1,4,4)
@@ -293,7 +293,7 @@ plt.title('{}'.format('GPU results'))
 
 print ("--------Compare the results--------")
 tolerance = 1e-05
-diff_im = np.zeros(np.shape(rof_cpu))
+diff_im = np.zeros(np.shape(sb_cpu))
 diff_im = abs(sb_cpu - sb_gpu)
 diff_im[diff_im > tolerance] = 1
 a=fig.add_subplot(1,4,4)
@@ -379,7 +379,7 @@ plt.title('{}'.format('GPU results'))
 
 print ("--------Compare the results--------")
 tolerance = 1e-05
-diff_im = np.zeros(np.shape(rof_cpu))
+diff_im = np.zeros(np.shape(ndf_cpu))
 diff_im = abs(ndf_cpu - ndf_gpu)
 diff_im[diff_im > tolerance] = 1
 a=fig.add_subplot(1,4,4)
@@ -391,13 +391,93 @@ else:
     print ("Arrays match")
 
 
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("___Anisotropic Diffusion 4th Order (2D)____")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure(5)
+plt.suptitle('Comparison of Diff4th regulariser using CPU and GPU implementations')
+a=fig.add_subplot(1,4,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : DIFF4th, \
+        'input' : u0,\
+        'regularisation_parameter':3.5, \
+        'edge_parameter':0.02,\
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter':0.005
+        }
+
+print ("#############Diff4th CPU####################")
+start_time = timeit.default_timer()
+diff4th_cpu = Diff4th(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['edge_parameter'], 
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],'cpu')
+             
+rms = rmse(Im, diff4th_cpu)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,4,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(diff4th_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
+
+print ("##############Diff4th GPU##################")
+start_time = timeit.default_timer()
+diff4th_gpu = Diff4th(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['edge_parameter'], 
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'], 'gpu')
+             
+rms = rmse(Im, diff4th_gpu)
+pars['rmse'] = rms
+pars['algorithm'] = Diff4th
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,4,3)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(diff4th_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
+
+print ("--------Compare the results--------")
+tolerance = 1e-05
+diff_im = np.zeros(np.shape(diff4th_cpu))
+diff_im = abs(diff4th_cpu - diff4th_gpu)
+diff_im[diff_im > tolerance] = 1
+a=fig.add_subplot(1,4,4)
+imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
+plt.title('{}'.format('Pixels larger threshold difference'))
+if (diff_im.sum() > 1):
+    print ("Arrays do not match!")
+else:
+    print ("Arrays match")
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________FGP-dTV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(5)
+fig = plt.figure(6)
 plt.suptitle('Comparison of FGP-dTV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -475,7 +555,7 @@ plt.title('{}'.format('GPU results'))
 
 print ("--------Compare the results--------")
 tolerance = 1e-05
-diff_im = np.zeros(np.shape(rof_cpu))
+diff_im = np.zeros(np.shape(fgp_dtv_cpu))
 diff_im = abs(fgp_dtv_cpu - fgp_dtv_gpu)
 diff_im[diff_im > tolerance] = 1
 a=fig.add_subplot(1,4,4)

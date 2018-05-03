@@ -2,8 +2,9 @@
 script which assigns a proper device core function based on a flag ('cpu' or 'gpu')
 """
 
-from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, NDF_INPAINT_CPU, NVM_INPAINT_CPU
-from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU
+from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, Diff4th_CPU
+from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU
+from ccpi.filters.cpu_regularisers import NDF_INPAINT_CPU, NVM_INPAINT_CPU
 
 def ROF_TV(inputData, regularisation_parameter, iterations,
                      time_marching_parameter,device='cpu'):
@@ -107,6 +108,23 @@ def NDF(inputData, regularisation_parameter, edge_parameter, iterations,
                      iterations, 
                      time_marching_parameter,
                      penalty_type)
+    else:
+        raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
+                         .format(device))
+def DIFF4th(inputData, regularisation_parameter, edge_parameter, iterations,
+                     time_marching_parameter, device='cpu'):
+    if device == 'cpu':
+        return Diff4th_CPU(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter)
+    elif device == 'gpu':
+        return Diff4th_GPU(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter)
     else:
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))

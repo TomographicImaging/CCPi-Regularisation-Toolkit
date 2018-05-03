@@ -74,6 +74,22 @@ figure; imshow(u_diff(:,:,15), [0 1]); title('Diffusion denoised volume (CPU)');
 % tic; u_diff_g = NonlDiff_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
 % figure; imshow(u_diff_g(:,:,15), [0 1]); title('Diffusion denoised volume (GPU)');
 %%
+fprintf('Denoise using Fourth-order anisotropic diffusion model (CPU) \n');
+iter_diff = 300; % number of diffusion iterations
+lambda_regDiff = 3.5; % regularisation for the diffusivity 
+sigmaPar = 0.02; % edge-preserving parameter
+tau_param = 0.0025; % time-marching constant 
+tic; u_diff4 = Diffusion_4thO(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
+figure; imshow(u_diff4(:,:,15), [0 1]); title('Diffusion 4thO denoised volume (CPU)');
+%%
+% fprintf('Denoise using Fourth-order anisotropic diffusion model (GPU) \n');
+% iter_diff = 300; % number of diffusion iterations
+% lambda_regDiff = 3.5; % regularisation for the diffusivity 
+% sigmaPar = 0.02; % edge-preserving parameter
+% tau_param = 0.0025; % time-marching constant 
+% tic; u_diff4_g = Diffusion_4thO_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
+% figure; imshow(u_diff4_g(:,:,15), [0 1]); title('Diffusion 4thO denoised volume (GPU)');
+%%
 
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
 fprintf('Denoise a volume using the FGP-dTV model (CPU) \n');

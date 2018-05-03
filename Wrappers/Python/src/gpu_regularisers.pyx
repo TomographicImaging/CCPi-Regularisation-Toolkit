@@ -23,6 +23,7 @@ cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, i
 cdef extern void TV_SB_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int printM, int N, int M, int Z);
 cdef extern void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z);
 cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
+cdef extern void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z);
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
 def TV_ROF_GPU(inputData,
@@ -135,7 +136,26 @@ def NDF_GPU(inputData,
                      edge_parameter,
                      iterations, 
                      time_marching_parameter,
-                     penalty_type)                     
+                     penalty_type)
+# Anisotropic Fourth-Order diffusion
+def Diff4th_GPU(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter):
+    if inputData.ndim == 2:
+        return Diff4th_2D(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter)
+    elif inputData.ndim == 3:
+        return Diff4th_3D(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations, 
+                     time_marching_parameter)
+                     
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
@@ -401,5 +421,43 @@ def NDF_GPU_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     # Run Nonlinear Diffusion iterations for  3D data 
     # Running CUDA code here  
     NonlDiff_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[2], dims[1], dims[0])
+
+    return outputData
+#****************************************************************#
+#************Anisotropic Fourth-Order diffusion******************#
+#****************************************************************#
+def Diff4th_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     float edge_parameter,
+                     int iterationsNumb,
+                     float time_marching_parameter):
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1]], dtype='float32')
+    
+    # Run Anisotropic Fourth-Order diffusion for 2D data 
+    # Running CUDA code here  
+    Diffus4th_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, dims[1], dims[0], 1)
+    return outputData
+            
+def Diff4th_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     float edge_parameter,
+                     int iterationsNumb,
+                     float time_marching_parameter):
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')    
+       
+    # Run Anisotropic Fourth-Order diffusion for  3D data 
+    # Running CUDA code here  
+    Diffus4th_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, dims[2], dims[1], dims[0])
 
     return outputData
