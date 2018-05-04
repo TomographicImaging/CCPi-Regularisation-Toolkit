@@ -28,6 +28,8 @@ cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output,
 
 cdef extern float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
 cdef extern float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ);
+cdef extern float TV_energy2D(float *U, float *U0, float *E_val, float lambdaPar, int type, int dimX, int dimY);
+cdef extern float TV_energy3D(float *U, float *U0, float *E_val, float lambdaPar, int type, int dimX, int dimY, int dimZ);
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
@@ -442,3 +444,45 @@ def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                                   SW_increment, iterationsNumb, 1, dims[1], dims[0], 1)
     
     return (outputData, maskData_upd)
+
+
+#****************************************************************#
+#***************Calculation of TV-energy functional**************#
+#****************************************************************#
+def TV_ENERGY(inputData, regularisation_parameter, typeFunctional):
+    if inputData.ndim == 2:
+        return TV_ENERGY_2D(inputData, regularisation_parameter, typeFunctional)
+    elif inputData.ndim == 3:
+        return TV_ENERGY_3D(inputData, regularisation_parameter, typeFunctional)
+
+def TV_ENERGY_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     int typeFunctional):
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] outputData = \
+            np.zeros([1], dtype='float32')
+                   
+    # run function    
+    TV_energy2D(&inputData[0,0], &outputData[0], regularisation_parameter, typeFunctional, dims[1], dims[0])
+    
+    return outputData
+            
+def TV_ENERGY_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     int typeFunctional):
+						 
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+    
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] outputData = \
+            np.zeros([1], dtype='float32')
+           
+    # Run function
+	TV_energy3D(&inputData[0,0,0], &outputData[0], regularisation_parameter, typeFunctional, dims[2], dims[1], dims[0])
+
+    return outputData
