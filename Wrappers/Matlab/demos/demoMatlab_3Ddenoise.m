@@ -78,7 +78,7 @@ fprintf('Denoise using Fourth-order anisotropic diffusion model (CPU) \n');
 iter_diff = 300; % number of diffusion iterations
 lambda_regDiff = 3.5; % regularisation for the diffusivity 
 sigmaPar = 0.02; % edge-preserving parameter
-tau_param = 0.0025; % time-marching constant 
+tau_param = 0.0015; % time-marching constant 
 tic; u_diff4 = Diffusion_4thO(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
 figure; imshow(u_diff4(:,:,15), [0 1]); title('Diffusion 4thO denoised volume (CPU)');
 %%
@@ -86,7 +86,7 @@ figure; imshow(u_diff4(:,:,15), [0 1]); title('Diffusion 4thO denoised volume (C
 % iter_diff = 300; % number of diffusion iterations
 % lambda_regDiff = 3.5; % regularisation for the diffusivity 
 % sigmaPar = 0.02; % edge-preserving parameter
-% tau_param = 0.0025; % time-marching constant 
+% tau_param = 0.0015; % time-marching constant 
 % tic; u_diff4_g = Diffusion_4thO_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
 % figure; imshow(u_diff4_g(:,:,15), [0 1]); title('Diffusion 4thO denoised volume (GPU)');
 %%

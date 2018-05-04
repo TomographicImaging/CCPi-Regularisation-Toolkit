@@ -328,9 +328,9 @@ def NDF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #****************************************************************#
 def Diff4th_CPU(inputData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter):
     if inputData.ndim == 2:
-        return Diff4th_2D(inputData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type)
+        return Diff4th_2D(inputData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter)
     elif inputData.ndim == 3:
-        return Diff4th_3D(inputData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type)
+        return Diff4th_3D(inputData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter)
 
 def Diff4th_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,

@@ -269,7 +269,7 @@ pars = {'algorithm' : DIFF4th, \
         'regularisation_parameter':3.5, \
         'edge_parameter':0.02,\
         'number_of_iterations' :500 ,\
-        'time_marching_parameter':0.005
+        'time_marching_parameter':0.0015
         }
         
 print ("#############DIFF4th CPU################")

@@ -408,12 +408,12 @@ pars = {'algorithm' : DIFF4th, \
         'regularisation_parameter':3.5, \
         'edge_parameter':0.02,\
         'number_of_iterations' :500 ,\
-        'time_marching_parameter':0.005
+        'time_marching_parameter':0.001
         }
 
 print ("#############Diff4th CPU####################")
 start_time = timeit.default_timer()
-diff4th_cpu = Diff4th(pars['input'], 
+diff4th_cpu = DIFF4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
@@ -437,7 +437,7 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############Diff4th GPU##################")
 start_time = timeit.default_timer()
-diff4th_gpu = Diff4th(pars['input'], 
+diff4th_gpu = DIFF4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
@@ -445,7 +445,7 @@ diff4th_gpu = Diff4th(pars['input'],
              
 rms = rmse(Im, diff4th_gpu)
 pars['rmse'] = rms
-pars['algorithm'] = Diff4th
+pars['algorithm'] = DIFF4th
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, TNV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, NDF, DIFF4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -68,9 +68,6 @@ Im2[:,0:M] = Im[:,0:M]
 Im = Im2
 del Im2
 """
-
-# Uncomment to test 3D regularisation performance 
-#%%
 slices = 20
 
 noisyVol = np.zeros((slices,N,M),dtype='float32')
@@ -82,7 +79,7 @@ for i in range (slices):
     noisyRef[i,:,:] = Im + np.random.normal(loc = 0 , scale = 0.01 * Im , size = np.shape(Im))
     idealVol[i,:,:] = Im
 
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________ROF-TV (3D)_________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -283,7 +280,7 @@ pars = {'algorithm' : DIFF4th, \
         'regularisation_parameter':3.5, \
         'edge_parameter':0.02,\
         'number_of_iterations' :300 ,\
-        'time_marching_parameter':0.005
+        'time_marching_parameter':0.0015
         }
         
 print ("#############DIFF4th CPU################")
