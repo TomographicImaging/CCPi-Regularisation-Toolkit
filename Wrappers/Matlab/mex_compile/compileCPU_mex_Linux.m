@@ -1,8 +1,10 @@
-% execute this mex file in Matlab once
+% execute this mex file on Linux in Matlab once
 
-pathcopyFrom = sprintf(['..' filesep '..' filesep '..' filesep 'Core' filesep 'regularisers_CPU'], 1i);
-pathcopyFrom1 = sprintf(['..' filesep '..' filesep '..' filesep 'Core' filesep 'CCPiDefines.h'], 1i);
-pathcopyFrom2 = sprintf(['..' filesep '..' filesep '..' filesep 'Core' filesep 'inpainters_CPU'], 1i);
+fsep = '/';
+
+pathcopyFrom = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'regularisers_CPU'], 1i);
+pathcopyFrom1 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
+pathcopyFrom2 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'inpainters_CPU'], 1i);
 
 copyfile(pathcopyFrom, 'regularisers_CPU');
 copyfile(pathcopyFrom1, 'regularisers_CPU');
@@ -10,7 +12,7 @@ copyfile(pathcopyFrom2, 'regularisers_CPU');
 
 cd regularisers_CPU
 
-Pathmove = sprintf(['..' filesep 'installed' filesep], 1i);
+Pathmove = sprintf(['..' fsep 'installed' fsep], 1i);
 
 fprintf('%s \n', 'Compiling CPU regularisers...');
 mex ROF_TV.c ROF_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
@@ -48,6 +50,6 @@ delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diff
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 fprintf('%s \n', 'Regularisers successfully compiled!');
 
-pathA2 = sprintf(['..' filesep '..' filesep], 1i);
+pathA2 = sprintf(['..' fsep '..' fsep], 1i);
 cd(pathA2);
 cd demos

@@ -8,18 +8,21 @@
 % ! paths to matlab and CUDA sdk can be different, modify accordingly !
 
 % Tested on Ubuntu 16.04/MATLAB 2016b/cuda7.5/gcc4.9
-% It hasn't been tested on Windows, please contact me if you'll be able to
-% install it on Windows and I include it into the release. 
 
-pathcopyFrom = sprintf(['..' filesep '..' filesep '..' filesep 'Core' filesep 'regularisers_GPU'], 1i);
-pathcopyFrom1 = sprintf(['..' filesep '..' filesep '..' filesep 'Core' filesep 'CCPiDefines.h'], 1i);
+% It HAS NOT been tested on Windows, please contact me if you'll be able to
+% install software on Windows and I greatefully include it into the release. 
+
+fsep = '/';
+
+pathcopyFrom = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'regularisers_GPU'], 1i);
+pathcopyFrom1 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
 
 copyfile(pathcopyFrom, 'regularisers_GPU');
 copyfile(pathcopyFrom1, 'regularisers_GPU');
 
 cd regularisers_GPU
 
-Pathmove = sprintf(['..' filesep 'installed' filesep], 1i);
+Pathmove = sprintf(['..' fsep 'installed' fsep], 1i);
 
 fprintf('%s \n', 'Compiling GPU regularisers (CUDA)...');
 !/usr/local/cuda/bin/nvcc -O0 -c TV_ROF_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
@@ -49,6 +52,6 @@ movefile('Diffusion_4thO_GPU.mex*',Pathmove);
 delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* CCPiDefines.h
 fprintf('%s \n', 'All successfully compiled!');
 
-pathA2 = sprintf(['..' filesep '..' filesep], 1i);
+pathA2 = sprintf(['..' fsep '..' fsep], 1i);
 cd(pathA2);
 cd demos
