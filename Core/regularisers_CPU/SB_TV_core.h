@@ -1,10 +1,3 @@
-#include <math.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <stdio.h>
-#include "omp.h"
-#include "utils.h"
-
 /*
 This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
@@ -24,14 +17,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
+#include <math.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <stdio.h>
+#include "omp.h"
+#include "utils.h"
+#include "CCPiDefines.h"
 
-float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
-float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
-float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
-float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY);
 
-float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda, float mu);
-float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
-float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
-float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ);
+/* C-OMP implementation of Split Bregman - TV denoising-regularisation model (2D/3D) [1]
+*
+* Input Parameters:
+* 1. Noisy image/volume
+* 2. lambda - regularisation parameter
+* 3. Number of iterations [OPTIONAL parameter]
+* 4. eplsilon - tolerance constant [OPTIONAL parameter]
+* 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
+* 6. print information: 0 (off) or 1 (on)  [OPTIONAL parameter]
+*
+* Output:
+* 1. Filtered/regularized image
+*
+* [1]. Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+CCPI_EXPORT float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
+
+CCPI_EXPORT float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
+CCPI_EXPORT float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
+CCPI_EXPORT float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
+CCPI_EXPORT float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY);
+
+CCPI_EXPORT float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda, float mu);
+CCPI_EXPORT float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
+CCPI_EXPORT float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
+CCPI_EXPORT float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ);
+#ifdef __cplusplus
+}
+#endif

@@ -19,15 +19,16 @@
 1. Rudin-Osher-Fatemi (ROF) Total Variation (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *1*)
 2. Fast-Gradient-Projection (FGP) Total Variation **2D/3D CPU/GPU** (Ref. *2*)
 3. Split-Bregman (SB) Total Variation **2D/3D CPU/GPU** (Ref. *5*)
-4. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *7*)
-5. Anisotropic Fourth-Order Diffusion (explicit PDE minimisation) **2D/3D CPU/GPU** (Ref. *8*)
+4. Total Generilised Variation (TGV) model **2D CPU/GPU** (Ref. *6*)
+5. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *8*)
+6. Anisotropic Fourth-Order Diffusion (explicit PDE minimisation) **2D/3D CPU/GPU** (Ref. *9*)
 
 ### Multi-channel (denoising):
 1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,4,2*)
-2. Total Nuclear Variation (TNV) penalty **2D+channels CPU** (Ref. *6*)
+2. Total Nuclear Variation (TNV) penalty **2D+channels CPU** (Ref. *7*)
 
 ### Inpainting:
-1. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU** (Ref. *7*)
+1. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU** (Ref. *8*)
 2. Iterative nonlocal vertical marching method  **2D CPU**
 
 
@@ -35,12 +36,12 @@
 
 ### Python (conda-build)
 ```
-	export CIL_VERSION=0.9.2
+	export CIL_VERSION=0.9.4
 	conda build recipes/regularisers --numpy 1.12 --python 3.5 
-	conda install cil_regulariser=0.9.2 --use-local --force
+	conda install cil_regulariser=0.9.4 --use-local --force
 	cd Wrappers/Python
 	conda build conda-recipe --numpy 1.12 --python 3.5 
-	conda install ccpi-regulariser=0.9.2 --use-local --force
+	conda install ccpi-regulariser=0.9.4 --use-local --force
 	cd demos/
 	python demo_cpu_regularisers.py # to run CPU demo
 	python demo_gpu_regularisers.py # to run GPU demo
@@ -63,11 +64,13 @@
 
 *5. [Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.](https://doi.org/10.1137/080725891)*
 
-*6. [Duran, J., Moeller, M., Sbert, C. and Cremers, D., 2016. Collaborative total variation: a general framework for vectorial TV models. SIAM Journal on Imaging Sciences, 9(1), pp.116-151.](https://doi.org/10.1137/15M102873X)*
+*6. [Bredies, K., Kunisch, K. and Pock, T., 2010. Total generalized variation. SIAM Journal on Imaging Sciences, 3(3), pp.492-526.](https://doi.org/10.1137/090769521)
 
-*7. [Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.](https://doi.org/10.1109/83.661192)*
+*7. [Duran, J., Moeller, M., Sbert, C. and Cremers, D., 2016. Collaborative total variation: a general framework for vectorial TV models. SIAM Journal on Imaging Sciences, 9(1), pp.116-151.](https://doi.org/10.1137/15M102873X)
 
-*8. [Hajiaboli, M.R., 2011. An anisotropic fourth-order diffusion filter for image noise removal. International Journal of Computer Vision, 92(2), pp.177-191.](https://doi.org/10.1007/s11263-010-0330-1)*
+*8. [Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.](https://doi.org/10.1109/83.661192)*
+
+*9. [Hajiaboli, M.R., 2011. An anisotropic fourth-order diffusion filter for image noise removal. International Journal of Computer Vision, 92(2), pp.177-191.](https://doi.org/10.1007/s11263-010-0330-1)*
 
 ### License:
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

@@ -37,6 +37,10 @@ movefile('FGP_TV_GPU.mex*',Pathmove);
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu SB_TV_GPU.cpp TV_SB_GPU_core.o
 movefile('SB_TV_GPU.mex*',Pathmove);
 
+!/usr/local/cuda/bin/nvcc -O0 -c TGV_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
+mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu TGV_GPU.cpp TGV_GPU_core.o
+movefile('TGV_GPU.mex*',Pathmove);
+
 !/usr/local/cuda/bin/nvcc -O0 -c dTV_FGP_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu FGP_dTV_GPU.cpp dTV_FGP_GPU_core.o
 movefile('FGP_dTV_GPU.mex*',Pathmove);
@@ -49,7 +53,7 @@ movefile('NonlDiff_GPU.mex*',Pathmove);
 mex -g -I/usr/local/cuda-7.5/include -L/usr/local/cuda-7.5/lib64 -lcudart -lcufft -lmwgpu Diffusion_4thO_GPU.cpp Diffus_4thO_GPU_core.o
 movefile('Diffusion_4thO_GPU.mex*',Pathmove);
 
-delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* CCPiDefines.h
+delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* TGV_GPU_core* CCPiDefines.h
 fprintf('%s \n', 'All successfully compiled!');
 
 pathA2 = sprintf(['..' fsep '..' fsep], 1i);

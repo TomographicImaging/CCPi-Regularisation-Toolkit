@@ -36,6 +36,9 @@ movefile('NonlDiff.mex*',Pathmove);
 mex Diffusion_4thO.c Diffus4th_order_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('Diffusion_4thO.mex*',Pathmove);
 
+mex TGV.c TGV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile('TGV.mex*',Pathmove);
+
 mex TV_energy.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('TV_energy.mex*',Pathmove);
 
@@ -46,7 +49,7 @@ movefile('NonlDiff_Inp.mex*',Pathmove);
 mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
-delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* CCPiDefines.h
+delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* CCPiDefines.h
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 fprintf('%s \n', 'Regularisers successfully compiled!');
 

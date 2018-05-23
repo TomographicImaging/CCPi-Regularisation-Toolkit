@@ -21,6 +21,7 @@ cimport numpy as np
 cdef extern void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
 cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
 cdef extern void TV_SB_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int printM, int N, int M, int Z);
+cdef extern void TGV_GPU_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY);
 cdef extern void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z);
 cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
 cdef extern void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z);
@@ -86,6 +87,12 @@ def TV_SB_GPU(inputData,
                      tolerance_param,
                      methodTV,
                      printM)
+# Total Generilised Variation (TGV)
+def TGV_GPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst):
+    if inputData.ndim == 2:
+        return TGV2D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst)
+    elif inputData.ndim == 3:
+        return 0
 # Directional Total-variation Fast-Gradient-Projection (FGP)
 def dTV_FGP_GPU(inputData,
                      refdata,
@@ -315,6 +322,33 @@ def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        dims[2], dims[1], dims[0]);
      
     return outputData 
+
+#***************************************************************#
+#***************** Total Generalised Variation *****************#
+#***************************************************************#
+def TGV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     float alpha1,
+                     float alpha0,
+                     int iterationsNumb, 
+                     float LipshitzConst):
+                         
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1]], dtype='float32')
+                   
+    #/* Run TGV iterations for 2D data */
+    TGV_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, 
+                       alpha1,
+                       alpha0,
+                       iterationsNumb, 
+                       LipshitzConst,
+                       dims[1],dims[0])
+    return outputData
+
 #****************************************************************#
 #**************Directional Total-variation FGP ******************#
 #****************************************************************#
