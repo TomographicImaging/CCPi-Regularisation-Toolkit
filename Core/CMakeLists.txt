@@ -76,11 +76,11 @@ message("Adding regularisers as a shared library")
 add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffus4th_order_core.c
 	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/LLT_model_core.c
 	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchBased_Regul_core.c
-	    #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_PD_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_dTV_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core.c
@@ -128,6 +128,7 @@ if (CUDA_FOUND)
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_SB_GPU_core.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TGV_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/dTV_FGP_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/NonlDiff_GPU_core.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu

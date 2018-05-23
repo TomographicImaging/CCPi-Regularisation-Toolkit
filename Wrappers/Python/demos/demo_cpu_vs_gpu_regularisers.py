@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, FGP_dTV, NDF, DIFF4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -50,12 +50,13 @@ u_ref = Im + np.random.normal(loc = 0 ,
 u0 = u0.astype('float32')
 u_ref = u_ref.astype('float32')
 
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________ROF-TV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(1)
+fig = plt.figure()
 plt.suptitle('Comparison of ROF-TV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -89,7 +90,6 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(rof_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
-
 
 print ("##############ROF TV GPU##################")
 start_time = timeit.default_timer()
@@ -128,12 +128,13 @@ if (diff_im.sum() > 1):
 else:
     print ("Arrays match")
 
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________FGP-TV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(2)
+fig = plt.figure()
 plt.suptitle('Comparison of FGP-TV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -218,12 +219,13 @@ if (diff_im.sum() > 1):
 else:
     print ("Arrays match")
 
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________SB-TV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(3)
+fig = plt.figure()
 plt.suptitle('Comparison of SB-TV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -303,14 +305,98 @@ if (diff_im.sum() > 1):
     print ("Arrays do not match!")
 else:
     print ("Arrays match")
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("____________TGV bench___________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Comparison of TGV regulariser using CPU and GPU implementations')
+a=fig.add_subplot(1,4,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : TGV, \
+        'input' : u0,\
+        'regularisation_parameter':0.04, \
+        'alpha1':1.0,\
+        'alpha0':0.7,\
+        'number_of_iterations' :250 ,\
+        'LipshitzConstant' :12 ,\
+        }
+        
+print ("#############TGV CPU####################")
+start_time = timeit.default_timer()
+tgv_cpu = TGV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['alpha1'],
+              pars['alpha0'],
+              pars['number_of_iterations'],
+              pars['LipshitzConstant'],'cpu')
+             
+rms = rmse(Im, tgv_cpu)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,4,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(tgv_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
 
 
+print ("##############SB TV GPU##################")
+start_time = timeit.default_timer()
+tgv_gpu = TGV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['alpha1'],
+              pars['alpha0'],
+              pars['number_of_iterations'],
+              pars['LipshitzConstant'],'gpu')
+                                   
+rms = rmse(Im, tgv_gpu)
+pars['rmse'] = rms
+pars['algorithm'] = TGV
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,4,3)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(tgv_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
+
+print ("--------Compare the results--------")
+tolerance = 1e-05
+diff_im = np.zeros(np.shape(tgv_gpu))
+diff_im = abs(tgv_cpu - tgv_gpu)
+diff_im[diff_im > tolerance] = 1
+a=fig.add_subplot(1,4,4)
+imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
+plt.title('{}'.format('Pixels larger threshold difference'))
+if (diff_im.sum() > 1):
+    print ("Arrays do not match!")
+else:
+    print ("Arrays match")
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________NDF bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(4)
+fig = plt.figure()
 plt.suptitle('Comparison of NDF regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -390,13 +476,13 @@ if (diff_im.sum() > 1):
 else:
     print ("Arrays match")
 
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Anisotropic Diffusion 4th Order (2D)____")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(5)
+fig = plt.figure()
 plt.suptitle('Comparison of Diff4th regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -472,12 +558,13 @@ if (diff_im.sum() > 1):
 else:
     print ("Arrays match")
 
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________FGP-dTV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(6)
+fig = plt.figure()
 plt.suptitle('Comparison of FGP-dTV regulariser using CPU and GPU implementations')
 a=fig.add_subplot(1,4,1)
 a.set_title('Noisy Image')
@@ -565,3 +652,4 @@ if (diff_im.sum() > 1):
     print ("Arrays do not match!")
 else:
     print ("Arrays match")
+#%%

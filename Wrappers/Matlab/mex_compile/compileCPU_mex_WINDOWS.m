@@ -44,6 +44,9 @@ movefile('NonlDiff.mex*',Pathmove);
 mex Diffusion_4thO.c Diffus4th_order_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('Diffusion_4thO.mex*',Pathmove);
 
+mex TGV.c TGV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
+movefile('TGV.mex*',Pathmove);
+
 mex TV_energy.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('TV_energy.mex*',Pathmove);
 
@@ -54,7 +57,7 @@ movefile('NonlDiff_Inp.mex*',Pathmove);
 mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
-delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* CCPiDefines.h
+delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* CCPiDefines.h
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 fprintf('%s \n', 'Regularisers successfully compiled!');
 %%
@@ -82,13 +85,15 @@ fprintf('%s \n', 'Regularisers successfully compiled!');
 % movefile('NonlDiff.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" Diffusion_4thO.c Diffus4th_order_core.c utils.c
 % movefile('Diffusion_4thO.mex*',Pathmove);
+% mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" TGV.c TGV_core.c utils.c
+% movefile('TGV.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" TV_energy.c utils.c
 % movefile('TV_energy.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" NonlDiff_Inp.c Diffusion_Inpaint_core.c utils.c
 % movefile('NonlDiff_Inp.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c
 % movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
-% delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* CCPiDefines.h
+% delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* CCPiDefines.h
 % delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 % fprintf('%s \n', 'Regularisers successfully compiled!');
 %%
