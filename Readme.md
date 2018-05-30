@@ -78,7 +78,7 @@
 11. [Kazantsev, D., Guo, E., Phillion, A.B., Withers, P.J. and Lee, P.D., 2017. Model-based iterative reconstruction using higher-order regularization of dynamic synchrotron data. Measurement Science and Technology, 28(9), p.094004.](https://doi.org/10.1088/1361-6501/aa7fa8)
 
 ### References to Software:
-* If software has been used, please refer to [11], however the supporting publication is in progress. 
+* If software is used, please refer to [11], however, the supporting publication is in progress. 
 
 ### Applications:
 
