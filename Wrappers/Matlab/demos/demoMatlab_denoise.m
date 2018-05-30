@@ -79,6 +79,26 @@ figure; imshow(u_tgv, [0 1]); title('TGV denoised image (CPU)');
 % fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV_gpu);
 % figure; imshow(u_tgv_gpu, [0 1]); title('TGV denoised image (GPU)');
 %%
+fprintf('Denoise using the ROF-LLT model (CPU) \n');
+lambda_ROF = lambda_reg; % ROF regularisation parameter
+lambda_LLT = lambda_reg*0.45; % LLT regularisation parameter
+iter_LLT = 1; % iterations 
+tau_rof_llt = 0.0025; % time-marching constant 
+tic; u_rof_llt = LLT_ROF(single(u0), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt); toc; 
+rmseROFLLT = (RMSE(u_rof_llt(:),Im(:)));
+fprintf('%s %f \n', 'RMSE error for TGV is:', rmseROFLLT);
+figure; imshow(u_rof_llt, [0 1]); title('ROF-LLT denoised image (CPU)');
+%%
+% fprintf('Denoise using the ROF-LLT model (GPU) \n');
+% lambda_ROF = lambda_reg; % ROF regularisation parameter
+% lambda_LLT = lambda_reg*0.45; % LLT regularisation parameter
+% iter_LLT = 500; % iterations 
+% tau_rof_llt = 0.0025; % time-marching constant 
+% tic; u_rof_llt_g = LLT_ROF_GPU(single(u0), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt); toc; 
+% rmseROFLLT_g = (RMSE(u_rof_llt_g(:),Im(:)));
+% fprintf('%s %f \n', 'RMSE error for TGV is:', rmseROFLLT_g);
+% figure; imshow(u_rof_llt_g, [0 1]); title('ROF-LLT denoised image (GPU)');
+%%
 fprintf('Denoise using Nonlinear-Diffusion model (CPU) \n');
 iter_diff = 800; % number of diffusion iterations
 lambda_regDiff = 0.025; % regularisation for the diffusivity 

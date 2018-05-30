@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, FGP_dTV, TNV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, TNV, NDF, DIFF4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -256,6 +256,54 @@ imgplot = plt.imshow(tgv_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
 #%%
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("______________LLT- ROF (2D)________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of LLT-ROF regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : LLT_ROF, \
+        'input' : u0,\
+        'regularisation_parameterROF':0.04, \
+        'regularisation_parameterLLT':0.01, \
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter' :0.0025 ,\
+        }
+        
+print ("#############LLT- ROF CPU####################")
+start_time = timeit.default_timer()
+lltrof_cpu = LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],'cpu')
+
+rms = rmse(Im, lltrof_cpu)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(lltrof_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
+
+#%%
+
+
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("________________NDF (2D)___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
