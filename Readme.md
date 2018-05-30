@@ -19,10 +19,10 @@
 1. Rudin-Osher-Fatemi (ROF) Total Variation (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *1*)
 2. Fast-Gradient-Projection (FGP) Total Variation **2D/3D CPU/GPU** (Ref. *2*)
 3. Split-Bregman (SB) Total Variation **2D/3D CPU/GPU** (Ref. *5*)
-4. Total Generalised Variation (TGV) model **2D CPU/GPU** (Ref. *6*)
+4. Total Generalised Variation (TGV) model for higher-order regularisation **2D CPU/GPU** (Ref. *6*)
 5. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *8*)
 6. Anisotropic Fourth-Order Diffusion (explicit PDE minimisation) **2D/3D CPU/GPU** (Ref. *9*)
-7. Patch-Based (Nonlocal) Regularisation **2D/3D CPU/GPU** (Ref. *10*)
+7. A joint ROF-LLT (Lysaker-Lundervold-Tai) model for higher-order regularisation **2D/3D CPU/GPU** (Ref. *10,11*)
 
 ### Multi-channel (denoising):
 1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,4,2*)
@@ -54,7 +54,7 @@
 	compileGPU_mex.m % to compile GPU modules (see instructions in the file)
 ```
 
-### References:
+### References to implemented methods:
 1. [Rudin, L.I., Osher, S. and Fatemi, E., 1992. Nonlinear total variation based noise removal algorithms. Physica D: nonlinear phenomena, 60(1-4), pp.259-268.](https://www.sciencedirect.com/science/article/pii/016727899290242F)
 
 2. [Beck, A. and Teboulle, M., 2009. Fast gradient-based algorithms for constrained total variation image denoising and deblurring problems. IEEE Transactions on Image Processing, 18(11), pp.2419-2434.](https://doi.org/10.1109/TIP.2009.2028250)
@@ -73,11 +73,17 @@
 
 9. [Hajiaboli, M.R., 2011. An anisotropic fourth-order diffusion filter for image noise removal. International Journal of Computer Vision, 92(2), pp.177-191.](https://doi.org/10.1007/s11263-010-0330-1)
 
-10. [Yang, Z. and Jacob, M., 2013. Nonlocal regularization of inverse problems: a unified variational framework. IEEE Transactions on Image Processing, 22(8), pp.3192-3203.] (https://doi.org/10.1109/TIP.2012.2216278)
+10. [Lysaker, M., Lundervold, A. and Tai, X.C., 2003. Noise removal using fourth-order partial differential equation with applications to medical magnetic resonance images in space and time. IEEE Transactions on image processing, 12(12), pp.1579-1590.](https://doi.org/10.1109/TIP.2003.819229)
+
+11. [Kazantsev, D., Guo, E., Phillion, A.B., Withers, P.J. and Lee, P.D., 2017. Model-based iterative reconstruction using higher-order regularization of dynamic synchrotron data. Measurement Science and Technology, 28(9), p.094004.](https://doi.org/10.1088/1361-6501/aa7fa8)
+
+### References to Software:
+* If software has been used, please refer to [11], however the supporting publication is in progress. 
 
 ### Applications:
 
 * [Regularised FISTA-type iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB code)](https://github.com/dkazanc/FISTA-tomo)
+* [Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography](https://github.com/dkazanc/multi-channel-X-ray-CT)
 
 ### License:
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

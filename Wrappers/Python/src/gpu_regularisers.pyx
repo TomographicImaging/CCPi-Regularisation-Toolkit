@@ -22,6 +22,7 @@ cdef extern void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, i
 cdef extern void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
 cdef extern void TV_SB_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int printM, int N, int M, int Z);
 cdef extern void TGV_GPU_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY);
+cdef extern void LLT_ROF_GPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int N, int M, int Z);
 cdef extern void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z);
 cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
 cdef extern void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z);
@@ -87,6 +88,12 @@ def TV_SB_GPU(inputData,
                      tolerance_param,
                      methodTV,
                      printM)
+# LLT-ROF model
+def LLT_ROF_GPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter):
+    if inputData.ndim == 2:
+        return LLT_ROF_GPU2D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
+    elif inputData.ndim == 3:
+        return LLT_ROF_GPU3D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
 # Total Generilised Variation (TGV)
 def TGV_GPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst):
     if inputData.ndim == 2:
@@ -322,6 +329,46 @@ def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        dims[2], dims[1], dims[0]);
      
     return outputData 
+
+#***************************************************************#
+#************************ LLT-ROF model ************************#
+#***************************************************************#
+#************Joint LLT-ROF model for higher order **************#
+def LLT_ROF_GPU2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameterROF,
+                     float regularisation_parameterLLT,
+                     int iterations, 
+                     float time_marching_parameter):
+    
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+		    np.zeros([dims[0],dims[1]], dtype='float32')
+          
+    # Running CUDA code here    
+    LLT_ROF_GPU_main(&inputData[0,0], &outputData[0,0],regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, dims[1],dims[0],1);
+    return outputData
+    
+def LLT_ROF_GPU3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameterROF,
+                     float regularisation_parameterLLT,
+                     int iterations, 
+                     float time_marching_parameter):
+    
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+          
+    # Running CUDA code here    
+    LLT_ROF_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, dims[2], dims[1], dims[0]);
+    return outputData 
+
 
 #***************************************************************#
 #***************** Total Generalised Variation *****************#

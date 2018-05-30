@@ -60,13 +60,13 @@ float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
     copyIm(Input, Output, dimX, dimY, dimZ);
         
     /* start TV iterations */
-    for(i=0; i < iterationsNumb; i++) {           
+    for(i=0; i < iterationsNumb; i++) {
             
             /* calculate differences */
             D1_func(Output, D1, dimX, dimY, dimZ);
-            D2_func(Output, D2, dimX, dimY, dimZ);           
-            if (dimZ > 1) D3_func(Output, D3, dimX, dimY, dimZ); 			
-            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, dimX, dimY, dimZ);  		          
+            D2_func(Output, D2, dimX, dimY, dimZ);
+            if (dimZ > 1) D3_func(Output, D3, dimX, dimY, dimZ); 
+            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, dimX, dimY, dimZ);
 		}           
     free(D1);free(D2); free(D3);
     return *Output;
@@ -283,7 +283,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 dv1 = D1[index] - D1[j2*dimX + i];
                 dv2 = D2[index] - D2[j*dimX + i2];                
 
-                B[index] =  B[index] + tau*(lambda*(dv1 + dv2) - (B[index] - A[index]));                
+                B[index] =  B[index] + tau*(lambda*(dv1 + dv2) - (B[index] - A[index]));
             }}
     }
     return *B;

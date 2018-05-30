@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, FGP_dTV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, LLT_ROF, FGP_dTV, NDF, DIFF4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -85,7 +85,7 @@ print ("_______________ROF-TV (3D)_________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(1)
+fig = plt.figure()
 plt.suptitle('Performance of ROF-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy 15th slice of a volume')
@@ -120,13 +120,13 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(rof_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using ROF-TV'))
 
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________FGP-TV (3D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(2)
+fig = plt.figure()
 plt.suptitle('Performance of FGP-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -170,12 +170,13 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(fgp_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using FGP-TV'))
 
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________SB-TV (3D)_________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(3)
+fig = plt.figure()
 plt.suptitle('Performance of SB-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
@@ -216,12 +217,58 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(sb_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using SB-TV'))
 
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________LLT-ROF (3D)_________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of LLT-ROF regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+
+# set parameters
+pars = {'algorithm' : LLT_ROF, \
+        'input' : noisyVol,\
+        'regularisation_parameterROF':0.04, \
+        'regularisation_parameterLLT':0.015, \
+        'number_of_iterations' :300 ,\
+        'time_marching_parameter' :0.0025 ,\
+        }
+
+print ("#############LLT ROF CPU####################")
+start_time = timeit.default_timer()
+lltrof_cpu3D = LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],'cpu')
+
+rms = rmse(idealVol, lltrof_cpu3D)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(lltrof_cpu3D[10,:,:], cmap="gray")
+plt.title('{}'.format('Recovered volume on the CPU using LLT-ROF'))
+
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("________________NDF (3D)___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(4)
+fig = plt.figure()
 plt.suptitle('Performance of NDF regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy volume')
@@ -262,13 +309,13 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(ndf_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using NDF iterations'))
 
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Anisotropic Diffusion 4th Order (2D)____")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(5)
+fig = plt.figure()
 plt.suptitle('Performance of Diff4th regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy volume')
@@ -307,13 +354,13 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(diff4th_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using DIFF4th iterations'))
 
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________FGP-dTV (3D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
-fig = plt.figure(6)
+fig = plt.figure()
 plt.suptitle('Performance of FGP-dTV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')

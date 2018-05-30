@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, FGP_dTV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, DIFF4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -352,8 +352,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(tgv_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
-
-print ("##############SB TV GPU##################")
+print ("##############TGV GPU##################")
 start_time = timeit.default_timer()
 tgv_gpu = TGV(pars['input'], 
               pars['regularisation_parameter'],
@@ -382,6 +381,87 @@ print ("--------Compare the results--------")
 tolerance = 1e-05
 diff_im = np.zeros(np.shape(tgv_gpu))
 diff_im = abs(tgv_cpu - tgv_gpu)
+diff_im[diff_im > tolerance] = 1
+a=fig.add_subplot(1,4,4)
+imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
+plt.title('{}'.format('Pixels larger threshold difference'))
+if (diff_im.sum() > 1):
+    print ("Arrays do not match!")
+else:
+    print ("Arrays match")
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("____________LLT-ROF bench___________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Comparison of LLT-ROF regulariser using CPU and GPU implementations')
+a=fig.add_subplot(1,4,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : LLT_ROF, \
+        'input' : u0,\
+        'regularisation_parameterROF':0.04, \
+        'regularisation_parameterLLT':0.01, \
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter' :0.0025 ,\
+        }
+        
+print ("#############LLT- ROF CPU####################")
+start_time = timeit.default_timer()
+lltrof_cpu = LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],'cpu')
+
+rms = rmse(Im, lltrof_cpu)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,4,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(lltrof_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
+
+print ("#############LLT- ROF GPU####################")
+start_time = timeit.default_timer()
+lltrof_gpu = LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],'gpu')
+
+rms = rmse(Im, lltrof_gpu)
+pars['rmse'] = rms
+pars['algorithm'] = LLT_ROF
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,4,3)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(lltrof_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
+
+print ("--------Compare the results--------")
+tolerance = 1e-05
+diff_im = np.zeros(np.shape(lltrof_gpu))
+diff_im = abs(lltrof_cpu - lltrof_gpu)
 diff_im[diff_im > tolerance] = 1
 a=fig.add_subplot(1,4,4)
 imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")

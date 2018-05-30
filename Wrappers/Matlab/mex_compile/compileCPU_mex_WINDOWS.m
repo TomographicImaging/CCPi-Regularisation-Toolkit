@@ -5,7 +5,7 @@
 % not sure if openmp is enabled after the compilation. 
 
 % Here I present two ways how software can be compiled, if you have some
-% other suggestions please contact me at dkazanc@hotmail.com 
+% other suggestions/remarks please contact me at dkazanc@hotmail.com 
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 fsep = '/';
@@ -22,38 +22,54 @@ cd regularisers_CPU
 
 Pathmove = sprintf(['..' fsep 'installed' fsep], 1i);
 
-fprintf('%s \n', 'Compiling CPU regularisers...');
+fprintf('%s \n', '<<<<<<<<<<<Compiling CPU regularisers>>>>>>>>>>>>>');
+
+fprintf('%s \n', 'Compiling ROF-TV...');
 mex ROF_TV.c ROF_TV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('ROF_TV.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling FGP-TV...');
 mex FGP_TV.c FGP_TV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('FGP_TV.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling SB-TV...');
 mex SB_TV.c SB_TV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('SB_TV.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling dFGP-TV...');
 mex FGP_dTV.c FGP_dTV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('FGP_dTV.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling TNV...');
 mex TNV.c TNV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('TNV.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling NonLinear Diffusion...');
 mex NonlDiff.c Diffusion_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('NonlDiff.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling Anisotropic diffusion of higher order...');
 mex Diffusion_4thO.c Diffus4th_order_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('Diffusion_4thO.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling TGV...');
 mex TGV.c TGV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('TGV.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling ROF-LLT...');
+mex LLT_ROF.c LLT_ROF_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
+movefile('LLT_ROF.mex*',Pathmove);
+
+fprintf('%s \n', 'Compiling additional tools...');
 mex TV_energy.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('TV_energy.mex*',Pathmove);
 
 %############Inpainters##############%
+fprintf('%s \n', 'Compiling Nonlinear/Linear diffusion inpainting...');
 mex NonlDiff_Inp.c Diffusion_Inpaint_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('NonlDiff_Inp.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling Nonlocal marching method for inpaiting...');
 mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
@@ -87,6 +103,8 @@ fprintf('%s \n', 'Regularisers successfully compiled!');
 % movefile('Diffusion_4thO.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" TGV.c TGV_core.c utils.c
 % movefile('TGV.mex*',Pathmove);
+% mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" LLT_ROF.c LLT_ROF_core.c utils.c
+% movefile('LLT_ROF.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" TV_energy.c utils.c
 % movefile('TV_energy.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" NonlDiff_Inp.c Diffusion_Inpaint_core.c utils.c
