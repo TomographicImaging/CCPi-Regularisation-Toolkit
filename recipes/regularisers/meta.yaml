@@ -2,8 +2,6 @@ package:
   name: cil_regulariser
   version: {{ environ['CIL_VERSION'] }}
 
-#source:
- # path: ../
 
 build:
   preserve_egg_dir: False
@@ -12,26 +10,15 @@ build:
 
 requirements:
   build:
-    - boost ==1.64.0	
-    - boost-cpp ==1.64.0 
-#    - toolchain
-    - python 3.5 # [py35]
-    - python 2.7 # [py27]
     - cmake >=3.1
-#    - zlib 1.2.11
+    - vc 14 # [win and py36] 
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
-#    - libtiff    
-    - numpy
 
   run:
-    - boost ==1.64.0
-#    - libtiff
+    - vc 14 # [win and py36]
     - vc 14 # [win and py35]
     - vc 9  # [win and py27]
-    - python 3.5 # [py35]
-    - python 2.7 # [py27]
-    - numpy
 
 
 about:
