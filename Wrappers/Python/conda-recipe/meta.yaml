@@ -9,6 +9,12 @@ build:
     - CIL_VERSION   
 #  number: 0
   
+test:
+  files:
+    - lena_gray_512.tif
+  requires:
+    - pillow
+
 requirements:
   build:
     - python
@@ -28,7 +34,6 @@ requirements:
     - vc 14 # [win and py36] 
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
-
 	
 about:
   home: http://www.ccpi.ac.uk
