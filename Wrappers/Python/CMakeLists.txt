@@ -15,13 +15,6 @@ message("CIL_VERSION ${CIL_VERSION}")
 find_package(PythonInterp REQUIRED)
 if (PYTHONINTERP_FOUND)
   message ("Current Python " ${PYTHON_VERSION_STRING} " found " ${PYTHON_EXECUTABLE})
-  if (PYTHON_VERSION_MAJOR EQUAL "3")
-    set (BOOST_PYTHON "python3")
-	set (BOOST_NUMPY "numpy3")
-  else()
-    set (BOOST_PYTHON "python")
-	set (BOOST_NUMPY "numpy")
-  endif()
 endif()
 
 	
@@ -33,21 +26,16 @@ message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 set(CMAKE_BUILD_TYPE "Release")
 
 if(WIN32)
-  set (FLAGS "/DWIN32 /EHsc /DBOOST_ALL_NO_LIB /openmp /DCCPiCore_EXPORTS")
+  set (FLAGS "/DWIN32 /EHsc /openmp /DCCPiCore_EXPORTS")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
   
-  set (EXTRA_LIBRARIES 
-        #${Boost_LIBRARIES}
-		#"tiff"
-		)
+  set (EXTRA_LIBRARIES)
 		
   message("library lib: ${LIBRARY_LIB}")
   
 elseif(UNIX)
    set (FLAGS "-fopenmp -O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS -std=c++0x")  
    set (EXTRA_LIBRARIES 
-		#${Boost_LIBRARIES}
-		#"tiff"
 		"gomp"
 		)
 endif()

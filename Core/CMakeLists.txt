@@ -12,18 +12,6 @@ set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version"
 message("CIL_VERSION ${CIL_VERSION}")
 #include (GenerateExportHeader)
 
-find_package(PythonInterp REQUIRED)
-if (PYTHONINTERP_FOUND)
-  message ("Current Python " ${PYTHON_VERSION_STRING} " found " ${PYTHON_EXECUTABLE})
-  if (PYTHON_VERSION_MAJOR EQUAL "3")
-    set (BOOST_PYTHON "python3")
-	set (BOOST_NUMPY "numpy3")
-  else()
-    set (BOOST_PYTHON "python")
-	set (BOOST_NUMPY "numpy")
-  endif()
-endif()
-
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -40,15 +28,12 @@ message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 set(CMAKE_BUILD_TYPE "Release")
 
 if(WIN32)
-  set (FLAGS "/DWIN32 /EHsc /DBOOST_ALL_NO_LIB /DCCPiCore_EXPORTS /openmp")
+  set (FLAGS "/DWIN32 /EHsc /DCCPiCore_EXPORTS /openmp")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
   
-  set (EXTRA_LIBRARIES 
-        #${Boost_LIBRARIES}
-		#"tiff"
-		)
+  set (EXTRA_LIBRARIES)
 		
   message("library lib: ${LIBRARY_LIB}")
   
@@ -58,8 +43,6 @@ elseif(UNIX)
    set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   
    set (EXTRA_LIBRARIES 
-		#${Boost_LIBRARIES}
-		#"tiff"
 		"gomp"
 		"m"
 		)
@@ -93,12 +76,6 @@ include_directories(cilreg PUBLIC
 					  ${CMAKE_CURRENT_SOURCE_DIR}
 		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
 		              ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
-#GENERATE_EXPORT_HEADER( cilreg
-#             BASE_NAME cilreg
-#             EXPORT_MACRO_NAME CCPiCore_EXPORTS
-#             EXPORT_FILE_NAME CCPiCore_Exports.h
-#             STATIC_DEFINE cilreg_BUILT_AS_STATIC
-#)
 
 ## Install
 
