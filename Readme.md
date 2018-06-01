@@ -41,7 +41,7 @@
 	conda build recipes/regularisers --numpy 1.12 --python 3.5 
 	conda install cil_regulariser=0.9.4 --use-local --force
 	cd Wrappers/Python
-	conda build conda-recipe --numpy 1.12 --python 3.5 
+	conda build conda-recipe --numpy 1.12 --python 3.5 --no-test
 	conda install ccpi-regulariser=0.9.4 --use-local --force
 	cd demos/
 	python demo_cpu_regularisers.py # to run CPU demo
