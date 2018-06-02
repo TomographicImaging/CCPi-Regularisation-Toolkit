@@ -1,5 +1,4 @@
 import unittest
-import sys
 import numpy as np
 import os
 import timeit
@@ -58,7 +57,6 @@ class TestRegularisers(unittest.TestCase):
         u0 = u0.astype('float32')
         u_ref = u_ref.astype('float32')
         
-        #%%
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("____________ROF-TV bench___________________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -124,7 +122,6 @@ class TestRegularisers(unittest.TestCase):
         u0 = u0.astype('float32')
         u_ref = u_ref.astype('float32')
         
-        #%%
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("____________FGP-TV bench___________________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -280,7 +277,6 @@ class TestRegularisers(unittest.TestCase):
         u0 = u0.astype('float32')
         u_ref = u_ref.astype('float32')
         
-        #%%
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("____________TGV bench___________________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -355,7 +351,6 @@ class TestRegularisers(unittest.TestCase):
         u0 = u0.astype('float32')
         u_ref = u_ref.astype('float32')
         
-        #%%
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("____________LLT-ROF bench___________________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -405,7 +400,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
 
-    def test_Diff4th_CPU_vs_GPU(self):
+    def test_NDF_CPU_vs_GPU(self):
         filename = os.path.join("lena_gray_512.tif")
         plt = TiffReader()
         # read image
@@ -426,8 +421,6 @@ class TestRegularisers(unittest.TestCase):
         u0 = u0.astype('float32')
         u_ref = u_ref.astype('float32')
         
-
-        #%%
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("_______________NDF bench___________________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -509,12 +502,12 @@ class TestRegularisers(unittest.TestCase):
         
         # set parameters
         pars = {'algorithm' : DIFF4th, \
-                'input' : u0,\
-                'regularisation_parameter':3.5, \
-                'edge_parameter':0.02,\
-                'number_of_iterations' :500 ,\
-                'time_marching_parameter':0.001
-                }
+        'input' : u0,\
+        'regularisation_parameter':3.5, \
+        'edge_parameter':0.02,\
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter':0.001
+        }
         
         print ("#############Diff4th CPU####################")
         start_time = timeit.default_timer()
@@ -550,7 +543,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(diff4th_cpu - diff4th_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-        #%%
+
     def test_FDGdTV_CPU_vs_GPU(self):
         filename = os.path.join("lena_gray_512.tif")
         plt = TiffReader()
@@ -632,7 +625,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(fgp_dtv_cpu - fgp_dtv_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
-        #%%
 
     def test_cpu_ROF_TV(self):
         #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
@@ -643,18 +635,16 @@ class TestRegularisers(unittest.TestCase):
         # read image
         Im = plt.imread(filename)                     
         Im = np.asarray(Im, dtype='float32')
+        Im = Im/255
         
         """
         # read noiseless image
         Im = plt.imread(filename)
         Im = np.asarray(Im, dtype='float32')
-
-        Im = Im/255
         """
         tolerance = 1e-05
         rms_rof_exp = 0.006812507 #expected value for ROF model
-        rms_fgp_exp = 0.019152347 #expected value for FGP model
-        
+
         # set parameters for ROF-TV
         pars_rof_tv = {'algorithm': ROF_TV, \
                             'input' : Im,\
@@ -665,12 +655,12 @@ class TestRegularisers(unittest.TestCase):
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("_________testing ROF-TV (2D, CPU)__________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        res = True
         rof_cpu = ROF_TV(pars_rof_tv['input'],
              pars_rof_tv['regularisation_parameter'],
              pars_rof_tv['number_of_iterations'],
              pars_rof_tv['time_marching_parameter'],'cpu')
         rms_rof = rmse(Im, rof_cpu)
+        
         # now compare obtained rms with the expected value
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
     def test_cpu_FGP_TV(self):
@@ -682,23 +672,20 @@ class TestRegularisers(unittest.TestCase):
         # read image
         Im = plt.imread(filename)                     
         Im = np.asarray(Im, dtype='float32')
-        
+        Im = Im/255
         """
         # read noiseless image
         Im = plt.imread(filename)
         Im = np.asarray(Im, dtype='float32')
-
-        Im = Im/255
         """
         tolerance = 1e-05
-        rms_rof_exp = 0.006812507 #expected value for ROF model
         rms_fgp_exp = 0.019152347 #expected value for FGP model
         
         pars_fgp_tv = {'algorithm' : FGP_TV, \
                             'input' : Im,\
                             'regularisation_parameter':0.04, \
                             'number_of_iterations' :50 ,\
-                            'tolerance_constant':1e-08,\
+                            'tolerance_constant':1e-06,\
                             'methodTV': 0 ,\
                             'nonneg': 0 ,\
                             'printingOut': 0 
@@ -723,15 +710,12 @@ class TestRegularisers(unittest.TestCase):
 
         plt = TiffReader()
         # read image
-        Im = plt.imread(filename)                     
+        Im = plt.imread(filename)
         Im = np.asarray(Im, dtype='float32')
+        Im = Im/255
         
-        
-
-        #Im = Im/255
         tolerance = 1e-05
         rms_rof_exp = 0.006812507 #expected value for ROF model
-        rms_fgp_exp = 0.019152347 #expected value for FGP model
         
         # set parameters for ROF-TV
         pars_rof_tv = {'algorithm': ROF_TV, \
@@ -743,7 +727,6 @@ class TestRegularisers(unittest.TestCase):
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("_________testing ROF-TV (2D, GPU)__________")
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        res = True
         rof_gpu = ROF_TV(pars_rof_tv['input'],
              pars_rof_tv['regularisation_parameter'],
              pars_rof_tv['number_of_iterations'],
@@ -751,6 +734,7 @@ class TestRegularisers(unittest.TestCase):
         rms_rof = rmse(Im, rof_gpu)
         # now compare obtained rms with the expected value
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
+    
     def test_gpu_FGP(self):
         #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         filename = os.path.join("lena_gray_512.tif")
@@ -759,12 +743,9 @@ class TestRegularisers(unittest.TestCase):
         # read image
         Im = plt.imread(filename)                     
         Im = np.asarray(Im, dtype='float32')
-        
-        
-
-        #Im = Im/255
+        Im = Im/255
         tolerance = 1e-05
-        rms_rof_exp = 0.006812507 #expected value for ROF model
+        
         rms_fgp_exp = 0.019152347 #expected value for FGP model
         
         # set parameters for FGP-TV
@@ -772,7 +753,7 @@ class TestRegularisers(unittest.TestCase):
                             'input' : Im,\
                             'regularisation_parameter':0.04, \
                             'number_of_iterations' :50 ,\
-                            'tolerance_constant':1e-08,\
+                            'tolerance_constant':1e-06,\
                             'methodTV': 0 ,\
                             'nonneg': 0 ,\
                             'printingOut': 0 
