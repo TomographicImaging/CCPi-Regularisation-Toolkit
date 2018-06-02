@@ -35,6 +35,13 @@
 
 ## Installation:
 
+### Python binaries
+Python binaries are distributed via the [ccpi](https://anaconda.org/ccpi/ccpi-regulariser) conda channel. Currently we produce packages for Linux64, Python 2.7, 3.5 and 3.6, NumPy 1.12 and 1.13.
+
+```
+conda install ccpi-regulariser -c ccpi -c conda-forge
+```
+
 ### Python (conda-build)
 ```
 	export CIL_VERSION=0.9.4
