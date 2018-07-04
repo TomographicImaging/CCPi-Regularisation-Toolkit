@@ -52,7 +52,7 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
 CCPI_EXPORT float GradNorm_func2D(float *B, float *B_x, float *B_y, float eta, int dimX, int dimY);
 CCPI_EXPORT float ProjectVect_func2D(float *R1, float *R2, float *B_x, float *B_y, int dimX, int dimY);
