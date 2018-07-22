@@ -148,7 +148,7 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
                 for(k=0; k<dimZ; k++) {
-					index = (dimX*dimY)*k + j*dimX+i;
+                    index = (dimX*dimY)*k + j*dimX+i;
                     /* symmetric boundary conditions (Neuman) */
                     i1 = i + 1; if (i1 >= dimX) i1 = i-1;
                     i2 = i - 1; if (i2 < 0) i2 = i+1;
@@ -179,7 +179,7 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
 #pragma omp parallel for shared (A, D2, dimX, dimY) private(i, j, i1, j1, i2, j2, NOMx_1,NOMy_1,NOMx_0,denom1,denom2,T2,index)
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
-				index = j*dimX+i;
+		index = j*dimX+i;
                 /* symmetric boundary conditions (Neuman) */
                 i1 = i + 1; if (i1 >= dimX) i1 = i-1;
                 i2 = i - 1; if (i2 < 0) i2 = i+1;
@@ -265,8 +265,8 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    B[index] = B[index] + tau*(lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
-                }}}		
+                    B[index] += tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
+                }}}
     }
     else {
 #pragma omp parallel for shared (D1, D2, B, dimX, dimY) private(index, i, j, i1, j1, i2, j2,dv1,dv2)
@@ -281,9 +281,9 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 
                 /* divergence components  */
                 dv1 = D1[index] - D1[j2*dimX + i];
-                dv2 = D2[index] - D2[j*dimX + i2];                
+                dv2 = D2[index] - D2[j*dimX + i2];
 
-                B[index] =  B[index] + tau*(lambda*(dv1 + dv2) - (B[index] - A[index]));
+                B[index] += tau*(2.0f*lambda*(dv1 + dv2) - (B[index] - A[index]));
             }}
     }
     return *B;

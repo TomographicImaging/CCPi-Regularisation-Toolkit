@@ -94,7 +94,7 @@ __host__ __device__ int sign (float x)
                 denom2 = 0.5f*(sign((float)NOMy_1) + sign((float)NOMy_0))*(MIN(abs((float)NOMy_1),abs((float)NOMy_0)));
                 denom2 = denom2*denom2;
                 T1 = sqrt(denom1 + denom2 + EPS);
-                D1[index] = NOMx_1/T1;	
+                D1[index] = NOMx_1/T1;
 		}		
 	}       
     
@@ -124,7 +124,7 @@ __host__ __device__ int sign (float x)
                 denom2 = 0.5f*(sign((float)NOMx_1) + sign((float)NOMx_0))*(MIN(abs((float)NOMx_1),abs((float)NOMx_0)));
                 denom2 = denom2*denom2;
                 T2 = sqrt(denom1 + denom2 + EPS);
-                D2[index] = NOMy_1/T2;	
+                D2[index] = NOMy_1/T2;
 		}		
 	}
     
@@ -139,15 +139,15 @@ __host__ __device__ int sign (float x)
         
         if ((i >= 0) && (i < (N)) && (j >= 0) && (j < (M))) {
             
-				/* boundary conditions (Neumann reflections) */                
-                i2 = i - 1; if (i2 < 0) i2 = i+1;                
+				/* boundary conditions (Neumann reflections) */
+                i2 = i - 1; if (i2 < 0) i2 = i+1;
                 j2 = j - 1; if (j2 < 0) j2 = j+1; 
                 
 				/* divergence components  */
                 dv1 = D1[index] - D1[j2*N + i];
-                dv2 = D2[index] - D2[j*N + i2];                                
+                dv2 = D2[index] - D2[j*N + i2];
                 
-                Update[index] =  Update[index] + tau*(lambda*(dv1 + dv2) - (Update[index] - Input[index]));      
+                Update[index] += tau*(2.0f*lambda*(dv1 + dv2) - (Update[index] - Input[index]));      
 		
 		}  
 	}   
@@ -268,7 +268,7 @@ __host__ __device__ int sign (float x)
                 denom3 = 0.5*(sign(NOMy_1) + sign(NOMy_0))*(MIN(abs(NOMy_1),abs(NOMy_0)));
                 denom3 = denom3*denom3;
                 T3 = sqrt(denom1 + denom2 + denom3 + EPS);
-                D3[index] = NOMz_1/T3;		
+                D3[index] = NOMz_1/T3;
 		}
 	}
 
@@ -297,7 +297,7 @@ __host__ __device__ int sign (float x)
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    Update[index] = Update[index] + tau*(lambda*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
+                    Update[index] += tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
 		
 		}  
 	}
@@ -341,7 +341,7 @@ extern "C" void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, in
                 CHECK(cudaDeviceSynchronize());
             }
             
-            CHECK(cudaFree(d_D3));         
+            CHECK(cudaFree(d_D3));
         }
         else {
 	    // TV - 2D case
