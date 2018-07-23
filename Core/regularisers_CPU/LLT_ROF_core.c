@@ -363,7 +363,7 @@ float Update2D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float 
 			div = dv1 + dv2; /*build Divirgent*/
             
 			/*combine all into one cost function to minimise */
-            U[index] += tau*(lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
+            U[index] += tau*(2.0f*lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
 		}
 	}
 	return *U;
@@ -400,7 +400,7 @@ float Update3D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float 
 				div = dv1 + dv2 + dv3; /*build Divirgent*/
             
 				/*combine all into one cost function to minimise */
-				U[index] += tau*(lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
+				U[index] += tau*(2.0f*lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
 			}
 		}
 	}

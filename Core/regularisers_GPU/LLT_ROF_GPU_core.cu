@@ -357,7 +357,7 @@ __global__ void Update2D_LLT_ROF_kernel(float *U0, float *U, float *D1_LLT, floa
 			div = dv1 + dv2; /*build Divirgent*/
             
 			/*combine all into one cost function to minimise */
-            U[index] += tau*(lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
+            U[index] += tau*(2.0f*lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
 		}
 }
 
@@ -395,7 +395,7 @@ __global__ void Update3D_LLT_ROF_kernel(float *U0, float *U, float *D1_LLT, floa
 			div = dv1 + dv2 + dv3; /*build Divirgent*/
             
 			/*combine all into one cost function to minimise */
-            U[index] += tau*(lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
+            U[index] += tau*(2.0f*lambdaROF*(div) - lambdaLLT*(laplc) - (U[index] - U0[index]));
         }
 }
 
