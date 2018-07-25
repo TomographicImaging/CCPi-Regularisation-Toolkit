@@ -19,7 +19,7 @@
 
 #include "ROF_TV_core.h"
 
-#define EPS 1.0e-5
+#define EPS 1.0e-12
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 

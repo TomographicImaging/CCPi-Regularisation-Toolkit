@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "LLT_ROF_core.h"
 #define EPS_LLT 0.01
-#define EPS_ROF 1.0e-5
+#define EPS_ROF 1.0e-12
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 

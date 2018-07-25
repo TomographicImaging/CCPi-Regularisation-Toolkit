@@ -54,7 +54,7 @@ limitations under the License.
     
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
-#define EPS 1.0e-5
+#define EPS 1.0e-12
     
 #define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
 
@@ -91,7 +91,7 @@ __host__ __device__ int sign (float x)
                 NOMy_0 = Input[index] - Input[j*N + i2]; /* y- */
                 
                 denom1 = NOMx_1*NOMx_1;
-                denom2 = 0.5f*(sign((float)NOMy_1) + sign((float)NOMy_0))*(MIN(abs((float)NOMy_1),abs((float)NOMy_0)));
+                denom2 = 0.5f*(sign((float)NOMy_1) + sign((float)NOMy_0))*(MIN(abs((float)NOMy_1), abs((float)NOMy_0)));
                 denom2 = denom2*denom2;
                 T1 = sqrt(denom1 + denom2 + EPS);
                 D1[index] = NOMx_1/T1;
@@ -106,7 +106,7 @@ __host__ __device__ int sign (float x)
 		int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + N*j;        
+        int index = i + N*j;
         
         if ((i >= 0) && (i < (N)) && (j >= 0) && (j < (M))) {
             
@@ -121,7 +121,7 @@ __host__ __device__ int sign (float x)
                 NOMx_0 = Input[index] - Input[j2*N + i]; /* x- */
                 
                 denom1 = NOMy_1*NOMy_1;
-                denom2 = 0.5f*(sign((float)NOMx_1) + sign((float)NOMx_0))*(MIN(abs((float)NOMx_1),abs((float)NOMx_0)));
+                denom2 = 0.5f*(sign((float)NOMx_1) + sign((float)NOMx_0))*(MIN(abs((float)NOMx_1), abs((float)NOMx_0)));
                 denom2 = denom2*denom2;
                 T2 = sqrt(denom1 + denom2 + EPS);
                 D2[index] = NOMy_1/T2;
@@ -321,7 +321,7 @@ extern "C" void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, in
         CHECK(cudaMemcpy(d_update,Input,N*M*Z*sizeof(float),cudaMemcpyHostToDevice));      
         
         if (Z > 1) {
-			// TV - 3D case                 
+			// TV - 3D case
             dim3 dimBlock(BLKXSIZE,BLKYSIZE,BLKZSIZE);
             dim3 dimGrid(idivup(N,BLKXSIZE), idivup(M,BLKYSIZE),idivup(Z,BLKXSIZE));            
             
