@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "omp.h"
 #include "utils.h"
+#include "CCPiDefines.h"
 
 #define fTiny 0.00000001f
 #define fLarge 100000000.0f
@@ -31,10 +32,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-float TNV_CPU_main(float *Input, float *u, float lambda, int maxIter, float tol, int dimX, int dimY, int dimZ);
+#ifdef __cplusplus
+extern "C" {
+#endif
+CCPI_EXPORT float TNV_CPU_main(float *Input, float *u, float lambda, int maxIter, float tol, int dimX, int dimY, int dimZ);
 
 /*float PDHG(float *A, float *B, float tau, float sigma, float theta, float lambda, int p, int q, int r, float tol, int maxIter, int d_c, int d_w, int d_h);*/
-float proxG(float *u_upd, float *v, float *f, float taulambda, int dimX, int dimY, int dimZ);
-float gradient(float *u_upd, float *gradx_upd, float *grady_upd, int dimX, int dimY, int dimZ);
-float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int q, int r, int dimX, int dimY, int dimZ);
-float divergence(float *qx_upd, float *qy_upd, float *div_upd, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float proxG(float *u_upd, float *v, float *f, float taulambda, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float gradient(float *u_upd, float *gradx_upd, float *grady_upd, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int q, int r, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float divergence(float *qx_upd, float *qy_upd, float *div_upd, int dimX, int dimY, int dimZ);
+#ifdef __cplusplus
+}
+#endif
