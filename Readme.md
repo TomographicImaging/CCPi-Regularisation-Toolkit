@@ -89,8 +89,9 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 ### Applications:
 
-* [Regularised FISTA-type iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB code)](https://github.com/dkazanc/FISTA-tomo)
-* [Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography](https://github.com/dkazanc/multi-channel-X-ray-CT)
+* [Regularised FISTA iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB code)](https://github.com/dkazanc/FISTA-tomo)
+* [Regularised ADMM iterative reconstruction algorithm for X-ray tomographic reconstruction (MATLAB code)](https://github.com/dkazanc/ADMM-tomo)
+* [Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography (MATLAB code)](https://github.com/dkazanc/multi-channel-X-ray-CT)
 
 ### License:
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
