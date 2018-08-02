@@ -44,7 +44,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 ### Python (conda-build)
 ```
-	export CIL_VERSION=0.9.4
+	export CIL_VERSION=0.10.0
 	conda build recipes/regularisers --numpy 1.12 --python 3.5 
 	conda install cil_regulariser=0.9.4 --use-local --force
 	cd Wrappers/Python
