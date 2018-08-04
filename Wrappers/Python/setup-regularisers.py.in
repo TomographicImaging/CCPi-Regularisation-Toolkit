@@ -27,10 +27,12 @@ except:
 extra_include_dirs = [numpy.get_include(), library_include_path]
 #extra_library_dirs = [os.path.join(library_include_path, "..", "lib")]
 extra_compile_args = []
-extra_library_dirs = []
+extra_library_dirs = [library_lib_path]
 extra_compile_args = []
 extra_link_args = []
 extra_libraries = ['cilreg']
+
+print ("extra_library_dirs " , extra_library_dirs)
 
 extra_include_dirs += [os.path.join(".." , ".." , "Core"),
                        os.path.join(".." , ".." , "Core",  "regularisers_CPU"),

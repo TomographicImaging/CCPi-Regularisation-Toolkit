@@ -1,17 +1,18 @@
 #   Copyright 2018 Edoardo Pasca
-cmake_minimum_required (VERSION 3.0)
+#cmake_minimum_required (VERSION 3.0)
 
-project(RGL)
+project(RGL_core)
 #https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
 
 # The version number.
 
-set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
+#set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
 
 # conda orchestrated build
 message("CIL_VERSION ${CIL_VERSION}")
 #include (GenerateExportHeader)
-
+option (BUILD_WRAPPERS "Build Wrappers" ON)
+option (CONDA_BUILD "Conda Build" OFF)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)

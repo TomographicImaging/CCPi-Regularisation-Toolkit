@@ -22,7 +22,7 @@ set (RGL_VERSION_MAJOR 1)
 set (RGL_VERSION_MINOR 0)
 
 set (CIL_VERSION_MAJOR 0)
-set (CIL_VERSION_MINOR 9)
+set (CIL_VERSION_MINOR 10)
 set (CIL_VERSION_PATCH 1)
 
 set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}' CACHE INTERNAL "Core Imaging Library version" FORCE)
@@ -31,4 +31,6 @@ set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}
 #include(${CMAKE_SOURCE_DIR}/CMake/FindAnacondaEnvironment.cmake)
 
 add_subdirectory(Core)
-add_subdirectory(Wrappers)
+if (BUILD_WRAPPERS)
+  add_subdirectory(Wrappers)
+endif()

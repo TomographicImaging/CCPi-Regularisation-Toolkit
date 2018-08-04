@@ -68,4 +68,60 @@ else()
   set(SETUP_GPU_WRAPPERS "#CUDA NOT FOUND")
 endif()
 
-configure_file("setup-regularisers.py.in" "setup-regularisers.py")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/setup-regularisers.py.in" "${CMAKE_CURRENT_BINARY_DIR}/setup-regularisers.py")
+
+
+find_package(PythonInterp)
+find_package(PythonLibs)
+if (PYTHONINTERP_FOUND)
+  message(STATUS "Found PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}")
+  message(STATUS "Python version ${PYTHON_VERSION_STRING}")
+endif()
+if (PYTHONLIBS_FOUND)
+  message(STATUS "Found PYTHON_INCLUDE_DIRS=${PYTHON_INCLUDE_DIRS}")
+  message(STATUS "Found PYTHON_LIBRARIES=${PYTHON_LIBRARIES}")
+endif()
+
+if (PYTHONINTERP_FOUND)
+    message("Python found " ${PYTHON_EXECUTABLE})
+    set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup-regularisers.py.in")
+    set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup-regularisers.py")
+    #set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
+    set (DEPS       "${CMAKE_BINARY_DIR}/Core/")
+    set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+
+    configure_file(${SETUP_PY_IN} ${SETUP_PY})
+
+    message("Core binary dir " ${CMAKE_BINARY_DIR}/Core/${CMAKE_BUILD_TYPE})
+    
+    if (CONDA_BUILD)
+      add_custom_command(OUTPUT ${OUTPUT}
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
+                       COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
+                                                       PREFIX=${CMAKE_SOURCE_DIR}/Core 
+                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/Core 
+                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/Core
+                                                       ${PYTHON_EXECUTABLE} ${SETUP_PY} install
+                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                       DEPENDS cilreg)
+
+    else()
+      add_custom_command(OUTPUT ${OUTPUT}
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
+                       COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
+                                                       PREFIX=${CMAKE_SOURCE_DIR}/Core 
+                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/Core 
+                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/Core/${CMAKE_BUILD_TYPE}
+                                                       ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace
+                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                       DEPENDS cilreg)
+
+    endif()
+    
+    
+    add_custom_target(PythonWrapper ALL DEPENDS ${OUTPUT})
+
+    #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
+endif()
