@@ -46,7 +46,7 @@ if (BUILD_CUDA)
     if (CUDA_FOUND)
       message("CUDA FOUND")
       set (SETUP_GPU_WRAPPERS "extra_libraries += ['cilregcuda']\n\
-    setup( \n\
+setup( \n\
         name='ccpi', \n\
         description='CCPi Core Imaging Library - Image regularisers GPU',\n\
         version=cil_version,\n\
