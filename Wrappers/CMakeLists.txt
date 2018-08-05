@@ -11,13 +11,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
-find_package(Matlab)
-if (MATLAB_FOUND)
-  message(Matlab)
-  add_subdirectory(Matlab)
-else()
-  message("Matlab not found")
+if (BUILD_MATLAB_WRAPPERS)
+    add_subdirectory(Matlab)
 endif()
-
-add_subdirectory(Python)
+if (BUILD_PYTHON_WRAPPERS)
+    add_subdirectory(Python)
+endif()

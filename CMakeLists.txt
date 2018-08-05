@@ -30,7 +30,10 @@ set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}
 # set the Python variables for the Conda environment
 #include(${CMAKE_SOURCE_DIR}/CMake/FindAnacondaEnvironment.cmake)
 
+option (BUILD_MATLAB_WRAPPERS "Build Matlab Wrappers" OFF)
+option (BUILD_PYTHON_WRAPPERS "Build Python Wrappers" OFF)
+option (CONDA_BUILD "Conda Build" OFF)
+option (BUILD_CUDA "Build the CUDA modules" ON)
+
 add_subdirectory(Core)
-if (BUILD_WRAPPERS)
-  add_subdirectory(Wrappers)
-endif()
+add_subdirectory(Wrappers)

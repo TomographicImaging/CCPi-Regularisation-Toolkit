@@ -11,8 +11,7 @@ project(RGL_core)
 # conda orchestrated build
 message("CIL_VERSION ${CIL_VERSION}")
 #include (GenerateExportHeader)
-option (BUILD_WRAPPERS "Build Wrappers" ON)
-option (CONDA_BUILD "Conda Build" OFF)
+
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -96,35 +95,36 @@ message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
 endif()
 
 # GPU Regularisers
-
-find_package(CUDA)
-if (CUDA_FOUND)
-  set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
-  message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
-  CUDA_ADD_LIBRARY(cilregcuda SHARED
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_SB_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/LLT_ROF_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TGV_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/dTV_FGP_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/NonlDiff_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu
-  )
-  if (UNIX)
-    message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
-    install(TARGETS cilregcuda
-	LIBRARY DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
-	)
-  elseif(WIN32)
-    message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
-    install(TARGETS cilregcuda
-	RUNTIME DESTINATION bin
-	ARCHIVE DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
-	)
-  endif()
-else()
-  message("CUDA NOT FOUND")
+if (BUILD_CUDA)
+    find_package(CUDA)
+    if (CUDA_FOUND)
+      set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
+      message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
+      CUDA_ADD_LIBRARY(cilregcuda SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_SB_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/LLT_ROF_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TGV_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/dTV_FGP_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/NonlDiff_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu
+      )
+      if (UNIX)
+        message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
+        install(TARGETS cilregcuda
+        LIBRARY DESTINATION lib
+        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+        )
+      elseif(WIN32)
+        message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
+        install(TARGETS cilregcuda
+        RUNTIME DESTINATION bin
+        ARCHIVE DESTINATION lib
+        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+        )
+      endif()
+    else()
+      message("CUDA NOT FOUND")
+    endif()
 endif()
