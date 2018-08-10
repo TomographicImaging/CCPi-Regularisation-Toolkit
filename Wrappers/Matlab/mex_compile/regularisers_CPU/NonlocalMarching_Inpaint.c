@@ -42,9 +42,11 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, dimX, dimY, dimZ, iterations, SW_increment;
-    const int  *dim_array;
-    const int  *dim_array2;
+    int number_of_dims, iterations, SW_increment;
+    mwSize dimX, dimY, dimZ;
+    const mwSize *dim_array;
+    const mwSize *dim_array2;
+    
     float *Input, *Output=NULL;
     unsigned char *Mask, *Mask_upd=NULL;
     

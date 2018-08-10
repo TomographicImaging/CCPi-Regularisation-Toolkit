@@ -44,7 +44,7 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, iter_numb, j;
+    int number_of_dims, iter_numb;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array_i;
     float *Input, *Output=NULL, lambda, tau;    
@@ -61,25 +61,17 @@ void mexFunction(
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
     if(nrhs != 4) mexErrMsgTxt("Four inputs reqired: Image(2D,3D), regularization parameter, iterations number,  marching step constant");
     /*Handling Matlab output data*/
-    dimX = dim_array_i[0]; dimY = dim_array_i[1]; dimZ = dim_array_i[2];
-        
+    dimX = dim_array_i[0]; dimY = dim_array_i[1]; dimZ = dim_array_i[2];        
     
     /* output arrays*/
     if (number_of_dims == 2) {
-        //const mwSize dim_array[2] = {dimX, dimY};
         dimZ = 1; /*2D case*/
         /* output image/volume */
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array_i, mxSINGLE_CLASS, mxREAL));          
-            //mexErrMsgTxt("Call me 72");
     }    
     if (number_of_dims == 3) {
-        //const mwSize dim_array[3] = {dimX, dimY, dimZ};
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array_i, mxSINGLE_CLASS, mxREAL));
     }
-    
-//     for(j=0; j<(int)(dimX*dimY*dimZ); j++) {
-//         if (j%10 == 0) mexErrMsgTxt("WHAT???");
-//         Output[j] = 2;}
-    
+     
     TV_ROF_CPU_main(Input, Output, lambda, iter_numb, tau, dimX, dimY, dimZ);    
 }

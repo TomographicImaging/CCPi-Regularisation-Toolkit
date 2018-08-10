@@ -45,9 +45,11 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, iter_numb, dimX, dimY, dimZ, penaltytype, i, inpaint_elements;
-    const int  *dim_array;
-    const int  *dim_array2;
+    int number_of_dims, iter_numb, penaltytype, i, inpaint_elements;
+    mwSize dimX, dimY, dimZ;
+    const mwSize *dim_array;   
+    const mwSize *dim_array2;   
+    
     float *Input, *Output=NULL, lambda, tau, sigma;
     unsigned char *Mask;
     
@@ -95,7 +97,7 @@ void mexFunction(
     }    
     
     inpaint_elements = 0;
-    for (i=0; i<dimY*dimX*dimZ; i++) if (Mask[i] == 1) inpaint_elements++;
+    for (i=0; i<(int)(dimY*dimX*dimZ); i++) if (Mask[i] == 1) inpaint_elements++;
     if (inpaint_elements == 0) mexErrMsgTxt("The mask is full of zeros, nothing to inpaint");        
     Diffusion_Inpaint_CPU_main(Input, Mask, Output, lambda, sigma, iter_numb, tau, penaltytype, dimX, dimY, dimZ);
 }
