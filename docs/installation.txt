@@ -1,0 +1,8 @@
+One can install CCPi-RGL toolkit using cmake:
+
+
+ cmake ../CCPi-Regularisation-Toolkit/ -DBUILD_MATLAB_WRAPPERS=ON -DBUILD_PYTHON_WRAPPERS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DMatlab_ROOT_DIR=<Matlab directory> -DBUILD_CUDA=OFF
+
+make 
+
+make install 
