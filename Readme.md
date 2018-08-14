@@ -35,27 +35,62 @@
 
 ## Installation:
 
-### Python binaries
+The package comes as a CMake project so you will need CMake to install it. After checking out the repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, create a build directory. Additional flags to CMake will allow you to create the Matlab wrapper and/or the Python wrapper and the CUDA regularisers. In the following example I will write a line to build both wrappers and CUDA.
+
+```bash
+git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit.git
+mkdir build
+cd build
+cmake ../CCPi-Regularisation-Toolkit -DCONDA_BUILD=OFF -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<your favourite install directory>
+make install
+```
+
+The library may be used directly from C/C++ as it is compiled as a shared library. Check-out the include files in `Core`. We provide wrappers in Python and Matlab.
+
+### Python
+#### Python binaries
 Python binaries are distributed via the [ccpi](https://anaconda.org/ccpi/ccpi-regulariser) conda channel. Currently we produce packages for Linux64, Python 2.7, 3.5 and 3.6, NumPy 1.12 and 1.13.
 
 ```
 conda install ccpi-regulariser -c ccpi -c conda-forge
 ```
 
-### Python (conda-build)
+#### Python (conda-build)
 ```
-	export CIL_VERSION=0.10.0
-	conda build recipes/regularisers --numpy 1.12 --python 3.5 
-	conda install cil_regulariser=${CIL_VERSION} --use-local --force
-	cd Wrappers/Python
-	conda build conda-recipe --numpy 1.12 --python 3.5 --no-test
+	export CIL_VERSION=0.10.1
+	conda build Wrappers/Python/conda-recipe --numpy 1.12 --python 3.5 
 	conda install ccpi-regulariser=${CIL_VERSION} --use-local --force
 	cd demos/
 	python demo_cpu_regularisers.py # to run CPU demo
 	python demo_gpu_regularisers.py # to run GPU demo
 ```
+
+#### Python build
+
+If Python is not picked by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/python/executable`.
+
 ### Matlab
+
+If Matlab is not picked by CMake, you could add `-DMatlab_ROOT_DIR=<Matlab directory>`. 
+
+#### Linux
+Because you've installed the modules in `<your favourite install directory>` you need to instruct Matlab to look in those directories:
+
+```bash 
+
+PATH="/path/to/mex/:$PATH" LD_LIBRARY_PATH="/path/to/library:$LD_LIBRARY_PATH" matlab
 ```
+By default `/path/to/mex` is `${CMAKE_INSTALL_PREFIX}/bin` and `/path/to/library/` is `${CMAKE_INSTALL_PREFIX}/lib`
+
+#### Windows
+On Windows the `dll` and the mex modules must reside in the same directory. It is sufficient to add the directory at the beginning of the m-file.
+```matlab
+addpath(/path/to/library);
+```
+
+#### Legacy Matlab installation
+```
+	
 	cd /Wrappers/Matlab/mex_compile
 	compileCPU_mex.m % to compile CPU modules
 	compileGPU_mex.m % to compile GPU modules (see instructions in the file)
