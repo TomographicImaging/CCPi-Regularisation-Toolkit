@@ -139,12 +139,12 @@ if (PYTHONINTERP_FOUND)
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS cilreg)
       endif()
+      install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi 
+              DESTINATION ${PYTHON_DEST})
     endif()
     
     
     add_custom_target(PythonWrapper ALL DEPENDS ${OUTPUT})
 
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi 
-              DESTINATION ${PYTHON_DEST})
     #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
 endif()
