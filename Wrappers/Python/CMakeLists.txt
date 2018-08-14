@@ -6,7 +6,7 @@ project(regulariserPython)
 
 # The version number.
 
-set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
+#set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
 
 # conda orchestrated build
 message("CIL_VERSION ${CIL_VERSION}")
