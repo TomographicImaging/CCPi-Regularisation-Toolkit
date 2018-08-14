@@ -122,11 +122,10 @@ if (PYTHONINTERP_FOUND)
                        COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
                                                        PREFIX=${CMAKE_SOURCE_DIR}/Core 
                                                        LIBRARY_INC=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/Core/${CMAKE_BUILD_TYPE}
+                                                       LIBRARY_LIB=$<IF:WIN32,${CMAKE_BINARY_DIR}/Core/${CMAKE_BUILD_TYPE},${CMAKE_BINARY_DIR}/Core/>
                                                        ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS cilreg)
-
     endif()
     
     
