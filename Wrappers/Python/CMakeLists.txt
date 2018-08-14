@@ -132,5 +132,7 @@ if (PYTHONINTERP_FOUND)
     
     add_custom_target(PythonWrapper ALL DEPENDS ${OUTPUT})
 
+    install(PythonWrapper DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi 
+              DESTINATION ${PYTHON_DEST})
     #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
 endif()
