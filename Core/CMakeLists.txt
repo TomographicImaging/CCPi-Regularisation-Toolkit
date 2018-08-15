@@ -101,6 +101,8 @@ message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
 	)
 endif()
 
+
+
 # GPU Regularisers
 if (BUILD_CUDA)
     find_package(CUDA)
@@ -134,4 +136,13 @@ if (BUILD_CUDA)
     else()
       message("CUDA NOT FOUND")
     endif()
+endif()
+
+if (${BUILD_MATLAB_WRAPPER})
+  if (WIN32)
+        install(TARGETS cilreg DESTINATION ${MATLAB_DEST})
+        if (CUDA_FOUND)
+            install(TARGETS cilregcuda DESTINATION ${MATLAB_DEST})
+        endif()
+  endif()
 endif()

@@ -35,5 +35,22 @@ option (BUILD_PYTHON_WRAPPER "Build Python Wrappers" ON)
 option (CONDA_BUILD "Conda Build" OFF)
 option (BUILD_CUDA "Build the CUDA modules" ON)
 
+set(MATLAB_DEST_DIR "" CACHE PATH "Directory of the Matlab wrappers")
+if (MATLAB_DEST_DIR)
+set(MATLAB_DEST "${MATLAB_DEST_DIR}")
+else() 
+set(MATLAB_DEST "${CMAKE_INSTALL_PREFIX}/matlab")
+endif()
+message(STATUS "Matlab wrappers will be installed in " ${MATLAB_DEST})
+
+set(PYTHON_DEST_DIR "" CACHE PATH "Directory of the Matlab wrappers")
+if (PYTHON_DEST_DIR)
+ set(PYTHON_DEST "${PYTHON_DEST_DIR}")
+else() 
+ set(PYTHON_DEST "${CMAKE_INSTALL_PREFIX}/python")
+endif()
+message(STATUS "Python wrappers will be installed in " ${PYTHON_DEST})
+
+
 add_subdirectory(Core)
 add_subdirectory(Wrappers)

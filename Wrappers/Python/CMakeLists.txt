@@ -16,16 +16,7 @@ find_package(PythonInterp REQUIRED)
 if (PYTHONINTERP_FOUND)
   message ("Current Python " ${PYTHON_VERSION_STRING} " found " ${PYTHON_EXECUTABLE})
 endif()
-if (CONDA_BUILD)
-else()
-set(PYTHON_DEST_DIR "" CACHE PATH "Directory of the Matlab wrappers")
-  if (PYTHON_DEST_DIR)
-   set(PYTHON_DEST "${PYTHON_DEST_DIR}")
-  else() 
-    set(PYTHON_DEST "${CMAKE_INSTALL_PREFIX}/python")
-  endif()
-  message(STATUS "Python wrappers will be installed in " ${PYTHON_DEST})
-endif()
+
 	
 ## Build the regularisers package as a library
 message("Creating Regularisers as shared library")

@@ -2,13 +2,7 @@ project(regulariserMatlab)
 
 
 find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM MX_LIBRARY ENG_LIBRARY )
-set(MATLAB_DEST_DIR "" CACHE PATH "Directory of the Matlab wrappers")
-if (MATLAB_DEST_DIR)
-set(MATLAB_DEST "${MATLAB_DEST_DIR}")
-else() 
-set(MATLAB_DEST "${CMAKE_INSTALL_PREFIX}/matlab")
-endif()
-message(STATUS "Matlab wrappers will be installed in " ${MATLAB_DEST})
+
 
 
 #C:\Users\ofn77899\Documents\Projects\CCPi\GitHub\CCPi-FISTA_Reconstruction\Core\regularisers_CPU
@@ -148,6 +142,6 @@ message("number of GPU files  " ${num})
       endforeach()
        
       add_custom_target(MatlabWrapperGPU DEPENDS ${GPU_MEX_TARGETS})
-
+      
     endif()
 endif()
