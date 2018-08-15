@@ -11,4 +11,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-add_subdirectory(Python)
+if (BUILD_MATLAB_WRAPPER)
+    add_subdirectory(Matlab)
+endif()
+if (BUILD_PYTHON_WRAPPER)
+    add_subdirectory(Python)
+endif()

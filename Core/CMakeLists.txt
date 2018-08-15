@@ -1,12 +1,12 @@
 #   Copyright 2018 Edoardo Pasca
-cmake_minimum_required (VERSION 3.0)
+#cmake_minimum_required (VERSION 3.0)
 
-project(RGL)
+project(RGL_core)
 #https://stackoverflow.com/questions/13298504/using-cmake-with-setup-py
 
 # The version number.
 
-set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
+#set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
 
 # conda orchestrated build
 message("CIL_VERSION ${CIL_VERSION}")
@@ -18,12 +18,19 @@ if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+   set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+   set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_STATIC_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+   
 endif()
 
 ## Build the regularisers package as a library
 message("Creating Regularisers as a shared library")
 
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
+message("CMAKE_C_FLAGS ${CMAKE_C_FLAGS}")
+message("CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}")
+message("CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS}")
+message("CMAKE_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS}")
 
 set(CMAKE_BUILD_TYPE "Release")
 
@@ -94,36 +101,48 @@ message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
 	)
 endif()
 
-# GPU Regularisers
 
-find_package(CUDA)
-if (CUDA_FOUND)
-  set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
-  message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
-  CUDA_ADD_LIBRARY(cilregcuda SHARED
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_SB_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/LLT_ROF_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TGV_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/dTV_FGP_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/NonlDiff_GPU_core.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu
-  )
-  if (UNIX)
-    message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
-    install(TARGETS cilregcuda
-	LIBRARY DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
-	)
-  elseif(WIN32)
-    message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
-    install(TARGETS cilregcuda
-	RUNTIME DESTINATION bin
-	ARCHIVE DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
-	)
+
+# GPU Regularisers
+if (BUILD_CUDA)
+    find_package(CUDA)
+    if (CUDA_FOUND)
+      set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
+      message("CUDA FLAGS ${CUDA_NVCC_FLAGS}")
+      CUDA_ADD_LIBRARY(cilregcuda SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_FGP_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_SB_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/LLT_ROF_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TGV_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/dTV_FGP_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/NonlDiff_GPU_core.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu
+      )
+      if (UNIX)
+        message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
+        install(TARGETS cilregcuda
+        LIBRARY DESTINATION lib
+        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+        )
+      elseif(WIN32)
+        message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
+        install(TARGETS cilregcuda
+        RUNTIME DESTINATION bin
+        ARCHIVE DESTINATION lib
+        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+        )
+      endif()
+    else()
+      message("CUDA NOT FOUND")
+    endif()
+endif()
+
+if (${BUILD_MATLAB_WRAPPER})
+  if (WIN32)
+        install(TARGETS cilreg DESTINATION ${MATLAB_DEST})
+        if (CUDA_FOUND)
+            install(TARGETS cilregcuda DESTINATION ${MATLAB_DEST})
+        endif()
   endif()
-else()
-  message("CUDA NOT FOUND")
 endif()

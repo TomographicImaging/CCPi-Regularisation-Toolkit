@@ -49,9 +49,10 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, iter, dimX, dimY, dimZ, methTV, printswitch, nonneg;
-    const int  *dim_array;
-    const int  *dim_array2;
+    int number_of_dims, iter, methTV, printswitch, nonneg;
+    mwSize dimX, dimY, dimZ;
+    const mwSize *dim_array;
+    const mwSize *dim_array2;    
     float *Input, *InputRef, *Output=NULL, lambda, epsil, eta;
     
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);

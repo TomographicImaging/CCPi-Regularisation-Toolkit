@@ -1,12 +1,10 @@
 package:
   name: ccpi-regulariser
-  version: {{ environ['CIL_VERSION'] }}
+  version: 0.10.1
 
 
 build:
   preserve_egg_dir: False
-  script_env:
-    - CIL_VERSION   
 #  number: 0
   
 test:
@@ -21,7 +19,6 @@ requirements:
     - numpy x.x
     - setuptools
     - cython
-    - cil_regulariser =={{ environ['CIL_VERSION'] }}
     - vc 14 # [win and py36] 
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
@@ -30,7 +27,6 @@ requirements:
   run:
     - python
     - numpy x.x
-    - cil_regulariser =={{ environ['CIL_VERSION'] }}
     - vc 14 # [win and py36] 
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]
