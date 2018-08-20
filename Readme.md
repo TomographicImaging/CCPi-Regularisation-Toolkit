@@ -35,7 +35,28 @@
 
 ## Installation:
 
-The package comes as a CMake project so you will need CMake to install it. After checking out the repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, create a build directory. Additional flags to CMake will allow you to create the Matlab wrapper and/or the Python wrapper and the CUDA regularisers. In the following example I will write a line to build both wrappers and CUDA.
+The package comes as a [CMake](https://cmake.org) project so you will need CMake to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this). We provide wrappers for Python and Matlab.
+
+1. Clone this repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, 
+2. create a build directory. 
+3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`). Use additional flags to fine tune the configuration. 
+
+### CMake flags
+Flags used during configuration
+
+| CMake flag | type | meaning |
+|:---|:----|:----|
+| `BUILD_PYTHON_WRAPPER` | bool | obvious |
+| `BUILD_MATLAB_WRAPPER` | bool | obvious |
+| `CMAKE_INSTALL_PREFIX` | path | your favourite install directory |
+| `PYTHON_DEST_DIR` | path | python modules install directory (default `${CMAKE_INSTALL_PREFIX}/python`) |
+| `MATLAB_DEST_DIR` | path | Matlab modules install directory (default `${CMAKE_INSTALL_PREFIX}/matlab`)|
+| `BUILD_CUDA` | bool | whether to build the CUDA regularisers |
+| `CONDA_BUILD`| bool | whether it is installed with `setup.py install`|
+| `Matlab_ROOT_DIR` | path | Matlab directory|
+|`PYTHON_EXECUTABLE` | path | /path/to/python/executable|
+
+Here an example of build on Linux:
 
 ```bash
 git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit.git
@@ -45,7 +66,7 @@ cmake ../CCPi-Regularisation-Toolkit -DCONDA_BUILD=OFF -DBUILD_MATLAB_WRAPPER=ON
 make install
 ```
 
-The library may be used directly from C/C++ as it is compiled as a shared library. Check-out the include files in `Core`. We provide wrappers in Python and Matlab.
+
 
 ### Python
 #### Python binaries
@@ -67,9 +88,14 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 #### Python build
 
+If passed `CONDA_BUILD=ON` the software will be installed by issuing `python setup.py install` which will install in the system python (or whichever other python it's been picked up by CMake at configuration time.) 
+If passed `CONDA_BUILD=OFF` the software will be installed in the directory pointed by `${PYTHON_DEST_DIR}` which defaults to `${CMAKE_INSTALL_PREFIX}/python`. Therefore this directory should be added to the `PYTHONPATH`.
+
 If Python is not picked by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/python/executable`.
 
 ### Matlab
+
+Matlab wrapper will install in the `${MATLAB_DEST_DIR}` directory, which defaults to `${CMAKE_INSTALL_PREFIX}/matlab`
 
 If Matlab is not picked by CMake, you could add `-DMatlab_ROOT_DIR=<Matlab directory>`. 
 
