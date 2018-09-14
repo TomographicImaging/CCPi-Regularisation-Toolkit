@@ -21,9 +21,9 @@ limitations under the License.
 #include <math.h>
 
 /* Copy Image (float) */
-float copyIm(float *A, float *U, int dimX, int dimY, int dimZ)
+float copyIm(float *A, float *U, long dimX, long dimY, long dimZ)
 {
-	int j;
+	long j;
 #pragma omp parallel for shared(A, U) private(j)
 	for (j = 0; j<dimX*dimY*dimZ; j++)  U[j] = A[j];
 	return *U;
@@ -88,18 +88,18 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int type, int
 
 float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ)
 {
-	int i, j, k, i1, j1, k1, index;
+	long i, j, k, i1, j1, k1, index;
 	float NOMx_2, NOMy_2, NOMz_2, E_Grad=0.0f, E_Data=0.0f;
 	
 	/* first calculate \grad U_xy*/	
-    for(j=0; j<dimY; j++) {
-        for(i=0; i<dimX; i++) {
-            for(k=0; k<dimZ; k++) {
+    for(j=0; j<(long)(dimY); j++) {
+        for(i=0; i<(long)(dimX); i++) {
+            for(k=0; k<(long)(dimZ); k++) {
 				index = (dimX*dimY)*k + j*dimX+i;
                 /* boundary conditions */
-                i1 = i + 1; if (i == dimX-1) i1 = i;
-                j1 = j + 1; if (j == dimY-1) j1 = j;
-                k1 = k + 1; if (k == dimZ-1) k1 = k;
+                i1 = i + 1; if (i == (long)(dimX-1)) i1 = i;
+                j1 = j + 1; if (j == (long)(dimY-1)) j1 = j;
+                k1 = k + 1; if (k == (long)(dimZ-1)) k1 = k;
                 
                 /* Forward differences */                
                 NOMx_2 = powf((float)(U[(dimX*dimY)*k + j1*dimX+i] - U[index]),2); /* x+ */

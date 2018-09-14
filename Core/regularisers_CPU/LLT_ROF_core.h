@@ -51,15 +51,15 @@ extern "C" {
 #endif
 CCPI_EXPORT float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 
-CCPI_EXPORT float der2D_LLT(float *U, float *D1, float *D2, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float der3D_LLT(float *U, float *D1, float *D2, float *D3, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float der2D_LLT(float *U, float *D1, float *D2, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float der3D_LLT(float *U, float *D1, float *D2, float *D3, long dimX, long dimY, long dimZ);
 
-CCPI_EXPORT float D1_func_ROF(float *A, float *D1, int dimY, int dimX, int dimZ);
-CCPI_EXPORT float D2_func_ROF(float *A, float *D2, int dimY, int dimX, int dimZ);
-CCPI_EXPORT float D3_func_ROF(float *A, float *D3, int dimY, int dimX, int dimZ);
+CCPI_EXPORT float D1_func_ROF(float *A, float *D1, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float D2_func_ROF(float *A, float *D2, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float D3_func_ROF(float *A, float *D3, long dimX, long dimY, long dimZ);
 
-CCPI_EXPORT float Update2D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D1_ROF, float *D2_ROF, float lambdaROF, float lambdaLLT, float tau, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float Update3D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D3_LLT, float *D1_ROF, float *D2_ROF, float *D3_ROF, float lambdaROF, float lambdaLLT, float tau, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float Update2D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D1_ROF, float *D2_ROF, float lambdaROF, float lambdaLLT, float tau, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float Update3D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D3_LLT, float *D1_ROF, float *D2_ROF, float *D3_ROF, float lambdaROF, float lambdaLLT, float tau, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

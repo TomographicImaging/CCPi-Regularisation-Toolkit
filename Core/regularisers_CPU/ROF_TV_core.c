@@ -49,34 +49,34 @@ int sign(float x) {
 float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
 {
     float *D1, *D2, *D3;
-    int i, DimTotal;
-    DimTotal = dimX*dimY*dimZ;    
+    int i; 
+    long DimTotal;
+    DimTotal = (long)(dimX*dimY*dimZ);    
     
     D1 = calloc(DimTotal, sizeof(float));
     D2 = calloc(DimTotal, sizeof(float));
     D3 = calloc(DimTotal, sizeof(float));
 	   
     /* copy into output */
-    copyIm(Input, Output, dimX, dimY, dimZ);
+    copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
         
     /* start TV iterations */
-    for(i=0; i < iterationsNumb; i++) {
-            
+    for(i=0; i < iterationsNumb; i++) {            
             /* calculate differences */
-            D1_func(Output, D1, dimX, dimY, dimZ);
-            D2_func(Output, D2, dimX, dimY, dimZ);
-            if (dimZ > 1) D3_func(Output, D3, dimX, dimY, dimZ); 
-            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, dimX, dimY, dimZ);
+            D1_func(Output, D1, (long)(dimX), (long)(dimY), (long)(dimZ));
+            D2_func(Output, D2, (long)(dimX), (long)(dimY), (long)(dimZ));
+            if (dimZ > 1) D3_func(Output, D3, (long)(dimX), (long)(dimY), (long)(dimZ)); 
+            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
 		}           
     free(D1);free(D2); free(D3);
     return *Output;
 }
 
 /* calculate differences 1 */
-float D1_func(float *A, float *D1, int dimX, int dimY, int dimZ)
+float D1_func(float *A, float *D1, long dimX, long dimY, long dimZ)
 {
     float NOMx_1, NOMy_1, NOMy_0, NOMz_1, NOMz_0, denom1, denom2,denom3, T1;
-    int i,j,k,i1,i2,k1,j1,j2,k2,index;
+    long i,j,k,i1,i2,k1,j1,j2,k2,index;
     
     if (dimZ > 1) {
 #pragma omp parallel for shared (A, D1, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2, NOMx_1,NOMy_1,NOMy_0,NOMz_1,NOMz_0,denom1,denom2,denom3,T1)
@@ -138,10 +138,10 @@ float D1_func(float *A, float *D1, int dimX, int dimY, int dimZ)
     return *D1;
 }
 /* calculate differences 2 */
-float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
+float D2_func(float *A, float *D2, long dimX, long dimY, long dimZ)
 {
     float NOMx_1, NOMy_1, NOMx_0, NOMz_1, NOMz_0, denom1, denom2, denom3, T2;
-    int i,j,k,i1,i2,k1,j1,j2,k2,index;
+    long i,j,k,i1,i2,k1,j1,j2,k2,index;
     
     if (dimZ > 1) {
 #pragma omp parallel for shared (A, D2, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2,  NOMx_1, NOMy_1, NOMx_0, NOMz_1, NOMz_0, denom1, denom2, denom3, T2)
@@ -155,8 +155,7 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
                     j1 = j + 1; if (j1 >= dimY) j1 = j-1;
                     j2 = j - 1; if (j2 < 0) j2 = j+1;
                     k1 = k + 1; if (k1 >= dimZ) k1 = k-1;
-                    k2 = k - 1; if (k2 < 0) k2 = k+1;
-                    
+                    k2 = k - 1; if (k2 < 0) k2 = k+1;                    
                     
                     /* Forward-backward differences */
                     NOMx_1 = A[(dimX*dimY)*k + (j1)*dimX + i] - A[index]; /* x+ */
@@ -203,10 +202,10 @@ float D2_func(float *A, float *D2, int dimX, int dimY, int dimZ)
 }
 
 /* calculate differences 3 */
-float D3_func(float *A, float *D3, int dimY, int dimX, int dimZ)
+float D3_func(float *A, float *D3, long dimX, long dimY, long dimZ)
 {
     float NOMx_1, NOMy_1, NOMx_0, NOMy_0, NOMz_1, denom1, denom2, denom3, T3;
-    int index,i,j,k,i1,i2,k1,j1,j2,k2;
+    long index,i,j,k,i1,i2,k1,j1,j2,k2;
     
 #pragma omp parallel for shared (A, D3, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2,  NOMx_1, NOMy_1, NOMy_0, NOMx_0, NOMz_1, denom1, denom2, denom3, T3)
     for(j=0; j<dimY; j++) {
@@ -241,10 +240,10 @@ float D3_func(float *A, float *D3, int dimY, int dimX, int dimZ)
 }
 
 /* calculate divergence */
-float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambda, float tau, int dimX, int dimY, int dimZ)
+float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambda, float tau, long dimX, long dimY, long dimZ)
 {
     float dv1, dv2, dv3;
-    int index,i,j,k,i1,i2,k1,j1,j2,k2;
+    long index,i,j,k,i1,i2,k1,j1,j2,k2;
     
     if (dimZ > 1) {
 #pragma omp parallel for shared (D1, D2, D3, B, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2, dv1,dv2,dv3)

@@ -39,7 +39,8 @@ limitations under the License.
  
 float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
-	int ll, j, DimTotal;
+	int ll;
+    long j, DimTotal;
 	float re, re1;
 	float tk = 1.0f;
     float tkp1=1.0f;
@@ -48,7 +49,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 	if (dimZ <= 1) {
 		/*2D case */
 		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
-		DimTotal = dimX*dimY;
+		DimTotal = (long)(dimX*dimY);
 		
         Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
@@ -62,13 +63,13 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
         for(ll=0; ll<iterationsNumb; ll++) {
             
             /* computing the gradient of the objective function */
-            Obj_func2D(Input, Output, R1, R2, lambdaPar, dimX, dimY);
+            Obj_func2D(Input, Output, R1, R2, lambdaPar, (long)(dimY), (long)(dimZ));
             
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}            
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, dimX, dimY);
+            Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, (long)(dimY), (long)(dimZ));
             
             /* projection step */
             Proj_func2D(P1, P2, methodTV, DimTotal);
@@ -89,9 +90,9 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 				if (count > 4) break;
             
             /*storing old values*/
-            copyIm(Output, Output_prev, dimX, dimY, 1);
-            copyIm(P1, P1_prev, dimX, dimY, 1);
-            copyIm(P2, P2_prev, dimX, dimY, 1);
+            copyIm(Output, Output_prev, (long)(dimY), (long)(dimZ), 1l);
+            copyIm(P1, P1_prev, (long)(dimY), (long)(dimZ), 1l);
+            copyIm(P2, P2_prev, (long)(dimY), (long)(dimZ), 1l);
             tk = tkp1;
         }
         if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
@@ -100,7 +101,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 	else {
 		/*3D case*/
 		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;		
-		DimTotal = dimX*dimY*dimZ;        
+		DimTotal = (long)(dimX*dimY*dimZ);        
         
         Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
@@ -117,13 +118,13 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
         for(ll=0; ll<iterationsNumb; ll++) {
             
             /* computing the gradient of the objective function */
-            Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
+            Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
             
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}  
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func3D(P1, P2, P3, Output, R1, R2, R3, lambdaPar, dimX, dimY, dimZ);
+            Grad_func3D(P1, P2, P3, Output, R1, R2, R3, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
             
             /* projection step */
             Proj_func3D(P1, P2, P3, methodTV, DimTotal);
@@ -145,10 +146,10 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
             if (count > 4) break;            
                         
             /*storing old values*/
-            copyIm(Output, Output_prev, dimX, dimY, dimZ);
-            copyIm(P1, P1_prev, dimX, dimY, dimZ);
-            copyIm(P2, P2_prev, dimX, dimY, dimZ);
-            copyIm(P3, P3_prev, dimX, dimY, dimZ);
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+            copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+            copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+            copyIm(P3, P3_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             tk = tkp1;            
         }	
 		if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
@@ -157,10 +158,10 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 	return *Output;
 }
 
-float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
+float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY)
 {
     float val1, val2;
-    int i,j,index;
+    long i,j,index;
 #pragma omp parallel for shared(A,D,R1,R2) private(index,i,j,val1,val2)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -172,10 +173,10 @@ float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dim
         }}
     return *D;
 }
-float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY)
+float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda,  long dimX, long dimY)
 {
     float val1, val2, multip;
-    int i,j,index;
+    long i,j,index;
     multip = (1.0f/(8.0f*lambda));
 #pragma omp parallel for shared(P1,P2,D,R1,R2,multip) private(index,i,j,val1,val2)
     for(i=0; i<dimX; i++) {
@@ -189,10 +190,10 @@ float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float la
         }}
     return 1;
 }
-float Proj_func2D(float *P1, float *P2, int methTV, int DimTotal)
+float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
 {
     float val1, val2, denom, sq_denom;
-    int i;
+    long i;
     if (methTV == 0) {
         /* isotropic TV*/
 #pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
@@ -219,9 +220,9 @@ float Proj_func2D(float *P1, float *P2, int methTV, int DimTotal)
     }
     return 1;
 }
-float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int DimTotal)
+float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal)
 {
-    int i;
+    long i;
     float multip;
     multip = ((tk-1.0f)/tkp1);
 #pragma omp parallel for shared(P1,P2,P1_old,P2_old,R1,R2,multip) private(i)
@@ -234,10 +235,10 @@ float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1,
 
 /* 3D-case related Functions */
 /*****************************************************************/
-float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
+float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
 {
     float val1, val2, val3;
-    int i,j,k,index;
+    long i,j,k,index;
 #pragma omp parallel for shared(A,D,R1,R2,R3) private(index,i,j,k,val1,val2,val3)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -251,10 +252,10 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
             }}}
     return *D;
 }
-float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ)
+float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
 {
     float val1, val2, val3, multip;
-    int i,j,k, index;
+    long i,j,k, index;
     multip = (1.0f/(26.0f*lambda));
 #pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
     for(i=0; i<dimX; i++) {
@@ -271,10 +272,10 @@ float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R
             }}}
     return 1;
 }
-float Proj_func3D(float *P1, float *P2, float *P3, int methTV, int DimTotal)
+float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal)
 {		
     float val1, val2, val3, denom, sq_denom;
-    int i;
+    long i;
     if (methTV == 0) {
 	/* isotropic TV*/
 	#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3,sq_denom)
@@ -305,9 +306,9 @@ float Proj_func3D(float *P1, float *P2, float *P3, int methTV, int DimTotal)
 		}
     return 1;
 }
-float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int DimTotal)
+float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
 {
-    int i;
+    long i;
     float multip;
     multip = ((tk-1.0f)/tkp1);
 #pragma omp parallel for shared(P1,P2,P3,P1_old,P2_old,P3_old,R1,R2,R3,multip) private(i)

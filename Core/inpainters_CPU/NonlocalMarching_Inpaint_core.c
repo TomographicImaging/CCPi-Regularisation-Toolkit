@@ -35,7 +35,7 @@
  * 1. Inpainted image or a sinogram
  * 2. updated mask
  *
- * Reference: TBA
+ * Reference: D. Kazantsev (paper in preparation)
  */
 
 float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ)

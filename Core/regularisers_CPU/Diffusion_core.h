@@ -50,10 +50,10 @@ limitations under the License.
 extern "C" {
 #endif
 CCPI_EXPORT float Diffusion_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb,  float tau, int penaltytype, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, int dimX, int dimY);
-CCPI_EXPORT float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, int dimX, int dimY);
-CCPI_EXPORT float LinearDiff3D(float *Input, float *Output, float lambdaPar, float tau, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, long dimX, long dimY);
+CCPI_EXPORT float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY);
+CCPI_EXPORT float LinearDiff3D(float *Input, float *Output, float lambdaPar, float tau, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

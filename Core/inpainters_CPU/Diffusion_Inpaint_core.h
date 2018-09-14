@@ -51,10 +51,11 @@ limitations under the License.
 extern "C" {
 #endif
 CCPI_EXPORT float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb,  float tau, int penaltytype, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float LinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, int dimX, int dimY);
-CCPI_EXPORT float NonLinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, int dimX, int dimY);
-CCPI_EXPORT float LinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float NonLinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, int dimX, int dimY, int dimZ);
+
+CCPI_EXPORT float LinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, long dimX, long dimY);
+CCPI_EXPORT float NonLinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY);
+CCPI_EXPORT float LinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float NonLinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

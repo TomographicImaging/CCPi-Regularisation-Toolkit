@@ -49,15 +49,15 @@ extern "C" {
 #endif
 CCPI_EXPORT float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 
-CCPI_EXPORT float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
-CCPI_EXPORT float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, int dimX, int dimY);
-CCPI_EXPORT float Proj_func2D(float *P1, float *P2, int methTV, int DimTotal);
-CCPI_EXPORT float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, int DimTotal);
+CCPI_EXPORT float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
+CCPI_EXPORT float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
+CCPI_EXPORT float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal);
+CCPI_EXPORT float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal);
 
-CCPI_EXPORT float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float Proj_func3D(float *P1, float *P2, float *P3, int methTV, int DimTotal);
-CCPI_EXPORT float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, int DimTotal);
+CCPI_EXPORT float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal);
+CCPI_EXPORT float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal);
 #ifdef __cplusplus
 }
 #endif

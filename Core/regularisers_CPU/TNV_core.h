@@ -38,10 +38,10 @@ extern "C" {
 CCPI_EXPORT float TNV_CPU_main(float *Input, float *u, float lambda, int maxIter, float tol, int dimX, int dimY, int dimZ);
 
 /*float PDHG(float *A, float *B, float tau, float sigma, float theta, float lambda, int p, int q, int r, float tol, int maxIter, int d_c, int d_w, int d_h);*/
-CCPI_EXPORT float proxG(float *u_upd, float *v, float *f, float taulambda, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float gradient(float *u_upd, float *gradx_upd, float *grady_upd, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int q, int r, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float divergence(float *qx_upd, float *qy_upd, float *div_upd, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float proxG(float *u_upd, float *v, float *f, float taulambda, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float gradient(float *u_upd, float *gradx_upd, float *grady_upd, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int q, int r, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float divergence(float *qx_upd, float *qy_upd, float *div_upd, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

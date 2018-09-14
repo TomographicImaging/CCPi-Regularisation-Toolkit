@@ -61,7 +61,7 @@ fprintf('%s \n', 'Compiling Nonlinear/Linear diffusion inpainting...');
 mex NonlDiff_Inp.c Diffusion_Inpaint_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('NonlDiff_Inp.mex*',Pathmove);
 
-fprintf('%s \n', 'Compiling Nonlocal marching method for inpaiting...');
+fprintf('%s \n', 'Compiling Nonlocal marching method for inpainting...');
 mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
