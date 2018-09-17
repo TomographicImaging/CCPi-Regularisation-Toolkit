@@ -47,12 +47,12 @@ int signNDF_inc(float x) {
 
 float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ)
 {
-    int i,pointsone;
+    long i, pointsone;
     float sigmaPar2;
     sigmaPar2 = sigmaPar/sqrt(2.0f);
     
     /* copy into output */
-    copyIm(Input, Output, dimX, dimY, dimZ);
+    copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
     
     pointsone = 0;
     for (i=0; i<dimY*dimX*dimZ; i++) if (Mask[i] == 1) pointsone++;
@@ -63,17 +63,17 @@ float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Outpu
     if (dimZ == 1) {
     /* running 2D diffusion iterations */
     for(i=0; i < iterationsNumb; i++) {
-            if (sigmaPar == 0.0f) LinearDiff_Inp_2D(Input, Mask, Output, lambdaPar, tau, dimX, dimY); /* linear diffusion (heat equation) */
-            else NonLinearDiff_Inp_2D(Input, Mask, Output, lambdaPar, sigmaPar2, tau, penaltytype, dimX, dimY); /* nonlinear diffusion */
+            if (sigmaPar == 0.0f) LinearDiff_Inp_2D(Input, Mask, Output, lambdaPar, tau, (long)(dimX), (long)(dimY)); /* linear diffusion (heat equation) */
+            else NonLinearDiff_Inp_2D(Input, Mask, Output, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY)); /* nonlinear diffusion */
 		}
 	}
 	else {
 	/* running 3D diffusion iterations */
     for(i=0; i < iterationsNumb; i++) {
-            if (sigmaPar == 0.0f) LinearDiff_Inp_3D(Input, Mask, Output, lambdaPar, tau, dimX, dimY, dimZ);
-            else NonLinearDiff_Inp_3D(Input, Mask, Output, lambdaPar, sigmaPar2, tau, penaltytype, dimX, dimY, dimZ);
-		}
-	}
+            if (sigmaPar == 0.0f) LinearDiff_Inp_3D(Input, Mask, Output, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
+            else NonLinearDiff_Inp_3D(Input, Mask, Output, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY), (long)(dimZ));
+            }
+         }
 	}
     return *Output;
 }
@@ -81,9 +81,9 @@ float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Outpu
 /***************************2D Functions*****************************/
 /********************************************************************/
 /* linear diffusion (heat equation) */
-float LinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, int dimX, int dimY)
+float LinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, long dimX, long dimY)
 {
-	int i,j,i1,i2,j1,j2,index;
+	long i,j,i1,i2,j1,j2,index;
 	float e,w,n,s,e1,w1,n1,s1;
 	
 #pragma omp parallel for shared(Input,Mask) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1)
@@ -116,9 +116,9 @@ float LinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float 
 }
 
 /* nonlinear diffusion */
-float NonLinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, int dimX, int dimY)
+float NonLinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY)
 {
-	int i,j,i1,i2,j1,j2,index;
+	long i,j,i1,i2,j1,j2,index;
 	float e,w,n,s,e1,w1,n1,s1;
 	
 #pragma omp parallel for shared(Input,Mask) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1)
@@ -189,9 +189,9 @@ float NonLinearDiff_Inp_2D(float *Input, unsigned char *Mask, float *Output, flo
 /***************************3D Functions*****************************/
 /********************************************************************/
 /* linear diffusion (heat equation) */
-float LinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, int dimX, int dimY, int dimZ)
+float LinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float tau, long dimX, long dimY, long dimZ)
 {
-	int i,j,k,i1,i2,j1,j2,k1,k2,index;
+	long i,j,k,i1,i2,j1,j2,k1,k2,index;
 	float e,w,n,s,u,d,e1,w1,n1,s1,u1,d1;
 	
 #pragma omp parallel for shared(Input,Mask) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1,k,k1,k2,u1,d1,u,d)
@@ -231,9 +231,9 @@ for(k=0; k<dimZ; k++) {
 	return *Output;
 }
 
-float NonLinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, int dimX, int dimY, int dimZ)
+float NonLinearDiff_Inp_3D(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY, long dimZ)
 {
-	int i,j,k,i1,i2,j1,j2,k1,k2,index;
+	long i,j,k,i1,i2,j1,j2,k1,k2,index;
 	float e,w,n,s,u,d,e1,w1,n1,s1,u1,d1;
 	
 #pragma omp parallel for shared(Input,Mask) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1,k,k1,k2,u1,d1,u,d)

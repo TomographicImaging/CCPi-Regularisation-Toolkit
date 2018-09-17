@@ -39,16 +39,16 @@
 
 float TNV_CPU_main(float *Input, float *u, float lambda, int maxIter, float tol, int dimX, int dimY, int dimZ)
 {
-    int k, p, q, r, DimTotal;
+    long k, p, q, r, DimTotal;
     float taulambda;
     float *u_upd, *gx, *gy, *gx_upd, *gy_upd, *qx, *qy, *qx_upd, *qy_upd, *v, *vx, *vy, *gradx, *grady, *gradx_upd, *grady_upd, *gradx_ubar, *grady_ubar, *div, *div_upd;
     
-    p = 1;
-    q = 1;
-    r = 0;
+    p = 1l;
+    q = 1l;
+    r = 0l;
     
     lambda = 1.0f/(2.0f*lambda);
-    DimTotal = dimX*dimY*dimZ;
+    DimTotal = (long)(dimX*dimY*dimZ);
     /* PDHG algorithm parameters*/
     float tau = 0.5f;
     float sigma = 0.5f;
@@ -106,10 +106,10 @@ float TNV_CPU_main(float *Input, float *u, float lambda, int maxIter, float tol,
         for(k=0; k<dimX*dimY*dimZ; k++)  {v[k] = u[k] + tau*div[k];}
 
 // Proximal solution of fidelity term
-proxG(u_upd, v, Input, taulambda, dimX, dimY, dimZ);
+proxG(u_upd, v, Input, taulambda, (long)(dimX), (long)(dimY), (long)(dimZ));
 
 // Gradient of updated primal variable
-gradient(u_upd, gradx_upd, grady_upd, dimX, dimY, dimZ);
+gradient(u_upd, gradx_upd, grady_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
 
 // Argument of proximal mapping of regularization term
 #pragma omp parallel for shared(gradx_upd, grady_upd, gradx, grady) private(k, ubarx, ubary)
@@ -122,7 +122,7 @@ for(k=0; k<dimX*dimY*dimZ; k++) {
     grady_ubar[k] = ubary;
 }
 
-proxF(gx_upd, gy_upd, vx, vy, sigma, p, q, r, dimX, dimY, dimZ);
+proxF(gx_upd, gy_upd, vx, vy, sigma, p, q, r, (long)(dimX), (long)(dimY), (long)(dimZ));
 
 // Update dual variable
 #pragma omp parallel for shared(qx_upd, qy_upd) private(k)
@@ -174,14 +174,14 @@ if(b > 1)
     sigma = (beta * sigma) / b;
     alpha = alpha0;
     
-    copyIm(u, u_upd, dimX, dimY, dimZ);
-    copyIm(gx, gx_upd, dimX, dimY, dimZ);
-    copyIm(gy, gy_upd, dimX, dimY, dimZ);
-    copyIm(qx, qx_upd, dimX, dimY, dimZ);
-    copyIm(qy, qy_upd, dimX, dimY, dimZ);
-    copyIm(gradx, gradx_upd, dimX, dimY, dimZ);
-    copyIm(grady, grady_upd, dimX, dimY, dimZ);
-    copyIm(div, div_upd, dimX, dimY, dimZ);
+    copyIm(u, u_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(gx, gx_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(gy, gy_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(qx, qx_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(qy, qy_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(gradx, gradx_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(grady, grady_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
+    copyIm(div, div_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
     
 } else if(resprimal > dual_dot_delta)
 {
@@ -205,14 +205,14 @@ taulambda = tau * lambda;
 divsigma = 1.0f / sigma;
 divtau = 1.0f / tau;
 
-copyIm(u_upd, u, dimX, dimY, dimZ);
-copyIm(gx_upd, gx, dimX, dimY, dimZ);
-copyIm(gy_upd, gy, dimX, dimY, dimZ);
-copyIm(qx_upd, qx, dimX, dimY, dimZ);
-copyIm(qy_upd, qy, dimX, dimY, dimZ);
-copyIm(gradx_upd, gradx, dimX, dimY, dimZ);
-copyIm(grady_upd, grady, dimX, dimY, dimZ);
-copyIm(div_upd, div, dimX, dimY, dimZ);
+copyIm(u_upd, u, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(gx_upd, gx, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(gy_upd, gy, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(qx_upd, qx, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(qy_upd, qy, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(gradx_upd, gradx, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(grady_upd, grady, (long)(dimX), (long)(dimY), (long)(dimZ));
+copyIm(div_upd, div, (long)(dimX), (long)(dimY), (long)(dimZ));
 
 // Compute residual at current iteration
 residual = (resprimal + resdual) / ((float) (dimX*dimY*dimZ));
@@ -227,15 +227,14 @@ if (residual < tol) {
     free (u_upd); free(gx); free(gy); free(gx_upd); free(gy_upd);
     free(qx); free(qy); free(qx_upd); free(qy_upd); free(v); free(vx); free(vy);
     free(gradx); free(grady); free(gradx_upd); free(grady_upd); free(gradx_ubar);
-    free(grady_ubar); free(div); free(div_upd);
-    
+    free(grady_ubar); free(div); free(div_upd);    
     return *u;
 }
 
-float proxG(float *u_upd, float *v, float *f, float taulambda, int dimX, int dimY, int dimZ)
+float proxG(float *u_upd, float *v, float *f, float taulambda, long dimX, long dimY, long dimZ)
 {
     float constant;
-    int k;
+    long k;
     constant = 1.0f + taulambda;
 #pragma omp parallel for shared(v, f, u_upd) private(k)
     for(k=0; k<dimZ*dimX*dimY; k++) {
@@ -245,9 +244,9 @@ float proxG(float *u_upd, float *v, float *f, float taulambda, int dimX, int dim
     return *u_upd;
 }
 
-float gradient(float *u_upd, float *gradx_upd, float *grady_upd, int dimX, int dimY, int dimZ)
+float gradient(float *u_upd, float *gradx_upd, float *grady_upd, long dimX, long dimY, long dimZ)
 {
-    int i, j, k, l;
+    long i, j, k, l;
     // Compute discrete gradient using forward differences
 #pragma omp parallel for shared(gradx_upd,grady_upd,u_upd) private(i, j, k, l)
     for(k = 0; k < dimZ; k++)   {
@@ -270,7 +269,7 @@ float gradient(float *u_upd, float *gradx_upd, float *grady_upd, int dimX, int d
     return 1;
 }
 
-float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int q, int r, int dimX, int dimY, int dimZ)
+float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int q, int r, long dimX, long dimY, long dimZ)
 {
     // (S^p, \ell^1) norm decouples at each pixel
 //   Spl1(gx, gy, vx, vy, sigma, p, num_channels, dim);
@@ -289,7 +288,7 @@ float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int 
     // Auxiliar vector
     float *proj, sum, shrinkfactor ;
     float M1,M2,M3,valuex,valuey,T,D,det,eig1,eig2,sig1,sig2,V1, V2, V3, V4, v0,v1,v2, mu1,mu2,sig1_upd,sig2_upd,t1,t2,t3;
-    int i,j,k, ii, num;
+    long i,j,k, ii, num;
 #pragma omp parallel for shared (gx,gy,vx,vy,p) private(i,ii,j,k,proj,num, sum, shrinkfactor, M1,M2,M3,valuex,valuey,T,D,det,eig1,eig2,sig1,sig2,V1, V2, V3, V4,v0,v1,v2,mu1,mu2,sig1_upd,sig2_upd,t1,t2,t3)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -372,7 +371,7 @@ float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int 
                 
                 /*l1 projection part */
                 sum = fLarge;
-                num = 0;
+                num = 0l;
                 shrinkfactor = 0.0f;
                 while(sum > 1.0f)
                 {
@@ -424,9 +423,9 @@ float proxF(float *gx, float *gy, float *vx, float *vy, float sigma, int p, int 
     return 1;
 }
 
-float divergence(float *qx_upd, float *qy_upd, float *div_upd, int dimX, int dimY, int dimZ)
+float divergence(float *qx_upd, float *qy_upd, float *div_upd, long dimX, long dimY, long dimZ)
 {
-    int i, j, k, l;
+    long i, j, k, l;
 #pragma omp parallel for shared(qx_upd,qy_upd,div_upd) private(i, j, k, l)
     for(k = 0; k < dimZ; k++)   {
         for(j = 0; j < dimY; j++)   {

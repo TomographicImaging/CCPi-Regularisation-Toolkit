@@ -39,10 +39,11 @@ limitations under the License.
  
 float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iter, float L2, int dimX, int dimY)
 {
-	int DimTotal, ll;
+	long DimTotal;
+    int ll;
 	float *U_old, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, tau, sigma;
 		
-		DimTotal = dimX*dimY;
+		DimTotal = (long)(dimX*dimY);
         
         /* dual variables */
         P1 = calloc(DimTotal, sizeof(float));
@@ -59,7 +60,7 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
         V2 = calloc(DimTotal, sizeof(float));
         V2_old = calloc(DimTotal, sizeof(float));
         
-        copyIm(U0, U, dimX, dimY, 1); /* initialize  */
+        copyIm(U0, U, (long)(dimX), (long)(dimY), 1l); /* initialize  */
        
         tau = pow(L2,-0.5);
         sigma = pow(L2,-0.5);
@@ -68,36 +69,36 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
         for(ll = 0; ll < iter; ll++) {
             
             /* Calculate Dual Variable P */
-            DualP_2D(U, V1, V2, P1, P2, dimX, dimY, sigma);
+            DualP_2D(U, V1, V2, P1, P2, (long)(dimX), (long)(dimY), sigma);
             
             /*Projection onto convex set for P*/
-            ProjP_2D(P1, P2, dimX, dimY, alpha1);
+            ProjP_2D(P1, P2, (long)(dimX), (long)(dimY), alpha1);
             
             /* Calculate Dual Variable Q */
-            DualQ_2D(V1, V2, Q1, Q2, Q3, dimX, dimY, sigma);
+            DualQ_2D(V1, V2, Q1, Q2, Q3, (long)(dimX), (long)(dimY), sigma);
             
             /*Projection onto convex set for Q*/
-            ProjQ_2D(Q1, Q2, Q3, dimX, dimY, alpha0);
+            ProjQ_2D(Q1, Q2, Q3, (long)(dimX), (long)(dimY), alpha0);
             
             /*saving U into U_old*/
-            copyIm(U, U_old, dimX, dimY, 1);
+            copyIm(U, U_old, (long)(dimX), (long)(dimY), 1l);
             
             /*adjoint operation  -> divergence and projection of P*/
-            DivProjP_2D(U, U0, P1, P2, dimX, dimY, lambda, tau);
+            DivProjP_2D(U, U0, P1, P2, (long)(dimX), (long)(dimY), lambda, tau);
             
             /*get updated solution U*/
-            newU(U, U_old, dimX, dimY);
+            newU(U, U_old, (long)(dimX), (long)(dimY));
             
             /*saving V into V_old*/
-            copyIm(V1, V1_old, dimX, dimY, 1);
-            copyIm(V2, V2_old, dimX, dimY, 1);
+            copyIm(V1, V1_old, (long)(dimX), (long)(dimY), 1l);
+            copyIm(V2, V2_old, (long)(dimX), (long)(dimY), 1l);
             
             /* upd V*/
-            UpdV_2D(V1, V2, P1, P2, Q1, Q2, Q3, dimX, dimY, tau);
+            UpdV_2D(V1, V2, P1, P2, Q1, Q2, Q3, (long)(dimX), (long)(dimY), tau);
             
             /*get new V*/
-            newU(V1, V1_old, dimX, dimY);
-            newU(V2, V2_old, dimX, dimY);
+            newU(V1, V1_old, (long)(dimX), (long)(dimY));
+            newU(V2, V2_old, (long)(dimX), (long)(dimY));
         } /*end of iterations*/
 	return *U;
 }
@@ -107,9 +108,9 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
 /********************************************************************/
 
 /*Calculating dual variable P (using forward differences)*/
-float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, float sigma)
+float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, long dimY, float sigma)
 {
-    int i,j, index;
+    long i,j, index;
 #pragma omp parallel for shared(U,V1,V2,P1,P2) private(i,j,index)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -123,10 +124,10 @@ float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, i
     return 1;
 }
 /*Projection onto convex set for P*/
-float ProjP_2D(float *P1, float *P2, int dimX, int dimY, float alpha1)
+float ProjP_2D(float *P1, float *P2, long dimX, long dimY, float alpha1)
 {
     float grad_magn;
-    int i,j,index;
+    long i,j,index;
 #pragma omp parallel for shared(P1,P2) private(i,j,index,grad_magn)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -141,9 +142,9 @@ float ProjP_2D(float *P1, float *P2, int dimX, int dimY, float alpha1)
     return 1;
 }
 /*Calculating dual variable Q (using forward differences)*/
-float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float sigma)
+float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, float sigma)
 {
-    int i,j,index;
+    long i,j,index;
     float q1, q2, q11, q22;
 #pragma omp parallel for shared(Q1,Q2,Q3,V1,V2) private(i,j,index,q1,q2,q11,q22)
     for(i=0; i<dimX; i++) {
@@ -172,10 +173,10 @@ float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, 
         }}
     return 1;
 }
-float ProjQ_2D(float *Q1, float *Q2, float *Q3, int dimX, int dimY, float alpha0)
+float ProjQ_2D(float *Q1, float *Q2, float *Q3, long dimX, long dimY, float alpha0)
 {
     float grad_magn;
-    int i,j,index;
+    long i,j,index;
 #pragma omp parallel for shared(Q1,Q2,Q3) private(i,j,index,grad_magn)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -191,9 +192,9 @@ float ProjQ_2D(float *Q1, float *Q2, float *Q3, int dimX, int dimY, float alpha0
     return 1;
 }
 /* Divergence and projection for P*/
-float DivProjP_2D(float *U, float *U0, float *P1, float *P2, int dimX, int dimY, float lambda, float tau)
+float DivProjP_2D(float *U, float *U0, float *P1, float *P2, long dimX, long dimY, float lambda, float tau)
 {
-    int i,j,index;
+    long i,j,index;
     float P_v1, P_v2, div;
 #pragma omp parallel for shared(U,U0,P1,P2) private(i,j,index,P_v1,P_v2,div)
     for(i=0; i<dimX; i++) {
@@ -209,17 +210,17 @@ float DivProjP_2D(float *U, float *U0, float *P1, float *P2, int dimX, int dimY,
     return *U;
 }
 /*get updated solution U*/
-float newU(float *U, float *U_old, int dimX, int dimY)
+float newU(float *U, float *U_old, long dimX, long dimY)
 {
-    int i;
+    long i;
 #pragma omp parallel for shared(U,U_old) private(i)
     for(i=0; i<dimX*dimY; i++) U[i] = 2*U[i] - U_old[i];
     return *U;
 }
 /*get update for V*/
-float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float tau)
+float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, float tau)
 {
-    int i, j, index;
+    long i, j, index;
     float q1, q11, q2, q22, div1, div2;
 #pragma omp parallel for shared(V1,V2,P1,P2,Q1,Q2,Q3) private(i, j, index, q1, q11, q2, q22, div1, div2)
     for(i=0; i<dimX; i++) {

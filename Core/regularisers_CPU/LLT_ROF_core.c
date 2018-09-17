@@ -51,10 +51,11 @@ int signLLT(float x) {
 
 float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
 {
-		int DimTotal, ll;
+		long DimTotal;
+        int ll;
 		float *D1_LLT=NULL, *D2_LLT=NULL, *D3_LLT=NULL, *D1_ROF=NULL, *D2_ROF=NULL, *D3_ROF=NULL;
 		
-		DimTotal = dimX*dimY*dimZ;
+		DimTotal = (long)(dimX*dimY*dimZ);
         
         D1_ROF = calloc(DimTotal, sizeof(float));
         D2_ROF = calloc(DimTotal, sizeof(float));
@@ -64,32 +65,32 @@ float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambd
         D2_LLT = calloc(DimTotal, sizeof(float));
         D3_LLT = calloc(DimTotal, sizeof(float));
         
-        copyIm(Input, Output, dimX, dimY, dimZ); /* initialize  */
+        copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ)); /* initialize  */
        
 		for(ll = 0; ll < iterationsNumb; ll++) {            
             if (dimZ == 1) {
 			/* 2D case */
 			/****************ROF******************/
 			 /* calculate first-order differences */
-            D1_func_ROF(Output, D1_ROF, dimX, dimY, dimZ);
-            D2_func_ROF(Output, D2_ROF, dimX, dimY, dimZ);
+            D1_func_ROF(Output, D1_ROF, (long)(dimX), (long)(dimY), 1l);
+            D2_func_ROF(Output, D2_ROF, (long)(dimX), (long)(dimY), 1l);
             /****************LLT******************/
             /* estimate second-order derrivatives */
-            der2D_LLT(Output, D1_LLT, D2_LLT, dimX, dimY, dimZ);
+            der2D_LLT(Output, D1_LLT, D2_LLT, (long)(dimX), (long)(dimY), 1l);
             /* Joint update for ROF and LLT models */
-            Update2D_LLT_ROF(Input, Output, D1_LLT, D2_LLT, D1_ROF, D2_ROF, lambdaROF, lambdaLLT, tau, dimX, dimY, dimZ);
+            Update2D_LLT_ROF(Input, Output, D1_LLT, D2_LLT, D1_ROF, D2_ROF, lambdaROF, lambdaLLT, tau, (long)(dimX), (long)(dimY), 1l);
             }
             else {
 			/* 3D case */
 			/* calculate first-order differences */
-            D1_func_ROF(Output, D1_ROF, dimX, dimY, dimZ);
-            D2_func_ROF(Output, D2_ROF, dimX, dimY, dimZ);
-            D3_func_ROF(Output, D3_ROF, dimX, dimY, dimZ); 
+            D1_func_ROF(Output, D1_ROF, (long)(dimX), (long)(dimY), (long)(dimZ));
+            D2_func_ROF(Output, D2_ROF, (long)(dimX), (long)(dimY), (long)(dimZ));
+            D3_func_ROF(Output, D3_ROF, (long)(dimX), (long)(dimY), (long)(dimZ)); 
             /****************LLT******************/
             /* estimate second-order derrivatives */
-            der3D_LLT(Output, D1_LLT, D2_LLT, D3_LLT, dimX, dimY, dimZ);
+            der3D_LLT(Output, D1_LLT, D2_LLT, D3_LLT,(long)(dimX), (long)(dimY), (long)(dimZ));
             /* Joint update for ROF and LLT models */
-            Update3D_LLT_ROF(Input, Output, D1_LLT, D2_LLT, D3_LLT, D1_ROF, D2_ROF, D3_ROF, lambdaROF, lambdaLLT, tau, dimX, dimY, dimZ);
+            Update3D_LLT_ROF(Input, Output, D1_LLT, D2_LLT, D3_LLT, D1_ROF, D2_ROF, D3_ROF, lambdaROF, lambdaLLT, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
 			}
         } /*end of iterations*/
     free(D1_LLT);free(D2_LLT);free(D3_LLT);
@@ -100,9 +101,9 @@ float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambd
 /*************************************************************************/
 /**********************LLT-related functions *****************************/
 /*************************************************************************/
-float der2D_LLT(float *U, float *D1, float *D2, int dimX, int dimY, int dimZ)
+float der2D_LLT(float *U, float *D1, float *D2, long dimX, long dimY, long dimZ)
 {
-	int i, j, index, i_p, i_m, j_m, j_p;
+	long i, j, index, i_p, i_m, j_m, j_p;
 	float dxx, dyy, denom_xx, denom_yy;
 #pragma omp parallel for shared(U,D1,D2) private(i, j, index, i_p, i_m, j_m, j_p, denom_xx, denom_yy, dxx, dyy)
 	for (i = 0; i<dimX; i++) {
@@ -127,9 +128,9 @@ float der2D_LLT(float *U, float *D1, float *D2, int dimX, int dimY, int dimZ)
 	return 1;
 }
 
-float der3D_LLT(float *U, float *D1, float *D2, float *D3, int dimX, int dimY, int dimZ)
+float der3D_LLT(float *U, float *D1, float *D2, float *D3, long dimX, long dimY, long dimZ)
  {
- 	int i, j, k, i_p, i_m, j_m, j_p, k_p, k_m, index;
+ 	long i, j, k, i_p, i_m, j_m, j_p, k_p, k_m, index;
  	float dxx, dyy, dzz, denom_xx, denom_yy, denom_zz;
  #pragma omp parallel for shared(U,D1,D2,D3) private(i, j, index, k, i_p, i_m, j_m, j_p, k_p, k_m, denom_xx, denom_yy, denom_zz, dxx, dyy, dzz)
  	for (i = 0; i<dimX; i++) {
@@ -167,10 +168,10 @@ float der3D_LLT(float *U, float *D1, float *D2, float *D3, int dimX, int dimY, i
 /*************************************************************************/
 
 /* calculate differences 1 */
-float D1_func_ROF(float *A, float *D1, int dimX, int dimY, int dimZ)
+float D1_func_ROF(float *A, float *D1, long dimX, long dimY, long dimZ)
 {
     float NOMx_1, NOMy_1, NOMy_0, NOMz_1, NOMz_0, denom1, denom2,denom3, T1;
-    int i,j,k,i1,i2,k1,j1,j2,k2,index;
+    long i,j,k,i1,i2,k1,j1,j2,k2,index;
     
     if (dimZ > 1) {
 #pragma omp parallel for shared (A, D1, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2, NOMx_1,NOMy_1,NOMy_0,NOMz_1,NOMz_0,denom1,denom2,denom3,T1)
@@ -232,10 +233,10 @@ float D1_func_ROF(float *A, float *D1, int dimX, int dimY, int dimZ)
     return *D1;
 }
 /* calculate differences 2 */
-float D2_func_ROF(float *A, float *D2, int dimX, int dimY, int dimZ)
+float D2_func_ROF(float *A, float *D2, long dimX, long dimY, long dimZ)
 {
     float NOMx_1, NOMy_1, NOMx_0, NOMz_1, NOMz_0, denom1, denom2, denom3, T2;
-    int i,j,k,i1,i2,k1,j1,j2,k2,index;
+    long i,j,k,i1,i2,k1,j1,j2,k2,index;
     
     if (dimZ > 1) {
 #pragma omp parallel for shared (A, D2, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2,  NOMx_1, NOMy_1, NOMx_0, NOMz_1, NOMz_0, denom1, denom2, denom3, T2)
@@ -297,10 +298,10 @@ float D2_func_ROF(float *A, float *D2, int dimX, int dimY, int dimZ)
 }
 
 /* calculate differences 3 */
-float D3_func_ROF(float *A, float *D3, int dimY, int dimX, int dimZ)
+float D3_func_ROF(float *A, float *D3, long dimX, long dimY, long dimZ)
 {
     float NOMx_1, NOMy_1, NOMx_0, NOMy_0, NOMz_1, denom1, denom2, denom3, T3;
-    int index,i,j,k,i1,i2,k1,j1,j2,k2;
+    long index,i,j,k,i1,i2,k1,j1,j2,k2;
     
 #pragma omp parallel for shared (A, D3, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2,  NOMx_1, NOMy_1, NOMy_0, NOMx_0, NOMz_1, denom1, denom2, denom3, T3)
     for(j=0; j<dimY; j++) {
@@ -338,9 +339,9 @@ float D3_func_ROF(float *A, float *D3, int dimY, int dimX, int dimZ)
 /**********************ROF-LLT-related functions *************************/
 /*************************************************************************/
 
-float Update2D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D1_ROF, float *D2_ROF, float lambdaROF, float lambdaLLT, float tau, int dimX, int dimY, int dimZ)
+float Update2D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D1_ROF, float *D2_ROF, float lambdaROF, float lambdaLLT, float tau, long dimX, long dimY, long dimZ)
 {
-	int i, j, index, i_p, i_m, j_m, j_p;
+	long i, j, index, i_p, i_m, j_m, j_p;
 	float div, laplc, dxx, dyy, dv1, dv2;
 #pragma omp parallel for shared(U,U0) private(i, j, index, i_p, i_m, j_m, j_p, laplc, div, dxx, dyy, dv1, dv2)
 	for (i = 0; i<dimX; i++) {
@@ -369,9 +370,9 @@ float Update2D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float 
 	return *U;
 }
 
-float Update3D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D3_LLT, float *D1_ROF, float *D2_ROF, float *D3_ROF, float lambdaROF, float lambdaLLT, float tau, int dimX, int dimY, int dimZ)
+float Update3D_LLT_ROF(float *U0, float *U, float *D1_LLT, float *D2_LLT, float *D3_LLT, float *D1_ROF, float *D2_ROF, float *D3_ROF, float lambdaROF, float lambdaLLT, float tau, long dimX, long dimY, long dimZ)
 {
-	int i, j, k, i_p, i_m, j_m, j_p, k_p, k_m, index;
+	long i, j, k, i_p, i_m, j_m, j_p, k_p, k_m, index;
 	float div, laplc, dxx, dyy, dzz, dv1, dv2, dv3;
 #pragma omp parallel for shared(U,U0) private(i, j, k, index, i_p, i_m, j_m, j_p, k_p, k_m, laplc, div, dxx, dyy, dzz, dv1, dv2, dv3)
  	for (i = 0; i<dimX; i++) {

@@ -50,7 +50,7 @@ float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sig
     W_Lapl = calloc(DimTotal, sizeof(float));
     
     /* copy into output */
-    copyIm(Input, Output, dimX, dimY, dimZ);
+    copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
     
     if (dimZ == 1) {
     /* running 2D diffusion iterations */
@@ -58,7 +58,7 @@ float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sig
             /* Calculating weighted Laplacian */
             Weighted_Laplc2D(W_Lapl, Output, sigmaPar2, dimX, dimY);
             /* Perform iteration step */
-            Diffusion_update_step2D(Output, Input, W_Lapl, lambdaPar, sigmaPar2, tau, dimX, dimY);
+            Diffusion_update_step2D(Output, Input, W_Lapl, lambdaPar, sigmaPar2, tau, (long)(dimX), (long)(dimY));
 		}
 	}
 	else {
@@ -67,7 +67,7 @@ float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sig
 		    /* Calculating weighted Laplacian */
             Weighted_Laplc3D(W_Lapl, Output, sigmaPar2, dimX, dimY, dimZ);
             /* Perform iteration step */
-            Diffusion_update_step3D(Output, Input, W_Lapl, lambdaPar, sigmaPar2, tau, dimX, dimY, dimZ);
+            Diffusion_update_step3D(Output, Input, W_Lapl, lambdaPar, sigmaPar2, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
 		}
 	}
 	free(W_Lapl);
@@ -76,9 +76,9 @@ float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sig
 /********************************************************************/
 /***************************2D Functions*****************************/
 /********************************************************************/
-float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, int dimX, int dimY)
+float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, long dimX, long dimY)
 {   
-    int i,j,i1,i2,j1,j2,index;
+    long i,j,i1,i2,j1,j2,index;
     float gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq;
 
         #pragma omp parallel for shared(W_Lapl) private(i,j,i1,i2,j1,j2,index,gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq)
@@ -125,9 +125,9 @@ float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, int dimX, int dimY
         return *W_Lapl;
 }
 
-float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, int dimX, int dimY)
+float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY)
 {
-	int i,j,i1,i2,j1,j2,index;
+	long i,j,i1,i2,j1,j2,index;
     float gradXXc, gradYYc;
 
             #pragma omp parallel for shared(Output, Input, W_Lapl) private(i,j,i1,i2,j1,j2,index,gradXXc,gradYYc)
@@ -152,9 +152,9 @@ float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float 
 /********************************************************************/
 /***************************3D Functions*****************************/
 /********************************************************************/
-float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, int dimX, int dimY, int dimZ)
+float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, long dimX, long dimY, long dimZ)
 {   
-    int i,j,k,i1,i2,j1,j2,k1,k2,index;
+    long i,j,k,i1,i2,j1,j2,k1,k2,index;
     float gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq, gradZ, gradZ_sq, gradZZ, gradXZ, gradYZ, xyz_1, xyz_2;
         
         #pragma omp parallel for shared(W_Lapl) private(i,j,k,i1,i2,j1,j2,k1,k2,index,gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq, gradZ, gradZ_sq, gradZZ, gradXZ, gradYZ, xyz_1, xyz_2)
@@ -216,9 +216,9 @@ float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, int dimX, int dimY
         return *W_Lapl;
 }
 
-float Diffusion_update_step3D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, int dimX, int dimY, int dimZ)
+float Diffusion_update_step3D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY, long dimZ)
 {
-	int i,j,i1,i2,j1,j2,index, k,k1,k2;
+	long i,j,i1,i2,j1,j2,index,k,k1,k2;
     float gradXXc, gradYYc, gradZZc;
 
         #pragma omp parallel for shared(Output, Input, W_Lapl) private(i,j,i1,i2,j1,j2,k,k1,k2,index,gradXXc,gradYYc,gradZZc)

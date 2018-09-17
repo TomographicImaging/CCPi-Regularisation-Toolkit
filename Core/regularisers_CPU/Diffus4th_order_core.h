@@ -46,10 +46,10 @@ limitations under the License.
 extern "C" {
 #endif
 CCPI_EXPORT float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, int dimX, int dimY);
-CCPI_EXPORT float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, int dimX, int dimY);
-CCPI_EXPORT float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, int dimX, int dimY, int dimZ);
-CCPI_EXPORT float Diffusion_update_step3D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, long dimX, long dimY);
+CCPI_EXPORT float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY);
+CCPI_EXPORT float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float Diffusion_update_step3D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

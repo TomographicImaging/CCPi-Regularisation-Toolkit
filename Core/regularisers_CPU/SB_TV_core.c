@@ -37,16 +37,17 @@ limitations under the License.
  
 float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ)
 {
-	int ll, j, DimTotal;
+	int ll;
+    long j, DimTotal;    
 	float re, re1, lambda;
     int count = 0;
     mu = 1.0f/mu;
-	lambda = 2.0f*mu;
+    lambda = 2.0f*mu;
 
 	if (dimZ <= 1) {
 		/* 2D case */
 		float *Output_prev=NULL, *Dx=NULL, *Dy=NULL, *Bx=NULL, *By=NULL;
-		DimTotal = dimX*dimY;
+		DimTotal = (long)(dimX*dimY);
 		
 		Output_prev = calloc(DimTotal, sizeof(float));
 		Dx = calloc(DimTotal, sizeof(float));
@@ -54,26 +55,26 @@ float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsi
 		Bx = calloc(DimTotal, sizeof(float));
 		By = calloc(DimTotal, sizeof(float));
         
-        copyIm(Input, Output, dimX, dimY, 1); /*initialize */
+        copyIm(Input, Output, (long)(dimX), (long)(dimY), 1l); /*initialize */
         
         /* begin outer SB iterations */
         for(ll=0; ll<iter; ll++) {
             
             /* storing old estimate */
-            copyIm(Output, Output_prev, dimX, dimY, 1);
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             
             /* perform two GS iterations (normally 2 is enough for the convergence) */
-            gauss_seidel2D(Output, Input, Output_prev, Dx, Dy, Bx, By, dimX, dimY, lambda, mu);
-            copyIm(Output, Output_prev, dimX, dimY, 1);
+            gauss_seidel2D(Output, Input, Output_prev, Dx, Dy, Bx, By, (long)(dimX), (long)(dimY), lambda, mu);
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             /*GS iteration */
-            gauss_seidel2D(Output, Input, Output_prev, Dx, Dy, Bx, By, dimX, dimY, lambda, mu);
+            gauss_seidel2D(Output, Input, Output_prev, Dx, Dy, Bx, By, (long)(dimX), (long)(dimY), lambda, mu);
             
             /* TV-related step */
-            if (methodTV == 1)  updDxDy_shrinkAniso2D(Output, Dx, Dy, Bx, By, dimX, dimY, lambda);
-            else updDxDy_shrinkIso2D(Output, Dx, Dy, Bx, By, dimX, dimY, lambda);
+            if (methodTV == 1)  updDxDy_shrinkAniso2D(Output, Dx, Dy, Bx, By, (long)(dimX), (long)(dimY), lambda);
+            else updDxDy_shrinkIso2D(Output, Dx, Dy, Bx, By, (long)(dimX), (long)(dimY), lambda);
             
             /* update for Bregman variables */
-            updBxBy2D(Output, Dx, Dy, Bx, By, dimX, dimY);
+            updBxBy2D(Output, Dx, Dy, Bx, By, (long)(dimX), (long)(dimY));
             
             /* check early stopping criteria if epsilon not equal zero */
             if (epsil != 0) {
@@ -94,7 +95,7 @@ float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsi
 	else {
 		/* 3D case */
 		float *Output_prev=NULL, *Dx=NULL, *Dy=NULL, *Dz=NULL, *Bx=NULL, *By=NULL, *Bz=NULL;
-		DimTotal = dimX*dimY*dimZ;
+		DimTotal = (long)(dimX*dimY*dimZ);
 		
 		Output_prev = calloc(DimTotal, sizeof(float));
 		Dx = calloc(DimTotal, sizeof(float));
@@ -104,26 +105,26 @@ float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsi
 		By = calloc(DimTotal, sizeof(float));
 		Bz = calloc(DimTotal, sizeof(float));
         
-        copyIm(Input, Output, dimX, dimY, dimZ); /*initialize */
+        copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ)); /*initialize */
         
         /* begin outer SB iterations */
         for(ll=0; ll<iter; ll++) {
             
             /* storing old estimate */
-            copyIm(Output, Output_prev, dimX, dimY, dimZ);
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             
              /* perform two GS iterations (normally 2 is enough for the convergence) */
-            gauss_seidel3D(Output, Input, Output_prev, Dx, Dy, Dz, Bx, By, Bz, dimX, dimY, dimZ, lambda, mu);
-            copyIm(Output, Output_prev, dimX, dimY, dimZ);
+            gauss_seidel3D(Output, Input, Output_prev, Dx, Dy, Dz, Bx, By, Bz, (long)(dimX), (long)(dimY), (long)(dimZ), lambda, mu);
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             /*GS iteration */
-            gauss_seidel3D(Output, Input, Output_prev, Dx, Dy, Dz, Bx, By, Bz, dimX, dimY, dimZ, lambda, mu);
+            gauss_seidel3D(Output, Input, Output_prev, Dx, Dy, Dz, Bx, By, Bz, (long)(dimX), (long)(dimY), (long)(dimZ), lambda, mu);
             
             /* TV-related step */
-            if (methodTV == 1)  updDxDyDz_shrinkAniso3D(Output, Dx, Dy, Dz, Bx, By, Bz, dimX, dimY, dimZ, lambda);
-            else updDxDyDz_shrinkIso3D(Output, Dx, Dy, Dz, Bx, By, Bz, dimX, dimY, dimZ, lambda);
+            if (methodTV == 1)  updDxDyDz_shrinkAniso3D(Output, Dx, Dy, Dz, Bx, By, Bz, (long)(dimX), (long)(dimY), (long)(dimZ), lambda);
+            else updDxDyDz_shrinkIso3D(Output, Dx, Dy, Dz, Bx, By, Bz, (long)(dimX), (long)(dimY), (long)(dimZ), lambda);
             
             /* update for Bregman variables */
-            updBxByBz3D(Output, Dx, Dy, Dz, Bx, By, Bz, dimX, dimY, dimZ);
+            updBxByBz3D(Output, Dx, Dy, Dz, Bx, By, Bz, (long)(dimX), (long)(dimY), (long)(dimZ));
             
             /* check early stopping criteria if epsilon not equal zero */
             if (epsil != 0) {
@@ -147,10 +148,10 @@ float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsi
 /********************************************************************/
 /***************************2D Functions*****************************/
 /********************************************************************/
-float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu)
+float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda, float mu)
 {
     float sum, normConst;
-    int i,j,i1,i2,j1,j2,index;
+    long i,j,i1,i2,j1,j2,index;
     normConst = 1.0f/(mu + 4.0f*lambda);
     
 #pragma omp parallel for shared(U) private(index,i,j,i1,i2,j1,j2,sum)
@@ -173,9 +174,9 @@ float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, fl
     return *U;
 }
 
-float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda)
+float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda)
 {
-    int i,j,i1,j1,index;
+    long i,j,i1,j1,index;
     float val1, val11, val2, val22, denom_lam;
     denom_lam = 1.0f/lambda;
 #pragma omp parallel for shared(U,denom_lam) private(index,i,j,i1,j1,val1,val11,val2,val22)
@@ -198,9 +199,9 @@ float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By
         }}
     return 1;
 }
-float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda)
+float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda)
 {
-    int i,j,i1,j1,index;
+    long i,j,i1,j1,index;
     float val1, val11, val2, denom, denom_lam;
     denom_lam = 1.0f/lambda;
     
@@ -230,9 +231,9 @@ float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, 
         }}
     return 1;
 }
-float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY)
+float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY)
 {
-    int i,j,i1,j1,index;
+    long i,j,i1,j1,index;
 #pragma omp parallel for shared(U) private(index,i,j,i1,j1)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
@@ -251,10 +252,10 @@ float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, 
 /***************************3D Functions*****************************/
 /********************************************************************/
 /*****************************************************************/
-float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda, float mu)
+float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ, float lambda, float mu)
 {
     float normConst, d_val, b_val, sum;
-    int i,j,i1,i2,j1,j2,k,k1,k2,index;
+    long i,j,i1,i2,j1,j2,k,k1,k2,index;
     normConst = 1.0f/(mu + 6.0f*lambda);
 #pragma omp parallel for shared(U) private(index,i,j,i1,i2,j1,j2,k,k1,k2,d_val,b_val,sum)
     for(i=0; i<dimX; i++) {
@@ -280,9 +281,9 @@ float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, fl
     return *U;
 }
 
-float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda)
+float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ, float lambda)
 {
-    int i,j,i1,j1,k,k1,index;
+    long i,j,i1,j1,k,k1,index;
     float val1, val11, val2, val22, val3, val33, denom_lam;
     denom_lam = 1.0f/lambda;
 #pragma omp parallel for shared(U,denom_lam) private(index,i,j,i1,j1,k,k1,val1,val11,val2,val22,val3,val33)
@@ -310,9 +311,9 @@ float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *
             }}}
     return 1;
 }
-float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda)
+float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ, float lambda)
 {
-    int i,j,i1,j1,k,k1,index;
+    long i,j,i1,j1,k,k1,index;
     float val1, val11, val2, val3, denom, denom_lam;
     denom_lam = 1.0f/lambda;
 #pragma omp parallel for shared(U,denom_lam) private(index,denom,i,j,i1,j1,k,k1,val1,val11,val2,val3)
@@ -346,9 +347,9 @@ float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx
             }}}
     return 1;
 }
-float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ)
+float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ)
 {
-    int i,j,k,i1,j1,k1,index;
+    long i,j,k,i1,j1,k1,index;
 #pragma omp parallel for shared(U) private(index,i,j,k,i1,j1,k1)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {

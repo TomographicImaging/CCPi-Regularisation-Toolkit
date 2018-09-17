@@ -47,15 +47,15 @@ extern "C" {
 #endif
 CCPI_EXPORT float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
 
-CCPI_EXPORT float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda, float mu);
-CCPI_EXPORT float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
-CCPI_EXPORT float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY, float lambda);
-CCPI_EXPORT float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, int dimX, int dimY);
+CCPI_EXPORT float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda, float mu);
+CCPI_EXPORT float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda);
+CCPI_EXPORT float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda);
+CCPI_EXPORT float updBxBy2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY);
 
-CCPI_EXPORT float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda, float mu);
-CCPI_EXPORT float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
-CCPI_EXPORT float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ, float lambda);
-CCPI_EXPORT float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float gauss_seidel3D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ, float lambda, float mu);
+CCPI_EXPORT float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ, float lambda);
+CCPI_EXPORT float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ, float lambda);
+CCPI_EXPORT float updBxByBz3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx, float *By, float *Bz, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

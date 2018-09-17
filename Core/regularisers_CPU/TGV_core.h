@@ -49,13 +49,14 @@ extern "C" {
 #endif
 /* 2D functions */
 CCPI_EXPORT float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iter, float L2, int dimX, int dimY);
-CCPI_EXPORT float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, float sigma);
-CCPI_EXPORT float ProjP_2D(float *P1, float *P2, int dimX, int dimY, float alpha1);
-CCPI_EXPORT float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float sigma);
-CCPI_EXPORT float ProjQ_2D(float *Q1, float *Q2, float *Q3, int dimX, int dimY, float alpha0);
-CCPI_EXPORT float DivProjP_2D(float *U, float *U0, float *P1, float *P2, int dimX, int dimY, float lambda, float tau);
-CCPI_EXPORT float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float tau);
-CCPI_EXPORT float newU(float *U, float *U_old, int dimX, int dimY);
+
+CCPI_EXPORT float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, long dimY, float sigma);
+CCPI_EXPORT float ProjP_2D(float *P1, float *P2, long dimX, long dimY, float alpha1);
+CCPI_EXPORT float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, float sigma);
+CCPI_EXPORT float ProjQ_2D(float *Q1, float *Q2, float *Q3, long dimX, long dimY, float alpha0);
+CCPI_EXPORT float DivProjP_2D(float *U, float *U0, float *P1, float *P2, long dimX, long dimY, float lambda, float tau);
+CCPI_EXPORT float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, float tau);
+CCPI_EXPORT float newU(float *U, float *U_old, long dimX, long dimY);
 #ifdef __cplusplus
 }
 #endif
