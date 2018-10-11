@@ -55,7 +55,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
         P1 = calloc(DimTotal, sizeof(float));
         P2 = calloc(DimTotal, sizeof(float));
         P1_prev = calloc(DimTotal, sizeof(float));
-        P2_prev = calloc(DimTotal, sizeof(float));        
+        P2_prev = calloc(DimTotal, sizeof(float));
         R1 = calloc(DimTotal, sizeof(float));
         R2 = calloc(DimTotal, sizeof(float)); 
 		
@@ -63,13 +63,13 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
         for(ll=0; ll<iterationsNumb; ll++) {
             
             /* computing the gradient of the objective function */
-            Obj_func2D(Input, Output, R1, R2, lambdaPar, (long)(dimY), (long)(dimZ));
+            Obj_func2D(Input, Output, R1, R2, lambdaPar, (long)(dimX), (long)(dimY));
             
             /* apply nonnegativity */
-            if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}            
+            if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}
             
             /*Taking a step towards minus of the gradient*/
-            Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, (long)(dimY), (long)(dimZ));
+            Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, (long)(dimX), (long)(dimY));
             
             /* projection step */
             Proj_func2D(P1, P2, methodTV, DimTotal);
@@ -90,9 +90,9 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 				if (count > 4) break;
             
             /*storing old values*/
-            copyIm(Output, Output_prev, (long)(dimY), (long)(dimZ), 1l);
-            copyIm(P1, P1_prev, (long)(dimY), (long)(dimZ), 1l);
-            copyIm(P2, P2_prev, (long)(dimY), (long)(dimZ), 1l);
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
+            copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
+            copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
             tk = tkp1;
         }
         if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
