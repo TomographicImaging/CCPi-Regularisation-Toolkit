@@ -1,11 +1,11 @@
 package:
   name: ccpi-regulariser
-  version: 0.10.1
+  version: 0.10.2
 
 
 build:
   preserve_egg_dir: False
-#  number: 0
+  number: 0
   
 test:
   files:
