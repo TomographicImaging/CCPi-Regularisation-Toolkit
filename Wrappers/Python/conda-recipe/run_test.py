@@ -65,8 +65,8 @@ class TestRegularisers(unittest.TestCase):
         pars = {'algorithm': ROF_TV, \
                 'input' : u0,\
                 'regularisation_parameter':0.04,\
-                'number_of_iterations': 1200,\
-                'time_marching_parameter': 0.0025        
+                'number_of_iterations': 1000,\
+                'time_marching_parameter': 0.0001
                 }
         print ("#############ROF TV CPU####################")
         start_time = timeit.default_timer()
@@ -94,7 +94,7 @@ class TestRegularisers(unittest.TestCase):
         txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
         print (txtstr)
         print ("--------Compare the results--------")
-        tolerance = 1e-05
+        tolerance = 1e-04
         diff_im = np.zeros(np.shape(rof_cpu))
         diff_im = abs(rof_cpu - rof_gpu)
         diff_im[diff_im > tolerance] = 1
@@ -361,8 +361,8 @@ class TestRegularisers(unittest.TestCase):
                 'input' : u0,\
                 'regularisation_parameterROF':0.04, \
                 'regularisation_parameterLLT':0.01, \
-                'number_of_iterations' :500 ,\
-                'time_marching_parameter' :0.0025 ,\
+                'number_of_iterations' :1000 ,\
+                'time_marching_parameter' :0.0001 ,\
                 }
                 
         print ("#############LLT- ROF CPU####################")
@@ -394,7 +394,7 @@ class TestRegularisers(unittest.TestCase):
         txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
         print (txtstr)
         print ("--------Compare the results--------")
-        tolerance = 1e-05
+        tolerance = 1e-04
         diff_im = np.zeros(np.shape(lltrof_gpu))
         diff_im = abs(lltrof_cpu - lltrof_gpu)
         diff_im[diff_im > tolerance] = 1
@@ -643,14 +643,14 @@ class TestRegularisers(unittest.TestCase):
         Im = np.asarray(Im, dtype='float32')
         """
         tolerance = 1e-05
-        rms_rof_exp = 0.006812507 #expected value for ROF model
+        rms_rof_exp = 8.313131464999238e-05 #expected value for ROF model
 
         # set parameters for ROF-TV
         pars_rof_tv = {'algorithm': ROF_TV, \
                             'input' : Im,\
                             'regularisation_parameter':0.04,\
                             'number_of_iterations': 50,\
-                            'time_marching_parameter': 0.0025
+                            'time_marching_parameter': 0.00001
                             }
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("_________testing ROF-TV (2D, CPU)__________")
@@ -715,14 +715,14 @@ class TestRegularisers(unittest.TestCase):
         Im = Im/255
         
         tolerance = 1e-05
-        rms_rof_exp = 0.006812507 #expected value for ROF model
+        rms_rof_exp = 8.313131464999238e-05 #expected value for ROF model
         
         # set parameters for ROF-TV
         pars_rof_tv = {'algorithm': ROF_TV, \
                             'input' : Im,\
                             'regularisation_parameter':0.04,\
                             'number_of_iterations': 50,\
-                            'time_marching_parameter': 0.0025
+                            'time_marching_parameter': 0.00001
                             }
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print ("_________testing ROF-TV (2D, GPU)__________")

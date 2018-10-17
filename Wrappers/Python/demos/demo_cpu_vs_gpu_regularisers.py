@@ -66,8 +66,8 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm': ROF_TV, \
         'input' : u0,\
         'regularisation_parameter':0.04,\
-        'number_of_iterations': 1200,\
-        'time_marching_parameter': 0.0025        
+        'number_of_iterations': 4500,\
+        'time_marching_parameter': 0.00002
         }
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
@@ -406,8 +406,8 @@ pars = {'algorithm' : LLT_ROF, \
         'input' : u0,\
         'regularisation_parameterROF':0.04, \
         'regularisation_parameterLLT':0.01, \
-        'number_of_iterations' :500 ,\
-        'time_marching_parameter' :0.0025 ,\
+        'number_of_iterations' :4500 ,\
+        'time_marching_parameter' :0.00002 ,\
         }
         
 print ("#############LLT- ROF CPU####################")

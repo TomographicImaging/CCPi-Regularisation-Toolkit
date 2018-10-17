@@ -36,7 +36,7 @@ filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
 Im = plt.imread(filename)
 Im = np.asarray(Im, dtype='float32')
 
-Im = Im/255
+Im = Im/255.0
 perc = 0.05
 u0 = Im + np.random.normal(loc = 0 ,
                                   scale = perc * Im , 
