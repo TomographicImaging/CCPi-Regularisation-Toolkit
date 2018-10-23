@@ -7,7 +7,7 @@
 </div>
 
 <div align="center">
-  <img src="docs/images/reg_penalties.jpg" height="300"><br>  
+  <img src="docs/images/reg_penalties.jpg" height="450"><br>  
 </div>
 
 ## Prerequisites: 
