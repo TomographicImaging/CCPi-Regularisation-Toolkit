@@ -6,10 +6,14 @@
   <img src="docs/images/probl.png" height="225"><br>  
 </div>
 
+<div align="center">
+  <img src="docs/images/reg_penalties.jpg" height="300"><br>  
+</div>
+
 ## Prerequisites: 
 
  * [MATLAB](www.mathworks.com/products/matlab/) OR
- * Python (tested ver. 3.5); Cython
+ * Python (tested ver. 3.5/2.7); Cython
  * C compilers
  * nvcc (CUDA SDK) compilers
 
