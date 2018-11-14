@@ -39,24 +39,24 @@
 
 ## Installation:
 
-The package comes as a [CMake](https://cmake.org) project so you will need CMake to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this). We provide wrappers for Python and Matlab.
+The package comes as a [CMake](https://cmake.org) project so you will need CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this). We provide wrappers for Python and Matlab.
 
 1. Clone this repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, 
 2. create a build directory. 
-3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`). Use additional flags to fine tune the configuration. 
+3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`, or `cmake3`). Use additional flags to fine tune the configuration. 
 
 ### CMake flags
 Flags used during configuration
 
 | CMake flag | type | meaning |
 |:---|:----|:----|
-| `BUILD_PYTHON_WRAPPER` | bool | obvious |
-| `BUILD_MATLAB_WRAPPER` | bool | obvious |
+| `BUILD_PYTHON_WRAPPER` | bool | `ON\|OFF` whether to build the Python wrapper |
+| `BUILD_MATLAB_WRAPPER` | bool | `ON\|OFF` whether to build the Matlab wrapper |
 | `CMAKE_INSTALL_PREFIX` | path | your favourite install directory |
 | `PYTHON_DEST_DIR` | path | python modules install directory (default `${CMAKE_INSTALL_PREFIX}/python`) |
 | `MATLAB_DEST_DIR` | path | Matlab modules install directory (default `${CMAKE_INSTALL_PREFIX}/matlab`)|
-| `BUILD_CUDA` | bool | whether to build the CUDA regularisers |
-| `CONDA_BUILD`| bool | whether it is installed with `setup.py install`|
+| `BUILD_CUDA` | bool | `ON\|OFF` whether to build the CUDA regularisers |
+| `CONDA_BUILD`| bool | `ON\|OFF` whether it is installed with `setup.py install`|
 | `Matlab_ROOT_DIR` | path | Matlab directory|
 |`PYTHON_EXECUTABLE` | path | /path/to/python/executable|
 
