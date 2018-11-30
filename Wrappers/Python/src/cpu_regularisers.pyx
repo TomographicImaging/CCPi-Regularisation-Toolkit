@@ -27,6 +27,9 @@ cdef extern float Diffusion_CPU_main(float *Input, float *Output, float lambdaPa
 cdef extern float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxIter, float tol, int dimX, int dimY, int dimZ);
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
+cdef extern float PatchSelect_CPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long dimX, long dimY, long dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h);
+cdef extern float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambdaReg, int IterNumb);
+
 
 cdef extern float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
 cdef extern float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ);
@@ -446,6 +449,41 @@ def Diff4th_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     Diffus4th_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, dims[2], dims[1], dims[0])
 
     return outputData
+
+
+#****************************************************************#
+#***************Patch-based weights calculation******************#
+#****************************************************************#
+def PATCHSEL_CPU(inputData, searchwindow, patchwindow, neighbours, edge_parameter):
+    if inputData.ndim == 2:
+        return PatchSel_2D(inputData, searchwindow, patchwindow, neighbours, edge_parameter)
+    elif inputData.ndim == 3:
+        return 1
+# PatchSel_3D(inputData, searchwindow, patchwindow, neighbours, edge_parameter)
+def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     int searchwindow,
+                     int patchwindow,
+                     int neighbours,
+                     float edge_parameter):
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = neighbours
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] Weights = \
+            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+    
+    cdef np.ndarray[np.uint16_t, ndim=3, mode="c"] H_i = \
+            np.zeros([dims[0],dims[1],dims[2]], dtype='uint16 ')
+            
+    cdef np.ndarray[np.uint16_t, ndim=3, mode="c"] H_j = \
+            np.zeros([dims[0],dims[1],dims[2]], dtype='uint16 ')
+
+    # Run patch-based weight selection function
+    PatchSelect_CPU_main(&inputData[0,0], &H_i[0,0,0], &H_j[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[1], dims[0], 1, searchwindow, patchwindow,  neighbours,  edge_parameter)
+    return H_i, H_j, Weights
+          
+
 #*********************Inpainting WITH****************************#
 #***************Nonlinear (Isotropic) Diffusion******************#
 #****************************************************************#

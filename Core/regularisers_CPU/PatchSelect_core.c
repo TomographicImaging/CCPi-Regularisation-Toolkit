@@ -1,10 +1,11 @@
 /*
  * This work is part of the Core Imaging Library developed by
  * Visual Analytics and Imaging System Group of the Science Technology
- * Facilities Council, STFC
+ * Facilities Council, STFC and Diamond Light Source Ltd. 
  *
  * Copyright 2017 Daniil Kazantsev
  * Copyright 2017 Srikanth Nagella, Edoardo Pasca
+ * Copyright 2018 Diamond Light Source Ltd. 
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +18,7 @@
  * limitations under the License.
  */
 
-#include "mex.h"
-#include <matrix.h>
-#include <math.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <stdio.h>
-#include "omp.h"
-
-#define EPS 1.0000e-12
+#include "PatchSelect_core.h"
 
 /* C-OMP implementation of non-local weight pre-calculation for non-local priors
  * Weights and associated indices are stored into pre-allocated arrays and passed
@@ -49,46 +42,19 @@
  * 2. AR_j - indeces of j neighbours
  * 3. AR_k - indeces of j neighbours
  * 4. Weights_ijk - associated weights
- *
- * compile from Matlab with:
- * mex NeighbSearch2D_test.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
  */
 
-float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimY, long dimX, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
-float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimY, long dimX, long dimZ, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
-
 /**************************************************/
-void mexFunction(
-        int nlhs, mxArray *plhs[],
-        int nrhs, const mxArray *prhs[])
+
+float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long dimX, long dimY, long dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h)
 {
-    int number_of_dims,  SearchWindow, SimilarWin, NumNeighb, counterG;
-    long i, j, k, dimX, dimY, dimZ;
-    unsigned short *H_i=NULL, *H_j=NULL, *H_k=NULL;
-    const int  *dim_array;
-    float *A, *Weights, *Eucl_Vec, h, h2;
-    int dim_array2[3]; /* for 2D data */
-    int dim_array3[4]; /* for 3D data */
-    
-    dim_array = mxGetDimensions(prhs[0]);
-    number_of_dims = mxGetNumberOfDimensions(prhs[0]);
-    
-    /*Handling Matlab input data*/
-    A  = (float *) mxGetData(prhs[0]); /* a 2D or 3D image/volume */
-    SearchWindow = (int) mxGetScalar(prhs[1]);    /* Large Searching window */
-    SimilarWin = (int) mxGetScalar(prhs[2]);    /* Similarity window (patch-search)*/
-    NumNeighb = (int) mxGetScalar(prhs[3]); /* the total number of neighbours to take */
-    h = (float) mxGetScalar(prhs[4]); /* NLM parameter */
-    h2 = h*h;
-    
-    dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
-    dim_array2[0] = dimX; dim_array2[1] = dimY; dim_array2[2] = NumNeighb;  /* 2D case */
-    dim_array3[0] = dimX; dim_array3[1] = dimY; dim_array3[2] = dimZ; dim_array3[3] = NumNeighb;  /* 3D case */
-    
+    int counterG;
+    long i, j, k;
+    float *Eucl_Vec, h2;
+    h2 = h*h;   
+   
     /****************2D INPUT ***************/
-    if (number_of_dims == 2) {
-        dimZ = 0;
-        
+    if (dimZ == 0) {       
         /* generate a 2D Gaussian kernel for NLM procedure */
         Eucl_Vec = (float*) calloc ((2*SimilarWin+1)*(2*SimilarWin+1),sizeof(float));
         counterG = 0;
@@ -97,21 +63,16 @@ void mexFunction(
                 Eucl_Vec[counterG] = (float)exp(-(pow(((float) i), 2) + pow(((float) j), 2))/(2*SimilarWin*SimilarWin));
                 counterG++;
             }} /*main neighb loop */
-        
-        H_i = (unsigned short*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array2, mxUINT16_CLASS, mxREAL));
-        H_j = (unsigned short*)mxGetPr(plhs[1] = mxCreateNumericArray(3, dim_array2, mxUINT16_CLASS, mxREAL));
-        Weights = (float*)mxGetPr(plhs[2] = mxCreateNumericArray(3, dim_array2, mxSINGLE_CLASS, mxREAL));
-        
+              
         /* for each pixel store indeces of the most similar neighbours (patches) */
 #pragma omp parallel for shared (A, Weights, H_i, H_j) private(i,j)
         for(i=0; i<dimX; i++) {
             for(j=0; j<dimY; j++) {
-                Indeces2D(A, H_i, H_j, Weights, i, j, dimX, dimY, Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
+                Indeces2D(A, H_i, H_j, Weights, (i), (j), (dimX), (dimY), Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
             }}
     }
-    /****************3D INPUT ***************/
-    if (number_of_dims == 3) {
-        
+    else {
+    /****************3D INPUT ***************/       
         /* generate a 3D Gaussian kernel for NLM procedure */
         Eucl_Vec = (float*) calloc ((2*SimilarWin+1)*(2*SimilarWin+1)*(2*SimilarWin+1),sizeof(float));
         counterG = 0;
@@ -120,22 +81,18 @@ void mexFunction(
                 for(k=-SimilarWin; k<=SimilarWin; k++) {
                     Eucl_Vec[counterG] = (float)exp(-(pow(((float) i), 2) + pow(((float) j), 2) + pow(((float) k), 2))/(2*SimilarWin*SimilarWin*SimilarWin));
                     counterG++;
-                }}} /*main neighb loop */
-        
-        H_i = (unsigned short*)mxGetPr(plhs[0] = mxCreateNumericArray(4, dim_array3, mxUINT16_CLASS, mxREAL));
-        H_j = (unsigned short*)mxGetPr(plhs[1] = mxCreateNumericArray(4, dim_array3, mxUINT16_CLASS, mxREAL));
-        H_k = (unsigned short*)mxGetPr(plhs[2] = mxCreateNumericArray(4, dim_array3, mxUINT16_CLASS, mxREAL));
-        Weights = (float*)mxGetPr(plhs[3] = mxCreateNumericArray(4, dim_array3, mxSINGLE_CLASS, mxREAL));
+                }}} /*main neighb loop */     
         
         /* for each voxel store indeces of the most similar neighbours (patches) */
 #pragma omp parallel for shared (A, Weights, H_i, H_j, H_k) private(i,j,k)
         for(i=0; i<dimX; i++) {
             for(j=0; j<dimY; j++) {
                 for(k=0; k<dimZ; k++) {
-                    Indeces3D(A, H_i, H_j, H_k, Weights, i, j, k, dimX, dimY, dimZ, Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
+                    Indeces3D(A, H_i, H_j, H_k, Weights, (i), (j), (k), (dimX), (dimY), (dimZ), Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
                 }}}
     }
     free(Eucl_Vec);
+    return 1;
 }
 
 float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimY, long dimX, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2)

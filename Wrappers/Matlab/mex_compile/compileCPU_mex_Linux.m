@@ -52,6 +52,12 @@ fprintf('%s \n', 'Compiling ROF-LLT...');
 mex LLT_ROF.c LLT_ROF_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('LLT_ROF.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling NonLocal-TV...');
+mex PatchSelect.c PatchSelect_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+mex Nonlocal_TV.c Nonlocal_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile('Nonlocal_TV.mex*',Pathmove);
+movefile('PatchSelect.mex*',Pathmove);
+
 fprintf('%s \n', 'Compiling additional tools...');
 mex TV_energy.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('TV_energy.mex*',Pathmove);
