@@ -51,11 +51,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambda, int IterNumb);
-CCPI_EXPORT float NLM_H1_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambda);
-CCPI_EXPORT float NLM_TV_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambda);
-CCPI_EXPORT float NLM_H1_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambda);
-CCPI_EXPORT float NLM_TV_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambda);
+CCPI_EXPORT float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambdaReg, int IterNumb);
+CCPI_EXPORT float NLM_H1_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambdaReg);
+CCPI_EXPORT float NLM_TV_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambdaReg);
+CCPI_EXPORT float NLM_H1_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambdaReg);
+CCPI_EXPORT float NLM_TV_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambdaReg);
 #ifdef __cplusplus
 }
 #endif

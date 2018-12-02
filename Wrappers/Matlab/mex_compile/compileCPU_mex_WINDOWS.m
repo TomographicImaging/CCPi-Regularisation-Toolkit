@@ -60,6 +60,12 @@ fprintf('%s \n', 'Compiling ROF-LLT...');
 mex LLT_ROF.c LLT_ROF_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('LLT_ROF.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling NonLocal-TV...');
+mex PatchSelect.c PatchSelect_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
+mex Nonlocal_TV.c Nonlocal_TV_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
+movefile('Nonlocal_TV.mex*',Pathmove);
+movefile('PatchSelect.mex*',Pathmove);
+
 fprintf('%s \n', 'Compiling additional tools...');
 mex TV_energy.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('TV_energy.mex*',Pathmove);
@@ -73,9 +79,7 @@ fprintf('%s \n', 'Compiling Nonlocal marching method for inpaiting...');
 mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
-delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* CCPiDefines.h
-delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
-fprintf('%s \n', 'Regularisers successfully compiled!');
+
 %%
 %%% The second approach to compile using TDM-GCC which follows this
 %%% discussion:
@@ -105,15 +109,24 @@ fprintf('%s \n', 'Regularisers successfully compiled!');
 % movefile('TGV.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" LLT_ROF.c LLT_ROF_core.c utils.c
 % movefile('LLT_ROF.mex*',Pathmove);
+% mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" PatchSelect.c PatchSelect_core.c utils.c
+% mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" Nonlocal_TV.c Nonlocal_TV_core.c utils.c
+% movefile('Nonlocal_TV.mex*',Pathmove);
+% movefile('PatchSelect.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" TV_energy.c utils.c
 % movefile('TV_energy.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" NonlDiff_Inp.c Diffusion_Inpaint_core.c utils.c
 % movefile('NonlDiff_Inp.mex*',Pathmove);
 % mex C:\TDMGCC\lib\gcc\x86_64-w64-mingw32\5.1.0\libgomp.a CXXFLAGS="$CXXFLAGS -std=c++11 -fopenmp" NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c
 % movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
-% delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* CCPiDefines.h
-% delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
-% fprintf('%s \n', 'Regularisers successfully compiled!');
+
+
+delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* CCPiDefines.h
+delete PatchSelect_core* Nonlocal_TV_core*
+delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
+fprintf('%s \n', 'Regularisers successfully compiled!');
+
+
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

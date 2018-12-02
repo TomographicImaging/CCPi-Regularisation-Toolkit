@@ -68,7 +68,6 @@ void mexFunction(
     lambda = (float) mxGetScalar(prhs[5]); /* regularisation parameter */
     IterNumb = (int) mxGetScalar(prhs[6]); /* the number of iterations */
  
-    lambda = 1.0f/lambda;       
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];   
          
     /*****2D INPUT *****/
@@ -81,9 +80,9 @@ void mexFunction(
     /****************************************************/
     if (number_of_dims == 3) {
         NumNeighb = dim_array2[3];
-        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));               
+        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     }
     
     /* run the main function here */
-    Nonlocal_TV_CPU_main(A_orig, Output, H_i, H_j, H_k, Weights, dimX, dimY, dimZ, NumNeighb, lambda, IterNumb);        
+    Nonlocal_TV_CPU_main(A_orig, Output, H_i, H_j, H_k, Weights, dimX, dimY, dimZ, NumNeighb, lambda, IterNumb);
 }

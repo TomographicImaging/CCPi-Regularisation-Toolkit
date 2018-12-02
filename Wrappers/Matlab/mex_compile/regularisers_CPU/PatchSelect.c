@@ -87,6 +87,6 @@ void mexFunction(
         Weights = (float*)mxGetPr(plhs[3] = mxCreateNumericArray(4, dim_array3, mxSINGLE_CLASS, mxREAL));        
     }
     
-    PatchSelect_CPU_main(A, H_i, H_j, H_k, Weights, (long)(dimX), (long)(dimY), (long)(dimZ), SearchWindow, SimilarWin, NumNeighb, h); 
+    PatchSelect_CPU_main(A, H_i, H_j, H_k, Weights, (long)(dimX), (long)(dimY), (long)(dimZ), SearchWindow, SimilarWin, NumNeighb, h, 0); 
     
  }

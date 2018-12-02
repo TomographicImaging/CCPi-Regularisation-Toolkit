@@ -54,8 +54,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long dimX, long dimY, long dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h);
-CCPI_EXPORT float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimY, long dimX, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
+CCPI_EXPORT float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h, int switchM);
+CCPI_EXPORT float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
+CCPI_EXPORT float Indeces2D_p(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
 CCPI_EXPORT float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimY, long dimX, long dimZ, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
 #ifdef __cplusplus
 }

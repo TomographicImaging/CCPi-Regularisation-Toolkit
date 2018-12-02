@@ -13,6 +13,7 @@ import numpy as np
 import os
 import timeit
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, TNV, NDF, DIFF4th
+from ccpi.filters.regularisers import PatchSelect, NLTV
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -350,7 +351,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(ndf_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Anisotropic Diffusion 4th Order (2D)____")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -395,7 +396,71 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(diff4_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("___Nonlocal patches pre-calculation____")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+# set parameters
+pars = {'algorithm' : PatchSelect, \
+        'input' : u0,\
+        'searchwindow': 7, \
+        'patchwindow': 2,\
+        'neighbours' : 15 ,\
+        'edge_parameter':0.23}
 
+H_i, H_j, Weights = PatchSelect(pars['input'], 
+              pars['searchwindow'],
+              pars['patchwindow'], 
+              pars['neighbours'],
+              pars['edge_parameter'],'cpu')
+
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("___Nonlocal Total Variation penalty____")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of NLTV regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+pars2 = {'algorithm' : NLTV, \
+        'input' : u0,\
+        'H_i': H_i, \
+        'H_j': H_j,\
+        'H_k' : 0,\
+        'Weights' : Weights,\
+        'regularisation_parameter': 0.085,\
+        'iterations': 2
+        }
+#%%
+start_time = timeit.default_timer()
+nltv_cpu = NLTV(pars2['input'], 
+              pars2['H_i'],
+              pars2['H_j'], 
+              pars2['H_k'],
+              pars2['Weights'],
+              pars2['regularisation_parameter'],
+              pars2['iterations'])
+
+rms = rmse(Im, nltv_cpu)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(nltv_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
+
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_____________FGP-dTV (2D)__________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -447,7 +512,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(fgp_dtv_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
-
+#%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("__________Total nuclear Variation__________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")

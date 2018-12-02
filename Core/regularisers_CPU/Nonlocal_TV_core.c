@@ -42,36 +42,37 @@
  */
 /*****************************************************************************/
 
-float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambda, int IterNumb)
+float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambdaReg, int IterNumb)
 {
 
     long i, j, k;
     int iter;
+    lambdaReg = 1.0f/lambdaReg;
          
     /*****2D INPUT *****/
     if (dimZ == 0) {
-	  copyIm(A_orig, Output, (long)(dimX), (long)(dimY), 1l);       
+	  copyIm(A_orig, Output, (long)(dimX), (long)(dimY), 1l);
     /* for each pixel store indeces of the most similar neighbours (patches) */
      for(iter=0; iter<IterNumb; iter++) {    
 #pragma omp parallel for shared (A_orig, Output, Weights, H_i, H_j, iter) private(i,j)
       for(i=0; i<(long)(dimX); i++) {
             for(j=0; j<(long)(dimY); j++) {              
-            /* NLM_H1_2D(Output, A_orig, H_i, H_j, Weights, i, j, dimX, dimY, NumNeighb, lambda); */ /* NLM - H1 penalty */
-            NLM_TV_2D(Output, A_orig, H_i, H_j, Weights, i, j, (long)(dimX), (long)(dimY), NumNeighb, lambda);   /* NLM - TV penalty */     
-           }}          
+             /*NLM_H1_2D(Output, A_orig, H_i, H_j, Weights, i, j, (long)(dimX), (long)(dimY), NumNeighb, lambdaReg);*/  /* NLM - H1 penalty */
+             NLM_TV_2D(Output, A_orig, H_i, H_j, Weights, i, j, (long)(dimX), (long)(dimY), NumNeighb, lambdaReg);  /* NLM - TV penalty */
+           }}
           }
     }  
     else {
      /*****3D INPUT *****/
-        copyIm(A_orig, Output, (long)(dimX), (long)(dimY), (long)(dimZ));       
+        copyIm(A_orig, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
     /* for each pixel store indeces of the most similar neighbours (patches) */
      for(iter=0; iter<IterNumb; iter++) {    
 #pragma omp parallel for shared (A_orig, Output, Weights, H_i, H_j, H_k, iter) private(i,j,k)
       for(i=0; i<(long)(dimX); i++) {
             for(j=0; j<(long)(dimY); j++) {              
                for(k=0; k<(long)(dimZ); k++) {
-            /* NLM_H1_3D(Output, A_orig, H_i, H_j, H_k, Weights, i, j, k, dimX, dimY, dimZ, NumNeighb, lambda); */ /* NLM - H1 penalty */
-            NLM_TV_3D(Output, A_orig, H_i, H_j, H_k, Weights, i, j, k, (long)(dimX), (long)(dimY), (long)(dimZ), NumNeighb, lambda);   /* NLM - TV penalty */     
+            /* NLM_H1_3D(Output, A_orig, H_i, H_j, H_k, Weights, i, j, k, dimX, dimY, dimZ, NumNeighb, lambdaReg); */ /* NLM - H1 penalty */
+            NLM_TV_3D(Output, A_orig, H_i, H_j, H_k, Weights, i, j, k, (long)(dimX), (long)(dimY), (long)(dimZ), NumNeighb, lambdaReg);   /* NLM - TV penalty */     
            }}}          
           }          
     }
@@ -79,23 +80,24 @@ float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, un
 }
 
 /***********<<<<Main Function for NLM - H1 penalty>>>>**********/
-float NLM_H1_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambda)
+float NLM_H1_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambdaReg)
 {
-	long x, i1, j1, index; 
+	long x, i1, j1, index, index_m; 
 	float value = 0.0f, normweight  = 0.0f;
 	
+	index_m = j*dimX+i;
 	for(x=0; x < NumNeighb; x++) {
 	index =  (dimX*dimY*x) + j*dimX+i;
 		i1 = H_i[index];
 		j1 = H_j[index];
 		value += A[j1*dimX+i1]*Weights[index];
 		normweight += Weights[index];
-	}	
-    A[j*dimX+i] = (lambda*A_orig[j*dimX+i] + value)/(lambda + normweight);
+	}
+	 A[index_m] = (lambdaReg*A_orig[index_m] + value)/(lambdaReg + normweight);
     return *A;
 }
 /*3D version*/
-float NLM_H1_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambda)
+float NLM_H1_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambdaReg)
 {
 	long x, i1, j1, k1, index; 
 	float value = 0.0f, normweight  = 0.0f;
@@ -108,39 +110,41 @@ float NLM_H1_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_
 		value += A[(dimX*dimY*k1) + j1*dimX+i1]*Weights[index];
 		normweight += Weights[index];
 	}	
-    A[(dimX*dimY*k) + j*dimX+i] = (lambda*A_orig[(dimX*dimY*k) + j*dimX+i] + value)/(lambda + normweight);
+    A[(dimX*dimY*k) + j*dimX+i] = (lambdaReg*A_orig[(dimX*dimY*k) + j*dimX+i] + value)/(lambdaReg + normweight);
     return *A;
 }
 
 
 /***********<<<<Main Function for NLM - TV penalty>>>>**********/
-float NLM_TV_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambda)
+float NLM_TV_2D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, int NumNeighb, float lambdaReg)
 {
-	long x, i1, j1, index; 
+	long x, i1, j1, index, index_m; 
 	float value = 0.0f, normweight  = 0.0f, NLgrad_magn = 0.0f, NLCoeff;
 	
+	 index_m = j*dimX+i;
+		
 	for(x=0; x < NumNeighb; x++) {
-		index =  (dimX*dimY*x) + j*dimX+i;
+		index =  (dimX*dimY*x) + j*dimX+i; /*c*/
 		i1 = H_i[index];
 		j1 = H_j[index];
-	        NLgrad_magn += powf((A[j1*dimX+i1] - A[j*dimX+i]),2)*Weights[index];
+		NLgrad_magn += powf((A[j1*dimX+i1] - A[index_m]),2)*Weights[index];
 	}
   
     NLgrad_magn = sqrtf(NLgrad_magn); /*Non Local Gradients Magnitude */
     NLCoeff = 2.0f*(1.0f/(NLgrad_magn + EPS));
     		
     for(x=0; x < NumNeighb; x++) {
-	index =  (dimX*dimY*x) + j*dimX+i;
+	index =  (dimX*dimY*x) + j*dimX+i; /*c*/
 	i1 = H_i[index];
 	j1 = H_j[index];
         value += A[j1*dimX+i1]*NLCoeff*Weights[index];
         normweight += Weights[index]*NLCoeff;
     }   		
-    A[j*dimX+i] = (lambda*A_orig[j*dimX+i] + value)/(lambda + normweight);
+    A[index_m] = (lambdaReg*A_orig[index_m] + value)/(lambdaReg + normweight);
     return *A;
 }
 /*3D version*/
-float NLM_TV_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambda)
+float NLM_TV_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimX, long dimY, long dimZ, int NumNeighb, float lambdaReg)
 {
 	long x, i1, j1, k1, index; 
 	float value = 0.0f, normweight  = 0.0f, NLgrad_magn = 0.0f, NLCoeff;
@@ -164,6 +168,6 @@ float NLM_TV_3D(float *A, float *A_orig, unsigned short *H_i, unsigned short *H_
         value += A[(dimX*dimY*k1) + j1*dimX+i1]*NLCoeff*Weights[index];
         normweight += Weights[index]*NLCoeff;
     }   		
-    A[(dimX*dimY*k) + j*dimX+i] = (lambda*A_orig[(dimX*dimY*k) + j*dimX+i] + value)/(lambda + normweight);
+    A[(dimX*dimY*k) + j*dimX+i] = (lambdaReg*A_orig[(dimX*dimY*k) + j*dimX+i] + value)/(lambdaReg + normweight);
     return *A;
 }

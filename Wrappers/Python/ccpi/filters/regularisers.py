@@ -2,7 +2,7 @@
 script which assigns a proper device core function based on a flag ('cpu' or 'gpu')
 """
 
-from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, Diff4th_CPU, TGV_CPU, LLT_ROF_CPU, PATCHSEL_CPU
+from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, Diff4th_CPU, TGV_CPU, LLT_ROF_CPU, PATCHSEL_CPU, NLTV_CPU
 try:
     from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU, TGV_GPU, LLT_ROF_GPU
     gpu_enabled = True
@@ -145,7 +145,7 @@ def DIFF4th(inputData, regularisation_parameter, edge_parameter, iterations,
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
         
-def PatchSelect_CPU(inputData, searchwindow, patchwindow, neighbours, edge_parameter, device='cpu'):
+def PatchSelect(inputData, searchwindow, patchwindow, neighbours, edge_parameter, device='cpu'):
     if device == 'cpu':
         return PATCHSEL_CPU(inputData,
                      searchwindow,
@@ -159,7 +159,16 @@ def PatchSelect_CPU(inputData, searchwindow, patchwindow, neighbours, edge_param
     	    raise ValueError ('GPU is not available')
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
-        
+
+def NLTV(inputData, H_i, H_j, H_k, Weights, regularisation_parameter, iterations):
+    return NLTV_CPU(inputData,
+                     H_i,
+                     H_j,
+                     H_k, 
+                     Weights,
+                     regularisation_parameter,
+                     iterations)
+
 def TGV(inputData, regularisation_parameter, alpha1, alpha0, iterations,
                      LipshitzConst, device='cpu'):
     if device == 'cpu':
