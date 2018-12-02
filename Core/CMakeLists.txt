@@ -73,6 +73,8 @@ add_library(cilreg SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_dTV_core.c
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Nonlocal_TV_core.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchSelect_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/Diffusion_Inpaint_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/NonlocalMarching_Inpaint_core.c

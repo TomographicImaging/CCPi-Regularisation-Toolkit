@@ -52,6 +52,12 @@ fprintf('%s \n', 'Compiling ROF-LLT...');
 mex LLT_ROF.c LLT_ROF_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('LLT_ROF.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling NonLocal-TV...');
+mex PatchSelect.c PatchSelect_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+mex Nonlocal_TV.c Nonlocal_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile('Nonlocal_TV.mex*',Pathmove);
+movefile('PatchSelect.mex*',Pathmove);
+
 fprintf('%s \n', 'Compiling additional tools...');
 mex TV_energy.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('TV_energy.mex*',Pathmove);
@@ -66,6 +72,7 @@ mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c CFLAGS="\
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
 delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* LLT_ROF_core* CCPiDefines.h
+delete PatchSelect_core* Nonlocal_TV_core*
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 fprintf('%s \n', '<<<<<<< Regularisers successfully compiled! >>>>>>>');
 
