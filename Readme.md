@@ -27,7 +27,7 @@
 5. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *8*)
 6. Anisotropic Fourth-Order Diffusion (explicit PDE minimisation) **2D/3D CPU/GPU** (Ref. *9*)
 7. A joint ROF-LLT (Lysaker-Lundervold-Tai) model for higher-order regularisation **2D/3D CPU/GPU** (Ref. *10,11*)
-8. Nonlocal H1/TV regularisation **2D/3D CPU/GPU** (Ref. *12*)
+8. Nonlocal Total Variation regularisation (GS fixed point iteration) **2D/3D CPU/GPU** (Ref. *12*)
 
 ### Multi-channel (denoising):
 1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,4,2*)
@@ -61,16 +61,17 @@ Flags used during configuration
 | `Matlab_ROOT_DIR` | path | Matlab directory|
 |`PYTHON_EXECUTABLE` | path | /path/to/python/executable|
 
-Here an example of build on Linux:
+Here an example of build on Linux (see also `run.sh` for additional info):
 
 ```bash
 git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit.git
 mkdir build
 cd build
-cmake .. -DCONDA_BUILD=OFF -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<your favourite install directory>
+cmake .. -DCONDA_BUILD=OFF -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
 make install
+cd install/python
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:../lib
 ```
-
 
 
 ### Python
