@@ -138,17 +138,17 @@ figure; imshow(u_diff4, [0 1]); title('Diffusion 4thO denoised image (CPU)');
 fprintf('Weights pre-calculation for Non-local TV (takes time on CPU) \n');
 SearchingWindow = 7;
 PatchWindow = 2;
-NeighboursNumber = 15; % the number of neibours to include
+NeighboursNumber = 20; % the number of neibours to include
 h = 0.23; % edge related parameter for NLM
-[H_i, H_j, Weights] = PatchSelect(single(u0), SearchingWindow, PatchWindow, NeighboursNumber, h);
+tic; [H_i, H_j, Weights] = PatchSelect(single(u0), SearchingWindow, PatchWindow, NeighboursNumber, h); toc;
 %%
 fprintf('Denoise using Non-local Total Variation (CPU) \n');
-iter_nltv = 2; % number of nltv iterations
-lambda_nltv = 0.085; % regularisation parameter for nltv
+iter_nltv = 3; % number of nltv iterations
+lambda_nltv = 0.05; % regularisation parameter for nltv
 tic; u_nltv = Nonlocal_TV(single(u0), H_i, H_j, 0, Weights, lambda_nltv, iter_nltv); toc; 
 rmse_nltv = (RMSE(u_nltv(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for Non-local Total Variation is:', rmse_nltv);
-figure; imshow(u_nltv, [0 1]); title('Non-local Total Variation denoised image (CPU)');
+figure; imagesc(u_nltv, [0 1]); colormap(gray); daspect([1 1 1]); title('Non-local Total Variation denoised image (CPU)');
 %%
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
 

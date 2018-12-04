@@ -45,6 +45,7 @@ extra_include_dirs += [os.path.join(".." , ".." , "Core"),
                        os.path.join(".." , ".." , "Core",  "regularisers_GPU" , "NDF" ) ,
                        os.path.join(".." , ".." , "Core",  "regularisers_GPU" , "dTV_FGP" ) , 
                        os.path.join(".." , ".." , "Core",  "regularisers_GPU" , "DIFF4th" ) , 
+                       os.path.join(".." , ".." , "Core",  "regularisers_GPU" , "PatchSelect" ) ,
 						   "."]
 
 if platform.system() == 'Windows':				   

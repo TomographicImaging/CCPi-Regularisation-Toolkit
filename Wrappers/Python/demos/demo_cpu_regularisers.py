@@ -400,20 +400,29 @@ plt.title('{}'.format('CPU results'))
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Nonlocal patches pre-calculation____")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+start_time = timeit.default_timer()
 # set parameters
 pars = {'algorithm' : PatchSelect, \
         'input' : u0,\
         'searchwindow': 7, \
         'patchwindow': 2,\
         'neighbours' : 15 ,\
-        'edge_parameter':0.23}
+        'edge_parameter':0.18}
 
 H_i, H_j, Weights = PatchSelect(pars['input'], 
               pars['searchwindow'],
               pars['patchwindow'], 
               pars['neighbours'],
               pars['edge_parameter'],'cpu')
-
+              
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+"""
+plt.figure()
+plt.imshow(Weights[0,:,:],cmap="gray",interpolation="nearest",vmin=0, vmax=1)
+plt.show()
+"""
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("___Nonlocal Total Variation penalty____")
@@ -431,10 +440,9 @@ pars2 = {'algorithm' : NLTV, \
         'H_j': H_j,\
         'H_k' : 0,\
         'Weights' : Weights,\
-        'regularisation_parameter': 0.085,\
-        'iterations': 2
+        'regularisation_parameter': 0.04,\
+        'iterations': 3
         }
-#%%
 start_time = timeit.default_timer()
 nltv_cpu = NLTV(pars2['input'], 
               pars2['H_i'],

@@ -13,6 +13,7 @@ import numpy as np
 import os
 import timeit
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, DIFF4th
+from ccpi.filters.regularisers import PatchSelect
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -726,6 +727,60 @@ diff_im = np.zeros(np.shape(fgp_dtv_cpu))
 diff_im = abs(fgp_dtv_cpu - fgp_dtv_gpu)
 diff_im[diff_im > tolerance] = 1
 a=fig.add_subplot(1,4,4)
+imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
+plt.title('{}'.format('Pixels larger threshold difference'))
+if (diff_im.sum() > 1):
+    print ("Arrays do not match!")
+else:
+    print ("Arrays match")
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("____Non-local regularisation bench_________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Comparison of Nonlocal TV regulariser using CPU and GPU implementations')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+pars = {'algorithm' : PatchSelect, \
+        'input' : u0,\
+        'searchwindow': 7, \
+        'patchwindow': 2,\
+        'neighbours' : 15 ,\
+        'edge_parameter':0.18}
+
+print ("############## Nonlocal Patches on CPU##################")
+start_time = timeit.default_timer()
+H_i, H_j, WeightsCPU = PatchSelect(pars['input'], 
+              pars['searchwindow'],
+              pars['patchwindow'], 
+              pars['neighbours'],
+              pars['edge_parameter'],'cpu')
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+
+print ("############## Nonlocal Patches on GPU##################")
+start_time = timeit.default_timer()
+start_time = timeit.default_timer()
+H_i, H_j, WeightsGPU = PatchSelect(pars['input'], 
+              pars['searchwindow'],
+              pars['patchwindow'], 
+              pars['neighbours'],
+              pars['edge_parameter'],'gpu')
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+
+print ("--------Compare the results--------")
+tolerance = 1e-05
+diff_im = np.zeros(np.shape(u0))
+diff_im = abs(WeightsCPU[0,:,:] - WeightsGPU[0,:,:])
+diff_im[diff_im > tolerance] = 1
+a=fig.add_subplot(1,2,2)
 imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
 plt.title('{}'.format('Pixels larger threshold difference'))
 if (diff_im.sum() > 1):

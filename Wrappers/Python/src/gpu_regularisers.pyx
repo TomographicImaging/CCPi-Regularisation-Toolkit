@@ -26,6 +26,7 @@ cdef extern void LLT_ROF_GPU_main(float *Input, float *Output, float lambdaROF, 
 cdef extern void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z);
 cdef extern void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
 cdef extern void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z);
+cdef extern void PatchSelect_GPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, float *Weights, int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h);
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
 def TV_ROF_GPU(inputData,
@@ -542,3 +543,34 @@ def Diff4th_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     Diffus4th_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, dims[2], dims[1], dims[0])
 
     return outputData
+#****************************************************************#
+#************Patch-based weights pre-selection******************#
+#****************************************************************#
+def PATCHSEL_GPU(inputData, searchwindow, patchwindow, neighbours, edge_parameter):
+    if inputData.ndim == 2:
+        return PatchSel_2D(inputData, searchwindow, patchwindow, neighbours, edge_parameter)
+    elif inputData.ndim == 3:
+        return 1
+def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
+                     int searchwindow,
+                     int patchwindow,
+                     int neighbours,
+                     float edge_parameter):
+    cdef long dims[3]
+    dims[0] = neighbours
+    dims[1] = inputData.shape[0]
+    dims[2] = inputData.shape[1]    
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] Weights = \
+            np.zeros([dims[0], dims[1],dims[2]], dtype='float32')
+    
+    cdef np.ndarray[np.uint16_t, ndim=3, mode="c"] H_i = \
+            np.zeros([dims[0], dims[1],dims[2]], dtype='uint16')
+            
+    cdef np.ndarray[np.uint16_t, ndim=3, mode="c"] H_j = \
+            np.zeros([dims[0], dims[1],dims[2]], dtype='uint16')
+
+    # Run patch-based weight selection function
+    PatchSelect_GPU_main(&inputData[0,0], &H_j[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[2], dims[1], searchwindow, patchwindow,  neighbours,  edge_parameter)
+    
+    return H_i, H_j, Weights      
