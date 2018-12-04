@@ -44,6 +44,19 @@
  * 4. Weights_ijk - associated weights
  */
 
+void swap(float *xp, float *yp) 
+{ 
+    float temp = *xp; 
+    *xp = *yp; 
+    *yp = temp; 
+} 
+
+void swapUS(unsigned short *xp, unsigned short *yp) 
+{ 
+    unsigned short temp = *xp; 
+    *xp = *yp; 
+    *yp = temp; 
+} 
 /**************************************************/
 
 float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h, int switchM)
@@ -51,8 +64,7 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
     int counterG;
     long i, j, k;
     float *Eucl_Vec, h2;
-    h2 = h*h;
-   
+    h2 = h*h;   
     /****************2D INPUT ***************/
     if (dimZ == 0) {
         /* generate a 2D Gaussian kernel for NLM procedure */
@@ -67,14 +79,14 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
         if (switchM == 1) {
 #pragma omp parallel for shared (A, Weights, H_i, H_j) private(i,j)
     for(i=0; i<(long)(dimX); i++) {
-            for(j=0; j<(long)(dimY); j++) {
+          for(j=0; j<(long)(dimY); j++) {
                 Indeces2D_p(A, H_i, H_j, Weights, i, j, (long)(dimX), (long)(dimY), Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
             }}
         }
         else {
 #pragma omp parallel for shared (A, Weights, H_i, H_j) private(i,j)
     for(i=0; i<(long)(dimX); i++) {
-            for(j=0; j<(long)(dimY); j++) {
+          for(j=0; j<(long)(dimY); j++) {
                 Indeces2D(A, H_i, H_j, Weights, i, j, (long)(dimX), (long)(dimY), Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
             }}
             }
@@ -116,8 +128,8 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
 float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2)
 {
     long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, index, sizeWin_tot, counterG;
-    float *Weight_Vec, normsum, temp;
-    unsigned short *ind_i, *ind_j, temp_i, temp_j;
+    float *Weight_Vec, normsum;
+    unsigned short *ind_i, *ind_j;
     
     sizeWin_tot = (2*SearchWindow + 1)*(2*SearchWindow + 1);
     
@@ -146,51 +158,43 @@ float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *W
                         
                     }}
                 /* writing temporarily into vectors */
-                if (normsum > EPS) {
+                if (normsum > EPS) {                    
                     Weight_Vec[counter] = expf(-normsum/h2);
                     ind_i[counter] = i1;
-                    ind_j[counter] = j1;
+                    ind_j[counter] = j1;                    
                     counter++;
                 }
             }
-        }}
+        }}     
     /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
-    for (x = 0; x < counter; x++)  {
-        for (y = 0; y < counter; y++)  {
-            if (Weight_Vec[y] < Weight_Vec[x]) {
-                temp = Weight_Vec[y+1];
-                temp_i = ind_i[y+1];
-                temp_j = ind_j[y+1];
-                Weight_Vec[y+1] = Weight_Vec[y];
-                Weight_Vec[y] = temp;
-                ind_i[y+1] = ind_i[y];
-                ind_i[y] = temp_i;
-                ind_j[y+1] = ind_j[y];
-                ind_j[y] = temp_j;
-            }}}
-    /*sorting loop finished*/
-    
-    /*now select the NumNeighb more prominent weights and store into arrays */
+    for (x = 0; x < counter-1; x++)  {
+       for (y = 0; y < counter-x-1; y++)  {
+           if (Weight_Vec[y] < Weight_Vec[y+1]) {
+            swap(&Weight_Vec[y], &Weight_Vec[y+1]); 		
+            swapUS(&ind_i[y], &ind_i[y+1]);
+            swapUS(&ind_j[y], &ind_j[y+1]);  
+            }
+    	}
+    }
+     /*sorting loop finished*/      
+    /*now select the NumNeighb more prominent weights and store into pre-allocated arrays */ 
     for(x=0; x < NumNeighb; x++) {
-        index = (dimX*dimY*x) + j*dimX+i;
+        index = (dimX*dimY*x) + j*dimX+i;        
         H_i[index] = ind_i[x];
         H_j[index] = ind_j[x];
         Weights[index] = Weight_Vec[x];
-    }
-    
+    }    
     free(ind_i);
     free(ind_j);
     free(Weight_Vec);
     return 1;
 }
-
-
 float Indeces2D_p(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2)
 {
     long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, index, sizeWin_tot, counterG;
-    float *Weight_Vec, normsum, temp;
-    unsigned short *ind_i, *ind_j, temp_i, temp_j;
+    float *Weight_Vec, normsum;
+    unsigned short *ind_i, *ind_j;
     
     sizeWin_tot = (2*SearchWindow + 1)*(2*SearchWindow + 1);
     
@@ -228,32 +232,26 @@ float Indeces2D_p(float *Aorig, unsigned short *H_i, unsigned short *H_j, float 
                 }
             }
         }}
-    /* do sorting to choose the most prominent weights [HIGH to LOW] */
+       /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
-    for (x = 0; x < counter; x++)  {
-        for (y = 0; y < counter; y++)  {
-            if (Weight_Vec[y] < Weight_Vec[x]) {
-                temp = Weight_Vec[y+1];
-                temp_i = ind_i[y+1];
-                temp_j = ind_j[y+1];
-                Weight_Vec[y+1] = Weight_Vec[y];
-                Weight_Vec[y] = temp;
-                ind_i[y+1] = ind_i[y];
-                ind_i[y] = temp_i;
-                ind_j[y+1] = ind_j[y];
-                ind_j[y] = temp_j;
-            }}}
+    for (x = 0; x < counter-1; x++)  {
+       for (y = 0; y < counter-x-1; y++)  {
+           if (Weight_Vec[y] < Weight_Vec[y+1]) {
+            swap(&Weight_Vec[y], &Weight_Vec[y+1]); 		
+            swapUS(&ind_i[y], &ind_i[y+1]);
+            swapUS(&ind_j[y], &ind_j[y+1]);  
+            }
+    	}
+    }
     /*sorting loop finished*/
     
-    /*now select the NumNeighb more prominent weights and store into arrays */
+    /*now select the NumNeighb more prominent weights and store into pre-allocated arrays */ 
     for(x=0; x < NumNeighb; x++) {
-        //index = (dimX*dimY*x) + j*dimX+i;
-        index = (dimX*dimY*x) + i*dimY+j;
+        index = (dimX*dimY*x) + i*dimY+j;       
         H_i[index] = ind_i[x];
         H_j[index] = ind_j[x];
         Weights[index] = Weight_Vec[x];
-    }
-    
+    }   
     free(ind_i);
     free(ind_j);
     free(Weight_Vec);

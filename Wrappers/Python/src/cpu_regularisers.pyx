@@ -456,7 +456,7 @@ def PATCHSEL_CPU(inputData, searchwindow, patchwindow, neighbours, edge_paramete
     if inputData.ndim == 2:
         return PatchSel_2D(inputData, searchwindow, patchwindow, neighbours, edge_parameter)
     elif inputData.ndim == 3:
-        return PatchSel_3D(inputData, searchwindow, patchwindow, neighbours, edge_parameter)
+        return 1
 def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      int searchwindow,
                      int patchwindow,
@@ -480,7 +480,7 @@ def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     # Run patch-based weight selection function
     PatchSelect_CPU_main(&inputData[0,0], &H_j[0,0,0], &H_i[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[2], dims[1], 0, searchwindow, patchwindow,  neighbours,  edge_parameter, 1)
     return H_i, H_j, Weights
-
+"""
 def PatchSel_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      int searchwindow,
                      int patchwindow,
@@ -507,7 +507,7 @@ def PatchSel_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     # Run patch-based weight selection function
     PatchSelect_CPU_main(&inputData[0,0,0], &H_i[0,0,0,0], &H_j[0,0,0,0], &H_k[0,0,0,0], &Weights[0,0,0,0], dims[2], dims[1], dims[0], searchwindow, patchwindow,  neighbours, edge_parameter, 1)
     return H_i, H_j, H_k, Weights
-
+"""
 
 #****************************************************************#
 #***************Non-local Total Variation******************#
