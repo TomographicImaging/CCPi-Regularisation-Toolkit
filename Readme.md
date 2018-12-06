@@ -1,6 +1,6 @@
 # CCPi-Regularisation Toolkit (CCPi-RGL)
 
-**Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem more well-posed. CCPi-RGL software consists of 2D/3D regularisation modules for single-channel and multi-channel reconstruction problems. The regularisation modules are well-suited to use with [splitting algorithms](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method#Alternating_direction_method_of_multipliers), such as ADMM and FISTA. Furthermore, the toolkit can be used independently to solve image denoising and inpaiting tasks. The core modules are written in C-OMP and CUDA languages, wrappers for Matlab and Python are provided.** 
+**Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem (inverse problem) more well-posed. The CCPi-RGL software provides 2D/3D and multi-channel regularisation strategies to ensure better performance of IIR methods. The regularisation modules are well-suited to use with [splitting algorithms](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method#Alternating_direction_method_of_multipliers), such as, [ADMM](https://github.com/dkazanc/ADMM-tomo) and [FISTA](https://github.com/dkazanc/FISTA-tomo). Furthermore, the toolkit can be used for simpler inversion tasks, such as, image denoising, inpaiting, deconvolution etc. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 <div align="center">
   <img src="docs/images/probl.png" height="225"><br>  
@@ -8,6 +8,10 @@
 
 <div align="center">
   <img src="docs/images/reg_penalties.jpg" height="450"><br>  
+</div>
+
+<div align="center">
+  <img src="docs/images/TV_vs_NLTV.jpg" height="300"><br>  
 </div>
 
 ## Prerequisites: 
@@ -27,7 +31,7 @@
 5. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *8*)
 6. Anisotropic Fourth-Order Diffusion (explicit PDE minimisation) **2D/3D CPU/GPU** (Ref. *9*)
 7. A joint ROF-LLT (Lysaker-Lundervold-Tai) model for higher-order regularisation **2D/3D CPU/GPU** (Ref. *10,11*)
-8. Nonlocal Total Variation regularisation (GS fixed point iteration) **2D/3D CPU/GPU** (Ref. *12*)
+8. Nonlocal Total Variation regularisation (GS fixed point iteration) **2D CPU/GPU** (Ref. *12*)
 
 ### Multi-channel (denoising):
 1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,4,2*)
@@ -158,7 +162,7 @@ addpath(/path/to/library);
 
 ### Applications:
 
-* [Regularised FISTA iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB code)](https://github.com/dkazanc/FISTA-tomo)
+* [Regularised FISTA iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB/Python code)](https://github.com/dkazanc/FISTA-tomo)
 * [Regularised ADMM iterative reconstruction algorithm for X-ray tomographic reconstruction (MATLAB code)](https://github.com/dkazanc/ADMM-tomo)
 * [Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography (MATLAB code)](https://github.com/dkazanc/multi-channel-X-ray-CT)
 

@@ -4,7 +4,7 @@ script which assigns a proper device core function based on a flag ('cpu' or 'gp
 
 from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, Diff4th_CPU, TGV_CPU, LLT_ROF_CPU, PATCHSEL_CPU, NLTV_CPU
 try:
-    from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU, TGV_GPU, LLT_ROF_GPU
+    from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU, TGV_GPU, LLT_ROF_GPU, PATCHSEL_GPU
     gpu_enabled = True
 except ImportError:
     gpu_enabled = False    
@@ -153,7 +153,11 @@ def PatchSelect(inputData, searchwindow, patchwindow, neighbours, edge_parameter
                      neighbours, 
                      edge_parameter)
     elif device == 'gpu' and gpu_enabled:
-        return 1
+        return PATCHSEL_GPU(inputData,
+                     searchwindow,
+                     patchwindow,
+                     neighbours, 
+                     edge_parameter)
     else:
         if not gpu_enabled and device == 'gpu':
     	    raise ValueError ('GPU is not available')
