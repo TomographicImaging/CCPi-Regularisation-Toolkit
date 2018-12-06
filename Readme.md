@@ -10,6 +10,10 @@
   <img src="docs/images/reg_penalties.jpg" height="450"><br>  
 </div>
 
+<div align="center">
+  <img src="docs/images/TV_vs_NLTV.jpg.jpg" height="480"><br>  
+</div>
+
 ## Prerequisites: 
 
  * [MATLAB](www.mathworks.com/products/matlab/) OR
