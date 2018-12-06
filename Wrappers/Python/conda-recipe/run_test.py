@@ -90,6 +90,9 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
+
         rms = rmse(Im, rof_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = ROF_TV
@@ -173,6 +176,9 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
+
         rms = rmse(Im, fgp_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = FGP_TV
@@ -255,6 +261,9 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
+
         rms = rmse(Im, sb_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = SB_TV
@@ -333,6 +342,9 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
+
         rms = rmse(Im, tgv_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = TGV
@@ -407,6 +419,9 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
+
         rms = rmse(Im, lltrof_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = LLT_ROF
@@ -485,6 +500,8 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
         rms = rmse(Im, ndf_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = NDF
@@ -559,6 +576,8 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
         rms = rmse(Im, diff4th_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = DIFF4th
@@ -645,6 +664,8 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
         rms = rmse(Im, fgp_dtv_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = FGP_dTV
@@ -767,6 +788,9 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
+
         rms_rof = rmse(Im, rof_gpu)
         # now compare obtained rms with the expected value
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
@@ -808,6 +832,8 @@ class TestRegularisers(unittest.TestCase):
         except ValueError as ve:
             self.assertTrue(True)
             return
+        except:
+            self.skipTest()
         rms_fgp = rmse(Im, fgp_gpu)
         # now compare obtained rms with the expected value
         self.assertLess(abs(rms_fgp-rms_fgp_exp) , tolerance)
