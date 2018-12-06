@@ -11,7 +11,7 @@
 </div>
 
 <div align="center">
-  <img src="docs/images/TV_vs_NLTV.jpg" height="380"><br>  
+  <img src="docs/images/TV_vs_NLTV.jpg" height="300"><br>  
 </div>
 
 ## Prerequisites: 
