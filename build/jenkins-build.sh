@@ -9,4 +9,4 @@ conda install -y conda-build
 #export CIL_VERSION=0.10.2
 export CIL_VERSION=0.10.2
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
-conda build --debug Wrappers/Python/conda-recipe
+conda build Wrappers/Python/conda-recipe
