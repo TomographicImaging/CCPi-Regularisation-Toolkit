@@ -22,7 +22,7 @@ if [[ -n ${CIL_VERSION} ]]
 then
   echo Using defined version: $CIL_VERSION
 else
-  export CIL_VERSION=0.10.2
+  export CIL_VERSION=0.10.3
   echo Defining version: $CIL_VERSION
 fi
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
