@@ -39,7 +39,19 @@ limitations under the License.
 */
 
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
+#define checkCudaErrors(call)                                                            \
+{                                                                              \
+    const cudaError_t error = call;                                            \
+    if (error != cudaSuccess)                                                  \
+    {                                                                          \
+        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
+        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
+                cudaGetErrorString(error));                                    \
+        return;                                                                \
+    }                                                                          \
+}
+
+/*#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
 
 inline void __checkCudaErrors(cudaError err, const char *file, const int line)
 {
@@ -49,7 +61,7 @@ inline void __checkCudaErrors(cudaError err, const char *file, const int line)
                 file, line, (int)err, cudaGetErrorString(err));
         return;
     }
-}
+}*/
 
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
