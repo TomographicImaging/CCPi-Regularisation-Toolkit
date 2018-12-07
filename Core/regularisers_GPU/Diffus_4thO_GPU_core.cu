@@ -39,15 +39,13 @@ limitations under the License.
 #define CHECK(call)                                                            \
 {                                                                              \
     const cudaError_t error = call;                                            \
-    const int ERR=1;                                                           \
-    const int OK=0;                                                            \
     if (error != cudaSuccess)                                                  \
     {                                                                          \
         fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
         fprintf(stderr, "code: %d, reason: %s\n", error,                       \
                 cudaGetErrorString(error));                                    \
-        ERR;                                                                   \
-    } else {OK;}                                                               \
+        exit(0);                                                               \
+    }                                                                          \
 }
     
 #define BLKXSIZE 8
@@ -230,21 +228,21 @@ __global__ void Diffusion_update_step3D_kernel(float *Output, float *Input, floa
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z)
+extern "C" void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z)
 {
 		int dimTotal, dev = 0;
-		if (CHECK(cudaSetDevice(dev))>0) return 1;
+		CHECK(cudaSetDevice(dev));
         float *d_input, *d_output, *d_W_Lapl;
         float sigmaPar2;
         sigmaPar2 = sigmaPar*sigmaPar;
         dimTotal = N*M*Z;
         
-        if (CHECK(cudaMalloc((void**)&d_input,dimTotal*sizeof(float)))>0) return 1;
-        if (CHECK(cudaMalloc((void**)&d_output,dimTotal*sizeof(float)))>0) return 1;
-        if (CHECK(cudaMalloc((void**)&d_W_Lapl,dimTotal*sizeof(float)))>0) return 1;
+        CHECK(cudaMalloc((void**)&d_input,dimTotal*sizeof(float)));
+        CHECK(cudaMalloc((void**)&d_output,dimTotal*sizeof(float)));
+        CHECK(cudaMalloc((void**)&d_W_Lapl,dimTotal*sizeof(float)));
                 
-        if (CHECK(cudaMemcpy(d_input,Input,dimTotal*sizeof(float),cudaMemcpyHostToDevice))>0) return 1;
-        if (CHECK(cudaMemcpy(d_output,Input,dimTotal*sizeof(float),cudaMemcpyHostToDevice))>0) return 1;
+        CHECK(cudaMemcpy(d_input,Input,dimTotal*sizeof(float),cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(d_output,Input,dimTotal*sizeof(float),cudaMemcpyHostToDevice));
         
 	if (Z == 1) {
 	     /*2D case */
@@ -277,5 +275,4 @@ extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, 
         CHECK(cudaFree(d_input));
         CHECK(cudaFree(d_output));
         CHECK(cudaFree(d_W_Lapl));
-        return 0;
 }
