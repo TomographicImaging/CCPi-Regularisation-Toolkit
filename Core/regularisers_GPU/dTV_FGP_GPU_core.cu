@@ -54,7 +54,7 @@ inline void __checkCudaErrors(cudaError err, const char *file, const int line)
     {
         fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",
                 file, line, (int)err, cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
+        return;
     }
 }
 
