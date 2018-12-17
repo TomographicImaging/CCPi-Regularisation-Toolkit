@@ -461,7 +461,7 @@ extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, fl
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
-        return;
+        return -1;
     }
     
     int count = 0, i;
