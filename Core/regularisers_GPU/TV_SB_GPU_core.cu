@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "TV_SB_GPU_core.h"
+#include "shared.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
