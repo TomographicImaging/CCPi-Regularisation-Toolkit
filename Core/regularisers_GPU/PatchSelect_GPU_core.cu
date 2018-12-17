@@ -397,7 +397,7 @@ extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned shor
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
-        return;
+        return -1;
     }  
       
     int SearchW_full, SimilW_full, counterG, i, j;
@@ -440,7 +440,7 @@ extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned shor
     else if (SearchWindow == 13)  IndexSelect2D_13_kernel<<<dimGrid,dimBlock>>>(Ad, H_i_d, H_j_d, Weights_d, Eucl_Vec_d, N, M, SearchWindow, SearchW_full, SimilarWin, NumNeighb, h2);
     else {
     fprintf(stderr, "Select the searching window size from 5, 7, 9, 11 or 13\n");
-        return;}    
+        return -1;}    
     checkCudaErrors(cudaPeekAtLastError() );        
     checkCudaErrors(cudaDeviceSynchronize());   
     /***************************************************************/    
