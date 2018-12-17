@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "NonlDiff_GPU_core.h"
+#include "shared.h"
 
 /* CUDA implementation of linear and nonlinear diffusion with the regularisation model [1,2] (2D/3D case)
  * The minimisation is performed using explicit scheme. 
@@ -38,18 +39,7 @@ limitations under the License.
  * [2] Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.
  */
 
-#define CHECK(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        return;                                                               \
-    }                                                                          \
-}
-    
+
 #define BLKXSIZE 8
 #define BLKYSIZE 8
 #define BLKZSIZE 8
@@ -295,7 +285,7 @@ __global__ void NonLinearDiff3D_kernel(float *Input, float *Output, float lambda
 
 /////////////////////////////////////////////////
 // HOST FUNCTION
-extern "C" void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z)
+extern "C" int NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z)
 {
 	    // set up device
 		int dev = 0;
@@ -350,5 +340,6 @@ extern "C" void NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, 
         CHECK(cudaMemcpy(Output,d_output,N*M*Z*sizeof(float),cudaMemcpyDeviceToHost));
         CHECK(cudaFree(d_input));
         CHECK(cudaFree(d_output));
-        //cudaDeviceReset(); 
+        //cudaDeviceReset();
+        return 0;
 }

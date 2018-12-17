@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "Diffus_4thO_GPU_core.h"
+#include "shared.h"
 
 /* CUDA implementation of fourth-order diffusion scheme [1] for piecewise-smooth recovery (2D/3D case)
  * The minimisation is performed using explicit scheme. 
@@ -36,18 +37,6 @@ limitations under the License.
  * [1] Hajiaboli, M.R., 2011. An anisotropic fourth-order diffusion filter for image noise removal. International Journal of Computer Vision, 92(2), pp.177-191.
  */
 
-#define CHECK(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        return;                                                                \
-    }                                                                          \
-}
-    
 #define BLKXSIZE 8
 #define BLKYSIZE 8
 #define BLKZSIZE 8
@@ -228,7 +217,7 @@ __global__ void Diffusion_update_step3D_kernel(float *Output, float *Input, floa
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z)
+extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z)
 {
 		int dimTotal, dev = 0;
 		CHECK(cudaSetDevice(dev));
@@ -275,4 +264,5 @@ extern "C" void Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar,
         CHECK(cudaFree(d_input));
         CHECK(cudaFree(d_output));
         CHECK(cudaFree(d_W_Lapl));
+        return 0;
 }

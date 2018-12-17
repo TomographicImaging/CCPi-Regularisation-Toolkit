@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "TV_FGP_GPU_core.h"
+#include "shared.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -39,30 +40,6 @@ limitations under the License.
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
 
-// This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#define checkCudaErrors(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        return;                                                                \
-    }                                                                          \
-}
-
-/*#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
-
-inline void __checkCudaErrors(cudaError err, const char *file, const int line)
-{
-    if (cudaSuccess != err)
-    {
-        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",
-                file, line, (int)err, cudaGetErrorString(err));
-        return;
-    }
-}*/
 
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
@@ -366,13 +343,13 @@ __global__ void FGPResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
-        return;
+        return -1;
     }
     
     int count = 0, i;
@@ -582,5 +559,6 @@ extern "C" void TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, in
             cudaFree(R2);        
             cudaFree(R3);        
     } 
-    //cudaDeviceReset(); 
+    //cudaDeviceReset();
+    return 0;
 }

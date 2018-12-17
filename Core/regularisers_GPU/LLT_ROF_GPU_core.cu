@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "LLT_ROF_GPU_core.h"
+#include "shared.h"
 
 /* CUDA implementation of Lysaker, Lundervold and Tai (LLT) model [1] combined with Rudin-Osher-Fatemi [2] TV regularisation penalty.
  * 
@@ -40,18 +41,6 @@ limitations under the License.
 * [2] Rudin, Osher, Fatemi, "Nonlinear Total Variation based noise removal algorithms"
 */
 
-#define CHECK(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        return;                                                               \
-    }                                                                          \
-}
-    
 #define BLKXSIZE 8
 #define BLKYSIZE 8
 #define BLKZSIZE 8
@@ -403,7 +392,7 @@ __global__ void Update3D_LLT_ROF_kernel(float *U0, float *U, float *D1_LLT, floa
 /************************ HOST FUNCTION ****************************/
 /*******************************************************************/
 
-extern "C" void LLT_ROF_GPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int N, int M, int Z)
+extern "C" int LLT_ROF_GPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int N, int M, int Z)
 {
 	    // set up device
 		int dev = 0;
@@ -480,4 +469,5 @@ extern "C" void LLT_ROF_GPU_main(float *Input, float *Output, float lambdaROF, f
         CHECK(cudaFree(D1_ROF));
         CHECK(cudaFree(D2_ROF));
         CHECK(cudaFree(D3_ROF));
+        return 0;
 }
