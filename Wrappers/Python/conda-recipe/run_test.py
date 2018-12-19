@@ -37,7 +37,7 @@ class TestRegularisers(unittest.TestCase):
     
 
     def test_ROF_TV_CPU_vs_GPU(self):
-        print ("tomas debug test function")
+        #print ("tomas debug test function")
         print(__name__)
         filename = os.path.join("lena_gray_512.tif")
         plt = TiffReader()
@@ -65,11 +65,11 @@ class TestRegularisers(unittest.TestCase):
         
         # set parameters
         pars = {'algorithm': ROF_TV, \
-                'input' : u0,\
-                'regularisation_parameter':0.04,\
-                'number_of_iterations': 1000,\
-                'time_marching_parameter': 0.0001
-                }
+        'input' : u0,\
+        'regularisation_parameter':0.04,\
+        'number_of_iterations': 2500,\
+        'time_marching_parameter': 0.00002
+        }
         print ("#############ROF TV CPU####################")
         start_time = timeit.default_timer()
         rof_cpu = ROF_TV(pars['input'],
@@ -607,8 +607,8 @@ class TestRegularisers(unittest.TestCase):
                 'input' : u0,\
                 'refdata' : u_ref,\
                 'regularisation_parameter':0.04, \
-                'number_of_iterations' :2000 ,\
-                'tolerance_constant':1e-06,\
+                'number_of_iterations' :1000 ,\
+                'tolerance_constant':1e-07,\
                 'eta_const':0.2,\
                 'methodTV': 0 ,\
                 'nonneg': 0 ,\
