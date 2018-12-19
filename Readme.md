@@ -69,7 +69,6 @@ Here an example of build on Linux (see also `run.sh` for additional info):
 
 ```bash
 git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit.git
-mkdir build
 cd build
 cmake .. -DCONDA_BUILD=OFF -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
 make install
@@ -124,7 +123,7 @@ On Windows the `dll` and the mex modules must reside in the same directory. It i
 addpath(/path/to/library);
 ```
 
-#### Legacy Matlab installation
+#### Legacy Matlab installation (partly supported, please use Cmake)
 ```
 	
 	cd /Wrappers/Matlab/mex_compile
