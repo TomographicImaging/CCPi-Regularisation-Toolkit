@@ -16,7 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */ 
-
+#include "shared.h"
 #include "dTV_FGP_GPU_core.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
@@ -44,19 +44,6 @@ limitations under the License.
  * [2] M. J. Ehrhardt and M. M. Betcke, Multi-Contrast MRI Reconstruction with Structure-Guided Total Variation, SIAM Journal on Imaging Sciences 9(3), pp. 1084–1106
  */
  
-
-// This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
-
-inline void __checkCudaErrors(cudaError err, const char *file, const int line)
-{
-    if (cudaSuccess != err)
-    {
-        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",
-                file, line, (int)err, cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
-    }
-}
 
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
@@ -468,13 +455,13 @@ __global__ void dTVnonneg3D_kernel(float* Output, int N, int M, int Z, int num_t
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iter, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iter, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
-        return;
+        return -1;
     }
     
     int count = 0, i;
@@ -748,6 +735,7 @@ extern "C" void dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, f
             cudaFree(InputRef_y);
             cudaFree(InputRef_z);
             cudaFree(d_InputRef);
-    } 
-    //cudaDeviceReset(); 
+    }
+    //cudaDeviceReset();
+    return 0;
 }

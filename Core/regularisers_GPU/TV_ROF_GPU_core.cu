@@ -35,18 +35,7 @@ limitations under the License.
 *
 * D. Kazantsev, 2016-18
 */
-
-#define CHECK(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        exit(1);                                                               \
-    }                                                                          \
-}
+#include "shared.h"
     
 #define BLKXSIZE 8
 #define BLKYSIZE 8
@@ -304,7 +293,7 @@ __host__ __device__ int sign (float x)
 
 /////////////////////////////////////////////////
 // HOST FUNCTION
-extern "C" void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z)
+extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z)
 {
 	    // set up device
 		int dev = 0;
@@ -364,5 +353,6 @@ extern "C" void TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, in
         CHECK(cudaFree(d_update));
         CHECK(cudaFree(d_D1));
         CHECK(cudaFree(d_D2));        
-        //cudaDeviceReset(); 
+        //cudaDeviceReset();
+        return 0;
 }

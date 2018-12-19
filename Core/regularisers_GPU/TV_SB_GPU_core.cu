@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "TV_SB_GPU_core.h"
+#include "shared.h"
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -39,17 +40,6 @@ limitations under the License.
 */
 
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
-
-inline void __checkCudaErrors(cudaError err, const char *file, const int line)
-{
-    if (cudaSuccess != err)
-    {
-        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",
-                file, line, (int)err, cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
-    }
-}
 
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
@@ -363,13 +353,13 @@ __global__ void SBResidCalc3D_kernel(float *Input1, float *Input2, float* Output
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ)
+extern "C" int TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
-        return;
+        return -1;
     }
     
 	int ll, DimTotal;
@@ -557,5 +547,6 @@ extern "C" void TV_SB_GPU_main(float *Input, float *Output, float mu, int iter, 
             cudaFree(By);
             cudaFree(Bz);
     } 
-    //cudaDeviceReset(); 
+    //cudaDeviceReset();
+    return 0;
 }

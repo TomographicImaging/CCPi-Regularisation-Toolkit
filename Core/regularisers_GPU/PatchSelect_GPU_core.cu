@@ -19,6 +19,7 @@
  */
 
 #include "PatchSelect_GPU_core.h"
+#include "shared.h"
 
 /* CUDA implementation of non-local weight pre-calculation for non-local priors
  * Weights and associated indices are stored into pre-allocated arrays and passed
@@ -38,18 +39,6 @@
  * 3. Weights_ij - associated weights
  */
 
-// This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
-
-inline void __checkCudaErrors(cudaError err, const char *file, const int line)
-{
-    if (cudaSuccess != err)
-    {
-        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",
-                file, line, (int)err, cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
-    }
-}
 
 #define BLKXSIZE 16
 #define BLKYSIZE 16
@@ -402,13 +391,13 @@ __global__ void IndexSelect2D_13_kernel(float *Ad, unsigned short *H_i_d, unsign
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" void PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned short *H_j, float *Weights, int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h)
+extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned short *H_j, float *Weights, int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
-        return;
+        return -1;
     }  
       
     int SearchW_full, SimilW_full, counterG, i, j;
@@ -451,7 +440,7 @@ extern "C" void PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned sho
     else if (SearchWindow == 13)  IndexSelect2D_13_kernel<<<dimGrid,dimBlock>>>(Ad, H_i_d, H_j_d, Weights_d, Eucl_Vec_d, N, M, SearchWindow, SearchW_full, SimilarWin, NumNeighb, h2);
     else {
     fprintf(stderr, "Select the searching window size from 5, 7, 9, 11 or 13\n");
-        return;}    
+        return -1;}    
     checkCudaErrors(cudaPeekAtLastError() );        
     checkCudaErrors(cudaDeviceSynchronize());   
     /***************************************************************/    
@@ -465,4 +454,5 @@ extern "C" void PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned sho
     cudaFree(H_j_d);    
     cudaFree(Weights_d);    
     cudaFree(Eucl_Vec_d);
+    return 0;
 }

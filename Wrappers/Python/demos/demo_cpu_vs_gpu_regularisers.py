@@ -656,8 +656,8 @@ pars = {'algorithm' : FGP_dTV, \
         'input' : u0,\
         'refdata' : u_ref,\
         'regularisation_parameter':0.04, \
-        'number_of_iterations' :2000 ,\
-        'tolerance_constant':1e-06,\
+        'number_of_iterations' :1000 ,\
+        'tolerance_constant':1e-07,\
         'eta_const':0.2,\
         'methodTV': 0 ,\
         'nonneg': 0 ,\

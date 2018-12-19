@@ -18,6 +18,7 @@ limitations under the License.
 */ 
 
 #include "TGV_GPU_core.h"
+#include "shared.h"
 
 /* CUDA implementation of Primal-Dual denoising method for 
  * Total Generilized Variation (TGV)-L2 model [1] (2D case only)
@@ -36,19 +37,6 @@ limitations under the License.
  * References:
  * [1] K. Bredies "Total Generalized Variation"
  */
-
-#define CHECK(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        exit(1);                                                               \
-    }                                                                          \
-}
-    
     
 #define BLKXSIZE2D 16
 #define BLKYSIZE2D 16
@@ -239,7 +227,7 @@ __global__ void newU_kernel(float *U, float *U_old, int N, int M, int num_total)
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" void TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY)
+extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY)
 {
 		int dimTotal, dev = 0;
 		CHECK(cudaSetDevice(dev));
@@ -320,4 +308,5 @@ extern "C" void TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, fl
         CHECK(cudaFree(V2));
         CHECK(cudaFree(V1_old));
         CHECK(cudaFree(V2_old));
+        return 0;
 }

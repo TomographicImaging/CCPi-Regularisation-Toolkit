@@ -3,7 +3,7 @@ echo "Building CCPi-regularisation Toolkit using CMake"
 # rm -r build
 # Requires Cython, install it first: 
 # pip install cython
-mkdir build
+# mkdir build
 cd build/
 make clean
 # install Python modules only without CUDA
