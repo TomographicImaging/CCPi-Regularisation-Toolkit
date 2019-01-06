@@ -449,10 +449,12 @@ extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned shor
     checkCudaErrors(cudaMemcpy(H_j, H_j_d, N*M*NumNeighb*sizeof(unsigned short),cudaMemcpyDeviceToHost) );  
     checkCudaErrors(cudaMemcpy(Weights, Weights_d, N*M*NumNeighb*sizeof(float),cudaMemcpyDeviceToHost) );   
     
+    
     cudaFree(Ad); 
     cudaFree(H_i_d); 
     cudaFree(H_j_d);    
-    cudaFree(Weights_d);    
+    cudaFree(Weights_d);
     cudaFree(Eucl_Vec_d);
+    cudaDeviceReset();
     return 0;
 }
