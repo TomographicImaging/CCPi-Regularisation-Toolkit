@@ -100,6 +100,9 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
             newU(V1, V1_old, (long)(dimX), (long)(dimY));
             newU(V2, V2_old, (long)(dimX), (long)(dimY));
         } /*end of iterations*/
+    /*freeing*/
+    free(P1);free(P2);free(Q1);free(Q2);free(Q3);free(U_old);
+    free(V1);free(V2);free(V1_old);free(V2_old);
 	return *U;
 }
 
