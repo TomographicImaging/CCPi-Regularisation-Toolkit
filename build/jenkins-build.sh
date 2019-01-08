@@ -26,4 +26,4 @@ else
   echo Defining version: $CIL_VERSION
 fi
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
-export REG_FILES=`conda build Wrappers/Python/conda-recipe`
+export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
