@@ -26,4 +26,8 @@ else
   echo Defining version: $CIL_VERSION
 fi
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
+# need to call first build
+conda build Wrappers/Python/conda-recipe
+# then need to call the same with --output 
+#- otherwise no build is done :-(, just fake file names are generated
 export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
