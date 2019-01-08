@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script to builds source code in Jenkins environment
-module try-load conda
+# module try-load conda
 
 # install miniconda if the module is not present
 if hash conda 2>/dev/null; then
