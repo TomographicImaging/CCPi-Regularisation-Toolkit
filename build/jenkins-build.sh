@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+if [[ -n ${CIL_VERSION} ]]
+then
+  echo Using defined version: $CIL_VERSION
+else
+  export CIL_VERSION=0.10.4
+  echo Defining version: $CIL_VERSION
+fi
 # Script to builds source code in Jenkins environment
 # module try-load conda
 
@@ -18,13 +25,6 @@ fi
 # git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
 #export CIL_VERSION=0.10.2
-if [[ -n ${CIL_VERSION} ]]
-then
-  echo Using defined version: $CIL_VERSION
-else
-  export CIL_VERSION=0.10.4
-  echo Defining version: $CIL_VERSION
-fi
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
 # need to call first build
 conda build Wrappers/Python/conda-recipe
