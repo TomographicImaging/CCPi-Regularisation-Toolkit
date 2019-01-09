@@ -34,7 +34,7 @@ export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
 # REG_FILES variable should contain output files
 echo files created: $REG_FILES
 #upload to anaconda
-if [[ -n ${CCPI_CONDA_TOKEN}]]
+if [[ -n ${CCPI_CONDA_TOKEN} ]]
 then
   conda install anaconda-client
   while read -r outfile; do
