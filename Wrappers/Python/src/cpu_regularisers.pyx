@@ -199,9 +199,16 @@ def TV_SB_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #***************************************************************#
 def TGV_CPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst):
     if inputData.ndim == 2:
-        return TGV_2D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst)
+        return TGV_2D(inputData, regularisation_parameter, alpha1, alpha0, 
+                      iterations, LipshitzConst)
     elif inputData.ndim == 3:
-        return 0
+        shape = inputData.shape
+        print (shape)
+        out = inputData.copy()
+        for i in range(shape[0]):
+            out[i,:,:] = TGV_2D(inputData[i,:,:], regularisation_parameter, 
+               alpha1, alpha0, iterations, LipshitzConst)
+        return out
 
 def TGV_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,
