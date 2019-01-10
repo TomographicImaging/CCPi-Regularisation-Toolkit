@@ -191,7 +191,7 @@ def TGV(inputData, regularisation_parameter, alpha1, alpha0, iterations,
                     LipshitzConst)
     else:
         if not gpu_enabled and device == 'gpu':
-    	    raise ValueError ('GPU is not available')
+            raise ValueError ('GPU is not available')
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
 def LLT_ROF(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations,
