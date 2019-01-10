@@ -203,7 +203,6 @@ def TGV_CPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, Lip
                       iterations, LipshitzConst)
     elif inputData.ndim == 3:
         shape = inputData.shape
-        print (shape)
         out = inputData.copy()
         for i in range(shape[0]):
             out[i,:,:] = TGV_2D(inputData[i,:,:], regularisation_parameter, 
