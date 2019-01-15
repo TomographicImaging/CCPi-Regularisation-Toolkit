@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+# TODO put git tag recognition
 if [[ -n ${CIL_VERSION} ]]
 then
   echo Using defined version: $CIL_VERSION
 else
+# TODO put git tag recognition, or default
   export CIL_VERSION=0.10.4
   echo Defining version: $CIL_VERSION
 fi
@@ -38,6 +40,8 @@ if [[ -n ${CCPI_CONDA_TOKEN} ]]
 then
   conda install anaconda-client
   while read -r outfile; do
+    #TODO if git tag is defined than call anaconda without --label dev
+    #TODO if pull request??? do not upload 
     anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
   done <<< "$REG_FILES"
 else
