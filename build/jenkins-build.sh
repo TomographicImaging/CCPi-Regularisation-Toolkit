@@ -53,7 +53,7 @@ then
   while read -r outfile; do
     #TODO if git tag is defined than call anaconda without --label dev
     #TODO if pull request??? do not upload 
-    if [[ $CIL_VERSION == *"_"*]]; then
+    if [[ $CIL_VERSION == *"_"* ]]; then
       # upload with dev label
       anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
     else 
