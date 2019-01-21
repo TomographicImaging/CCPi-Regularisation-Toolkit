@@ -12,6 +12,8 @@ else
     # detected dash means that it is dev version
     # version is then string-string and all after second dash is ignored (usually commit sha)
     export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
+    # but dash is prohibited for conda build
+    export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
     echo Building dev version ${CIL_VERSION}
   else
     echo Defining version from last git tag and commit: $CIL_VERSION
@@ -51,7 +53,7 @@ then
   while read -r outfile; do
     #TODO if git tag is defined than call anaconda without --label dev
     #TODO if pull request??? do not upload 
-    if [[ $CIL_VERSION == *"-"*]]; then
+    if [[ $CIL_VERSION == *"_"*]]; then
       # upload with dev label
       anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
     else 
