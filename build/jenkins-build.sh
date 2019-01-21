@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
+
 if [[ -n ${CIL_VERSION} ]]
 then
   echo Using defined version: $CIL_VERSION
 else
-  export CIL_VERSION=0.10.4
-  echo Defining version: $CIL_VERSION
+
+  #get tag, remove first char ('v') and leave rest
+  export CIL_VERSION=`git describe --tags | tail -c +2`  
+  if [[ ${CIL_VERSION} == *"-"* ]]; then
+    # detected dash means that it is dev version
+    # version is then string-string and all after second dash is ignored (usually commit sha)
+    export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
+    # but dash is prohibited for conda build
+    export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
+    echo Building dev version ${CIL_VERSION}
+  else
+    echo Defining version from last git tag and commit: $CIL_VERSION
+  fi 
 fi
 # Script to builds source code in Jenkins environment
 # module try-load conda
@@ -20,9 +32,8 @@ else
   ./Miniconda3-latest-Linux-x86_64.sh -u -b -p .
   PATH=$PATH:./bin
 fi
-
 # presume that git clone is done before this script is launched, if not, uncomment
-# git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+#git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
 # need to call first build
@@ -37,7 +48,14 @@ if [[ -n ${CCPI_CONDA_TOKEN} ]]
 then
   conda install anaconda-client
   while read -r outfile; do
-    anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
+    #if 0 commit after tag then call anaconda without --label dev
+    #TODO if pull request??? do not upload 
+    if [[ $CIL_VERSION == *"_"* ]]; then
+      # upload with dev label
+      anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
+    else 
+      anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force
+    fi
   done <<< "$REG_FILES"
 else
   echo CCPI_CONDA_TOKEN not defined, will not upload to anaconda.

@@ -9,7 +9,7 @@ project(regulariserPython)
 #set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
 
 # conda orchestrated build
-message("CIL_VERSION ${CIL_VERSION}")
+message("CIL_VERSION: ${CIL_VERSION}")
 #include (GenerateExportHeader)
 
 find_package(PythonInterp REQUIRED)

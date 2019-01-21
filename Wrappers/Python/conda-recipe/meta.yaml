@@ -5,6 +5,8 @@ package:
 build:
   preserve_egg_dir: False
   number: 0
+  script_env:
+    - CIL_VERSION
   
 test:
   files:
