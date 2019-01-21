@@ -5,8 +5,11 @@ then
   echo Using defined version: $CIL_VERSION
 else
 # TODO put git tag recognition, or default
-  export CIL_VERSION=0.10.4
-  echo Defining version: $CIL_VERSION
+  #export CIL_VERSION=0.10.4
+  #get tag, remove first char ('v') and leave rest
+  export CIL_VERSION_RAW=`git describe --tags | tail -c +2`
+
+  echo Defining version from last git tag and commit: $CIL_VERSION
 fi
 # Script to builds source code in Jenkins environment
 # module try-load conda
