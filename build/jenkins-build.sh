@@ -7,9 +7,15 @@ else
 # TODO put git tag recognition, or default
   #export CIL_VERSION=0.10.4
   #get tag, remove first char ('v') and leave rest
-  export CIL_VERSION_RAW=`git describe --tags | tail -c +2`
-
-  echo Defining version from last git tag and commit: $CIL_VERSION
+  export CIL_VERSION=`git describe --tags | tail -c +2`  
+  if [[ $CIL_VERSION == *"-"*]]; then
+    # detected dash means that it is dev version
+    # version is then string-string and all after second dash is ignored (usually commit sha)
+    export CIL_VERSION=`echo $C1 | cut -d "-" -f -2`
+    echo Building dev version
+  else
+    echo Defining version from last git tag and commit: $CIL_VERSION
+  fi 
 fi
 # Script to builds source code in Jenkins environment
 # module try-load conda
@@ -27,7 +33,7 @@ else
 fi
 
 # presume that git clone is done before this script is launched, if not, uncomment
-# git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+#git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
 #export CIL_VERSION=0.10.2
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
@@ -45,7 +51,12 @@ then
   while read -r outfile; do
     #TODO if git tag is defined than call anaconda without --label dev
     #TODO if pull request??? do not upload 
-    anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
+    if [[ $CIL_VERSION == *"-"*]]; then
+      # upload with dev label
+      anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
+    else 
+      anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force
+    fi
   done <<< "$REG_FILES"
 else
   echo CCPI_CONDA_TOKEN not defined, will not upload to anaconda.
