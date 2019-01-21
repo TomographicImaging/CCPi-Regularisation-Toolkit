@@ -8,11 +8,11 @@ else
   #export CIL_VERSION=0.10.4
   #get tag, remove first char ('v') and leave rest
   export CIL_VERSION=`git describe --tags | tail -c +2`  
-  if [[ $CIL_VERSION == *"-"* ]]; then
+  if [[ ${CIL_VERSION} == *"-"* ]]; then
     # detected dash means that it is dev version
     # version is then string-string and all after second dash is ignored (usually commit sha)
-    export CIL_VERSION=`echo $C1 | cut -d "-" -f -2`
-    echo Building dev version
+    export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
+    echo Building dev version ${CIL_VERSION}
   else
     echo Defining version from last git tag and commit: $CIL_VERSION
   fi 
