@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# TODO put git tag recognition
+
 if [[ -n ${CIL_VERSION} ]]
 then
   echo Using defined version: $CIL_VERSION
 else
-# TODO put git tag recognition, or default
-  #export CIL_VERSION=0.10.4
+
   #get tag, remove first char ('v') and leave rest
   export CIL_VERSION=`git describe --tags | tail -c +2`  
   if [[ ${CIL_VERSION} == *"-"* ]]; then
@@ -33,11 +32,9 @@ else
   ./Miniconda3-latest-Linux-x86_64.sh -u -b -p .
   PATH=$PATH:./bin
 fi
-
 # presume that git clone is done before this script is launched, if not, uncomment
 #git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
-#export CIL_VERSION=0.10.2
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
 # need to call first build
 conda build Wrappers/Python/conda-recipe
@@ -52,7 +49,7 @@ if [[ -n ${CCPI_CONDA_TOKEN} ]]
 then
   conda install anaconda-client
   while read -r outfile; do
-    #TODO if git tag is defined than call anaconda without --label dev
+    #if 0 commit after tag then call anaconda without --label dev
     #TODO if pull request??? do not upload 
     if [[ $CIL_VERSION == *"_"* ]]; then
       # upload with dev label
