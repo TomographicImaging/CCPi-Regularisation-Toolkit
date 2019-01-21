@@ -33,7 +33,6 @@ else
   ./Miniconda3-latest-Linux-x86_64.sh -u -b -p .
   PATH=$PATH:./bin
 fi
-
 # presume that git clone is done before this script is launched, if not, uncomment
 #git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
