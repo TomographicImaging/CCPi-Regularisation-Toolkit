@@ -8,14 +8,13 @@ else
   export CIL_VERSION=`git describe --tags | tail -c +2`  
   # dash means that it's some commit after tag release -thus will be treated as dev
   if [[ ${CIL_VERSION} == *"-"* ]]; then
-    # detected dash means that it is dev version
-    # version is then string-string and all after second dash is ignored (usually commit sha)
-    export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
-    # but dash is prohibited for conda build, replace with underscore
-    export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
-    echo Building dev version ${CIL_VERSION}
+    # detected dash means that it is dev version, 
+    # get first and second part between first dash and ignore all after other dash (usually sha)
+    # and as dash is prohibited for conda build, replace with underscore
+    export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2 | tr - _`    
+    echo Building dev version: ${CIL_VERSION}
   else
-    echo Defining version from last git tag and commit: $CIL_VERSION
+    echo Building release version: $CIL_VERSION
   fi
 fi
 
