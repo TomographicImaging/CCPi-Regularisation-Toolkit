@@ -23,7 +23,7 @@ fi
 
 # install miniconda if the module is not present
 if hash conda 2>/dev/null; then
-  echo using conda
+  echo using installed conda
 else
   if [ ! -f Miniconda3-latest-Linux-x86_64.sh ]; then
     wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -43,7 +43,6 @@ conda build Wrappers/Python/conda-recipe
 export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
 # REG_FILES variable should contain output files
 echo files created: $REG_FILES
-
 
 # upload to anaconda only if token is defined
 # and TODO pull request not to upload 
