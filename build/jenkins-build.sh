@@ -50,19 +50,21 @@ echo files created: $REG_FILES
 GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 echo on branch ${GIT_BRANCH}
 
-if [[ -n ${CCPI_CONDA_TOKEN} && ${GIT_BRANCH}=="master" ]]
-then
-  conda install anaconda-client
-  while read -r outfile; do
-    #if 0 commit after tag then call anaconda without --label dev
-    
-    if [[ $CIL_VERSION == *"_"* ]]; then
-      # upload with dev label
-      anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
-    else 
-      anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force
-    fi
-  done <<< "$REG_FILES"
+if [[ -n ${CCPI_CONDA_TOKEN} ]]; then
+  if [[ ${GIT_BRANCH}=="master" ]]; then
+    conda install anaconda-client
+    while read -r outfile; do
+      #if >0 commit (some _ in version) then marking as dev build
+      if [[ $CIL_VERSION == *"_"* ]]; then
+        # upload with dev label
+        anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
+      else
+        anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force
+      fi
+    done <<< "$REG_FILES"
+  else
+    echo git branch is not master, will not upload to anaconda.
+  fi
 else
-  echo CCPI_CONDA_TOKEN not defined or git branch is not master, will not upload to anaconda.
+  echo CCPI_CONDA_TOKEN not defined, will not upload to anaconda.
 fi
