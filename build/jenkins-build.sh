@@ -44,8 +44,10 @@ export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
 # REG_FILES variable should contain output files
 echo files created: $REG_FILES
 
+
 # upload to anaconda only if token is defined
 # and TODO pull request not to upload 
+
 if [[ -n ${CCPI_CONDA_TOKEN} ]]
 then
   conda install anaconda-client
