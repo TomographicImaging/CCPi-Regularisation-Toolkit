@@ -5,19 +5,19 @@ then
   echo Using defined version: $CIL_VERSION
 else
 
-  #get tag, remove first char ('v') and leave rest
-  export CIL_VERSION=`git describe --tags | tail -c +2`  
-  if [[ ${CIL_VERSION} == *"-"* ]]; then
-    # detected dash means that it is dev version
-    # version is then string-string and all after second dash is ignored (usually commit sha)
-    export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
-    # but dash is prohibited for conda build
-    export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
-    echo Building dev version ${CIL_VERSION}
-  else
-    echo Defining version from last git tag and commit: $CIL_VERSION
-  fi 
-fi
+#get tag, remove first char ('v') and leave rest
+export CIL_VERSION=`git describe --tags | tail -c +2`  
+if [[ ${CIL_VERSION} == *"-"* ]]; then
+  # detected dash means that it is dev version
+  # version is then string-string and all after second dash is ignored (usually commit sha)
+  export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
+  # but dash is prohibited for conda build, replace with underscore
+  export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
+  echo Building dev version ${CIL_VERSION}
+else
+  echo Defining version from last git tag and commit: $CIL_VERSION
+fi 
+
 # Script to builds source code in Jenkins environment
 # module try-load conda
 
