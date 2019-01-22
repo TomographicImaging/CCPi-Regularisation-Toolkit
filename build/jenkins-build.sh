@@ -32,6 +32,7 @@ else
   ./Miniconda3-latest-Linux-x86_64.sh -u -b -p .
   PATH=$PATH:./bin
 fi
+
 # presume that git clone is done before this script is launched, if not, uncomment
 #git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
@@ -46,8 +47,10 @@ echo files created: $REG_FILES
 
 # upload to anaconda only if token is defined
 # and TODO pull request not to upload 
+GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+echo on branch ${GIT_BRANCH}
 
-if [[ -n ${CCPI_CONDA_TOKEN} ]]
+if [[ -n ${CCPI_CONDA_TOKEN} && ${GIT_BRANCH}=="master" ]]
 then
   conda install anaconda-client
   while read -r outfile; do
@@ -61,5 +64,5 @@ then
     fi
   done <<< "$REG_FILES"
 else
-  echo CCPI_CONDA_TOKEN not defined, will not upload to anaconda.
+  echo CCPI_CONDA_TOKEN not defined or git branch is not master, will not upload to anaconda.
 fi
