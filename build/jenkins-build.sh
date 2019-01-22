@@ -4,19 +4,20 @@ if [[ -n ${CIL_VERSION} ]]
 then
   echo Using defined version: $CIL_VERSION
 else
-
-#get tag, remove first char ('v') and leave rest
-export CIL_VERSION=`git describe --tags | tail -c +2`  
-if [[ ${CIL_VERSION} == *"-"* ]]; then
-  # detected dash means that it is dev version
-  # version is then string-string and all after second dash is ignored (usually commit sha)
-  export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
-  # but dash is prohibited for conda build, replace with underscore
-  export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
-  echo Building dev version ${CIL_VERSION}
-else
-  echo Defining version from last git tag and commit: $CIL_VERSION
-fi 
+  # define CIL_VERSION from last git tag, remove first char ('v') and leave rest
+  export CIL_VERSION=`git describe --tags | tail -c +2`  
+  # dash means that it's some commit after tag release -thus will be treated as dev
+  if [[ ${CIL_VERSION} == *"-"* ]]; then
+    # detected dash means that it is dev version
+    # version is then string-string and all after second dash is ignored (usually commit sha)
+    export CIL_VERSION=`echo ${CIL_VERSION} | cut -d "-" -f -2`
+    # but dash is prohibited for conda build, replace with underscore
+    export CIL_VERSION=`echo ${CIL_VERSION} | tr - _`
+    echo Building dev version ${CIL_VERSION}
+  else
+    echo Defining version from last git tag and commit: $CIL_VERSION
+  fi
+fi
 
 # Script to builds source code in Jenkins environment
 # module try-load conda
@@ -50,7 +51,7 @@ then
   conda install anaconda-client
   while read -r outfile; do
     #if 0 commit after tag then call anaconda without --label dev
-    #TODO if pull request??? do not upload 
+    #TODO pull request not to upload 
     if [[ $CIL_VERSION == *"_"* ]]; then
       # upload with dev label
       anaconda -v -t ${CCPI_CONDA_TOKEN}  upload $outfile --force --label dev
