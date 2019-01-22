@@ -47,7 +47,7 @@ echo files created: $REG_FILES
 
 # upload to anaconda only if token is defined
 # and TODO pull request not to upload 
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+GIT_BRANCH=`git symbolic-ref --short HEAD`
 echo on branch ${GIT_BRANCH}
 
 if [[ -n ${CCPI_CONDA_TOKEN} ]]; then
