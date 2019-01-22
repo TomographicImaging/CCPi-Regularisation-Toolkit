@@ -33,6 +33,9 @@ else
   PATH=$PATH:./bin
 fi
 
+GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+echo on branch ${GIT_BRANCH}
+
 # presume that git clone is done before this script is launched, if not, uncomment
 #git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 conda install -y conda-build
@@ -46,9 +49,7 @@ export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
 echo files created: $REG_FILES
 
 # upload to anaconda only if token is defined
-# and TODO pull request not to upload 
-GIT_BRANCH=`git symbolic-ref --short HEAD`
-echo on branch ${GIT_BRANCH}
+# and TODO pull request not to upload
 
 if [[ -n ${CCPI_CONDA_TOKEN} ]]; then
   if [[ ${GIT_BRANCH}=="master" ]]; then
