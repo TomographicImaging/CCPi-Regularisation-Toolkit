@@ -20,7 +20,6 @@ fi
 
 # Script to builds source code in Jenkins environment
 # module try-load conda
-
 # install miniconda if the module is not present
 if hash conda 2>/dev/null; then
   echo using installed conda
