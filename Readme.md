@@ -1,4 +1,6 @@
-[![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/)
+| Master | Development |
+|--------|-------------|
+| [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/) | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit-dev)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit-dev/) |
 # CCPi-Regularisation Toolkit (CCPi-RGL)
 
 **Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem (inverse problem) more well-posed. The CCPi-RGL software provides 2D/3D and multi-channel regularisation strategies to ensure better performance of IIR methods. The regularisation modules are well-suited to use with [splitting algorithms](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method#Alternating_direction_method_of_multipliers), such as, [ADMM](https://github.com/dkazanc/ADMM-tomo) and [FISTA](https://github.com/dkazanc/FISTA-tomo). Furthermore, the toolkit can be used for simpler inversion tasks, such as, image denoising, inpaiting, deconvolution etc. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
