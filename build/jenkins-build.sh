@@ -33,7 +33,7 @@ else
   PATH=$PATH:./bin
 fi
 
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+GIT_BRANCH=`git rev-parse --symbolic-full-name HEAD`
 echo on branch ${GIT_BRANCH}
 cat .git/HEAD
 
@@ -53,7 +53,7 @@ echo files created: $REG_FILES
 # and TODO pull request not to upload
 
 if [[ -n ${CCPI_CONDA_TOKEN} ]]; then
-  if [[ ${GIT_BRANCH} == "master" ]]; then
+  if [[ ${GIT_BRANCH} == "refs/heads/master" ]]; then
     conda install anaconda-client
     while read -r outfile; do
       #if >0 commit (some _ in version) then marking as dev build
