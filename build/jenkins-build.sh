@@ -1,5 +1,27 @@
 #!/usr/bin/env bash
 
+# Copyright 2019 Tomas Kulhanek, see /LICENSE
+
+# Universal script to build CCPi module libraries
+#
+# These environment variables can be specified optionally
+# CIL_VERSION - version of this build, it will be used to label it within multiple places during build
+# CCPI_CONDA_TOKEN - token to upload binary builds to anaconda 
+# - if CIL_VERSION is not expliticly defined, then version is determined from `git describe --tags` and puts also
+#   the number of commits after this tag
+# - it detects the branch under which the CCPi is build, master is uploaded to anaconda channel, non-master branch not
+# - if the version is release (no number after _), anaconda upload is production
+# - if the version is not release (number of commits after last tag) then anaconda upload is labeled as 'dev'
+# - some commit can be explicitly tagged including '_' char and something after, then it is considered as 'dev' version
+# 
+# This script builds a CCPI module based on configuration in relative path Wrappers/Python/conda-recipe
+# multiple files can be build (combination of python version and dependent libraries)
+# Arguments to this script is passed to `conda build`
+# e.g. 
+#   jenkins-build.sh -c ccpi -c conda-forge 
+# is passed to subsequent conda build as following
+#   conda build Wrappers/Python/conda-recipe -c ccpi -c conda-forge
+
 if [[ -n ${CIL_VERSION} ]]
 then
   echo Using defined version: $CIL_VERSION
@@ -42,7 +64,7 @@ cat .git/HEAD
 conda install -y conda-build
 #cd CCPi-Regularisation-Toolkit # already there by jenkins
 # need to call first build
-conda build Wrappers/Python/conda-recipe
+conda build Wrappers/Python/conda-recipe "$@"
 # then need to call the same with --output 
 #- otherwise no build is done :-(, just fake file names are generated
 export REG_FILES=`conda build Wrappers/Python/conda-recipe --output`
