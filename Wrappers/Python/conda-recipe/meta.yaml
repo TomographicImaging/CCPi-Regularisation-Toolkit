@@ -1,22 +1,23 @@
 package:
   name: ccpi-regulariser
-  version: 0.10.3
-
-
+  version: {{CIL_VERSION}}
+  
 build:
   preserve_egg_dir: False
   number: 0
+  script_env:
+    - CIL_VERSION
   
 test:
   files:
     - lena_gray_512.tif
   requires:
-    - pillow
+    - pillow=4.1.1
 
 requirements:
   build:
     - python
-    - numpy x.x
+    - numpy {{ numpy }}
     - setuptools
     - cython
     - vc 14 # [win and py36] 
@@ -25,8 +26,9 @@ requirements:
     - cmake 
 
   run:
+    - {{ pin_compatible('numpy', max_pin='x.x') }}
     - python
-    - numpy x.x
+    - numpy
     - vc 14 # [win and py36] 
     - vc 14 # [win and py35] 
     - vc 9  # [win and py27]

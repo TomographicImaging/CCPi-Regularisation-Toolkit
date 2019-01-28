@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo $CIL_VERSION
+echo build.sh CIL_VERSION: $CIL_VERSION
 #if [ -z "$CIL_VERSION" ]; then
 #    echo "Need to set CIL_VERSION"
 #    exit 1
