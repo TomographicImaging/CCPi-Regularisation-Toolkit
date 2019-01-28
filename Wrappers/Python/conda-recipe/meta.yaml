@@ -12,7 +12,7 @@ test:
   files:
     - lena_gray_512.tif
   requires:
-    - pillow
+    - pillow=4.1.1
 
 requirements:
   build:
