@@ -530,7 +530,7 @@ class TestRegularisers(unittest.TestCase):
         print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         
         # set parameters
-        pars = {'algorithm' : DIFF4th, \
+        pars = {'algorithm' : Diff4th, \
         'input' : u0,\
         'regularisation_parameter':3.5, \
         'edge_parameter':0.02,\
@@ -540,7 +540,7 @@ class TestRegularisers(unittest.TestCase):
         
         print ("#############Diff4th CPU####################")
         start_time = timeit.default_timer()
-        diff4th_cpu = DIFF4th(pars['input'], 
+        diff4th_cpu = Diff4th(pars['input'], 
                       pars['regularisation_parameter'],
                       pars['edge_parameter'], 
                       pars['number_of_iterations'],
@@ -555,7 +555,7 @@ class TestRegularisers(unittest.TestCase):
         print ("##############Diff4th GPU##################")
         start_time = timeit.default_timer()
         try:
-            diff4th_gpu = DIFF4th(pars['input'], 
+            diff4th_gpu = Diff4th(pars['input'], 
                       pars['regularisation_parameter'],
                       pars['edge_parameter'], 
                       pars['number_of_iterations'],
@@ -565,7 +565,7 @@ class TestRegularisers(unittest.TestCase):
             self.skipTest("Results not comparable. GPU computing error.")
         rms = rmse(Im, diff4th_gpu)
         pars['rmse'] = rms
-        pars['algorithm'] = DIFF4th
+        pars['algorithm'] = Diff4th
         txtstr = printParametersToString(pars)
         txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
         print (txtstr)
