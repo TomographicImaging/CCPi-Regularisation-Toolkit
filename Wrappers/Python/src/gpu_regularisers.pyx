@@ -102,7 +102,12 @@ def TGV_GPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, Lip
     if inputData.ndim == 2:
         return TGV2D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst)
     elif inputData.ndim == 3:
-        return 0
+        shape = inputData.shape
+        out = inputData.copy()
+        for i in range(shape[0]):
+            out[i,:,:] = TGV2D(inputData[i,:,:], regularisation_parameter, 
+               alpha1, alpha0, iterations, LipshitzConst)
+        return out
 # Directional Total-variation Fast-Gradient-Projection (FGP)
 def dTV_FGP_GPU(inputData,
                      refdata,
