@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 from ccpi.filters.regularisers import PatchSelect
 from qualitymetrics import rmse
 ###############################################################################
@@ -570,7 +570,7 @@ a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
 
 # set parameters
-pars = {'algorithm' : DIFF4th, \
+pars = {'algorithm' : Diff4th, \
         'input' : u0,\
         'regularisation_parameter':3.5, \
         'edge_parameter':0.02,\
@@ -580,7 +580,7 @@ pars = {'algorithm' : DIFF4th, \
 
 print ("#############Diff4th CPU####################")
 start_time = timeit.default_timer()
-diff4th_cpu = DIFF4th(pars['input'], 
+diff4th_cpu = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
@@ -604,7 +604,7 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############Diff4th GPU##################")
 start_time = timeit.default_timer()
-diff4th_gpu = DIFF4th(pars['input'], 
+diff4th_gpu = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
@@ -612,7 +612,7 @@ diff4th_gpu = DIFF4th(pars['input'],
              
 rms = rmse(Im, diff4th_gpu)
 pars['rmse'] = rms
-pars['algorithm'] = DIFF4th
+pars['algorithm'] = Diff4th
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)

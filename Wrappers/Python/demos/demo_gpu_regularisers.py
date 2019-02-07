@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, DIFF4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 from ccpi.filters.regularisers import PatchSelect, NLTV
 from qualitymetrics import rmse
 ###############################################################################
@@ -355,13 +355,13 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of DIFF4th regulariser using the GPU')
+plt.suptitle('Performance of Diff4th regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
 
 # set parameters
-pars = {'algorithm' : DIFF4th, \
+pars = {'algorithm' : Diff4th, \
         'input' : u0,\
         'regularisation_parameter':3.5, \
         'edge_parameter':0.02,\
@@ -371,7 +371,7 @@ pars = {'algorithm' : DIFF4th, \
         
 print ("#############DIFF4th CPU################")
 start_time = timeit.default_timer()
-diff4_gpu = DIFF4th(pars['input'], 
+diff4_gpu = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
