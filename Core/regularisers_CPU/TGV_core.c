@@ -20,31 +20,35 @@ limitations under the License.
 #include "TGV_core.h"
 
 /* C-OMP implementation of Primal-Dual denoising method for 
- * Total Generilized Variation (TGV)-L2 model [1] (2D case only)
+ * Total Generilized Variation (TGV)-L2 model [1] (2D/3D case)
  *
  * Input Parameters:
- * 1. Noisy image (2D)
+ * 1. Noisy image/volume (2D/3D)
  * 2. lambda - regularisation parameter
  * 3. parameter to control the first-order term (alpha1)
  * 4. parameter to control the second-order term (alpha0)
  * 5. Number of Chambolle-Pock (Primal-Dual) iterations
  * 6. Lipshitz constant (default is 12)
- *
+ * 
  * Output:
- * Filtered/regulariaed image 
+ * Filtered/regularised image/volume
  *
  * References:
  * [1] K. Bredies "Total Generalized Variation"
+ * 
  */
  
-float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iter, float L2, int dimX, int dimY)
+float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iter, float L2, int dimX, int dimY, int dimZ)
 {
 	long DimTotal;
-    int ll;
+	int ll;
 	float *U_old, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, tau, sigma;
-		
-		DimTotal = (long)(dimX*dimY);
-        
+
+	DimTotal = (long)(dimX*dimY*dimZ);
+	copyIm(U0, U, (long)(dimX), (long)(dimY), (long)(dimZ)); /* initialize */
+        tau = pow(L2,-0.5);
+        sigma = pow(L2,-0.5);
+
         /* dual variables */
         P1 = calloc(DimTotal, sizeof(float));
         P2 = calloc(DimTotal, sizeof(float));
@@ -59,12 +63,10 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
         V1_old = calloc(DimTotal, sizeof(float));
         V2 = calloc(DimTotal, sizeof(float));
         V2_old = calloc(DimTotal, sizeof(float));
-        
-        copyIm(U0, U, (long)(dimX), (long)(dimY), 1l); /* initialize  */
-       
-        tau = pow(L2,-0.5);
-        sigma = pow(L2,-0.5);
-    
+	
+	if (dimZ == 1) {
+	/*2D case*/
+	
         /* Primal-dual iterations begin here */
         for(ll = 0; ll < iter; ll++) {
             
@@ -100,6 +102,59 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
             newU(V1, V1_old, (long)(dimX), (long)(dimY));
             newU(V2, V2_old, (long)(dimX), (long)(dimY));
         } /*end of iterations*/
+        	}
+        else {
+        /*3D case*/
+        float *P3, *Q4, *Q5, *Q6, *V3, *V3_old;
+        
+        P3 = calloc(DimTotal, sizeof(float));
+        Q4 = calloc(DimTotal, sizeof(float));
+        Q5 = calloc(DimTotal, sizeof(float));
+        Q6 = calloc(DimTotal, sizeof(float));
+        V3 = calloc(DimTotal, sizeof(float));
+        V3_old = calloc(DimTotal, sizeof(float));
+        
+         /* Primal-dual iterations begin here */
+        for(ll = 0; ll < iter; ll++) {
+            
+            /* Calculate Dual Variable P */
+            DualP_3D(U, V1, V2, V3, P1, P2, P3, (long)(dimX), (long)(dimY), (long)(dimZ), sigma);
+            
+            /*Projection onto convex set for P*/
+            ProjP_3D(P1, P2, P3, (long)(dimX), (long)(dimY), alpha1);
+            
+            /* Calculate Dual Variable Q */
+            DualQ_3D(V1, V2, V3, Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), sigma);
+            
+            /*Projection onto convex set for Q*/
+            ProjQ_3D(Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), alpha0);
+            
+            /*saving U into U_old*/
+            copyIm(U, U_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            
+            /*adjoint operation  -> divergence and projection of P*/
+            DivProjP_3D(U, U0, P1, P2, P3, (long)(dimX), (long)(dimY), (long)(dimZ), lambda, tau);
+            
+            /*get updated solution U*/
+            newU3D(U, U_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            
+            /*saving V into V_old*/
+            copyIm(V1, V1_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            copyIm(V2, V2_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            copyIm(V3, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            
+            /* upd V*/
+            UpdV_3D(V1, V2, V3, P1, P2, P3, Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), tau);
+            
+            /*get new V*/
+            newU3D(V1, V1_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            newU3D(V2, V2_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            newU3D(V3, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            
+	        } /*end of iterations*/
+        free(P3);free(Q4);free(Q5);free(Q6);free(V3);free(V3_old);
+        }     
+
     /*freeing*/
     free(P1);free(P2);free(Q1);free(Q2);free(Q3);free(U_old);
     free(V1);free(V2);free(V1_old);free(V2_old);
@@ -253,3 +308,97 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
         }}
     return 1;
 }
+
+
+/********************************************************************/
+/***************************3D Functions*****************************/
+/********************************************************************/
+/*Calculating dual variable P (using forward differences)*/
+float DualP_3D(float *U, float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ, float sigma)
+{
+    long i,j,k, index;
+#pragma omp parallel for shared(U,V1,V2,V3,P1,P2,P3) private(i,j,k,index)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+          for(k=0; k<dimZ; k++) {
+             	   
+    	   index = (dimX*dimY)*k + j*dimX+i;
+    	   
+            /* symmetric boundary conditions (Neuman) */
+            if (i == dimX-1) P1[index] += sigma*((U[(dimX*dimY)*k + j*dimX+(i-1)] - U[index]) - V1[index]); 
+            else P1[index] += sigma*((U[(dimX*dimY)*k + j*dimX+(i+1)] - U[index])  - V1[index]); 
+            if (j == dimY-1) P2[index] += sigma*((U[(dimX*dimY)*k + (j-1)*dimX+i] - U[index])  - V2[index]);
+            else  P2[index] += sigma*((U[(dimX*dimY)*k + (j+1)*dimX+i] - U[index])  - V2[index]);
+            if (j == dimZ-1) P3[index] += sigma*((U[(dimX*dimY)*(k-1) + j*dimX+i] - U[index])  - V3[index]);
+            else  P3[index] += sigma*((U[(dimX*dimY)*(k+1) + j*dimX+i] - U[index])  - V3[index]);
+        }}}
+    return 1;
+}
+/*Projection onto convex set for P*/
+float ProjP_3D(float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ, float alpha1)
+{
+    float grad_magn;
+    long i,j,k,index;
+#pragma omp parallel for shared(P1,P2,P3) private(i,j,k,index,grad_magn)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+	  for(k=0; k<dimZ; k++) {   	
+   	    index = (dimX*dimY)*k + j*dimX+i;
+            grad_magn = sqrt(pow(P1[index],2) + pow(P2[index],2) + pow(P3[index],2));
+            grad_magn = grad_magn/alpha1;
+            if (grad_magn > 1.0f) {
+                P1[index] /= grad_magn;
+                P2[index] /= grad_magn;
+                P3[index] /= grad_magn;
+            }
+        }}}
+    return 1;
+}
+/*Calculating dual variable Q (using forward differences)*/
+float DualQ_3D(float *V1, float *V2, float *V3, float *Q1, float *Q2, float *Q3, float *Q4, float *Q5, float *Q6, long dimX, long dimY, long dimZ, float sigma)
+{
+    long i,j,k, index;
+    float q1, q2, q3, q4, q5, q6, q11, q22, q33, q44, q55, q66;
+#pragma omp parallel for shared(Q1,Q2,Q3,Q4,Q5,Q6,V1,V2,V3) private(i,j,k,index,q1,q2,q3,q4,q5,q6,q11,q22,q33,q44,q55,q66)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+       	  for(k=0; k<dimZ; k++) {   	
+	    index = (dimX*dimY)*k + j*dimX+i;
+            /* symmetric boundary conditions (Neuman) */
+            if (i == dimX-1){ 
+              q1 = V1[(dimX*dimY)*k + j*dimX+(i-1)] - V1[index];
+              q11 = V2[(dimX*dimY)*k + j*dimX+(i-1)] - V2[index];
+              q33 = V3[(dimX*dimY)*k + j*dimX+(i-1)] - V3[index];
+            }
+            else {
+                q1 = (V1[(dimX*dimY)*k + j*dimX+(i+1)] - V1[index]);
+                q11 = (V2[(dimX*dimY)*k + j*dimX+(i+1)] - V2[index]);
+                q33 = V3[(dimX*dimY)*k + j*dimX+(i+1)] - V3[index];
+            }
+            if (j == dimY-1) {
+                q2 = (V2[(dimX*dimY)*k + (j-1)*dimX+i] - V2[index]);
+                q22 = (V1[(dimX*dimY)*k + (j-1)*dimX+i] - V1[index]);
+            }
+            else {
+                q2 = V2[(dimX*dimY)*k + (j+1)*dimX+i] - V2[index];
+                q22 = V1[(dimX*dimY)*k + (j+1)*dimX+i] - V1[index];
+            }
+            if (k == dimZ-1) {
+                q3 = V3[(dimX*dimY)*(k-1) + j*dimX+i] - V3[index];
+                q44 = V1[(dimX*dimY)*(k-1) + j*dimX+i] - V1[index];
+            }
+            else {
+                q3 = V3[(dimX*dimY)*(k+1) + j*dimX+i] - V3[index];
+                q44 = V1[(dimX*dimY)*(k+1) + j*dimX+i] - V1[index];
+            }
+            
+            Q1[index] += sigma*(q1);
+            Q2[index] += sigma*(q2);
+            Q3[index] += sigma*(q3);
+            Q4[index] += sigma*(0.5f*(q11 + q22));
+            Q5[index] += sigma*(0.5f*(q33 + q44));
+        }}}
+    return 1;
+}
+
+
