@@ -2,11 +2,13 @@
 clear; close all
 Path1 = sprintf(['..' filesep 'mex_compile' filesep 'installed'], 1i);
 Path2 = sprintf(['..' filesep '..' filesep '..' filesep 'data' filesep], 1i);
+Path3 = sprintf(['..' filesep 'supp'], 1i);
 addpath(Path1);
 addpath(Path2);
+addpath(Path3);
 
 N = 512; 
-slices = 15;
+slices = 7;
 vol3D = zeros(N,N,slices, 'single');
 Ideal3D = zeros(N,N,slices, 'single');
 Im = double(imread('lena_gray_512.tif'))/255;  % loading image
@@ -131,7 +133,16 @@ figure; imshow(u_diff4(:,:,7), [0 1]); title('Diffusion 4thO denoised volume (CP
 % fprintf('%s %f \n', 'RMSE error for Anis.Diff of 4th order is:', rmse_diff4);
 % figure; imshow(u_diff4_g(:,:,7), [0 1]); title('Diffusion 4thO denoised volume (GPU)');
 %%
-
+fprintf('Denoise using the TGV model (CPU) \n');
+lambda_TGV = 0.05; % regularisation parameter
+alpha1 = 1.0; % parameter to control the first-order term
+alpha0 = 2.0; % parameter to control the second-order term
+iter_TGV = 40; % number of Primal-Dual iterations for TGV
+tic; u_tgv = TGV(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV, 128); toc; 
+rmseTGV = RMSE(Ideal3D(:),u_tgv(:));
+fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
+figure; imshow(u_tgv(:,:,3), [0 1]); title('TGV denoised volume (CPU)');
+%%
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
 fprintf('Denoise a volume using the FGP-dTV model (CPU) \n');
 

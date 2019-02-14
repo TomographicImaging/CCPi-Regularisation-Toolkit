@@ -21,14 +21,14 @@ limitations under the License.
 #include "TGV_core.h"
 
 /* C-OMP implementation of Primal-Dual denoising method for 
- * Total Generilized Variation (TGV)-L2 model [1] (2D case only)
+ * Total Generilized Variation (TGV)-L2 model [1] (2D/3D)
  *
  * Input Parameters:
- * 1. Noisy image (2D) (required)
- * 2. lambda - regularisation parameter (required)
- * 3. parameter to control the first-order term (alpha1) (default - 1)
- * 4. parameter to control the second-order term (alpha0) (default - 0.5)
- * 5. Number of Chambolle-Pock (Primal-Dual) iterations (default is 300)
+ * 1. Noisy image/volume (2D/3D)
+ * 2. lambda - regularisation parameter
+ * 3. parameter to control the first-order term (alpha1)
+ * 4. parameter to control the second-order term (alpha0)
+ * 5. Number of Chambolle-Pock (Primal-Dual) iterations
  * 6. Lipshitz constant (default is 12)
  *
  * Output:
@@ -44,7 +44,7 @@ void mexFunction(
         
 {
     int number_of_dims, iter;
-    mwSize dimX, dimY;
+    mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;
     
     float *Input, *Output=NULL, lambda, alpha0, alpha1, L2;
@@ -55,7 +55,7 @@ void mexFunction(
     /*Handling Matlab input data*/
     if ((nrhs < 2) || (nrhs > 6)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D), Regularisation parameter, alpha0, alpha1, iterations number, Lipshitz Constant");
     
-    Input  = (float *) mxGetData(prhs[0]); /*noisy image (2D) */
+    Input  = (float *) mxGetData(prhs[0]); /*noisy image/volume */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularisation parameter */
     alpha1 =  1.0f; /* parameter to control the first-order term */ 
     alpha0 =  0.5f; /* parameter to control the second-order term */
@@ -69,12 +69,15 @@ void mexFunction(
     if (nrhs == 6)  L2 =  (float) mxGetScalar(prhs[5]); /* Lipshitz constant */
     
     /*Handling Matlab output data*/
-    dimX = dim_array[0]; dimY = dim_array[1];
+    dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
     
     if (number_of_dims == 2) {
-        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
-        /* running the function */
-        TGV_main(Input, Output, lambda, alpha1, alpha0, iter, L2, dimX, dimY);        
+        dimZ = 1; /*2D case*/
+        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));        
     }
-    if (number_of_dims == 3) {mexErrMsgTxt("Only 2D images accepted");}       
+    if (number_of_dims == 3) {
+        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+    }       
+    /* running the function */
+    TGV_main(Input, Output, lambda, alpha1, alpha0, iter, L2, dimX, dimY, dimZ);        
 }
