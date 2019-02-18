@@ -159,7 +159,6 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
 /********************************************************************/
 /***************************2D Functions*****************************/
 /********************************************************************/
-
 /*Calculating dual variable P (using forward differences)*/
 float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, long dimY, float sigma)
 {
@@ -167,12 +166,13 @@ float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, 
 #pragma omp parallel for shared(U,V1,V2,P1,P2) private(i,j,index)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
-			 index = j*dimX+i;
+	    index = j*dimX+i;
             /* symmetric boundary conditions (Neuman) */
-            if (i == dimX-1) P1[index] += sigma*((U[j*dimX+(i-1)] - U[index]) - V1[index]); 
+            if (i == dimX-1) P1[index] += sigma*(-V1[index]); 
             else P1[index] += sigma*((U[j*dimX+(i+1)] - U[index])  - V1[index]); 
-            if (j == dimY-1) P2[index] += sigma*((U[(j-1)*dimX+i] - U[index])  - V2[index]);
+            if (j == dimY-1) P2[index] += sigma*(-V2[index]);
             else  P2[index] += sigma*((U[(j+1)*dimX+i] - U[index])  - V2[index]);
+            
         }}
     return 1;
 }
@@ -236,7 +236,7 @@ float ProjQ_2D(float *Q1, float *Q2, float *Q3, long dimX, long dimY, float alph
         }}
     return 1;
 }
-/* Divergence and projection for P*/
+/* Divergence and projection for P (backward differences)*/
 float DivProjP_2D(float *U, float *U0, float *P1, float *P2, long dimX, long dimY, float lambda, float tau)
 {
     long i,j,index;
@@ -245,10 +245,15 @@ float DivProjP_2D(float *U, float *U0, float *P1, float *P2, long dimX, long dim
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
 	    index = j*dimX+i;
+	    
             if (i == 0) P_v1 = P1[index];
+            else if (i == dimX) P_v1 = -P1[j*dimX+(i-1)];
             else P_v1 = P1[index] - P1[j*dimX+(i-1)];
+            
             if (j == 0) P_v2 = P2[index];
-            else  P_v2 = P2[index] - P2[(j-1)*dimX+i];
+            else if (j == dimY) P_v2 = -P2[(j-1)*dimX+i];
+            else P_v2 = P2[index] - P2[(j-1)*dimX+i];
+            
             div = P_v1 + P_v2;
             U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);
         }}
@@ -262,7 +267,7 @@ float newU(float *U, float *U_old, long dimX, long dimY)
     for(i=0; i<dimX*dimY; i++) U[i] = 2*U[i] - U_old[i];
     return *U;
 }
-/*get update for V*/
+/*get update for V (backward differences)*/
 float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, float tau)
 {
     long i, j, index;
@@ -271,16 +276,30 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
 	    index = j*dimX+i;
-              q2 = 0.0f;  q3_y = 0.0f; q1 = 0.0f; q3_x = 0.0;
+            q2 = 0.0f;  q3_y = 0.0f; q1 = 0.0f; q3_x = 0.0;
+            
             /* boundary conditions (Neuman) */
-            if (i != 0) {
-                q1 = Q1[index] - Q1[j*dimX+(i-1)];
-                q3_x = Q3[index] - Q3[j*dimX+(i-1)];
-            }
-            if (j != 0) {
-                q2 = Q2[index] - Q2[(j-1)*dimX+i];
-                q3_y = Q3[index] - Q3[(j-1)*dimX+i];
-            }
+            if (i == 0) {
+            q1 = Q1[index];
+            q3_x = Q3[index]; } 
+            else if (i == dimX) {
+            q1 = -Q1[j*dimX+(i-1)];
+            q3_x = -Q3[j*dimX+(i-1)];  }
+            else {
+            q1 = Q1[index] - Q1[j*dimX+(i-1)];
+            q3_x = Q3[index] - Q3[j*dimX+(i-1)];  }
+            
+            if (j == 0) {
+            q2 = Q2[index];
+            q3_y = Q3[index]; }
+            else if (j == dimY) {
+            q2 = -Q2[(j-1)*dimX+i];
+            q3_y = -Q3[(j-1)*dimX+i]; }
+            else {
+            q2 = Q2[index] - Q2[(j-1)*dimX+i];
+            q3_y = Q3[index] - Q3[(j-1)*dimX+i]; }
+            
+            
             div1 = q1 + q3_y;
             div2 = q3_x + q2;
             V1[index] += tau*(P1[index] + div1);
@@ -302,11 +321,11 @@ float DualP_3D(float *U, float *V1, float *V2, float *V3, float *P1, float *P2, 
           for(k=0; k<dimZ; k++) {             	   
     	   index = (dimX*dimY)*k + j*dimX+i;    	   
             /* symmetric boundary conditions (Neuman) */
-            if (i == dimX-1) P1[index] += sigma*((U[(dimX*dimY)*k + j*dimX+(i-1)] - U[index]) - V1[index]); 
+            if (i == dimX-1) P1[index] += sigma*(-V1[index]);      
             else P1[index] += sigma*((U[(dimX*dimY)*k + j*dimX+(i+1)] - U[index])  - V1[index]); 
-            if (j == dimY-1) P2[index] += sigma*((U[(dimX*dimY)*k + (j-1)*dimX+i] - U[index])  - V2[index]);
+            if (j == dimY-1) P2[index] += sigma*(-V2[index]);
             else  P2[index] += sigma*((U[(dimX*dimY)*k + (j+1)*dimX+i] - U[index])  - V2[index]);
-            if (k == dimZ-1) P3[index] += sigma*((U[(dimX*dimY)*(k-1) + j*dimX+i] - U[index])  - V3[index]);
+            if (k == dimZ-1) P3[index] += sigma*(-V3[index]);
             else  P3[index] += sigma*((U[(dimX*dimY)*(k+1) + j*dimX+i] - U[index])  - V3[index]);
         }}}
     return 1;
@@ -399,11 +418,15 @@ float DivProjP_3D(float *U, float *U0, float *P1, float *P2, float *P3, long dim
         for(j=0; j<dimY; j++) {
        	  for(k=0; k<dimZ; k++) {   	
 	    index = (dimX*dimY)*k + j*dimX+i; 	    
+	    
             if (i == 0) P_v1 = P1[index];
-            else P_v1 = P1[index] - P1[(dimX*dimY)*k + j*dimX+(i-1)];
+            else if (i == dimX)  P_v1 = -P1[(dimX*dimY)*k + j*dimX+(i-1)];            
+            else P_v1 = P1[index] - P1[(dimX*dimY)*k + j*dimX+(i-1)];            
             if (j == 0) P_v2 = P2[index];
+            else if (j == dimY) P_v2 = -P2[(dimX*dimY)*k + (j-1)*dimX+i];          
             else P_v2 = P2[index] - P2[(dimX*dimY)*k + (j-1)*dimX+i];
             if (k == 0) P_v3 = P3[index];
+            else if (k == dimZ) P_v3 = -P3[(dimX*dimY)*(k-1) + (j)*dimX+i];              
             else P_v3 = P3[index] - P3[(dimX*dimY)*(k-1) + (j)*dimX+i];              
                       
             div = P_v1 + P_v2 + P_v3;
@@ -424,21 +447,43 @@ float UpdV_3D(float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, 
 	    q1 = 0.0f; q4x= 0.0f; q5x= 0.0f; q2= 0.0f; q4y= 0.0f; q6y= 0.0f; q6z= 0.0f; q5z= 0.0f; q3= 0.0f;
             /* Q1 - Q11, Q2 - Q22, Q3 -  Q33, Q4 - Q21/Q12, Q5 - Q31/Q13, Q6 - Q32/Q23*/            
             /* symmetric boundary conditions (Neuman) */
-            if (i != 0) {
-                q1 = Q1[index] - Q1[(dimX*dimY)*k + j*dimX+(i-1)];
-                q4x = Q4[index] - Q4[(dimX*dimY)*k + j*dimX+(i-1)];                
-                q5x = Q5[index] - Q5[(dimX*dimY)*k + j*dimX+(i-1)];
-            }
-            if (j != 0) {
+            
+            if (i == 0) {
+            q1 = Q1[index];
+            q4x = Q4[index];
+            q5x = Q5[index]; } 
+            else if (i == dimX) {
+          	q1 = -Q1[(dimX*dimY)*k + j*dimX+(i-1)];
+		q4x = -Q4[(dimX*dimY)*k + j*dimX+(i-1)];                
+                q5x = -Q5[(dimX*dimY)*k + j*dimX+(i-1)]; }
+            else {
+	        q1 = Q1[index] - Q1[(dimX*dimY)*k + j*dimX+(i-1)];
+            	q4x = Q4[index] - Q4[(dimX*dimY)*k + j*dimX+(i-1)];                
+	        q5x = Q5[index] - Q5[(dimX*dimY)*k + j*dimX+(i-1)]; }
+            if (j == 0) {
+           	 q2 = Q2[index];
+         	 q4y = Q4[index];
+           	 q6y = Q6[index]; }
+            else if (j == dimY) {
+                q2 = -Q2[(dimX*dimY)*k + (j-1)*dimX+i];
+                q4y = -Q4[(dimX*dimY)*k + (j-1)*dimX+i];
+                q6y = -Q6[(dimX*dimY)*k + (j-1)*dimX+i]; }
+            else {           
                 q2 = Q2[index] - Q2[(dimX*dimY)*k + (j-1)*dimX+i];
                 q4y = Q4[index] - Q4[(dimX*dimY)*k + (j-1)*dimX+i];
-                q6y = Q6[index] - Q6[(dimX*dimY)*k + (j-1)*dimX+i];
-            }
-             if (k != 0) {
+                q6y = Q6[index] - Q6[(dimX*dimY)*k + (j-1)*dimX+i]; }
+            if (k == 0) {
+                q6z = Q6[index];
+                q5z = Q5[index];
+                q3 = Q3[index]; }
+            else if (k == dimZ) {
+                q6z = -Q6[(dimX*dimY)*(k-1) + (j)*dimX+i];
+                q5z =  -Q5[(dimX*dimY)*(k-1) + (j)*dimX+i];
+                q3 =  -Q3[(dimX*dimY)*(k-1) + (j)*dimX+i]; }
+            else {          
                 q6z = Q6[index] - Q6[(dimX*dimY)*(k-1) + (j)*dimX+i];
                 q5z = Q5[index] - Q5[(dimX*dimY)*(k-1) + (j)*dimX+i];
-                q3 = Q3[index] - Q3[(dimX*dimY)*(k-1) + (j)*dimX+i];
-            }
+                q3 = Q3[index] - Q3[(dimX*dimY)*(k-1) + (j)*dimX+i]; }
             div1 = q1 + q4y + q5z;
             div2 = q4x + q2 + q6z;            
             div3 = q5x + q6y + q3;
