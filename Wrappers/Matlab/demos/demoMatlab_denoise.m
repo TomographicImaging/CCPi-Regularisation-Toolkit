@@ -60,20 +60,20 @@ figure; imshow(u_sb, [0 1]); title('SB-TV denoised image (CPU)');
 % figure; imshow(u_sbG, [0 1]); title('SB-TV denoised image (GPU)');
 %%
 fprintf('Denoise using the TGV model (CPU) \n');
-lambda_TGV = 0.04; % regularisation parameter
-alpha1 = 1; % parameter to control the first-order term
-alpha0 = 0.7; % parameter to control the second-order term
-iter_TGV = 500; % number of Primal-Dual iterations for TGV
+lambda_TGV = 0.045; % regularisation parameter
+alpha1 = 1.0; % parameter to control the first-order term
+alpha0 = 2.0; % parameter to control the second-order term
+iter_TGV = 2000; % number of Primal-Dual iterations for TGV
 tic; u_tgv = TGV(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
 rmseTGV = (RMSE(u_tgv(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
 figure; imshow(u_tgv, [0 1]); title('TGV denoised image (CPU)');
 %%
 % fprintf('Denoise using the TGV model (GPU) \n');
-% lambda_TGV = 0.04; % regularisation parameter
-% alpha1 = 1; % parameter to control the first-order term
-% alpha0 = 0.7; % parameter to control the second-order term
-% iter_TGV = 500; % number of Primal-Dual iterations for TGV
+% lambda_TGV = 0.045; % regularisation parameter
+% alpha1 = 1.0; % parameter to control the first-order term
+% alpha0 = 2.0; % parameter to control the second-order term
+% iter_TGV = 2000; % number of Primal-Dual iterations for TGV
 % tic; u_tgv_gpu = TGV_GPU(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
 % rmseTGV_gpu = (RMSE(u_tgv_gpu(:),Im(:)));
 % fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV_gpu);

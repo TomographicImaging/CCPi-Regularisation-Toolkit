@@ -323,8 +323,8 @@ pars = {'algorithm' : TGV, \
         'input' : u0,\
         'regularisation_parameter':0.04, \
         'alpha1':1.0,\
-        'alpha0':0.7,\
-        'number_of_iterations' :250 ,\
+        'alpha0':2.0,\
+        'number_of_iterations' :400 ,\
         'LipshitzConstant' :12 ,\
         }
         

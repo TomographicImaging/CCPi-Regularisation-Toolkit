@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, LLT_ROF, FGP_dTV, NDF, Diff4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -68,7 +68,7 @@ Im2[:,0:M] = Im[:,0:M]
 Im = Im2
 del Im2
 """
-slices = 20
+slices = 15
 
 noisyVol = np.zeros((slices,N,M),dtype='float32')
 noisyRef = np.zeros((slices,N,M),dtype='float32')
@@ -96,7 +96,7 @@ pars = {'algorithm': ROF_TV, \
         'input' : noisyVol,\
         'regularisation_parameter':0.04,\
         'number_of_iterations': 500,\
-        'time_marching_parameter': 0.0025        
+        'time_marching_parameter': 0.0025
         }
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
@@ -261,6 +261,54 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(lltrof_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using LLT-ROF'))
+
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________TGV (3D)_________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of TGV regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+
+# set parameters
+pars = {'algorithm' : TGV, \
+        'input' : noisyVol,\
+        'regularisation_parameter':0.04, \
+        'alpha1':1.0,\
+        'alpha0':2.0,\
+        'number_of_iterations' :250 ,\
+        'LipshitzConstant' :12 ,\
+        }
+
+print ("#############TGV CPU####################")
+start_time = timeit.default_timer()
+tgv_cpu3D = TGV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['alpha1'],
+              pars['alpha0'],
+              pars['number_of_iterations'],
+              pars['LipshitzConstant'],'cpu')
+             
+
+rms = rmse(idealVol, tgv_cpu3D)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(tgv_cpu3D[10,:,:], cmap="gray")
+plt.title('{}'.format('Recovered volume on the CPU using TGV'))
 
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")

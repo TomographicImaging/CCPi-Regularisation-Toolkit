@@ -303,7 +303,7 @@ class TestRegularisers(unittest.TestCase):
                 'input' : u0,\
                 'regularisation_parameter':0.04, \
                 'alpha1':1.0,\
-                'alpha0':0.7,\
+                'alpha0':2.0,\
                 'number_of_iterations' :250 ,\
                 'LipshitzConstant' :12 ,\
                 }

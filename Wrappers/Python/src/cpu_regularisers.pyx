@@ -22,7 +22,7 @@ cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, 
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
 cdef extern float SB_TV_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
-cdef extern float TGV_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY);
+cdef extern float TGV_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY, int dimZ);
 cdef extern float Diffusion_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
 cdef extern float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxIter, float tol, int dimX, int dimY, int dimZ);
@@ -202,12 +202,8 @@ def TGV_CPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, Lip
         return TGV_2D(inputData, regularisation_parameter, alpha1, alpha0, 
                       iterations, LipshitzConst)
     elif inputData.ndim == 3:
-        shape = inputData.shape
-        out = inputData.copy()
-        for i in range(shape[0]):
-            out[i,:,:] = TGV_2D(inputData[i,:,:], regularisation_parameter, 
-               alpha1, alpha0, iterations, LipshitzConst)
-        return out
+        return TGV_3D(inputData, regularisation_parameter, alpha1, alpha0, 
+                      iterations, LipshitzConst)
 
 def TGV_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,
@@ -229,7 +225,30 @@ def TGV_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        alpha0,
                        iterationsNumb, 
                        LipshitzConst,
-                       dims[1],dims[0])                           
+                       dims[1],dims[0],1)
+    return outputData
+def TGV_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameter,
+                     float alpha1,
+                     float alpha0,
+                     int iterationsNumb, 
+                     float LipshitzConst):
+                         
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+            np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
+                   
+    #/* Run TGV iterations for 3D data */
+    TGV_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, 
+                       alpha1,
+                       alpha0,
+                       iterationsNumb, 
+                       LipshitzConst,
+                       dims[2], dims[1], dims[0])
     return outputData
 
 #***************************************************************#

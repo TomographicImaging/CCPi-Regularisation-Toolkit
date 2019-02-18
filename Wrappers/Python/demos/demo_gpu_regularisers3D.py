@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, LLT_ROF, FGP_dTV, NDF, Diff4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 from qualitymetrics import rmse
 ###############################################################################
 def printParametersToString(pars):
@@ -67,7 +67,7 @@ Im = Im2
 del Im2
 """
 
-#%%
+
 slices = 20
 
 filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
@@ -266,6 +266,53 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(lltrof_gpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the GPU using LLT-ROF'))
 
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________TGV (3D)_________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of TGV regulariser using the GPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+
+# set parameters
+pars = {'algorithm' : TGV, \
+        'input' : noisyVol,\
+        'regularisation_parameter':0.04, \
+        'alpha1':1.0,\
+        'alpha0':2.0,\
+        'number_of_iterations' :600 ,\
+        'LipshitzConstant' :12 ,\
+        }
+
+print ("#############TGV GPU####################")
+start_time = timeit.default_timer()
+tgv_gpu3D = TGV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['alpha1'],
+              pars['alpha0'],
+              pars['number_of_iterations'],
+              pars['LipshitzConstant'],'gpu')
+             
+
+rms = rmse(idealVol, tgv_gpu3D)
+pars['rmse'] = rms
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(tgv_gpu3D[10,:,:], cmap="gray")
+plt.title('{}'.format('Recovered volume on the GPU using TGV'))
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________NDF-TV (3D)_________________")
