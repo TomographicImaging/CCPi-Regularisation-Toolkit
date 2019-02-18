@@ -66,6 +66,8 @@ CCPI_EXPORT float ProjQ_3D(float *Q1, float *Q2, float *Q3, float *Q4, float *Q5
 CCPI_EXPORT float DivProjP_3D(float *U, float *U0, float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ, float lambda, float tau);
 CCPI_EXPORT float UpdV_3D(float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, float *Q1, float *Q2, float *Q3, float *Q4, float *Q5, float *Q6, long dimX, long dimY, long dimZ, float tau);
 CCPI_EXPORT float newU3D(float *U, float *U_old, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float copyIm_3Ar(float *V1, float *V2, float *V3, float *V1_old, float *V2_old, float *V3_old, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float newU3D_3Ar(float *V1, float *V2, float *V3, float *V1_old, float *V2_old, float *V3_old, long dimX, long dimY, long dimZ);
 #ifdef __cplusplus
 }
 #endif

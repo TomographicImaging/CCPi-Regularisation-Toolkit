@@ -33,7 +33,7 @@
 1. Rudin-Osher-Fatemi (ROF) Total Variation (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *1*)
 2. Fast-Gradient-Projection (FGP) Total Variation **2D/3D CPU/GPU** (Ref. *2*)
 3. Split-Bregman (SB) Total Variation **2D/3D CPU/GPU** (Ref. *5*)
-4. Total Generalised Variation (TGV) model for higher-order regularisation **2D CPU/GPU** (Ref. *6*)
+4. Total Generalised Variation (TGV) model for higher-order regularisation **2D/3D CPU/GPU** (Ref. *6*)
 5. Linear and nonlinear diffusion (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *8*)
 6. Anisotropic Fourth-Order Diffusion (explicit PDE minimisation) **2D/3D CPU/GPU** (Ref. *9*)
 7. A joint ROF-LLT (Lysaker-Lundervold-Tai) model for higher-order regularisation **2D/3D CPU/GPU** (Ref. *10,11*)
@@ -93,7 +93,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 #### Python (conda-build)
 ```
-	export CIL_VERSION=0.10.3
+	export CIL_VERSION=0.10.4
 	conda build Wrappers/Python/conda-recipe --numpy 1.12 --python 3.5 
 	conda install ccpi-regulariser=${CIL_VERSION} --use-local --force
 	cd demos/

@@ -139,18 +139,13 @@ float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, in
             newU3D(U, U_old, (long)(dimX), (long)(dimY), (long)(dimZ));
             
             /*saving V into V_old*/
-            copyIm(V1, V1_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-            copyIm(V2, V2_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-            copyIm(V3, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
+            copyIm_3Ar(V1, V2, V3, V1_old, V2_old, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
             
             /* upd V*/
             UpdV_3D(V1, V2, V3, P1, P2, P3, Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), tau);
             
             /*get new V*/
-            newU3D(V1, V1_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-            newU3D(V2, V2_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-            newU3D(V3, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+            newU3D_3Ar(V1, V2, V3, V1_old, V2_old, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));           
 	        } /*end of iterations*/
         free(P3);free(Q4);free(Q5);free(Q6);free(V3);free(V3_old);
         }     
@@ -454,14 +449,39 @@ float UpdV_3D(float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, 
         }}}
     return 1;
 }
+
+float copyIm_3Ar(float *V1, float *V2, float *V3, float *V1_old, float *V2_old, float *V3_old, long dimX, long dimY, long dimZ)
+{
+	long j;
+#pragma omp parallel for shared(V1, V2, V3, V1_old, V2_old, V3_old) private(j)
+	for (j = 0; j<dimX*dimY*dimZ; j++)  {	
+	V1_old[j] = V1[j];
+	V2_old[j] = V2[j];
+	V3_old[j] = V3[j];	
+	}
+	return 1;
+}
+
 /*get updated solution U*/
 float newU3D(float *U, float *U_old, long dimX, long dimY, long dimZ)
 {
     long i;
-#pragma omp parallel for shared(U,U_old) private(i)
-    for(i=0; i<dimX*dimY*dimZ; i++) {
-    U[i] = 2.0f*U[i] - U_old[i];
-    }
+#pragma omp parallel for shared(U, U_old) private(i)
+    for(i=0; i<dimX*dimY*dimZ; i++) U[i] = 2.0f*U[i] - U_old[i];
     return *U;
+}
+
+
+/*get updated solution U*/
+float newU3D_3Ar(float *V1, float *V2, float *V3, float *V1_old, float *V2_old, float *V3_old, long dimX, long dimY, long dimZ)
+{
+    long i;
+#pragma omp parallel for shared(V1, V2, V3, V1_old, V2_old, V3_old) private(i)
+    for(i=0; i<dimX*dimY*dimZ; i++) {
+    V1[i] = 2.0f*V1[i] - V1_old[i];
+    V2[i] = 2.0f*V2[i] - V2_old[i];
+    V3[i] = 2.0f*V3[i] - V3_old[i];
+    }
+    return 1;
 }
 
