@@ -93,7 +93,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 #### Python (conda-build)
 ```
-	export CIL_VERSION=0.10.4
+	export CIL_VERSION=19.02
 	conda build Wrappers/Python/conda-recipe --numpy 1.12 --python 3.5 
 	conda install ccpi-regulariser=${CIL_VERSION} --use-local --force
 	cd demos/
