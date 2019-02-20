@@ -14,7 +14,7 @@ import os
 import timeit
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 from ccpi.filters.regularisers import PatchSelect
-from qualitymetrics import rmse
+from ccpi.supp.qualitymetrics import QualityTools
 ###############################################################################
 def printParametersToString(pars):
         txt = r''
@@ -76,8 +76,9 @@ rof_cpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],'cpu')
-rms = rmse(Im, rof_cpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, rof_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -98,9 +99,10 @@ rof_gpu = ROF_TV(pars['input'],
                      pars['regularisation_parameter'],
                      pars['number_of_iterations'], 
                      pars['time_marching_parameter'],'gpu')
-                     
-rms = rmse(Im, rof_gpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, rof_gpu)
+pars['rmse'] = Qtools.rmse()
+
 pars['algorithm'] = ROF_TV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -162,9 +164,9 @@ fgp_cpu = FGP_TV(pars['input'],
               pars['nonneg'],
               pars['printingOut'],'cpu')  
              
-             
-rms = rmse(Im, fgp_cpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, fgp_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -189,9 +191,10 @@ fgp_gpu = FGP_TV(pars['input'],
               pars['methodTV'],
               pars['nonneg'],
               pars['printingOut'],'gpu')
-                                   
-rms = rmse(Im, fgp_gpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, fgp_gpu)
+pars['rmse'] = Qtools.rmse()
+
 pars['algorithm'] = FGP_TV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -251,9 +254,9 @@ sb_cpu = SB_TV(pars['input'],
               pars['methodTV'],
               pars['printingOut'],'cpu')  
              
-             
-rms = rmse(Im, sb_cpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, sb_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -277,9 +280,9 @@ sb_gpu = SB_TV(pars['input'],
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['printingOut'],'gpu')
-                                   
-rms = rmse(Im, sb_gpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, sb_gpu)
+pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = SB_TV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -337,8 +340,8 @@ tgv_cpu = TGV(pars['input'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],'cpu')
              
-rms = rmse(Im, tgv_cpu)
-pars['rmse'] = rms
+Qtools = QualityTools(Im, tgv_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -362,8 +365,8 @@ tgv_gpu = TGV(pars['input'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],'gpu')
                                    
-rms = rmse(Im, tgv_gpu)
-pars['rmse'] = rms
+Qtools = QualityTools(Im, tgv_gpu)
+pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = TGV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -419,8 +422,8 @@ lltrof_cpu = LLT_ROF(pars['input'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],'cpu')
 
-rms = rmse(Im, lltrof_cpu)
-pars['rmse'] = rms
+Qtools = QualityTools(Im, lltrof_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -443,8 +446,9 @@ lltrof_gpu = LLT_ROF(pars['input'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],'gpu')
 
-rms = rmse(Im, lltrof_gpu)
-pars['rmse'] = rms
+Qtools = QualityTools(Im, lltrof_gpu)
+pars['rmse'] = Qtools.rmse()
+
 pars['algorithm'] = LLT_ROF
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -501,9 +505,9 @@ ndf_cpu = NDF(pars['input'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
               pars['penalty_type'],'cpu')
-             
-rms = rmse(Im, ndf_cpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, ndf_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -527,9 +531,9 @@ ndf_gpu = NDF(pars['input'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
               pars['penalty_type'],'gpu')
-             
-rms = rmse(Im, ndf_gpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, ndf_gpu)
+pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = NDF
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -585,9 +589,9 @@ diff4th_cpu = Diff4th(pars['input'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'],'cpu')
-             
-rms = rmse(Im, diff4th_cpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, diff4th_cpu)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -609,9 +613,9 @@ diff4th_gpu = Diff4th(pars['input'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 'gpu')
-             
-rms = rmse(Im, diff4th_gpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, diff4th_gpu)
+pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = Diff4th
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -675,10 +679,10 @@ fgp_dtv_cpu = FGP_dTV(pars['input'],
               pars['methodTV'],
               pars['nonneg'],
               pars['printingOut'],'cpu')
-             
-             
-rms = rmse(Im, fgp_dtv_cpu)
-pars['rmse'] = rms
+
+Qtools = QualityTools(Im, fgp_dtv_cpu)
+pars['rmse'] = Qtools.rmse()
+
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -704,8 +708,8 @@ fgp_dtv_gpu = FGP_dTV(pars['input'],
               pars['methodTV'],
               pars['nonneg'],
               pars['printingOut'],'gpu')
-rms = rmse(Im, fgp_dtv_gpu)
-pars['rmse'] = rms
+Qtools = QualityTools(Im, fgp_dtv_gpu)
+pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = FGP_dTV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
