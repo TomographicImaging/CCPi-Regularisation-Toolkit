@@ -21,15 +21,17 @@ import timeit
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
-from tomophantom.supp.qualitymetrics import QualityTools
+from ccpi.supp.qualitymetrics import QualityTools
 
-# loading data 
+# loading the data 
 h5f = h5py.File('data/TomoSim_data1550671417.h5','r')
 phantom = h5f['phantom'][:]
 projdata_norm = h5f['projdata_norm'][:]
 proj_angles = h5f['proj_angles'][:]
 h5f.close()
 
+[Vert_det, AnglesNum, Horiz_det] = np.shape(projdata_norm)
+N_size = Vert_det
 
 sliceSel = 128
 #plt.gray()
@@ -64,32 +66,32 @@ plt.show()
 from tomorec.methodsDIR import RecToolsDIR
 RectoolsDIR = RecToolsDIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
-                    AnglesVec = angles_rad, # array of angles in radians
+                    AnglesVec = proj_angles, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     device = 'gpu')
 #%%
 print ("Reconstruction using FBP from TomoRec")
-recNumerical= RectoolsDIR.FBP(projData3D_norm) # FBP reconstruction
+recFBP= RectoolsDIR.FBP(projdata_norm) # FBP reconstruction
 
 sliceSel = int(0.5*N_size)
 max_val = 1
 #plt.gray()
 plt.figure() 
 plt.subplot(131)
-plt.imshow(recNumerical[sliceSel,:,:],vmin=0, vmax=max_val)
+plt.imshow(recFBP[sliceSel,:,:],vmin=0, vmax=max_val)
 plt.title('3D Reconstruction, axial view')
 
 plt.subplot(132)
-plt.imshow(recNumerical[:,sliceSel,:],vmin=0, vmax=max_val)
+plt.imshow(recFBP[:,sliceSel,:],vmin=0, vmax=max_val)
 plt.title('3D Reconstruction, coronal view')
 
 plt.subplot(133)
-plt.imshow(recNumerical[:,:,sliceSel],vmin=0, vmax=max_val)
+plt.imshow(recFBP[:,:,sliceSel],vmin=0, vmax=max_val)
 plt.title('3D Reconstruction, sagittal view')
 plt.show()
 
 # calculate errors 
-Qtools = QualityTools(phantom_tm, recNumerical)
+Qtools = QualityTools(phantom, recFBP)
 RMSE_fbp = Qtools.rmse()
 print("Root Mean Square Error for FBP is {}".format(RMSE_fbp))
 #%%
@@ -100,7 +102,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 from tomorec.methodsIR import RecToolsIR
 RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
-                    AnglesVec = angles_rad, # array of angles in radians
+                    AnglesVec = proj_angles, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
                     nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
@@ -108,12 +110,41 @@ RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector d
                     tolerance = 1e-08, # tolerance to stop outer iterations earlier
                     device='gpu')
 #%%
-# Run ADMM reconstrucion algorithm with 3D regularisation
-RecADMM_reg_fgptv = RectoolsIR.ADMM(projData3D_norm,
+print ("Reconstructing with ADMM method using ROF-TV penalty")
+RecADMM_reg_roftv = RectoolsIR.ADMM(projdata_norm,
+                              rho_const = 2000.0, \
+                              iterationsADMM = 30, \
+                              regularisation = 'ROF_TV', \
+                              regularisation_parameter = 0.003,\
+                              regularisation_iterations = 500)
+
+sliceSel = int(0.5*N_size)
+max_val = 1
+plt.figure() 
+plt.subplot(131)
+plt.imshow(RecADMM_reg_roftv[sliceSel,:,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-ROF-TV Reconstruction, axial view')
+
+plt.subplot(132)
+plt.imshow(RecADMM_reg_roftv[:,sliceSel,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-ROF-TV Reconstruction, coronal view')
+
+plt.subplot(133)
+plt.imshow(RecADMM_reg_roftv[:,:,sliceSel],vmin=0, vmax=max_val)
+plt.title('3D ADMM-ROF-TV Reconstruction, sagittal view')
+plt.show()
+
+# calculate errors 
+Qtools = QualityTools(phantom, RecADMM_reg_roftv)
+RMSE_admm_rof = Qtools.rmse()
+print("Root Mean Square Error for ADMM-ROF-TV is {}".format(RMSE_admm_rof))
+#%%
+print ("Reconstructing with ADMM method using FGP-TV penalty")
+RecADMM_reg_fgptv = RectoolsIR.ADMM(projdata_norm,
                               rho_const = 2000.0, \
                               iterationsADMM = 30, \
                               regularisation = 'FGP_TV', \
-                              regularisation_parameter = 0.003,\
+                              regularisation_parameter = 0.005,\
                               regularisation_iterations = 250)
 
 sliceSel = int(0.5*N_size)
@@ -133,8 +164,65 @@ plt.title('3D ADMM-FGP-TV Reconstruction, sagittal view')
 plt.show()
 
 # calculate errors 
-Qtools = QualityTools(phantom_tm, RecADMM_reg_fgptv)
+Qtools = QualityTools(phantom, RecADMM_reg_fgptv)
 RMSE_admm_fgp = Qtools.rmse()
 print("Root Mean Square Error for ADMM-FGP-TV is {}".format(RMSE_admm_fgp))
+#%%
+print ("Reconstructing with ADMM method using TGV penalty")
+RecADMM_reg_tgv = RectoolsIR.ADMM(projdata_norm,
+                              rho_const = 2000.0, \
+                              iterationsADMM = 30, \
+                              regularisation = 'TGV', \
+                              regularisation_parameter = 0.005,\
+                              regularisation_iterations = 350)
 
+sliceSel = int(0.5*N_size)
+max_val = 1
+plt.figure() 
+plt.subplot(131)
+plt.imshow(RecADMM_reg_tgv[sliceSel,:,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-TGV Reconstruction, axial view')
+
+plt.subplot(132)
+plt.imshow(RecADMM_reg_tgv[:,sliceSel,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-TGV Reconstruction, coronal view')
+
+plt.subplot(133)
+plt.imshow(RecADMM_reg_tgv[:,:,sliceSel],vmin=0, vmax=max_val)
+plt.title('3D ADMM-TGV Reconstruction, sagittal view')
+plt.show()
+
+# calculate errors 
+Qtools = QualityTools(phantom, RecADMM_reg_tgv)
+RMSE_admm_tgv = Qtools.rmse()
+print("Root Mean Square Error for ADMM-TGV is {}".format(RMSE_admm_tgv))
+#%%
+print ("Reconstructing with ADMM method using Diff4th penalty")
+RecADMM_reg_diff4th = RectoolsIR.ADMM(projdata_norm,
+                              rho_const = 2000.0, \
+                              iterationsADMM = 30, \
+                              regularisation = 'Diff4th', \
+                              regularisation_parameter = 0.005,\
+                              regularisation_iterations = 500)
+
+sliceSel = int(0.5*N_size)
+max_val = 1
+plt.figure() 
+plt.subplot(131)
+plt.imshow(RecADMM_reg_diff4th[sliceSel,:,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-Diff4th Reconstruction, axial view')
+
+plt.subplot(132)
+plt.imshow(RecADMM_reg_diff4th[:,sliceSel,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-Diff4th Reconstruction, coronal view')
+
+plt.subplot(133)
+plt.imshow(RecADMM_reg_diff4th[:,:,sliceSel],vmin=0, vmax=max_val)
+plt.title('3D ADMM-Diff4th Reconstruction, sagittal view')
+plt.show()
+
+# calculate errors 
+Qtools = QualityTools(phantom, RecADMM_reg_diff4th)
+RMSE_admm_diff4th = Qtools.rmse()
+print("Root Mean Square Error for ADMM-Diff4th is {}".format(RMSE_admm_diff4th))
 #%%
