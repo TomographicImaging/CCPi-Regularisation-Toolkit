@@ -12,52 +12,106 @@ some imaging errors and noise
 ____________________________________________________________________________
 
 >>>>> Dependencies: <<<<<
-1. TomoPhantom software for data generation
+1. TomoPhantom software for phantom and data generation
 
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 Apache 2.0 license
 """
-import numpy as np
+import timeit
+import os
 import matplotlib.pyplot as plt
-import scipy.io
-from tomorec.supp.suppTools import normaliser
+import numpy as np
+import tomophantom
+from tomophantom import TomoP3D
+from tomophantom.supp.flatsgen import flats
+from tomophantom.supp.normraw import normaliser_sim
 
-# load dendritic data
-datadict = scipy.io.loadmat('Rawdata_1_frame3D.mat')
-# extract data (print(datadict.keys()))
-dataRaw = datadict['Rawdata3D']
-angles = datadict['AnglesAr']
-flats = datadict['flats3D']
-darks=  datadict['darks3D']
+print ("Building 3D phantom using TomoPhantom software")
+tic=timeit.default_timer()
+model = 16 # select a model number from the library
+N_size = 256 # Define phantom dimensions using a scalar value (cubic phantom)
+path = os.path.dirname(tomophantom.__file__)
+path_library3D = os.path.join(path, "Phantom3DLibrary.dat")
+#This will generate a N_size x N_size x N_size phantom (3D)
+phantom_tm = TomoP3D.Model(model, N_size, path_library3D)
+toc=timeit.default_timer()
+Run_time = toc - tic
+print("Phantom has been built in {} seconds".format(Run_time))
 
-dataRaw = np.swapaxes(dataRaw,0,1)
-#%%
-#flats2 = np.zeros((np.size(flats,0),1, np.size(flats,1)), dtype='float32')
-#flats2[:,0,:] = flats[:]
-#darks2 = np.zeros((np.size(darks,0),1, np.size(darks,1)), dtype='float32')
-#darks2[:,0,:] = darks[:]
-
-# normalise the data, required format is [detectorsHoriz, Projections, Slices]
-data_norm = normaliser(dataRaw, flats, darks, log='log')
-
-#dataRaw = np.float32(np.divide(dataRaw, np.max(dataRaw).astype(float)))
-
-intens_max = 70
+sliceSel = int(0.5*N_size)
+#plt.gray()
 plt.figure() 
 plt.subplot(131)
-plt.imshow(data_norm[:,150,:],vmin=0, vmax=intens_max)
-plt.title('2D Projection (analytical)')
+plt.imshow(phantom_tm[sliceSel,:,:],vmin=0, vmax=1)
+plt.title('3D Phantom, axial view')
+
 plt.subplot(132)
-plt.imshow(data_norm[:,:,300],vmin=0, vmax=intens_max)
-plt.title('Sinogram view')
+plt.imshow(phantom_tm[:,sliceSel,:],vmin=0, vmax=1)
+plt.title('3D Phantom, coronal view')
+
 plt.subplot(133)
-plt.imshow(data_norm[600,:,:],vmin=0, vmax=intens_max)
-plt.title('Tangentogram view')
+plt.imshow(phantom_tm[:,:,sliceSel],vmin=0, vmax=1)
+plt.title('3D Phantom, sagittal view')
 plt.show()
 
-
-detectorHoriz = np.size(data_norm,0)
-N_size = 1000
-slice_to_recon = 0 # select which slice to reconstruct
+# Projection geometry related parameters:
+Horiz_det = int(np.sqrt(2)*N_size) # detector column count (horizontal)
+Vert_det = N_size # detector row count (vertical) (no reason for it to be > N)
+angles_num = int(0.35*np.pi*N_size); # angles number
+angles = np.linspace(0.0,179.9,angles_num,dtype='float32') # in degrees
 angles_rad = angles*(np.pi/180.0)
+#%%
+print ("Building 3D analytical projection data with TomoPhantom")
+projData3D_analyt= TomoP3D.ModelSino(model, N_size, Horiz_det, Vert_det, angles, path_library3D)
+
+intens_max = N_size
+sliceSel = int(0.5*N_size)
+plt.figure() 
+plt.subplot(131)
+plt.imshow(projData3D_analyt[:,sliceSel,:],vmin=0, vmax=intens_max)
+plt.title('2D Projection (analytical)')
+plt.subplot(132)
+plt.imshow(projData3D_analyt[sliceSel,:,:],vmin=0, vmax=intens_max)
+plt.title('Sinogram view')
+plt.subplot(133)
+plt.imshow(projData3D_analyt[:,:,sliceSel],vmin=0, vmax=intens_max)
+plt.title('Tangentogram view')
+plt.show()
+#%%
+print ("Simulate flat fields, add noise and normalise projections...")
+flatsnum = 20 # generate 20 flat fields
+flatsSIM = flats(Vert_det, Horiz_det, maxheight = 0.1, maxthickness = 3, sigma_noise = 0.2, sigmasmooth = 3, flatsnum=flatsnum)
+
+plt.figure() 
+plt.imshow(flatsSIM[0,:,:],vmin=0, vmax=1)
+plt.title('A selected simulated flat-field')
+#%%
+# Apply normalisation of data and add noise
+flux_intensity = 60000 # controls the level of noise 
+sigma_flats = 0.01 # contro the level of noise in flats (higher creates more ring artifacts)
+projData3D_norm = normaliser_sim(projData3D_analyt, flatsSIM, sigma_flats, flux_intensity)
+
+intens_max = N_size
+sliceSel = int(0.5*N_size)
+plt.figure() 
+plt.subplot(131)
+plt.imshow(projData3D_norm[:,sliceSel,:],vmin=0, vmax=intens_max)
+plt.title('2D Projection (erroneous)')
+plt.subplot(132)
+plt.imshow(projData3D_norm[sliceSel,:,:],vmin=0, vmax=intens_max)
+plt.title('Sinogram view')
+plt.subplot(133)
+plt.imshow(projData3D_norm[:,:,sliceSel],vmin=0, vmax=intens_max)
+plt.title('Tangentogram view')
+plt.show()
+#%%
+import h5py
+import time
+time_label = int(time.time())
+# Saving generated data with a unique time label
+h5f = h5py.File('TomoSim_data'+str(time_label)+'.h5', 'w')
+h5f.create_dataset('phantom', data=phantom_tm)
+h5f.create_dataset('projdata_norm', data=projData3D_norm)
+h5f.create_dataset('proj_angles', data=angles_rad)
+h5f.close()
 #%%
