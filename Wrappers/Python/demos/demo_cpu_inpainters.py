@@ -11,7 +11,7 @@ import os
 import timeit
 from scipy import io
 from ccpi.filters.regularisers import NDF_INP, NVM_INP
-from qualitymetrics import rmse
+from ccpi.supp.qualitymetrics import QualityTools
 ###############################################################################
 def printParametersToString(pars):
         txt = r''
@@ -85,9 +85,9 @@ ndf_inp_linear = NDF_INP(pars['input'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
               pars['penalty_type'])
-             
-rms = rmse(sino_full, ndf_inp_linear)
-pars['rmse'] = rms
+
+Qtools = QualityTools(sino_full, ndf_inp_linear)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -133,8 +133,9 @@ ndf_inp_nonlinear = NDF_INP(pars['input'],
               pars['time_marching_parameter'], 
               pars['penalty_type'])
              
-rms = rmse(sino_full, ndf_inp_nonlinear)
-pars['rmse'] = rms
+
+Qtools = QualityTools(sino_full, ndf_inp_nonlinear)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -174,8 +175,9 @@ start_time = timeit.default_timer()
               pars['SW_increment'],
               pars['number_of_iterations'])
              
-rms = rmse(sino_full, nvm_inp)
-pars['rmse'] = rms
+
+Qtools = QualityTools(sino_full, nvm_inp)
+pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
