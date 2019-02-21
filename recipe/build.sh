@@ -1,8 +1,8 @@
 
-mkdir "$SRC_DIR/ccpi"
-cp -rv "$RECIPE_DIR/../src/Matlab" "$SRC_DIR/ccpi"
-cp -rv "$RECIPE_DIR/../src/Python" "$SRC_DIR/ccpi"
-cp -rv "$RECIPE_DIR/../src/Core" "$SRC_DIR/Core"
+#mkdir "$SRC_DIR/ccpi"
+#cp -rv "$RECIPE_DIR/../src/Matlab" "$SRC_DIR/ccpi"
+#cp -rv "$RECIPE_DIR/../src/Python" "$SRC_DIR/ccpi"
+#cp -rv "$RECIPE_DIR/../src/Core" "$SRC_DIR/Core"
 
 cd $SRC_DIR
 ##cuda=off

@@ -46,7 +46,7 @@ set(MATLAB_DEST "${CMAKE_INSTALL_PREFIX}/matlab")
 endif()
 message(STATUS "Matlab wrappers will be installed in " ${MATLAB_DEST})
 
-set(PYTHON_DEST_DIR "" CACHE PATH "Directory of the Matlab wrappers")
+set(PYTHON_DEST_DIR "" CACHE PATH "Directory of the Python wrappers")
 if (PYTHON_DEST_DIR)
  set(PYTHON_DEST "${PYTHON_DEST_DIR}")
 else() 
@@ -55,5 +55,5 @@ endif()
 message(STATUS "Python wrappers will be installed in " ${PYTHON_DEST})
 
 
-add_subdirectory(src/Core)
+#add_subdirectory(src/Core)
 add_subdirectory(src)

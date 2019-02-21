@@ -50,13 +50,28 @@
 
 ## Installation:
 
-The package comes as a [CMake](https://cmake.org) project so you will need CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this). We provide wrappers for Python and Matlab.
+The package comes as a [CMake](https://cmake.org) project
+and additional wrappers for Python and Matlab.
 
+To install precompiled binaries, you need `conda` and install from `ccpi` channel using :
+```
+conda install ccpi-regulariser -c ccpi -c conda-forge
+```
+
+In order to compile C/C++ sources and additional wrappers from source code, the recommended way is:
+```
+git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+cd CCPi-Regularisation-Toolkit
+build/jenkins-build.sh
+```
+this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests.
+
+### CMake
+If you want to build directly using cmake, install CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this) 
 1. Clone this repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, 
 2. create a build directory. 
 3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`, or `cmake3`). Use additional flags to fine tune the configuration. 
 
-### CMake flags
 Flags used during configuration
 
 | CMake flag | type | meaning |

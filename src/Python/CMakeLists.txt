@@ -7,7 +7,7 @@ project(regulariserPython)
 # The version number.
 
 #set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
-
+message("Creating Python Wrapper")
 # conda orchestrated build
 message("CIL_VERSION: ${CIL_VERSION}")
 #include (GenerateExportHeader)
@@ -19,7 +19,7 @@ endif()
 
 	
 ## Build the regularisers package as a library
-message("Creating Regularisers as shared library")
+#TODO message("Creating Regularisers as shared library")
 
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
@@ -87,7 +87,7 @@ if (PYTHONINTERP_FOUND)
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup-regularisers.py.in")
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup-regularisers.py")
     #set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
-    set (DEPS       "${CMAKE_BINARY_DIR}/Core/")
+    set (DEPS       "${CMAKE_BINARY_DIR}/src/Core/")
     set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
 
     configure_file(${SETUP_PY_IN} ${SETUP_PY})
@@ -99,9 +99,9 @@ if (PYTHONINTERP_FOUND)
                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
                        COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
-                                                       PREFIX=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/Core
+                                                       PREFIX=${CMAKE_SOURCE_DIR}/src/Core
+                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
+                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/src/Core
                                                        ${PYTHON_EXECUTABLE} ${SETUP_PY} install
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS cilreg)
@@ -112,9 +112,9 @@ if (PYTHONINTERP_FOUND)
                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
                        COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
-                                                       PREFIX=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/Core/${CMAKE_BUILD_TYPE}
+                                                       PREFIX=${CMAKE_SOURCE_DIR}/src/Core
+                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
+                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/src/Core/${CMAKE_BUILD_TYPE}
                                                        ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS cilreg)
@@ -123,9 +123,9 @@ if (PYTHONINTERP_FOUND)
                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
                        COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
-                                                       PREFIX=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/Core 
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/Core
+                                                       PREFIX=${CMAKE_SOURCE_DIR}/src/Core
+                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
+                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/src/Core
                                                        ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS cilreg)
