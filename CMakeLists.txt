@@ -55,5 +55,5 @@ endif()
 message(STATUS "Python wrappers will be installed in " ${PYTHON_DEST})
 
 
-add_subdirectory(Core)
-add_subdirectory(Wrappers)
+add_subdirectory(src/Core)
+add_subdirectory(src)
