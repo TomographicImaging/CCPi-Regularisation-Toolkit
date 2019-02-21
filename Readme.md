@@ -58,10 +58,11 @@ To install precompiled binaries, you need `conda` and install from `ccpi` channe
 conda install ccpi-regulariser -c ccpi -c conda-forge
 ```
 
-In order to compile C/C++ sources and additional wrappers from source code, the recommended way is:
+In order to compile C/C++ sources and additional wrappers from source code for numpy 1.12 and python 3.6, the recommended way is:
 ```
 git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 cd CCPi-Regularisation-Toolkit
+export CCPI_BUILD_ARGS="--numpy 1.12 --python 3.6"
 build/jenkins-build.sh
 ```
 this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests.
