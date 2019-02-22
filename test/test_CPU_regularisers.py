@@ -126,3 +126,8 @@ class TestRegularisers(unittest.TestCase):
 
         # now test that it generates some expected output
         self.assertAlmostEqual(rms, 0.02, delta=0.01)
+
+
+
+if __name__ == '__main__':
+    unittest.main()
