@@ -9,15 +9,15 @@
 **Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem (inverse problem) more well-posed. The CCPi-RGL software provides 2D/3D and multi-channel regularisation strategies to ensure better performance of IIR methods. The regularisation modules are well-suited to use with [splitting algorithms](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method#Alternating_direction_method_of_multipliers), such as, [ADMM](https://github.com/dkazanc/ADMM-tomo) and [FISTA](https://github.com/dkazanc/FISTA-tomo). Furthermore, the toolkit can be used for simpler inversion tasks, such as, image denoising, inpaiting, deconvolution etc. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 <div align="center">
-  <img src="docs/images/probl.png" height="225"><br>  
+  <img src="demos/images/probl.png" height="225"><br>  
 </div>
 
 <div align="center">
-  <img src="docs/images/reg_penalties.jpg" height="450"><br>  
+  <img src="demos/images/reg_penalties.jpg" height="450"><br>  
 </div>
 
 <div align="center">
-  <img src="docs/images/TV_vs_NLTV.jpg" height="300"><br>  
+  <img src="demos/images/TV_vs_NLTV.jpg" height="300"><br>  
 </div>
 
 ## Prerequisites: 
@@ -183,8 +183,7 @@ addpath(/path/to/library);
 
 ### Applications:
 
-* [Regularised FISTA iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB/Python code)](https://github.com/dkazanc/FISTA-tomo)
-* [Regularised ADMM iterative reconstruction algorithm for X-ray tomographic reconstruction (MATLAB code)](https://github.com/dkazanc/ADMM-tomo)
+* [A library of tomographic reconstruction methods: direct and model-based iterative (MATLAB/Python code)](https://github.com/dkazanc/TomoRec)
 * [Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography (MATLAB code)](https://github.com/dkazanc/multi-channel-X-ray-CT)
 
 ### License:
