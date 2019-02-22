@@ -8,7 +8,7 @@ addpath(Path2);
 addpath(Path3);
 
 N = 512; 
-slices = 7;
+slices = 15;
 vol3D = zeros(N,N,slices, 'single');
 Ideal3D = zeros(N,N,slices, 'single');
 Im = double(imread('lena_gray_512.tif'))/255;  % loading image
@@ -17,9 +17,7 @@ vol3D(:,:,i) = Im + .05*randn(size(Im));
 Ideal3D(:,:,i) = Im;
 end
 vol3D(vol3D < 0) = 0;
-figure; imshow(vol3D(:,:,15), [0 1]); title('Noisy image');
-
-
+figure; imshow(vol3D(:,:,7), [0 1]); title('Noisy image');
 lambda_reg = 0.03; % regularsation parameter for all methods
 %%
 fprintf('Denoise a volume using the ROF-TV model (CPU) \n');
@@ -142,6 +140,16 @@ tic; u_tgv = TGV(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV); toc;
 rmseTGV = RMSE(Ideal3D(:),u_tgv(:));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
 figure; imshow(u_tgv(:,:,3), [0 1]); title('TGV denoised volume (CPU)');
+%%
+% fprintf('Denoise using the TGV model (GPU) \n');
+% lambda_TGV = 0.03; % regularisation parameter
+% alpha1 = 1.0; % parameter to control the first-order term
+% alpha0 = 2.0; % parameter to control the second-order term
+% iter_TGV = 500; % number of Primal-Dual iterations for TGV
+% tic; u_tgv_gpu = TGV_GPU(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
+% rmseTGV = RMSE(Ideal3D(:),u_tgv_gpu(:));
+% fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
+% figure; imshow(u_tgv_gpu(:,:,3), [0 1]); title('TGV denoised volume (GPU)');
 %%
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
 fprintf('Denoise a volume using the FGP-dTV model (CPU) \n');

@@ -3,8 +3,8 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazantsev
-Copyright 2017 Srikanth Nagella, Edoardo Pasca
+Copyright 2019 Daniil Kazantsev
+Copyright 2019 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ limitations under the License.
  * 6. Lipshitz constant (default is 12)
  *
  * Output:
- * Filtered/regulariaed image 
+ * Filtered/regularised image 
  *
  * References:
  * [1] K. Bredies "Total Generalized Variation"
@@ -42,8 +42,8 @@ limitations under the License.
 #define BLKYSIZE 8
 #define BLKZSIZE 8    
     
-#define BLKXSIZE2D 16
-#define BLKYSIZE2D 16
+#define BLKXSIZE2D 8
+#define BLKYSIZE2D 8
 #define EPS 1.0e-7
 #define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
 
@@ -53,80 +53,84 @@ limitations under the License.
 /********************************************************************/
 __global__ void DualP_2D_kernel(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, float sigma)
 {    
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
+	int num_total = dimX*dimY;
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;
+        int index = i + dimX*j;       
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY)) {
-            /* symmetric boundary conditions (Neuman) */
-            if (i == dimX-1) P1[index] += sigma*((U[j*dimX+(i-1)] - U[index]) - V1[index]); 
-            else P1[index] += sigma*((U[j*dimX+(i+1)] - U[index])  - V1[index]); 
-            if (j == dimY-1) P2[index] += sigma*((U[(j-1)*dimX+i] - U[index])  - V2[index]);
-            else  P2[index] += sigma*((U[(j+1)*dimX+i] - U[index])  - V2[index]);
-		}
+        if (index < num_total) {  
+        /* symmetric boundary conditions (Neuman) */            
+        if ((i >= 0) && (i < dimX-1))  P1[index] += sigma*((U[(i+1) + dimX*j] - U[index])  - V1[index]); 
+        else P1[index] += sigma*(-V1[index]); 
+        if ((j >= 0) && (j < dimY-1))  P2[index] += sigma*((U[i + dimX*(j+1)] - U[index])  - V2[index]);
+        else P2[index] += sigma*(-V2[index]);                    
+	}
 	return;
 } 
 
 __global__ void ProjP_2D_kernel(float *P1, float *P2, int dimX, int dimY, float alpha1)
 {
    	float grad_magn;
-
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
+	int num_total = dimX*dimY;
+	
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;
         
         int index = i + dimX*j;
-        
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY)) {
-            
-            grad_magn = sqrt(pow(P1[index],2) + pow(P2[index],2));
+                
+        if (index < num_total) {            
+            grad_magn = sqrtf(pow(P1[index],2) + pow(P2[index],2));
             grad_magn = grad_magn/alpha1;
             if (grad_magn > 1.0f) {
                 P1[index] /= grad_magn;
                 P2[index] /= grad_magn;
             }
-		}
+	}
 	return;
 } 
 
 __global__ void DualQ_2D_kernel(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float sigma)
 {
         float q1, q2, q11, q22;
-
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
+	int num_total = dimX*dimY;
+	
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;
+        int index = i + dimX*j;      
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY)) {            
-            /* symmetric boundary conditions (Neuman) */
-    	    q1 = 0.0f; q11 = 0.0f; q2 = 0.0f; q22 = 0.0f;
-            /* boundary conditions (Neuman) */
-            if (i != dimX-1){
-                q1 = V1[j*dimX+(i+1)] - V1[index];
-                q11 = V2[j*dimX+(i+1)] - V2[index];
-            }
-            if (j != dimY-1) {
-                q2 = V2[(j+1)*dimX+i] - V2[index];
-                q22 = V1[(j+1)*dimX+i] - V1[index];
-            }
+        if (index < num_total) {
+         q1 = 0.0f; q2  = 0.0f; q11  = 0.0f; q22  = 0.0f;
+         
+	        if ((i >= 0) && (i < dimX-1))  {            
+        	    /* boundary conditions (Neuman) */
+        	    q1 = V1[(i+1) + dimX*j] - V1[index];
+        	    q11 = V2[(i+1) + dimX*j] - V2[index];
+	        }
+        	if ((j >= 0) && (j < dimY-1)) {
+        	    q2 = V2[i + dimX*(j+1)] - V2[index];
+        	    q22 = V1[i + dimX*(j+1)] - V1[index];
+        	}
+        	
             Q1[index] += sigma*(q1);
             Q2[index] += sigma*(q2);
             Q3[index] += sigma*(0.5f*(q11 + q22));
-	}
+	 }            
 	return;
 } 
 
 __global__ void ProjQ_2D_kernel(float *Q1, float *Q2, float *Q3, int dimX, int dimY, float alpha0)
 {
 	float grad_magn;
+        int num_total = dimX*dimY;
 
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;
-        
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY)) {            
+        int index = i + dimX*j;        
+       
+        if (index < num_total) {
             grad_magn = sqrt(pow(Q1[index],2) + pow(Q2[index],2) + 2*pow(Q3[index],2));
             grad_magn = grad_magn/alpha0;
             if (grad_magn > 1.0f) {
@@ -141,44 +145,75 @@ __global__ void ProjQ_2D_kernel(float *Q1, float *Q2, float *Q3, int dimX, int d
 __global__ void DivProjP_2D_kernel(float *U, float *U0, float *P1, float *P2, int dimX, int dimY, float lambda, float tau)
 {
 	float P_v1, P_v2, div;
-
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
+	int num_total = dimX*dimY;
+	
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;       
         
         int index = i + dimX*j;
+
+        if (index < num_total) { 
+	P_v1 = 0.0f; P_v2 = 0.0f;
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY)) {
-			
-            if (i == 0) P_v1 = P1[index];
-            else P_v1 = P1[index] - P1[j*dimX+(i-1)];
-            if (j == 0) P_v2 = P2[index];
-            else  P_v2 = P2[index] - P2[(j-1)*dimX+i];
-            div = P_v1 + P_v2;
-            U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);
-		}
+        if (i == 0) P_v1 = P1[index];
+        if (i == dimX-1) P_v1 = -P1[(i-1) + dimX*j];
+        if ((i > 0) && (i < dimX-1)) P_v1 = P1[index] - P1[(i-1) + dimX*j];
+
+        if (j == 0) P_v2 = P2[index];
+        if (j == dimY-1) P_v2 = -P2[i + dimX*(j-1)];
+      	if ((j > 0) && (j < dimY-1))  P_v2 = P2[index] - P2[i + dimX*(j-1)];
+         
+        div = P_v1 + P_v2;
+        U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);
+	}
 	return;
 } 
 
 __global__ void UpdV_2D_kernel(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float tau)
 {
 	float q1, q3_x, q2, q3_y, div1, div2;
+	int num_total = dimX*dimY;
+	int i1, j1;
+	
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+        
+        int index = i + dimX*j;      
+      
+	if (index < num_total) {   
+	
+	    i1 = (i-1) + dimX*j;
+            j1 = (i) + dimX*(j-1);
 
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
-        
-        int index = i + dimX*j;
-        
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY)) {			
-   	    q2 = 0.0f;  q3_y = 0.0f; q1 = 0.0f; q3_x = 0.0;
-            /* boundary conditions (Neuman) */
-            if (i != 0) {
-                q1 = Q1[index] - Q1[j*dimX+(i-1)];
-                q3_x = Q3[index] - Q3[j*dimX+(i-1)];
-            }
-            if (j != 0) {
-                q2 = Q2[index] - Q2[(j-1)*dimX+i];
-                q3_y = Q3[index] - Q3[(j-1)*dimX+i];
-            }
+            /* boundary conditions (Neuman) */        
+            if ((i > 0) && (i < dimX-1)) {
+            q1 = Q1[index] - Q1[i1];
+            q3_x = Q3[index] - Q3[i1];  }            
+            else if (i == 0) {
+            q1 = Q1[index];
+            q3_x = Q3[index]; } 
+            else if (i == dimX-1) {
+            q1 = -Q1[i1];
+            q3_x = -Q3[i1];  }
+            else {
+            q1 = 0.0f;
+            q3_x = 0.0f;
+            }    
+            
+            if ((j > 0) && (j < dimY-1)) {
+            q2 = Q2[index] - Q2[j1];
+            q3_y = Q3[index] - Q3[j1]; } 
+            else if (j == dimY-1) {
+            q2 = -Q2[j1];
+            q3_y = -Q3[j1]; }
+            else if (j == 0) {
+            q2 = Q2[index];
+            q3_y = Q3[index]; }
+            else {
+            q2 = 0.0f;
+            q3_y = 0.0f;
+            }       
+            
             div1 = q1 + q3_y;
             div2 = q3_x + q2;
             V1[index] += tau*(P1[index] + div1);
@@ -243,21 +278,22 @@ __global__ void newU_kernel_ar2(float *V1, float *V2, float *V1_old, float *V2_o
 __global__ void DualP_3D_kernel(float *U, float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, int dimX, int dimY, int dimZ, float sigma)
 {    
 	int index;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
-        int k = blockDim.z * blockIdx.z + threadIdx.z;
+	const int i = blockDim.x * blockIdx.x + threadIdx.x;
+        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+        const int k = blockDim.z * blockIdx.z + threadIdx.z;
+
+   	int num_total = dimX*dimY*dimZ;
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {
-	
-	    index = (dimX*dimY)*k + j*dimX+i;
-            /* symmetric boundary conditions (Neuman) */
-            if (i == dimX-1) P1[index] += sigma*((U[(dimX*dimY)*k + j*dimX+(i-1)] - U[index]) - V1[index]); 
-            else P1[index] += sigma*((U[(dimX*dimY)*k + j*dimX+(i+1)] - U[index])  - V1[index]); 
-            if (j == dimY-1) P2[index] += sigma*((U[(dimX*dimY)*k + (j-1)*dimX+i] - U[index])  - V2[index]);
-            else  P2[index] += sigma*((U[(dimX*dimY)*k + (j+1)*dimX+i] - U[index])  - V2[index]);
-            if (k == dimZ-1) P3[index] += sigma*((U[(dimX*dimY)*(k-1) + j*dimX+i] - U[index])  - V3[index]);
-            else  P3[index] += sigma*((U[(dimX*dimY)*(k+1) + j*dimX+i] - U[index])  - V3[index]);
-	}
+        index = (dimX*dimY)*k + i*dimX+j;    
+        if (index < num_total) {                
+            /* symmetric boundary conditions (Neuman) */            
+            if ((i >= 0) && (i < dimX-1)) P1[index] += sigma*((U[(dimX*dimY)*k + (i+1)*dimX+j] - U[index])  - V1[index]);  
+	    else P1[index] += sigma*(-V1[index]); 
+	    if ((j >= 0) && (j < dimY-1)) P2[index] += sigma*((U[(dimX*dimY)*k + i*dimX+(j+1)] - U[index])  - V2[index]);        
+	    else P2[index] += sigma*(-V2[index]);                
+      	    if ((k >= 0) && (k < dimZ-1)) P3[index] += sigma*((U[(dimX*dimY)*(k+1) + i*dimX+(j)] - U[index])  - V3[index]);        
+	    else P3[index] += sigma*(-V3[index]);                	    
+	 }	
 	return;
 } 
 
@@ -265,14 +301,14 @@ __global__ void ProjP_3D_kernel(float *P1, float *P2, float *P3, int dimX, int d
 {
    	float grad_magn;
    	int index;
+   	int num_total = dimX*dimY*dimZ;
    	
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
         int k = blockDim.z * blockIdx.z + threadIdx.z;
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {	
-	    index = (dimX*dimY)*k + j*dimX+i;
-            
+        index = (dimX*dimY)*k + i*dimX+j;    
+        if (index < num_total) {            
             grad_magn = (sqrtf(pow(P1[index],2) + pow(P2[index],2) + pow(P3[index],2)))/alpha1;
             if (grad_magn > 1.0f) {
                 P1[index] /= grad_magn;
@@ -288,55 +324,57 @@ __global__ void DualQ_3D_kernel(float *V1, float *V2, float *V3, float *Q1, floa
 	int index; 
         float q1, q2, q3, q11, q22, q33, q44, q55, q66;
 
+   	int num_total = dimX*dimY*dimZ;
+   	
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
         int k = blockDim.z * blockIdx.z + threadIdx.z;
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {	
-	    
-	    index = (dimX*dimY)*k + j*dimX+i;	    
-	    q1 = 0.0f; q11 = 0.0f; q33 = 0.0f; q2 = 0.0f; q22 = 0.0f; q55 = 0.0f; q3 = 0.0f; q44 = 0.0f; q66 = 0.0f;
-            /* symmetric boundary conditions (Neuman) */
-            if (i != dimX-1){ 
-                q1 = V1[(dimX*dimY)*k + j*dimX+(i+1)] - V1[index];              
-                q11 = V2[(dimX*dimY)*k + j*dimX+(i+1)] - V2[index];
-                q33 = V3[(dimX*dimY)*k + j*dimX+(i+1)] - V3[index];
-            }
-            if (j != dimY-1) {
-                q2 = V2[(dimX*dimY)*k + (j+1)*dimX+i] - V2[index];                
-                q22 = V1[(dimX*dimY)*k + (j+1)*dimX+i] - V1[index];
-                q55 = V3[(dimX*dimY)*k + (j+1)*dimX+i] - V3[index];
-            }
-            if (k != dimZ-1) {
-                q3 = V3[(dimX*dimY)*(k+1) + j*dimX+i] - V3[index];
-                q44 = V1[(dimX*dimY)*(k+1) + j*dimX+i] - V1[index];
-                q66 = V2[(dimX*dimY)*(k+1) + j*dimX+i] - V2[index];
-            }
-            
+        index = (dimX*dimY)*k + i*dimX+j; 
+        int i1 = (dimX*dimY)*k + (i+1)*dimX+j;
+        int j1 = (dimX*dimY)*k + (i)*dimX+(j+1);
+        int k1 = (dimX*dimY)*(k+1) + (i)*dimX+(j);
+                
+        if (index < num_total) {
+ 	q1 = 0.0f; q11 = 0.0f; q33 = 0.0f; q2 = 0.0f; q22 = 0.0f; q55 = 0.0f; q3 = 0.0f; q44 = 0.0f; q66 = 0.0f;
+         
+	        /* boundary conditions (Neuman) */
+	        if ((i >= 0) && (i < dimX-1))  {                    	
+                q1 = V1[i1] - V1[index];              
+                q11 = V2[i1] - V2[index];
+                q33 = V3[i1] - V3[index];  }
+        	if ((j >= 0) && (j < dimY-1)) {
+                q2 = V2[j1] - V2[index];                
+                q22 = V1[j1] - V1[index];
+                q55 = V3[j1] - V3[index];  }
+        	if ((k >= 0) && (k < dimZ-1)) {
+                q3 = V3[k1] - V3[index];
+                q44 = V1[k1] - V1[index];
+                q66 = V2[k1] - V2[index]; }
+        	
             Q1[index] += sigma*(q1); /*Q11*/
             Q2[index] += sigma*(q2); /*Q22*/            
             Q3[index] += sigma*(q3); /*Q33*/
             Q4[index] += sigma*(0.5f*(q11 + q22)); /* Q21 / Q12 */
             Q5[index] += sigma*(0.5f*(q33 + q44)); /* Q31 / Q13 */
             Q6[index] += sigma*(0.5f*(q55 + q66)); /* Q32 / Q23 */
-	}
+	 }
 	return;
 }
-
 
 __global__ void ProjQ_3D_kernel(float *Q1, float *Q2, float *Q3, float *Q4, float *Q5, float *Q6, int dimX, int dimY, int dimZ, float alpha0)
 {
 	float grad_magn;
 	int index;
-
+   	int num_total = dimX*dimY*dimZ;
+   	
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
-        int k = blockDim.z * blockIdx.z + threadIdx.z;
+        int k = blockDim.z * blockIdx.z + threadIdx.z;        
+
+        index = (dimX*dimY)*k + i*dimX+j; 
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {	
-	    
-        index = (dimX*dimY)*k + j*dimX+i;	
-	
+        if (index < num_total) {	
 	grad_magn = sqrtf(pow(Q1[index],2) + pow(Q2[index],2) + pow(Q3[index],2) + 2.0f*pow(Q4[index],2) + 2.0f*pow(Q5[index],2) + 2.0f*pow(Q6[index],2));
             grad_magn = grad_magn/alpha0;
             if (grad_magn > 1.0f) {
@@ -354,21 +392,33 @@ __global__ void DivProjP_3D_kernel(float *U, float *U0, float *P1, float *P2, fl
 {
 	float P_v1, P_v2, P_v3, div;
 	int index;
-
+   	int num_total = dimX*dimY*dimZ;
+   	
+   	
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
-        int k = blockDim.z * blockIdx.z + threadIdx.z;
+        int k = blockDim.z * blockIdx.z + threadIdx.z;       
+     
+        index = (dimX*dimY)*k + i*dimX+j; 
+        int i1 = (dimX*dimY)*k + (i-1)*dimX+j;
+        int j1 = (dimX*dimY)*k + (i)*dimX+(j-1);
+        int k1 = (dimX*dimY)*(k-1) + (i)*dimX+(j);        
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {	
-
-        index = (dimX*dimY)*k + j*dimX+i;	
-			
+        if (index < num_total) { 
+	P_v1 = 0.0f; P_v2 = 0.0f; P_v3 = 0.0f;
+        
         if (i == 0) P_v1 = P1[index];
-        else P_v1 = P1[index] - P1[(dimX*dimY)*k + j*dimX+(i-1)];
+        if (i == dimX-1) P_v1 = -P1[i1];
+        if ((i > 0) && (i < dimX-1)) P_v1 = P1[index] - P1[i1];
+
         if (j == 0) P_v2 = P2[index];
-        else P_v2 = P2[index] - P2[(dimX*dimY)*k + (j-1)*dimX+i];
+        if (j == dimY-1) P_v2 = -P2[j1];
+      	if ((j > 0) && (j < dimY-1))  P_v2 = P2[index] - P2[j1];
+        
         if (k == 0) P_v3 = P3[index];
-        else P_v3 = P3[index] - P3[(dimX*dimY)*(k-1) + (j)*dimX+i];              
+        if (k == dimZ-1) P_v3 = -P3[k1];
+      	if ((k > 0) && (k < dimZ-1))  P_v3 = P3[index] - P3[k1];
+     
                       
         div = P_v1 + P_v2 + P_v3;
         U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);             
@@ -379,33 +429,73 @@ __global__ void UpdV_3D_kernel(float *V1, float *V2, float *V3, float *P1, float
 {
 	float q1, q4x, q5x, q2, q4y, q6y, q6z, q5z, q3, div1, div2, div3;
 	int index;
+	int num_total = dimX*dimY*dimZ;
 	
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
         int j = blockDim.y * blockIdx.y + threadIdx.y;
         int k = blockDim.z * blockIdx.z + threadIdx.z;
         
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {	
-
-        index = (dimX*dimY)*k + j*dimX+i;	
+        index = (dimX*dimY)*k + i*dimX+j; 
+        int i1 = (dimX*dimY)*k + (i-1)*dimX+j;
+        int j1 = (dimX*dimY)*k + (i)*dimX+(j-1);
+        int k1 = (dimX*dimY)*(k-1) + (i)*dimX+(j);    
         
-	q1 = 0.0f; q4x= 0.0f; q5x= 0.0f; q2= 0.0f; q4y= 0.0f; q6y= 0.0f; q6z= 0.0f; q5z= 0.0f; q3= 0.0f;
-        /* Q1 - Q11, Q2 - Q22, Q3 -  Q33, Q4 - Q21/Q12, Q5 - Q31/Q13, Q6 - Q32/Q23*/            
-        /* symmetric boundary conditions (Neuman) */
-        if (i != 0) {
-                q1 = Q1[index] - Q1[(dimX*dimY)*k + j*dimX+(i-1)];
-                q4x = Q4[index] - Q4[(dimX*dimY)*k + j*dimX+(i-1)];                
-                q5x = Q5[index] - Q5[(dimX*dimY)*k + j*dimX+(i-1)];
-        }
-       if (j != 0) {
-                q2 = Q2[index] - Q2[(dimX*dimY)*k + (j-1)*dimX+i];
-                q4y = Q4[index] - Q4[(dimX*dimY)*k + (j-1)*dimX+i];
-                q6y = Q6[index] - Q6[(dimX*dimY)*k + (j-1)*dimX+i];
-       }
-       if (k != 0) {
-                q6z = Q6[index] - Q6[(dimX*dimY)*(k-1) + (j)*dimX+i];
-                q5z = Q5[index] - Q5[(dimX*dimY)*(k-1) + (j)*dimX+i];
-                q3 = Q3[index] - Q3[(dimX*dimY)*(k-1) + (j)*dimX+i];
-       }
+        /* Q1 - Q11, Q2 - Q22, Q3 -  Q33, Q4 - Q21/Q12, Q5 - Q31/Q13, Q6 - Q32/Q23*/       
+        if (index < num_total) {  
+
+  	 /* boundary conditions (Neuman) */        
+            if ((i > 0) && (i < dimX-1)) {
+                q1 = Q1[index] - Q1[i1];
+                q4x = Q4[index] - Q4[i1];                
+                q5x = Q5[index] - Q5[i1]; }            
+            else if (i == 0) {
+                q1 = Q1[index];
+                q4x = Q4[index];                
+                q5x = Q5[index]; } 
+            else if (i == dimX-1) {
+                q1 = -Q1[i1];
+                q4x = -Q4[i1];                
+                q5x = -Q5[i1]; }
+            else {
+                q1 = 0.0f;
+                q4x = 0.0f;
+                q5x = 0.0f;  }    
+            
+            if ((j > 0) && (j < dimY-1)) {
+                q2 = Q2[index] - Q2[j1];
+                q4y = Q4[index] - Q4[j1];
+                q6y = Q6[index] - Q6[j1]; } 
+            else if (j == dimY-1) {
+                q2 = -Q2[j1];
+                q4y = -Q4[j1];
+                q6y = -Q6[j1]; }
+            else if (j == 0) {
+                q2 = Q2[index];
+                q4y = Q4[index];
+                q6y = Q6[index]; }
+            else {
+                q2 =  0.0f;
+                q4y = 0.0f;
+                q6y = 0.0f;
+               }       
+
+            if ((k > 0) && (k < dimZ-1)) {
+                q6z = Q6[index] - Q6[k1];
+                q5z = Q5[index] - Q5[k1];
+                q3 = Q3[index] - Q3[k1]; } 
+            else if (k == dimZ-1) {
+                q6z = -Q6[k1];
+                q5z = -Q5[k1];
+                q3 = -Q3[k1]; }
+            else if (k == 0) {
+                q6z = Q6[index];
+                q5z = Q5[index];
+                q3 = Q3[index]; }
+            else {
+                q6z = 0.0f;
+                q5z = 0.0f;
+                q3 = 0.0f; }
+
        div1 = q1 + q4y + q5z;
        div2 = q4x + q2 + q6z;            
        div3 = q5x + q6y + q3;
@@ -510,7 +600,14 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
         CHECK(cudaMalloc((void**)&V2_old,dimTotal*sizeof(float)));
         
         CHECK(cudaMemcpy(d_U0,U0,dimTotal*sizeof(float),cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpy(d_U,U0,dimTotal*sizeof(float),cudaMemcpyHostToDevice));      
+        CHECK(cudaMemcpy(d_U,U0,dimTotal*sizeof(float),cudaMemcpyHostToDevice));   
+        cudaMemset(P1, 0, dimTotal*sizeof(float));
+        cudaMemset(P2, 0, dimTotal*sizeof(float));
+        cudaMemset(Q1, 0, dimTotal*sizeof(float));
+        cudaMemset(Q2, 0, dimTotal*sizeof(float));
+        cudaMemset(Q3, 0, dimTotal*sizeof(float));
+        cudaMemset(V1, 0, dimTotal*sizeof(float));
+        cudaMemset(V2, 0, dimTotal*sizeof(float));           
         
         if (dimZ == 1) {
 	/*2D case */
@@ -521,14 +618,14 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
 			
 	    /* Calculate Dual Variable P */
             DualP_2D_kernel<<<dimGrid,dimBlock>>>(d_U, V1, V2, P1, P2, dimX, dimY, sigma);
-	    CHECK(cudaDeviceSynchronize());
+      	    CHECK(cudaDeviceSynchronize());
             /*Projection onto convex set for P*/
             ProjP_2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, alpha1);
             CHECK(cudaDeviceSynchronize());
             /* Calculate Dual Variable Q */
             DualQ_2D_kernel<<<dimGrid,dimBlock>>>(V1, V2, Q1, Q2, Q3, dimX, dimY, sigma);
             CHECK(cudaDeviceSynchronize());
-             /*Projection onto convex set for Q*/
+            /*Projection onto convex set for Q*/
             ProjQ_2D_kernel<<<dimGrid,dimBlock>>>(Q1, Q2, Q3, dimX, dimY, alpha0);
             CHECK(cudaDeviceSynchronize());
             /*saving U into U_old*/
@@ -549,7 +646,7 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
             /*get new V*/
             newU_kernel_ar2<<<dimGrid,dimBlock>>>(V1, V2, V1_old, V2_old, dimX, dimY, dimTotal);
             CHECK(cudaDeviceSynchronize());            
-	        }
+	    }
         }
         else {
         /*3D case */
@@ -564,6 +661,12 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
         CHECK(cudaMalloc((void**)&Q6,dimTotal*sizeof(float)));
         CHECK(cudaMalloc((void**)&V3,dimTotal*sizeof(float)));
         CHECK(cudaMalloc((void**)&V3_old,dimTotal*sizeof(float)));
+        
+        cudaMemset(Q4, 0.0f, dimTotal*sizeof(float));
+        cudaMemset(Q5, 0.0f, dimTotal*sizeof(float));
+        cudaMemset(Q6, 0.0f, dimTotal*sizeof(float));
+        cudaMemset(P3, 0.0f, dimTotal*sizeof(float));
+        cudaMemset(V3, 0.0f, dimTotal*sizeof(float));        
         
         for(int n=0; n < iterationsNumb; n++) {
 			

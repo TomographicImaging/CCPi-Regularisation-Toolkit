@@ -5,7 +5,9 @@ fsep = '/';
 Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
 Path2 = sprintf([ data' fsep], 1i);
 Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
-addpath(Path1); addpath(Path2); addpath(Path3);
+addpath(Path1);
+addpath(Path2);
+addpath(Path3);
 
 Im = double(imread('lena_gray_512.tif'))/255;  % loading image
 u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
@@ -29,7 +31,7 @@ figure; imshow(u_rof, [0 1]); title('ROF-TV denoised image (CPU)');
 % figure; imshow(u_rofG, [0 1]); title('ROF-TV denoised image (GPU)');
 %%
 fprintf('Denoise using the FGP-TV model (CPU) \n');
-iter_fgp = 1000; % number of FGP iterations
+iter_fgp = 1300; % number of FGP iterations
 epsil_tol =  1.0e-06; % tolerance
 tic; u_fgp = FGP_TV(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 energyfunc_val_fgp = TV_energy(single(u_fgp),single(u0),lambda_reg, 1); % get energy function value
@@ -39,8 +41,8 @@ figure; imshow(u_fgp, [0 1]); title('FGP-TV denoised image (CPU)');
 
 %%
 % fprintf('Denoise using the FGP-TV model (GPU) \n');
-% iter_fgp = 1000; % number of FGP iterations
-% epsil_tol =  1.0e-05; % tolerance
+% iter_fgp = 1300; % number of FGP iterations
+% epsil_tol =  1.0e-06; % tolerance
 % tic; u_fgpG = FGP_TV_GPU(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 % figure; imshow(u_fgpG, [0 1]); title('FGP-TV denoised image (GPU)');
 %%
@@ -63,17 +65,17 @@ fprintf('Denoise using the TGV model (CPU) \n');
 lambda_TGV = 0.045; % regularisation parameter
 alpha1 = 1.0; % parameter to control the first-order term
 alpha0 = 2.0; % parameter to control the second-order term
-iter_TGV = 2000; % number of Primal-Dual iterations for TGV
+iter_TGV = 1500; % number of Primal-Dual iterations for TGV
 tic; u_tgv = TGV(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
 rmseTGV = (RMSE(u_tgv(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
 figure; imshow(u_tgv, [0 1]); title('TGV denoised image (CPU)');
-%%
+
 % fprintf('Denoise using the TGV model (GPU) \n');
 % lambda_TGV = 0.045; % regularisation parameter
 % alpha1 = 1.0; % parameter to control the first-order term
 % alpha0 = 2.0; % parameter to control the second-order term
-% iter_TGV = 2000; % number of Primal-Dual iterations for TGV
+% iter_TGV = 1500; % number of Primal-Dual iterations for TGV
 % tic; u_tgv_gpu = TGV_GPU(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
 % rmseTGV_gpu = (RMSE(u_tgv_gpu(:),Im(:)));
 % fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV_gpu);
