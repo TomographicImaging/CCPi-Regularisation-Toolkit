@@ -17,7 +17,7 @@ or install from https://github.com/dkazanc/TomoRec
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 GPLv3 license (ASTRA toolbox)
 """
-import timeit
+#import timeit
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
@@ -202,8 +202,8 @@ RecADMM_reg_diff4th = RectoolsIR.ADMM(projdata_norm,
                               rho_const = 2000.0, \
                               iterationsADMM = 30, \
                               regularisation = 'Diff4th', \
-                              regularisation_parameter = 0.005,\
-                              regularisation_iterations = 500)
+                              regularisation_parameter = 0.0005,\
+                              regularisation_iterations = 200)
 
 sliceSel = int(0.5*N_size)
 max_val = 1
