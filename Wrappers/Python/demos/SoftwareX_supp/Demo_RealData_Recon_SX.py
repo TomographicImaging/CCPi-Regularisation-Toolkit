@@ -14,37 +14,29 @@ ____________________________________________________________________________
 1. ASTRA toolbox: conda install -c astra-toolbox astra-toolbox
 2. TomoRec: conda install -c dkazanc tomorec
 or install from https://github.com/dkazanc/TomoRec
-3. TomoPhantom software for data generation
 
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 GPLv3 license (ASTRA toolbox)
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.io
+import h5py
 from tomorec.supp.suppTools import normaliser
 
-# load dendritic data
-datadict = scipy.io.loadmat('Rawdata_1_frame3D.mat')
-# extract data (print(datadict.keys()))
-dataRaw = datadict['Rawdata3D']
-angles = datadict['AnglesAr']
-flats = datadict['flats3D']
-darks=  datadict['darks3D']
 
-dataRaw = np.swapaxes(dataRaw,0,1)
+# load dendritic projection data
+h5f = h5py.File('data/DendrData_3D.h5','r')
+dataRaw = h5f['dataRaw'][:]
+flats = h5f['flats'][:]
+darks = h5f['darks'][:]
+angles_rad = h5f['angles_rad'][:]
+h5f.close()
 #%%
-#flats2 = np.zeros((np.size(flats,0),1, np.size(flats,1)), dtype='float32')
-#flats2[:,0,:] = flats[:]
-#darks2 = np.zeros((np.size(darks,0),1, np.size(darks,1)), dtype='float32')
-#darks2[:,0,:] = darks[:]
-
 # normalise the data, required format is [detectorsHoriz, Projections, Slices]
 data_norm = normaliser(dataRaw, flats, darks, log='log')
+del dataRaw, darks, flats
 
-#dataRaw = np.float32(np.divide(dataRaw, np.max(dataRaw).astype(float)))
-
-intens_max = 70
+intens_max = 2
 plt.figure() 
 plt.subplot(131)
 plt.imshow(data_norm[:,150,:],vmin=0, vmax=intens_max)
@@ -61,40 +53,41 @@ plt.show()
 detectorHoriz = np.size(data_norm,0)
 N_size = 1000
 slice_to_recon = 0 # select which slice to reconstruct
-angles_rad = angles*(np.pi/180.0)
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%Reconstructing with FBP method %%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 from tomorec.methodsDIR import RecToolsDIR
-RectoolsDIR = RecToolsDIR(DetectorsDimH = detectorHoriz,  # DetectorsDimH # detector dimension (horizontal)
+det_y_crop = [i for i in range(0,detectorHoriz-22)]
+
+RectoolsDIR = RecToolsDIR(DetectorsDimH = np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = None,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions                   
                     device='gpu')
 
-FBPrec = RectoolsDIR.FBP(np.transpose(data_norm[:,:,slice_to_recon]))
+FBPrec = RectoolsDIR.FBP(np.transpose(data_norm[det_y_crop,:,slice_to_recon]))
 
 plt.figure()
 plt.imshow(FBPrec[150:550,150:550], vmin=0, vmax=0.005, cmap="gray")
 plt.title('FBP reconstruction')
 
+#%%
 from tomorec.methodsIR import RecToolsIR
 # set parameters and initiate a class object
-Rectools = RecToolsIR(DetectorsDimH = detectorHoriz,  # DetectorsDimH # detector dimension (horizontal)
+Rectools = RecToolsIR(DetectorsDimH = np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = None,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
-                    datafidelity='PWLS',# data fidelity, choose LS, PWLS, GH (wip), Student (wip)
+                    datafidelity='LS',# data fidelity, choose LS, PWLS, GH (wip), Student (wip)
                     nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
                     OS_number = 12, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
                     tolerance = 1e-08, # tolerance to stop outer iterations earlier
                     device='gpu')
 
-lc = Rectools.powermethod(np.transpose(dataRaw[:,:,slice_to_recon])) # calculate Lipschitz constant (run once to initilise)
+lc = Rectools.powermethod() # calculate Lipschitz constant (run once to initilise)
 
-RecFISTA_os_pwls = Rectools.FISTA(np.transpose(data_norm[:,:,slice_to_recon]), \
-                             np.transpose(dataRaw[:,:,slice_to_recon]), \
+RecFISTA_os_pwls = Rectools.FISTA(np.transpose(data_norm[det_y_crop,:,slice_to_recon]), \
                              iterationsFISTA = 15, \
                              lipschitz_const = lc)
 
@@ -109,8 +102,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("Reconstructing with FISTA PWLS-OS-TV method %%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 # Run FISTA-PWLS-OS reconstrucion algorithm with regularisation
-RecFISTA_pwls_os_TV = Rectools.FISTA(np.transpose(data_norm[:,:,slice_to_recon]), \
-                              np.transpose(dataRaw[:,:,slice_to_recon]), \
+RecFISTA_pwls_os_TV = Rectools.FISTA(np.transpose(data_norm[det_y_crop,:,slice_to_recon]), \
                               iterationsFISTA = 15, \
                               regularisation = 'FGP_TV', \
                               regularisation_parameter = 0.000001,\
