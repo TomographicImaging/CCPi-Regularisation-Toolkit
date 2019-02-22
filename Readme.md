@@ -65,7 +65,7 @@ cd CCPi-Regularisation-Toolkit
 export CCPI_BUILD_ARGS="--numpy 1.12 --python 3.6"
 build/jenkins-build.sh
 ```
-this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests.
+this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests for environment with python 3.6 and numpy 1.12.
 
 ### CMake
 If you want to build directly using cmake, install CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this) 

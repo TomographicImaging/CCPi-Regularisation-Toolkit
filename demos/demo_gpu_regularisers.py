@@ -3,7 +3,7 @@
 """
 Created on Thu Feb 22 11:39:43 2018
 
-Demonstration of CPU regularisers 
+Demonstration of GPU regularisers
 
 @authors: Daniil Kazantsev, Edoardo Pasca
 """
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, TNV, NDF, Diff4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 from ccpi.filters.regularisers import PatchSelect, NLTV
 from qualitymetrics import rmse
 ###############################################################################
@@ -31,13 +31,13 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 #%%
-filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
+filename = os.path.join( "data" ,"lena_gray_512.tif")
 
 # read image
-Im = plt.imread(filename)
+Im = plt.imread(filename)                     
 Im = np.asarray(Im, dtype='float32')
 
-Im = Im/255.0
+Im = Im/255
 perc = 0.05
 u0 = Im + np.random.normal(loc = 0 ,
                                   scale = perc * Im , 
@@ -50,8 +50,6 @@ u_ref = Im + np.random.normal(loc = 0 ,
 # f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
 u0 = u0.astype('float32')
 u_ref = u_ref.astype('float32')
-
-# change dims to check that modules work with non-squared images
 """
 M = M-100
 u_ref2 = np.zeros([N,M],dtype='float32')
@@ -70,13 +68,14 @@ Im = Im2
 del Im2
 """
 #%%
+
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("_______________ROF-TV (2D)_________________")
+print ("____________ROF-TV regulariser_____________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of ROF-TV regulariser using the CPU')
+plt.suptitle('Performance of the ROF-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -86,17 +85,18 @@ pars = {'algorithm': ROF_TV, \
         'input' : u0,\
         'regularisation_parameter':0.04,\
         'number_of_iterations': 1200,\
-        'time_marching_parameter': 0.0025        
+        'time_marching_parameter': 0.0025
         }
-print ("#############ROF TV CPU####################")
+print ("##############ROF TV GPU##################")
 start_time = timeit.default_timer()
-rof_cpu = ROF_TV(pars['input'],
-             pars['regularisation_parameter'],
-             pars['number_of_iterations'],
-             pars['time_marching_parameter'],'cpu')
-rms = rmse(Im, rof_cpu)
+rof_gpu = ROF_TV(pars['input'], 
+                     pars['regularisation_parameter'],
+                     pars['number_of_iterations'], 
+                     pars['time_marching_parameter'],'gpu')
+                     
+rms = rmse(Im, rof_gpu)
 pars['rmse'] = rms
-
+pars['algorithm'] = ROF_TV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -107,17 +107,17 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(rof_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(rof_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("_______________FGP-TV (2D)__________________")
+print ("____________FGP-TV regulariser_____________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of FGP-TV regulariser using the CPU')
+plt.suptitle('Performance of the FGP-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -126,27 +126,26 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.04, \
-        'number_of_iterations' :2000 ,\
+        'number_of_iterations' :1200 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0 ,\
         'printingOut': 0 
         }
-        
-print ("#############FGP TV CPU####################")
+
+print ("##############FGP TV GPU##################")
 start_time = timeit.default_timer()
-fgp_cpu = FGP_TV(pars['input'], 
+fgp_gpu = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['printingOut'],'cpu')  
-             
-             
-rms = rmse(Im, fgp_cpu)
+              pars['printingOut'],'gpu')
+                                   
+rms = rmse(Im, fgp_gpu)
 pars['rmse'] = rms
-
+pars['algorithm'] = FGP_TV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -157,17 +156,17 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(fgp_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(fgp_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("_______________SB-TV (2D)__________________")
+print ("____________SB-TV regulariser______________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of SB-TV regulariser using the CPU')
+plt.suptitle('Performance of the SB-TV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -181,20 +180,19 @@ pars = {'algorithm' : SB_TV, \
         'methodTV': 0 ,\
         'printingOut': 0 
         }
-        
-print ("#############SB TV CPU####################")
+
+print ("##############SB TV GPU##################")
 start_time = timeit.default_timer()
-sb_cpu = SB_TV(pars['input'], 
+sb_gpu = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['printingOut'],'cpu')  
-             
-             
-rms = rmse(Im, sb_cpu)
+              pars['printingOut'],'gpu')
+                                   
+rms = rmse(Im, sb_gpu)
 pars['rmse'] = rms
-
+pars['algorithm'] = SB_TV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -205,8 +203,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(sb_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(sb_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 #%%
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -215,7 +213,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of TGV regulariser using the CPU')
+plt.suptitle('Performance of TGV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -226,21 +224,21 @@ pars = {'algorithm' : TGV, \
         'regularisation_parameter':0.04, \
         'alpha1':1.0,\
         'alpha0':2.0,\
-        'number_of_iterations' :1350 ,\
+        'number_of_iterations' :1250 ,\
         'LipshitzConstant' :12 ,\
         }
         
 print ("#############TGV CPU####################")
 start_time = timeit.default_timer()
-tgv_cpu = TGV(pars['input'], 
+tgv_gpu = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
-              pars['LipshitzConstant'],'cpu')
+              pars['LipshitzConstant'],'gpu')  
              
              
-rms = rmse(Im, tgv_cpu)
+rms = rmse(Im, tgv_gpu)
 pars['rmse'] = rms
 
 txtstr = printParametersToString(pars)
@@ -253,8 +251,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(tgv_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(tgv_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 
 #%%
 
@@ -264,7 +262,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of LLT-ROF regulariser using the CPU')
+plt.suptitle('Performance of LLT-ROF regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -278,15 +276,16 @@ pars = {'algorithm' : LLT_ROF, \
         'time_marching_parameter' :0.0025 ,\
         }
         
-print ("#############LLT- ROF CPU####################")
+print ("#############LLT- ROF GPU####################")
 start_time = timeit.default_timer()
-lltrof_cpu = LLT_ROF(pars['input'], 
+lltrof_gpu = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
-              pars['time_marching_parameter'],'cpu')
-
-rms = rmse(Im, lltrof_cpu)
+              pars['time_marching_parameter'],'gpu')
+             
+             
+rms = rmse(Im, lltrof_gpu)
 pars['rmse'] = rms
 
 txtstr = printParametersToString(pars)
@@ -299,19 +298,17 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(lltrof_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(lltrof_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 
 #%%
-
-
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("________________NDF (2D)___________________")
+print ("_______________NDF regulariser_____________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of NDF regulariser using the CPU')
+plt.suptitle('Performance of the NDF regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -323,21 +320,21 @@ pars = {'algorithm' : NDF, \
         'edge_parameter':0.015,\
         'number_of_iterations' :500 ,\
         'time_marching_parameter':0.025,\
-        'penalty_type':1
+        'penalty_type':  1
         }
-        
-print ("#############NDF CPU################")
+
+print ("##############NDF GPU##################")
 start_time = timeit.default_timer()
-ndf_cpu = NDF(pars['input'], 
+ndf_gpu = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
-              pars['penalty_type'],'cpu')  
+              pars['penalty_type'],'gpu')  
              
-rms = rmse(Im, ndf_cpu)
+rms = rmse(Im, ndf_gpu)
 pars['rmse'] = rms
-
+pars['algorithm'] = NDF
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -348,8 +345,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(ndf_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(ndf_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -358,7 +355,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of Diff4th regulariser using the CPU')
+plt.suptitle('Performance of Diff4th regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -372,15 +369,15 @@ pars = {'algorithm' : Diff4th, \
         'time_marching_parameter':0.0015
         }
         
-print ("#############Diff4th CPU################")
+print ("#############DIFF4th CPU################")
 start_time = timeit.default_timer()
-diff4_cpu = Diff4th(pars['input'], 
+diff4_gpu = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
-              pars['time_marching_parameter'],'cpu')
+              pars['time_marching_parameter'],'gpu')
              
-rms = rmse(Im, diff4_cpu)
+rms = rmse(Im, diff4_gpu)
 pars['rmse'] = rms
 
 txtstr = printParametersToString(pars)
@@ -393,8 +390,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(diff4_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(diff4_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
 
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -413,7 +410,7 @@ H_i, H_j, Weights = PatchSelect(pars['input'],
               pars['searchwindow'],
               pars['patchwindow'], 
               pars['neighbours'],
-              pars['edge_parameter'],'cpu')
+              pars['edge_parameter'],'gpu')
               
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -440,7 +437,7 @@ pars2 = {'algorithm' : NLTV, \
         'H_j': H_j,\
         'H_k' : 0,\
         'Weights' : Weights,\
-        'regularisation_parameter': 0.04,\
+        'regularisation_parameter': 0.02,\
         'iterations': 3
         }
 start_time = timeit.default_timer()
@@ -467,15 +464,14 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(nltv_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
-
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("_____________FGP-dTV (2D)__________________")
+print ("____________FGP-dTV bench___________________")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
 ## plot 
 fig = plt.figure()
-plt.suptitle('Performance of FGP-dTV regulariser using the CPU')
+plt.suptitle('Performance of the FGP-dTV regulariser using the GPU')
 a=fig.add_subplot(1,2,1)
 a.set_title('Noisy Image')
 imgplot = plt.imshow(u0,cmap="gray")
@@ -492,10 +488,10 @@ pars = {'algorithm' : FGP_dTV, \
         'nonneg': 0 ,\
         'printingOut': 0 
         }
-        
-print ("#############FGP dTV CPU####################")
+
+print ("##############FGP dTV GPU##################")
 start_time = timeit.default_timer()
-fgp_dtv_cpu = FGP_dTV(pars['input'], 
+fgp_dtv_gpu = FGP_dTV(pars['input'], 
               pars['refdata'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
@@ -503,11 +499,11 @@ fgp_dtv_cpu = FGP_dTV(pars['input'],
               pars['eta_const'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['printingOut'],'cpu')
-             
-rms = rmse(Im, fgp_dtv_cpu)
+              pars['printingOut'],'gpu')
+                                   
+rms = rmse(Im, fgp_dtv_gpu)
 pars['rmse'] = rms
-
+pars['algorithm'] = FGP_dTV
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
@@ -518,55 +514,5 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 # place a text box in upper left in axes coords
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
-imgplot = plt.imshow(fgp_dtv_cpu, cmap="gray")
-plt.title('{}'.format('CPU results'))
-#%%
-print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("__________Total nuclear Variation__________")
-print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-
-## plot 
-fig = plt.figure()
-plt.suptitle('Performance of TNV regulariser using the CPU')
-a=fig.add_subplot(1,2,1)
-a.set_title('Noisy Image')
-imgplot = plt.imshow(u0,cmap="gray")
-
-channelsNo = 5
-noisyVol = np.zeros((channelsNo,N,M),dtype='float32')
-idealVol = np.zeros((channelsNo,N,M),dtype='float32')
-
-for i in range (channelsNo):
-    noisyVol[i,:,:] = Im + np.random.normal(loc = 0 , scale = perc * Im , size = np.shape(Im))
-    idealVol[i,:,:] = Im
-
-# set parameters
-pars = {'algorithm' : TNV, \
-        'input' : noisyVol,\
-        'regularisation_parameter': 0.04, \
-        'number_of_iterations' : 200 ,\
-        'tolerance_constant':1e-05
-        }
-        
-print ("#############TNV CPU#################")
-start_time = timeit.default_timer()
-tnv_cpu = TNV(pars['input'],           
-              pars['regularisation_parameter'],
-              pars['number_of_iterations'],
-              pars['tolerance_constant'])
-             
-rms = rmse(idealVol, tnv_cpu)
-pars['rmse'] = rms
-
-txtstr = printParametersToString(pars)
-txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-a=fig.add_subplot(1,2,2)
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
-# place a text box in upper left in axes coords
-a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
-         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(tnv_cpu[3,:,:], cmap="gray")
-plt.title('{}'.format('CPU results'))
+imgplot = plt.imshow(fgp_dtv_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))

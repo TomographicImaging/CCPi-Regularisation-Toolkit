@@ -2,9 +2,9 @@
 clear; close all
 fsep = '/';
 
-Path1 = sprintf(['..' fsep 'mex_compile' fsep 'installed'], 1i);
-Path2 = sprintf(['..' fsep '..' fsep '..' fsep 'data' fsep], 1i);
-Path3 = sprintf(['..' fsep 'supp'], 1i);
+Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
+Path2 = sprintf([ data' fsep], 1i);
+Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
 addpath(Path1); addpath(Path2); addpath(Path3);
 
 Im = double(imread('lena_gray_512.tif'))/255;  % loading image

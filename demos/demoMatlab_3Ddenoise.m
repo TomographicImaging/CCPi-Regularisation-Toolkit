@@ -1,8 +1,8 @@
 % Volume (3D) denoising demo using CCPi-RGL
 clear; close all
-Path1 = sprintf(['..' filesep 'mex_compile' filesep 'installed'], 1i);
-Path2 = sprintf(['..' filesep '..' filesep '..' filesep 'data' filesep], 1i);
-Path3 = sprintf(['..' filesep 'supp'], 1i);
+Path1 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'mex_compile' filesep 'installed'], 1i);
+Path2 = sprintf(['data' filesep], 1i);
+Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
 addpath(Path1);
 addpath(Path2);
 addpath(Path3);

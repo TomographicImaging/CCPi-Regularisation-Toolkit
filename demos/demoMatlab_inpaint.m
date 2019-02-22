@@ -1,7 +1,7 @@
 % Image (2D) inpainting demo using CCPi-RGL
 clear; close all
-Path1 = sprintf(['..' filesep 'mex_compile' filesep 'installed'], 1i);
-Path2 = sprintf(['..' filesep '..' filesep '..' filesep 'data' filesep], 1i);
+Path1 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'mex_compile' filesep 'installed'], 1i);
+Path2 = sprintf(['data' filesep], 1i);
 addpath(Path1);
 addpath(Path2);
 
