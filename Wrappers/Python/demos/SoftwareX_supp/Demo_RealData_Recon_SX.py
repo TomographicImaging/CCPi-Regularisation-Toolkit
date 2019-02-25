@@ -22,7 +22,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 from tomorec.supp.suppTools import normaliser
-
+import time
+from libtiff import TIFF
 
 # load dendritic projection data
 h5f = h5py.File('data/DendrData_3D.h5','r')
@@ -36,7 +37,7 @@ h5f.close()
 data_norm = normaliser(dataRaw, flats, darks, log='log')
 del dataRaw, darks, flats
 
-intens_max = 2
+intens_max = 2.3
 plt.figure() 
 plt.subplot(131)
 plt.imshow(data_norm[:,150,:],vmin=0, vmax=intens_max)
@@ -49,29 +50,38 @@ plt.imshow(data_norm[:,:,600],vmin=0, vmax=intens_max)
 plt.title('Tangentogram view')
 plt.show()
 
-
 detectorHoriz = np.size(data_norm,2)
 det_y_crop = [i for i in range(0,detectorHoriz-22)]
 N_size = 950 # reconstruction domain
+time_label = int(time.time())
 #%%
+"""
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%Reconstructing with FBP method %%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 from tomorec.methodsDIR import RecToolsDIR
 
 RectoolsDIR = RecToolsDIR(DetectorsDimH = np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = 10,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+                    DetectorsDimV = 200,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     device='gpu')
 
-FBPrec = RectoolsDIR.FBP(data_norm[0:10,:,det_y_crop])
+FBPrec = RectoolsDIR.FBP(data_norm[20:220,:,det_y_crop])
 
 plt.figure()
-#plt.imshow(FBPrec[0,150:550,150:550], vmin=0, vmax=0.005, cmap="gray")
 plt.imshow(FBPrec[0,:,:], vmin=0, vmax=0.005, cmap="gray")
 plt.title('FBP reconstruction')
 
+FBPrec += np.abs(np.min(FBPrec))
+multiplier = (int)(65535/(np.max(FBPrec)))
+
+# saving to tiffs (16bit)
+for i in range(0,np.size(FBPrec,0)):
+    tiff = TIFF.open('Dendr_FBP'+'_'+str(i)+'.tiff', mode='w')
+    tiff.write_image(np.uint16(FBPrec[i,:,:]*multiplier))
+    tiff.close()
+"""
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("Reconstructing with ADMM method using TomoRec software")
@@ -79,7 +89,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 # initialise TomoRec ITERATIVE reconstruction class ONCE
 from tomorec.methodsIR import RecToolsIR
 RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = 5,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+                    DetectorsDimV = 200,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
@@ -88,29 +98,125 @@ RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH #
                     tolerance = 1e-08, # tolerance to stop outer iterations earlier
                     device='gpu')
 #%%
-print ("Reconstructing with ADMM method using ROF-TV penalty")
-
-RecADMM_reg_roftv = RectoolsIR.ADMM(data_norm[0:5,:,det_y_crop],
+print ("Reconstructing with ADMM method using SB-TV penalty")
+RecADMM_reg_sbtv = RectoolsIR.ADMM(data_norm[20:220,:,det_y_crop],
                               rho_const = 2000.0, \
-                              iterationsADMM = 3, \
-                              regularisation = 'FGP_TV', \
-                              regularisation_parameter = 0.001,\
-                              regularisation_iterations = 80)
+                              iterationsADMM = 15, \
+                              regularisation = 'SB_TV', \
+                              regularisation_parameter = 0.00085,\
+                              regularisation_iterations = 50)
 
-
-sliceSel = 2
-max_val = 0.005
+sliceSel = 5
+max_val = 0.003
 plt.figure() 
 plt.subplot(131)
-plt.imshow(RecADMM_reg_roftv[sliceSel,:,:],vmin=0, vmax=max_val)
-plt.title('3D ADMM-ROF-TV Reconstruction, axial view')
+plt.imshow(RecADMM_reg_sbtv[sliceSel,:,:],vmin=0, vmax=max_val, cmap="gray")
+plt.title('3D ADMM-SB-TV Reconstruction, axial view')
 
 plt.subplot(132)
-plt.imshow(RecADMM_reg_roftv[:,sliceSel,:],vmin=0, vmax=max_val)
-plt.title('3D ADMM-ROF-TV Reconstruction, coronal view')
+plt.imshow(RecADMM_reg_sbtv[:,sliceSel,:],vmin=0, vmax=max_val, cmap="gray")
+plt.title('3D ADMM-SB-TV Reconstruction, coronal view')
 
 plt.subplot(133)
-plt.imshow(RecADMM_reg_roftv[:,:,sliceSel],vmin=0, vmax=max_val)
-plt.title('3D ADMM-ROF-TV Reconstruction, sagittal view')
+plt.imshow(RecADMM_reg_sbtv[:,:,sliceSel],vmin=0, vmax=max_val, cmap="gray")
+plt.title('3D ADMM-SB-TV Reconstruction, sagittal view')
 plt.show()
+
+multiplier = (int)(65535/(np.max(RecADMM_reg_sbtv)))
+
+# saving to tiffs (16bit)
+for i in range(0,np.size(RecADMM_reg_sbtv,0)):
+    tiff = TIFF.open('Dendr_ADMM_SBTV'+'_'+str(i)+'.tiff', mode='w')
+    tiff.write_image(np.uint16(RecADMM_reg_sbtv[i,:,:]*multiplier))
+    tiff.close()
+
+# Saving recpnstructed data with a unique time label
+np.save('Dendr_ADMM_SBTV'+str(time_label)+'.npy', RecADMM_reg_sbtv)
+del RecADMM_reg_sbtv
+#%%
+print ("Reconstructing with ADMM method using ROF-LLT penalty")
+RecADMM_reg_rofllt = RectoolsIR.ADMM(data_norm[20:220,:,det_y_crop],
+                              rho_const = 2000.0, \
+                              iterationsADMM = 15, \
+                              regularisation = 'LLT_ROF', \
+                              regularisation_parameter = 0.0009,\
+                              regularisation_parameter2 = 0.0007,\
+                              time_marching_parameter = 0.001,\
+                              regularisation_iterations = 450)
+
+sliceSel = 5
+max_val = 0.003
+plt.figure() 
+plt.subplot(131)
+plt.imshow(RecADMM_reg_rofllt[sliceSel,:,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-ROFLLT Reconstruction, axial view')
+
+plt.subplot(132)
+plt.imshow(RecADMM_reg_rofllt[:,sliceSel,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-ROFLLT Reconstruction, coronal view')
+
+plt.subplot(133)
+plt.imshow(RecADMM_reg_rofllt[:,:,sliceSel],vmin=0, vmax=max_val)
+plt.title('3D ADMM-ROFLLT Reconstruction, sagittal view')
+plt.show()
+
+multiplier = (int)(65535/(np.max(RecADMM_reg_rofllt)))
+
+# saving to tiffs (16bit)
+for i in range(0,np.size(RecADMM_reg_rofllt,0)):
+    tiff = TIFF.open('Dendr_ADMM_ROFLLT'+'_'+str(i)+'.tiff', mode='w')
+    tiff.write_image(np.uint16(RecADMM_reg_rofllt[i,:,:]*multiplier))
+    tiff.close()
+
+
+# Saving recpnstructed data with a unique time label
+np.save('Dendr_ADMM_ROFLLT'+str(time_label)+'.npy', RecADMM_reg_rofllt)
+del RecADMM_reg_rofllt
+#%%
+RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
+                    DetectorsDimV = 10,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+                    AnglesVec = angles_rad, # array of angles in radians
+                    ObjSize = N_size, # a scalar to define reconstructed object dimensions
+                    datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
+                    nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
+                    OS_number = None, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
+                    tolerance = 1e-08, # tolerance to stop outer iterations earlier
+                    device='cpu')
+
+print ("Reconstructing with ADMM method using TGV penalty")
+RecADMM_reg_tgv = RectoolsIR.ADMM(data_norm[0:10,:,det_y_crop],
+                              rho_const = 2000.0, \
+                              iterationsADMM = 15, \
+                              regularisation = 'TGV', \
+                              regularisation_parameter = 0.01,\
+                              regularisation_iterations = 450)
+
+sliceSel = 7
+max_val = 0.003
+plt.figure() 
+plt.subplot(131)
+plt.imshow(RecADMM_reg_tgv[sliceSel,:,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-TGV Reconstruction, axial view')
+
+plt.subplot(132)
+plt.imshow(RecADMM_reg_tgv[:,sliceSel,:],vmin=0, vmax=max_val)
+plt.title('3D ADMM-TGV Reconstruction, coronal view')
+
+plt.subplot(133)
+plt.imshow(RecADMM_reg_tgv[:,:,sliceSel],vmin=0, vmax=max_val)
+plt.title('3D ADMM-TGV Reconstruction, sagittal view')
+plt.show()
+
+multiplier = (int)(65535/(np.max(RecADMM_reg_tgv)))
+
+# saving to tiffs (16bit)
+for i in range(0,np.size(RecADMM_reg_tgv,0)):
+    tiff = TIFF.open('Dendr_ADMM_TGV'+'_'+str(i)+'.tiff', mode='w')
+    tiff.write_image(np.uint16(RecADMM_reg_tgv[i,:,:]*multiplier))
+    tiff.close()
+
+
+# Saving recpnstructed data with a unique time label
+#np.save('Dendr_ADMM_TGV'+str(time_label)+'.npy', RecADMM_reg_tgv)
+del RecADMM_reg_tgv
 #%%

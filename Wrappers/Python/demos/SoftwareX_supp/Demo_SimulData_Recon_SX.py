@@ -197,32 +197,3 @@ Qtools = QualityTools(phantom, RecADMM_reg_tgv)
 RMSE_admm_tgv = Qtools.rmse()
 print("Root Mean Square Error for ADMM-TGV is {}".format(RMSE_admm_tgv))
 #%%
-print ("Reconstructing with ADMM method using Diff4th penalty")
-RecADMM_reg_diff4th = RectoolsIR.ADMM(projdata_norm,
-                              rho_const = 2000.0, \
-                              iterationsADMM = 30, \
-                              regularisation = 'Diff4th', \
-                              regularisation_parameter = 0.0005,\
-                              regularisation_iterations = 200)
-
-sliceSel = int(0.5*N_size)
-max_val = 1
-plt.figure() 
-plt.subplot(131)
-plt.imshow(RecADMM_reg_diff4th[sliceSel,:,:],vmin=0, vmax=max_val)
-plt.title('3D ADMM-Diff4th Reconstruction, axial view')
-
-plt.subplot(132)
-plt.imshow(RecADMM_reg_diff4th[:,sliceSel,:],vmin=0, vmax=max_val)
-plt.title('3D ADMM-Diff4th Reconstruction, coronal view')
-
-plt.subplot(133)
-plt.imshow(RecADMM_reg_diff4th[:,:,sliceSel],vmin=0, vmax=max_val)
-plt.title('3D ADMM-Diff4th Reconstruction, sagittal view')
-plt.show()
-
-# calculate errors 
-Qtools = QualityTools(phantom, RecADMM_reg_diff4th)
-RMSE_admm_diff4th = Qtools.rmse()
-print("Root Mean Square Error for ADMM-Diff4th is {}".format(RMSE_admm_diff4th))
-#%%

@@ -38,28 +38,27 @@ limitations under the License.
  * [1] K. Bredies "Total Generalized Variation"
  */
     
-#define BLKXSIZE 8
-#define BLKYSIZE 8
-#define BLKZSIZE 8    
-    
+   
 #define BLKXSIZE2D 8
 #define BLKYSIZE2D 8
-#define EPS 1.0e-7
-#define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
 
+#define BLKXSIZE 8
+#define BLKYSIZE 8
+#define BLKZSIZE 8
+
+#define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
 
 /********************************************************************/
 /***************************2D Functions*****************************/
 /********************************************************************/
-__global__ void DualP_2D_kernel(float *U, float *V1, float *V2, float *P1, float *P2, int dimX, int dimY, float sigma)
+__global__ void DualP_2D_kernel(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, long dimY, long num_total, float sigma)
 {    
-	int num_total = dimX*dimY;
-	const int i = blockDim.x * blockIdx.x + threadIdx.x;
-        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;       
+        long index = i + (dimX)*j;       
         
-        if (index < num_total) {  
+        if (index < num_total) {     
         /* symmetric boundary conditions (Neuman) */            
         if ((i >= 0) && (i < dimX-1))  P1[index] += sigma*((U[(i+1) + dimX*j] - U[index])  - V1[index]); 
         else P1[index] += sigma*(-V1[index]); 
@@ -69,17 +68,16 @@ __global__ void DualP_2D_kernel(float *U, float *V1, float *V2, float *P1, float
 	return;
 } 
 
-__global__ void ProjP_2D_kernel(float *P1, float *P2, int dimX, int dimY, float alpha1)
+__global__ void ProjP_2D_kernel(float *P1, float *P2, long dimX, long dimY, long num_total, float alpha1)
 {
    	float grad_magn;
-	int num_total = dimX*dimY;
 	
-	const int i = blockDim.x * blockIdx.x + threadIdx.x;
-        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;
+        long index = i + (dimX)*j;    
                 
-        if (index < num_total) {            
+        if (index < num_total) {             
             grad_magn = sqrtf(pow(P1[index],2) + pow(P2[index],2));
             grad_magn = grad_magn/alpha1;
             if (grad_magn > 1.0f) {
@@ -90,17 +88,15 @@ __global__ void ProjP_2D_kernel(float *P1, float *P2, int dimX, int dimY, float 
 	return;
 } 
 
-__global__ void DualQ_2D_kernel(float *V1, float *V2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float sigma)
+__global__ void DualQ_2D_kernel(float *V1, float *V2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, long num_total, float sigma)
 {
         float q1, q2, q11, q22;
-	int num_total = dimX*dimY;
-	
-	const int i = blockDim.x * blockIdx.x + threadIdx.x;
-        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;      
+        long index = i + (dimX)*j;          
         
-        if (index < num_total) {
+        if (index < num_total) {     
          q1 = 0.0f; q2  = 0.0f; q11  = 0.0f; q22  = 0.0f;
          
 	        if ((i >= 0) && (i < dimX-1))  {            
@@ -120,17 +116,15 @@ __global__ void DualQ_2D_kernel(float *V1, float *V2, float *Q1, float *Q2, floa
 	return;
 } 
 
-__global__ void ProjQ_2D_kernel(float *Q1, float *Q2, float *Q3, int dimX, int dimY, float alpha0)
+__global__ void ProjQ_2D_kernel(float *Q1, float *Q2, float *Q3, long dimX, long dimY, long num_total, float alpha0)
 {
 	float grad_magn;
-        int num_total = dimX*dimY;
-
-	const int i = blockDim.x * blockIdx.x + threadIdx.x;
-        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;        
+        long index = i + (dimX)*j;     
        
-        if (index < num_total) {
+        if (index < num_total) {     
             grad_magn = sqrt(pow(Q1[index],2) + pow(Q2[index],2) + 2*pow(Q3[index],2));
             grad_magn = grad_magn/alpha0;
             if (grad_magn > 1.0f) {
@@ -142,26 +136,27 @@ __global__ void ProjQ_2D_kernel(float *Q1, float *Q2, float *Q3, int dimX, int d
 	return;
 } 
 
-__global__ void DivProjP_2D_kernel(float *U, float *U0, float *P1, float *P2, int dimX, int dimY, float lambda, float tau)
+__global__ void DivProjP_2D_kernel(float *U, float *U0, float *P1, float *P2, long dimX, long dimY, long num_total, float lambda, float tau)
 {
 	float P_v1, P_v2, div;
-	int num_total = dimX*dimY;
-	
-	const int i = blockDim.x * blockIdx.x + threadIdx.x;
-        const int j = blockDim.y * blockIdx.y + threadIdx.y;       
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;
+        long index = i + (dimX)*j;    
 
-        if (index < num_total) { 
+        if (index < num_total) {     
 	P_v1 = 0.0f; P_v2 = 0.0f;
         
-        if (i == 0) P_v1 = P1[index];
-        if (i == dimX-1) P_v1 = -P1[(i-1) + dimX*j];
         if ((i > 0) && (i < dimX-1)) P_v1 = P1[index] - P1[(i-1) + dimX*j];
+        else if (i == dimX-1) P_v1 = -P1[(i-1) + dimX*j];
+        else if (i == 0) P_v1 = P1[index];
+        else P_v1 = 0.0f;
 
-        if (j == 0) P_v2 = P2[index];
-        if (j == dimY-1) P_v2 = -P2[i + dimX*(j-1)];
       	if ((j > 0) && (j < dimY-1))  P_v2 = P2[index] - P2[i + dimX*(j-1)];
+      	else if (j == dimY-1) P_v2 = -P2[i + dimX*(j-1)];
+      	else if (j == 0) P_v2 = P2[index];
+      	else P_v2 = 0.0f;
+
          
         div = P_v1 + P_v2;
         U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);
@@ -169,18 +164,19 @@ __global__ void DivProjP_2D_kernel(float *U, float *U0, float *P1, float *P2, in
 	return;
 } 
 
-__global__ void UpdV_2D_kernel(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, int dimX, int dimY, float tau)
+__global__ void UpdV_2D_kernel(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, float *Q3, long dimX, long dimY, long num_total, float tau)
 {
 	float q1, q3_x, q2, q3_y, div1, div2;
-	int num_total = dimX*dimY;
-	int i1, j1;
+	long i1, j1;
 	
-	const int i = blockDim.x * blockIdx.x + threadIdx.x;
-        const int j = blockDim.y * blockIdx.y + threadIdx.y;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
-        int index = i + dimX*j;      
+        long index = i + (dimX)*j;        
       
-	if (index < num_total) {   
+        if (index < num_total) {     
+
+	q1 = 0.0f; q3_x = 0.0f; q2 = 0.0f; q3_y = 0.0f; div1 = 0.0f; div2= 0.0f;
 	
 	    i1 = (i-1) + dimX*j;
             j1 = (i) + dimX*(j-1);
@@ -222,24 +218,24 @@ __global__ void UpdV_2D_kernel(float *V1, float *V2, float *P1, float *P2, float
 	return;
 } 
 
-__global__ void copyIm_TGV_kernel(float *U, float *U_old, int N, int M, int num_total)
+__global__ void copyIm_TGV_kernel(float *U, float *U_old, long dimX, long dimY, long num_total)
 {
-    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-    
-    int index = xIndex + N*yIndex;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
+        
+        long index = i + (dimX)*j;    
     
     if (index < num_total)   {
         U_old[index] = U[index];
     }
 }
 
-__global__ void copyIm_TGV_kernel_ar2(float *V1, float *V2, float *V1_old, float *V2_old, int N, int M, int num_total)
+__global__ void copyIm_TGV_kernel_ar2(float *V1, float *V2, float *V1_old, float *V2_old, long dimX, long dimY, long num_total)
 {
-    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-    
-    int index = xIndex + N*yIndex;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
+        
+        long index = i + (dimX)*j;    
     
     if (index < num_total)   {
         V1_old[index] = V1[index];
@@ -247,12 +243,12 @@ __global__ void copyIm_TGV_kernel_ar2(float *V1, float *V2, float *V1_old, float
     }
 }
 
-__global__ void newU_kernel(float *U, float *U_old, int N, int M, int num_total)
+__global__ void newU_kernel(float *U, float *U_old, long dimX, long dimY, long num_total)
 {
-    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-    
-    int index = xIndex + N*yIndex;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
+        
+        long index = i + (dimX)*j;    
     
     if (index < num_total)	{
         U[index] = 2.0f*U[index] - U_old[index];
@@ -260,12 +256,12 @@ __global__ void newU_kernel(float *U, float *U_old, int N, int M, int num_total)
 }
 
 
-__global__ void newU_kernel_ar2(float *V1, float *V2, float *V1_old, float *V2_old, int N, int M, int num_total)
+__global__ void newU_kernel_ar2(float *V1, float *V2, float *V1_old, float *V2_old, long dimX, long dimY, long num_total)
 {
-    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-    int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-    
-    int index = xIndex + N*yIndex;
+	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+        const long j = blockDim.y * blockIdx.y + threadIdx.y;
+        
+        long index = i + (dimX)*j;    
     
     if (index < num_total)	{
         V1[index] = 2.0f*V1[index] - V1_old[index];
@@ -576,14 +572,20 @@ __global__ void newU_kernel3D_ar3(float *V1, float *V2, float *V3, float *V1_old
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY, int dimZ)
 {
-	int dimTotal, dev = 0;
-	CHECK(cudaSetDevice(dev));
-	
-	dimTotal = dimX*dimY*dimZ;
+
+        int deviceCount = -1; // number of devices
+        cudaGetDeviceCount(&deviceCount);
+        if (deviceCount == 0) {
+         fprintf(stderr, "No CUDA devices found\n");
+        return -1;
+        }	
+
+	long dimTotal = (long)(dimX*dimY*dimZ);
+
        
         float *U_old, *d_U0, *d_U, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, tau, sigma;
-        tau = pow(L2,-0.5);
-        sigma = pow(L2,-0.5);
+        tau = powf(L2,-0.5f);
+        sigma = tau;
                                       
         CHECK(cudaMalloc((void**)&d_U0,dimTotal*sizeof(float)));
         CHECK(cudaMalloc((void**)&d_U,dimTotal*sizeof(float)));
@@ -611,41 +613,51 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
         
         if (dimZ == 1) {
 	/*2D case */
-        dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
-        dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
+	dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
+	dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
              
         for(int n=0; n < iterationsNumb; n++) {
 			
 	    /* Calculate Dual Variable P */
-            DualP_2D_kernel<<<dimGrid,dimBlock>>>(d_U, V1, V2, P1, P2, dimX, dimY, sigma);
-      	    CHECK(cudaDeviceSynchronize());
+            DualP_2D_kernel<<<dimGrid,dimBlock>>>(d_U, V1, V2, P1, P2, (long)(dimX), (long)(dimY), dimTotal, sigma);
+      	    checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*Projection onto convex set for P*/
-            ProjP_2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, alpha1);
-            CHECK(cudaDeviceSynchronize());
+            ProjP_2D_kernel<<<dimGrid,dimBlock>>>(P1, P2, (long)(dimX), (long)(dimY), dimTotal, alpha1);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );            
             /* Calculate Dual Variable Q */
-            DualQ_2D_kernel<<<dimGrid,dimBlock>>>(V1, V2, Q1, Q2, Q3, dimX, dimY, sigma);
-            CHECK(cudaDeviceSynchronize());
+            DualQ_2D_kernel<<<dimGrid,dimBlock>>>(V1, V2, Q1, Q2, Q3, (long)(dimX), (long)(dimY), dimTotal, sigma);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*Projection onto convex set for Q*/
-            ProjQ_2D_kernel<<<dimGrid,dimBlock>>>(Q1, Q2, Q3, dimX, dimY, alpha0);
-            CHECK(cudaDeviceSynchronize());
+            ProjQ_2D_kernel<<<dimGrid,dimBlock>>>(Q1, Q2, Q3, (long)(dimX), (long)(dimY), dimTotal, alpha0);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*saving U into U_old*/
-            copyIm_TGV_kernel<<<dimGrid,dimBlock>>>(d_U, U_old, dimX, dimY, dimTotal);
-            CHECK(cudaDeviceSynchronize());
+            copyIm_TGV_kernel<<<dimGrid,dimBlock>>>(d_U, U_old, (long)(dimX), (long)(dimY), dimTotal);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*adjoint operation  -> divergence and projection of P*/
-            DivProjP_2D_kernel<<<dimGrid,dimBlock>>>(d_U, d_U0, P1, P2, dimX, dimY, lambda, tau);
-            CHECK(cudaDeviceSynchronize());
+            DivProjP_2D_kernel<<<dimGrid,dimBlock>>>(d_U, d_U0, P1, P2, (long)(dimX), (long)(dimY), dimTotal, lambda, tau);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*get updated solution U*/
-            newU_kernel<<<dimGrid,dimBlock>>>(d_U, U_old, dimX, dimY, dimTotal);
-            CHECK(cudaDeviceSynchronize());
+            newU_kernel<<<dimGrid,dimBlock>>>(d_U, U_old, (long)(dimX), (long)(dimY), dimTotal);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*saving V into V_old*/
-            copyIm_TGV_kernel_ar2<<<dimGrid,dimBlock>>>(V1, V2, V1_old, V2_old, dimX, dimY, dimTotal);
-            CHECK(cudaDeviceSynchronize());
+            copyIm_TGV_kernel_ar2<<<dimGrid,dimBlock>>>(V1, V2, V1_old, V2_old, (long)(dimX), (long)(dimY), dimTotal);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /* upd V*/
-            UpdV_2D_kernel<<<dimGrid,dimBlock>>>(V1, V2, P1, P2, Q1, Q2, Q3, dimX, dimY, tau);
-            CHECK(cudaDeviceSynchronize());
+            UpdV_2D_kernel<<<dimGrid,dimBlock>>>(V1, V2, P1, P2, Q1, Q2, Q3, (long)(dimX), (long)(dimY), dimTotal, tau);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*get new V*/
-            newU_kernel_ar2<<<dimGrid,dimBlock>>>(V1, V2, V1_old, V2_old, dimX, dimY, dimTotal);
-            CHECK(cudaDeviceSynchronize());            
+            newU_kernel_ar2<<<dimGrid,dimBlock>>>(V1, V2, V1_old, V2_old, (long)(dimX), (long)(dimY), dimTotal);
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
 	    }
         }
         else {
@@ -672,34 +684,44 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
 			
 	    /* Calculate Dual Variable P */
             DualP_3D_kernel<<<dimGrid,dimBlock>>>(d_U, V1, V2, V3, P1, P2, P3, dimX, dimY, dimZ, sigma);
-	    CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*Projection onto convex set for P*/
             ProjP_3D_kernel<<<dimGrid,dimBlock>>>(P1, P2, P3, dimX, dimY, dimZ, alpha1);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /* Calculate Dual Variable Q */
             DualQ_3D_kernel<<<dimGrid,dimBlock>>>(V1, V2, V3, Q1, Q2, Q3, Q4, Q5, Q6, dimX, dimY, dimZ, sigma);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
              /*Projection onto convex set for Q*/
             ProjQ_3D_kernel<<<dimGrid,dimBlock>>>(Q1, Q2, Q3, Q4, Q5, Q6, dimX, dimY, dimZ, alpha0);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*saving U into U_old*/
             copyIm_TGV_kernel3D<<<dimGrid,dimBlock>>>(d_U, U_old, dimX, dimY, dimZ, dimTotal);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*adjoint operation  -> divergence and projection of P*/
             DivProjP_3D_kernel<<<dimGrid,dimBlock>>>(d_U, d_U0, P1, P2, P3, dimX, dimY, dimZ, lambda, tau);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*get updated solution U*/
             newU_kernel3D<<<dimGrid,dimBlock>>>(d_U, U_old, dimX, dimY, dimZ, dimTotal);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*saving V into V_old*/
             copyIm_TGV_kernel3D_ar3<<<dimGrid,dimBlock>>>(V1, V2, V3, V1_old, V2_old, V3_old, dimX, dimY, dimZ, dimTotal);           
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /* upd V*/
             UpdV_3D_kernel<<<dimGrid,dimBlock>>>(V1, V2, V3, P1, P2, P3, Q1, Q2, Q3, Q4, Q5, Q6, dimX, dimY, dimZ, tau);
-            CHECK(cudaDeviceSynchronize());
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
             /*get new V*/
             newU_kernel3D_ar3<<<dimGrid,dimBlock>>>(V1, V2, V3, V1_old, V2_old, V3_old, dimX, dimY, dimZ, dimTotal);
-            CHECK(cudaDeviceSynchronize());            
+            checkCudaErrors( cudaDeviceSynchronize() );
+            checkCudaErrors(cudaPeekAtLastError() );
 	        }
 	        
         CHECK(cudaFree(Q4));
@@ -724,5 +746,7 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float lambda, float alpha1, flo
         CHECK(cudaFree(V2));
         CHECK(cudaFree(V1_old));
         CHECK(cudaFree(V2_old));
+
+        cudaDeviceReset();
         return 0;
 }
