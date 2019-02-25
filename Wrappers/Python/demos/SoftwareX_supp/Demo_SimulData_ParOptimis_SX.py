@@ -98,6 +98,12 @@ for i in range(0,param_space):
 
 plt.figure() 
 plt.plot(erros_vec_sbtv)
+
+# Saving generated data with a unique time label
+h5f = h5py.File('Optim_admm_sbtv.h5', 'w')
+h5f.create_dataset('reg_param_sb_vec', data=reg_param_sb_vec)
+h5f.create_dataset('erros_vec_sbtv', data=erros_vec_sbtv)
+h5f.close()
 #%%
 param_space = 30
 reg_param_rofllt_vec = np.linspace(0.03,0.15,param_space,dtype='float32') # a vector of parameters
@@ -119,6 +125,12 @@ for i in range(0,param_space):
 
 plt.figure() 
 plt.plot(erros_vec_rofllt)
+
+# Saving generated data with a unique time label
+h5f = h5py.File('Optim_admm_rofllt.h5', 'w')
+h5f.create_dataset('reg_param_rofllt_vec', data=reg_param_rofllt_vec)
+h5f.create_dataset('erros_vec_rofllt', data=erros_vec_rofllt)
+h5f.close()
 #%%
 param_space = 30
 reg_param_tgv_vec = np.linspace(0.03,0.15,param_space,dtype='float32') # a vector of parameters
@@ -139,4 +151,10 @@ for i in range(0,param_space):
 
 plt.figure() 
 plt.plot(erros_vec_tgv)
+
+# Saving generated data with a unique time label
+h5f = h5py.File('Optim_admm_tgv.h5', 'w')
+h5f.create_dataset('reg_param_tgv_vec', data=reg_param_tgv_vec)
+h5f.create_dataset('erros_vec_tgv', data=erros_vec_tgv)
+h5f.close()
 #%%
