@@ -79,8 +79,8 @@ RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector d
                     tolerance = 1e-08, # tolerance to stop outer iterations earlier
                     device='gpu')
 #%%
-param_space = 20
-reg_param_sb_vec = np.linspace(0.001,0.03,param_space,dtype='float32') # a vector of parameters
+param_space = 30
+reg_param_sb_vec = np.linspace(0.03,0.15,param_space,dtype='float32') # a vector of parameters
 erros_vec_sbtv = np.zeros((param_space)) # a vector of errors
 
 print ("Reconstructing with ADMM method using SB-TV penalty")
@@ -99,8 +99,8 @@ for i in range(0,param_space):
 plt.figure() 
 plt.plot(erros_vec_sbtv)
 #%%
-param_space = 20
-reg_param_rofllt_vec = np.linspace(0.001,0.03,param_space,dtype='float32') # a vector of parameters
+param_space = 30
+reg_param_rofllt_vec = np.linspace(0.03,0.15,param_space,dtype='float32') # a vector of parameters
 erros_vec_rofllt = np.zeros((param_space)) # a vector of errors
 
 print ("Reconstructing with ADMM method using ROF-LLT penalty")
@@ -120,8 +120,8 @@ for i in range(0,param_space):
 plt.figure() 
 plt.plot(erros_vec_rofllt)
 #%%
-param_space = 20
-reg_param_tgv_vec = np.linspace(0.001,0.03,param_space,dtype='float32') # a vector of parameters
+param_space = 30
+reg_param_tgv_vec = np.linspace(0.03,0.15,param_space,dtype='float32') # a vector of parameters
 erros_vec_tgv = np.zeros((param_space)) # a vector of errors
 
 print ("Reconstructing with ADMM method using TGV penalty")
@@ -139,26 +139,4 @@ for i in range(0,param_space):
 
 plt.figure() 
 plt.plot(erros_vec_tgv)
-#%%
-param_space = 1
-reg_param_diff4th = np.linspace(10,100,param_space,dtype='float32') # a vector of parameters
-erros_vec_diff4th = np.zeros((param_space)) # a vector of errors
-
-print ("Reconstructing with ADMM method using Diff4th penalty")
-for i in range(0,param_space):
-    RecADMM_reg_diff4th = RectoolsIR.ADMM(projdata_norm,
-                                  rho_const = 2000.0, \
-                                  iterationsADMM = 15, \
-                                  regularisation = 'Diff4th', \
-                                  regularisation_parameter = reg_param_diff4th[i],\
-                                  edge_param = 0.03,
-                                  time_marching_parameter = 0.001,\
-                                  regularisation_iterations = 750)
-    # calculate errors 
-    Qtools = QualityTools(phantom, RecADMM_reg_diff4th)
-    erros_vec_diff4th[i] = Qtools.rmse()
-    print("RMSE for regularisation parameter {} for ADMM-Diff4th is {}".format(reg_param_diff4th[i],erros_vec_diff4th[i]))
-
-plt.figure() 
-plt.plot(erros_vec_diff4th)
 #%%
