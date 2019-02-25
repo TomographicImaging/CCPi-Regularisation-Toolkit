@@ -23,21 +23,8 @@ class TestRegularisers(unittest.TestCase):
         u_ref = Im + np.random.normal(loc=0,
                                       scale=0.01 * Im,
                                       size=np.shape(Im))
-        # map the u0 u0->u0>0
-        # f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
         u0 = u0.astype('float32')
         u_ref = u_ref.astype('float32')
-        # set parameters
-        #pars = {'algorithm': alg, \
-        #        'input': u0, \
-        #        'regularisation_parameter': 0.04, \
-        #        'number_of_iterations': noi, \
-        #        'tolerance_constant': 0.00001, \
-        #        'methodTV': 0, \
-        #        'nonneg': 0, \
-        #        'printingOut': 0, \
-        #        'time_marching_parameter': 0.00002
-        #        }
         return Im,u0,u_ref
 
 
