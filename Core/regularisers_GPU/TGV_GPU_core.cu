@@ -39,8 +39,8 @@ limitations under the License.
  */
     
    
-#define BLKXSIZE2D 8
-#define BLKYSIZE2D 8
+#define BLKXSIZE2D 16
+#define BLKYSIZE2D 16
 
 #define BLKXSIZE 8
 #define BLKYSIZE 8
@@ -53,17 +53,19 @@ limitations under the License.
 /********************************************************************/
 __global__ void DualP_2D_kernel(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, long dimY, long num_total, float sigma)
 {    
-	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+		const long i = blockDim.x * blockIdx.x + threadIdx.x;
         const long j = blockDim.y * blockIdx.y + threadIdx.y;
         
         long index = i + (dimX)*j;       
         
-        if (index < num_total) {     
+        if ((i < dimX) && (j < dimY)) {
         /* symmetric boundary conditions (Neuman) */            
         if ((i >= 0) && (i < dimX-1))  P1[index] += sigma*((U[(i+1) + dimX*j] - U[index])  - V1[index]); 
-        else P1[index] += sigma*(-V1[index]); 
+        else if  (i == dimX-1) P1[index] -= sigma*(V1[index]); 
+        else P1[index] = 0.0f; 
         if ((j >= 0) && (j < dimY-1))  P2[index] += sigma*((U[i + dimX*(j+1)] - U[index])  - V2[index]);
-        else P2[index] += sigma*(-V2[index]);                    
+        else if  (j == dimY-1) P2[index] -= sigma*(V2[index]);                    
+        else P2[index] = 0.0f; 
 	}
 	return;
 } 
@@ -77,7 +79,7 @@ __global__ void ProjP_2D_kernel(float *P1, float *P2, long dimX, long dimY, long
         
         long index = i + (dimX)*j;    
                 
-        if (index < num_total) {             
+        if ((i < dimX) && (j < dimY)) {            
             grad_magn = sqrtf(pow(P1[index],2) + pow(P2[index],2));
             grad_magn = grad_magn/alpha1;
             if (grad_magn > 1.0f) {
@@ -96,7 +98,7 @@ __global__ void DualQ_2D_kernel(float *V1, float *V2, float *Q1, float *Q2, floa
         
         long index = i + (dimX)*j;          
         
-        if (index < num_total) {     
+        if ((i < dimX) && (j < dimY)) {   
          q1 = 0.0f; q2  = 0.0f; q11  = 0.0f; q22  = 0.0f;
          
 	        if ((i >= 0) && (i < dimX-1))  {            
@@ -124,7 +126,7 @@ __global__ void ProjQ_2D_kernel(float *Q1, float *Q2, float *Q3, long dimX, long
         
         long index = i + (dimX)*j;     
        
-        if (index < num_total) {     
+        if ((i < dimX) && (j < dimY)) {  
             grad_magn = sqrt(pow(Q1[index],2) + pow(Q2[index],2) + 2*pow(Q3[index],2));
             grad_magn = grad_magn/alpha0;
             if (grad_magn > 1.0f) {
@@ -144,9 +146,8 @@ __global__ void DivProjP_2D_kernel(float *U, float *U0, float *P1, float *P2, lo
         
         long index = i + (dimX)*j;    
 
-        if (index < num_total) {     
-	P_v1 = 0.0f; P_v2 = 0.0f;
-        
+        if ((i < dimX) && (j < dimY)) {
+			        
         if ((i > 0) && (i < dimX-1)) P_v1 = P1[index] - P1[(i-1) + dimX*j];
         else if (i == dimX-1) P_v1 = -P1[(i-1) + dimX*j];
         else if (i == 0) P_v1 = P1[index];
@@ -174,7 +175,7 @@ __global__ void UpdV_2D_kernel(float *V1, float *V2, float *P1, float *P2, float
         
         long index = i + (dimX)*j;        
       
-        if (index < num_total) {     
+        if ((i < dimX) && (j < dimY)) {     
 
 	q1 = 0.0f; q3_x = 0.0f; q2 = 0.0f; q3_y = 0.0f; div1 = 0.0f; div2= 0.0f;
 	
@@ -225,7 +226,7 @@ __global__ void copyIm_TGV_kernel(float *U, float *U_old, long dimX, long dimY, 
         
         long index = i + (dimX)*j;    
     
-    if (index < num_total)   {
+    if ((i < dimX) && (j < dimY)) {
         U_old[index] = U[index];
     }
 }
@@ -237,7 +238,7 @@ __global__ void copyIm_TGV_kernel_ar2(float *V1, float *V2, float *V1_old, float
         
         long index = i + (dimX)*j;    
     
-    if (index < num_total)   {
+    if ((i < dimX) && (j < dimY)) {
         V1_old[index] = V1[index];
         V2_old[index] = V2[index];
     }
@@ -250,7 +251,7 @@ __global__ void newU_kernel(float *U, float *U_old, long dimX, long dimY, long n
         
         long index = i + (dimX)*j;    
     
-    if (index < num_total)	{
+    if ((i < dimX) && (j < dimY)) {
         U[index] = 2.0f*U[index] - U_old[index];
     }
 }
@@ -263,7 +264,7 @@ __global__ void newU_kernel_ar2(float *V1, float *V2, float *V1_old, float *V2_o
         
         long index = i + (dimX)*j;    
     
-    if (index < num_total)	{
+    if ((i < dimX) && (j < dimY)) {
         V1[index] = 2.0f*V1[index] - V1_old[index];
         V2[index] = 2.0f*V2[index] - V2_old[index];  
     }
