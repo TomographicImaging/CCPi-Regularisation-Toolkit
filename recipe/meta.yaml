@@ -12,7 +12,8 @@ test:
   files:
     - ../test/lena_gray_512.tif
   requires:
-    - pillow=4.1.1
+    - pillow
+    - pillow=4.1.1 # [win]
 
 requirements:
   build:
