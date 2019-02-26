@@ -70,7 +70,7 @@ __global__ void DualP_2D_kernel(float *U, float *V1, float *V2, float *P1, float
 	return;
 } 
 
-__global__ void ProjP_2D_kernel(float *P1, float *P2, long dimX, long dimY, long num_total, float alpha1)
+__global__ void ProjP_2D_kernel(float *P1, float *P2, long dimX, long dimY, float alpha1)
 {
    	float grad_magn;
 	
@@ -288,10 +288,10 @@ __global__ void DualP_3D_kernel(float *U, float *V1, float *V2, float *V3, float
 	    else if (i == dimX-1) P1[index] -= sigma*(V1[index]); 
 	    else P1[index] = 0.0f;
 	    if ((j >= 0) && (j < dimY-1)) P2[index] += sigma*((U[(dimX*dimY)*k + i*dimX+(j+1)] - U[index])  - V2[index]);        
-	    else if P2[index] -= sigma*(V2[index]);                
+	    else if (j == dimY-1) P2[index] -= sigma*(V2[index]);                
 	    else P2[index] = 0.0f;	    
       	    if ((k >= 0) && (k < dimZ-1)) P3[index] += sigma*((U[(dimX*dimY)*(k+1) + i*dimX+(j)] - U[index])  - V3[index]);        
-      	    else if P3[index] -= sigma*(V3[index]);                	    
+      	    else if (k == dimZ-1) P3[index] -= sigma*(V3[index]);                	    
       	    else P3[index] = 0.0f;
 	 }	 
 	return;
