@@ -23,6 +23,7 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 import h5py
 from ccpi.supp.qualitymetrics import QualityTools
+from scipy.signal import gaussian
 
 # loading the data 
 h5f = h5py.File('data/TomoSim_data1550671417.h5','r')
@@ -136,12 +137,19 @@ plt.imshow(recFBP[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
 plt.title('FBP Reconstruction, coronal (Y-Z) view', fontsize=19)
 ax2.set_aspect('equal')
 plt.show()
-#plt.savefig('FBP_phantom.pdf', format='pdf', dpi=1200)
+#plt.savefig('FBP_phantom.pdf', format='pdf', dpi=1600)
 
 # calculate errors 
 Qtools = QualityTools(phantom, recFBP)
 RMSE_fbp = Qtools.rmse()
 print("Root Mean Square Error for FBP is {}".format(RMSE_fbp))
+
+# SSIM measure
+Qtools = QualityTools(phantom[128,:,:]*255, recFBP[128,:,:]*235)
+win = np.array([gaussian(11, 1.5)])
+win2d = win * (win.T)
+ssim_fbp = Qtools.ssim(win2d)
+print("Mean SSIM for FBP is {}".format(ssim_fbp[0]))
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("Reconstructing with ADMM method using TomoRec software")
@@ -196,6 +204,13 @@ plt.savefig('SBTV_phantom.pdf', format='pdf', dpi=1600)
 Qtools = QualityTools(phantom, RecADMM_reg_sbtv)
 RMSE_admm_sbtv = Qtools.rmse()
 print("Root Mean Square Error for ADMM-SB-TV is {}".format(RMSE_admm_sbtv))
+
+# SSIM measure
+Qtools = QualityTools(phantom[128,:,:]*255, RecADMM_reg_sbtv[128,:,:]*235)
+win = np.array([gaussian(11, 1.5)])
+win2d = win * (win.T)
+ssim_admm_sbtv = Qtools.ssim(win2d)
+print("Mean SSIM ADMM-SBTV is {}".format(ssim_admm_sbtv[0]))
 #%%
 print ("Reconstructing with ADMM method using ROFLLT penalty")
 RecADMM_reg_rofllt = RectoolsIR.ADMM(projdata_norm,
@@ -236,6 +251,13 @@ plt.show()
 Qtools = QualityTools(phantom, RecADMM_reg_rofllt)
 RMSE_admm_rofllt = Qtools.rmse()
 print("Root Mean Square Error for ADMM-ROF-LLT is {}".format(RMSE_admm_rofllt))
+
+# SSIM measure
+Qtools = QualityTools(phantom[128,:,:]*255, RecADMM_reg_rofllt[128,:,:]*235)
+win = np.array([gaussian(11, 1.5)])
+win2d = win * (win.T)
+ssim_admm_rifllt = Qtools.ssim(win2d)
+print("Mean SSIM ADMM-ROFLLT is {}".format(ssim_admm_rifllt[0]))
 #%%
 print ("Reconstructing with ADMM method using TGV penalty")
 RecADMM_reg_tgv = RectoolsIR.ADMM(projdata_norm,
@@ -244,7 +266,7 @@ RecADMM_reg_tgv = RectoolsIR.ADMM(projdata_norm,
                                   regularisation = 'TGV', \
                                   regularisation_parameter = optimReg_tgv,\
                                   regularisation_iterations = 600)
-
+#%%
 sliceSel = int(0.5*N_size)
 max_val = 1
 plt.figure(figsize = (20,3))
@@ -269,10 +291,18 @@ plt.imshow(RecADMM_reg_tgv[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
 plt.title('ADMM-TGV (Y-Z) view', fontsize=19)
 plt.colorbar(ax=ax4)
 plt.show()
-plt.savefig('TGV_phantom.pdf', format='pdf', dpi=1200)
+#plt.savefig('TGV_phantom.pdf', format='pdf', dpi=1600)
 
 # calculate errors 
 Qtools = QualityTools(phantom, RecADMM_reg_tgv)
 RMSE_admm_tgv = Qtools.rmse()
 print("Root Mean Square Error for ADMM-TGV is {}".format(RMSE_admm_tgv))
+
+# SSIM measure
+#Create a 2d gaussian for the window parameter
+Qtools = QualityTools(phantom[128,:,:]*255, RecADMM_reg_tgv[128,:,:]*235)
+win = np.array([gaussian(11, 1.5)])
+win2d = win * (win.T)
+ssim_admm_tgv = Qtools.ssim(win2d)
+print("Mean SSIM ADMM-TGV is {}".format(ssim_admm_tgv[0]))
 #%%
