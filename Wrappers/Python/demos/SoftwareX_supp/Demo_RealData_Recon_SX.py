@@ -181,7 +181,7 @@ RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH #
                     nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
                     OS_number = None, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
                     tolerance = 1e-08, # tolerance to stop outer iterations earlier
-                    device='cpu')
+                    device='gpu')
 
 print ("Reconstructing with ADMM method using TGV penalty")
 RecADMM_reg_tgv = RectoolsIR.ADMM(data_norm[0:10,:,det_y_crop],
