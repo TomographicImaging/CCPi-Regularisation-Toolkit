@@ -3,13 +3,13 @@
 """
 This demo scripts support the following publication: 
 "CCPi-Regularisation Toolkit for computed tomographic image reconstruction with 
-proximal splitting algorithms" by Daniil Kazantsev, Edoardo Pasca, Mark Basham, 
-Martin J. Turner, Philip J. Withers and Alun Ashton; Software X, 2019
+proximal splitting algorithms" by Daniil Kazantsev, Edoardo Pasca, Martin J. Turner,
+ Philip J. Withers; Software X, 2019
 ____________________________________________________________________________
 * Runs TomoPhantom software to simulate tomographic projection data with
 some imaging errors and noise
 * Saves the data into hdf file to be uploaded in reconstruction scripts
-____________________________________________________________________________
+__________________________________________________________________________
 
 >>>>> Dependencies: <<<<<
 1. TomoPhantom software for phantom and data generation

@@ -3,10 +3,11 @@
 """
 This demo scripts support the following publication: 
 "CCPi-Regularisation Toolkit for computed tomographic image reconstruction with 
-proximal splitting algorithms" by Daniil Kazantsev, Edoardo Pasca, Mark Basham, 
-Martin J. Turner, Philip J. Withers and Alun Ashton; Software X, 2019
+proximal splitting algorithms" by Daniil Kazantsev, Edoardo Pasca, Martin J. Turner,
+ Philip J. Withers; Software X, 2019
 ____________________________________________________________________________
 * Reads real tomographic data (stored at Zenodo)
+--- https://doi.org/10.5281/zenodo.2578893
 * Reconstructs using TomoRec software
 * Saves reconstructed images 
 ____________________________________________________________________________
@@ -14,6 +15,8 @@ ____________________________________________________________________________
 1. ASTRA toolbox: conda install -c astra-toolbox astra-toolbox
 2. TomoRec: conda install -c dkazanc tomorec
 or install from https://github.com/dkazanc/TomoRec
+3. libtiff if one needs to save tiff images:
+    install pip install libtiff
 
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 GPLv3 license (ASTRA toolbox)
@@ -23,7 +26,6 @@ import matplotlib.pyplot as plt
 import h5py
 from tomorec.supp.suppTools import normaliser
 import time
-from libtiff import TIFF
 
 # load dendritic projection data
 h5f = h5py.File('data/DendrData_3D.h5','r')
@@ -55,24 +57,38 @@ det_y_crop = [i for i in range(0,detectorHoriz-22)]
 N_size = 950 # reconstruction domain
 time_label = int(time.time())
 #%%
-"""
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%Reconstructing with FBP method %%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 from tomorec.methodsDIR import RecToolsDIR
 
 RectoolsDIR = RecToolsDIR(DetectorsDimH = np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = 200,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+                    DetectorsDimV = 100,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     device='gpu')
 
-FBPrec = RectoolsDIR.FBP(data_norm[20:220,:,det_y_crop])
+FBPrec = RectoolsDIR.FBP(data_norm[0:100,:,det_y_crop])
 
-plt.figure()
-plt.imshow(FBPrec[0,:,:], vmin=0, vmax=0.005, cmap="gray")
-plt.title('FBP reconstruction')
+sliceSel = 50
+max_val = 0.003
+plt.figure() 
+plt.subplot(131)
+plt.imshow(FBPrec[sliceSel,:,:],vmin=0, vmax=max_val, cmap="gray")
+plt.title('FBP Reconstruction, axial view')
 
+plt.subplot(132)
+plt.imshow(FBPrec[:,sliceSel,:],vmin=0, vmax=max_val, cmap="gray")
+plt.title('FBP Reconstruction, coronal view')
+
+plt.subplot(133)
+plt.imshow(FBPrec[:,:,sliceSel],vmin=0, vmax=max_val, cmap="gray")
+plt.title('FBP Reconstruction, sagittal view')
+plt.show()
+
+# saving to tiffs (16bit)
+"""
+from libtiff import TIFF
 FBPrec += np.abs(np.min(FBPrec))
 multiplier = (int)(65535/(np.max(FBPrec)))
 
@@ -89,7 +105,7 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 # initialise TomoRec ITERATIVE reconstruction class ONCE
 from tomorec.methodsIR import RecToolsIR
 RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = 200,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+                    DetectorsDimV = 100,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
@@ -99,14 +115,14 @@ RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH #
                     device='gpu')
 #%%
 print ("Reconstructing with ADMM method using SB-TV penalty")
-RecADMM_reg_sbtv = RectoolsIR.ADMM(data_norm[20:220,:,det_y_crop],
+RecADMM_reg_sbtv = RectoolsIR.ADMM(data_norm[0:100,:,det_y_crop],
                               rho_const = 2000.0, \
                               iterationsADMM = 15, \
                               regularisation = 'SB_TV', \
                               regularisation_parameter = 0.00085,\
                               regularisation_iterations = 50)
 
-sliceSel = 5
+sliceSel = 50
 max_val = 0.003
 plt.figure() 
 plt.subplot(131)
@@ -122,29 +138,31 @@ plt.imshow(RecADMM_reg_sbtv[:,:,sliceSel],vmin=0, vmax=max_val, cmap="gray")
 plt.title('3D ADMM-SB-TV Reconstruction, sagittal view')
 plt.show()
 
-multiplier = (int)(65535/(np.max(RecADMM_reg_sbtv)))
 
 # saving to tiffs (16bit)
+"""
+from libtiff import TIFF
+multiplier = (int)(65535/(np.max(RecADMM_reg_sbtv)))
 for i in range(0,np.size(RecADMM_reg_sbtv,0)):
     tiff = TIFF.open('Dendr_ADMM_SBTV'+'_'+str(i)+'.tiff', mode='w')
     tiff.write_image(np.uint16(RecADMM_reg_sbtv[i,:,:]*multiplier))
     tiff.close()
-
+"""
 # Saving recpnstructed data with a unique time label
 np.save('Dendr_ADMM_SBTV'+str(time_label)+'.npy', RecADMM_reg_sbtv)
 del RecADMM_reg_sbtv
 #%%
 print ("Reconstructing with ADMM method using ROF-LLT penalty")
-RecADMM_reg_rofllt = RectoolsIR.ADMM(data_norm[20:220,:,det_y_crop],
+RecADMM_reg_rofllt = RectoolsIR.ADMM(data_norm[0:100,:,det_y_crop],
                               rho_const = 2000.0, \
                               iterationsADMM = 15, \
                               regularisation = 'LLT_ROF', \
                               regularisation_parameter = 0.0009,\
                               regularisation_parameter2 = 0.0007,\
                               time_marching_parameter = 0.001,\
-                              regularisation_iterations = 450)
+                              regularisation_iterations = 550)
 
-sliceSel = 5
+sliceSel = 50
 max_val = 0.003
 plt.figure() 
 plt.subplot(131)
@@ -160,38 +178,29 @@ plt.imshow(RecADMM_reg_rofllt[:,:,sliceSel],vmin=0, vmax=max_val)
 plt.title('3D ADMM-ROFLLT Reconstruction, sagittal view')
 plt.show()
 
-multiplier = (int)(65535/(np.max(RecADMM_reg_rofllt)))
-
 # saving to tiffs (16bit)
+"""
+from libtiff import TIFF
+multiplier = (int)(65535/(np.max(RecADMM_reg_rofllt)))
 for i in range(0,np.size(RecADMM_reg_rofllt,0)):
     tiff = TIFF.open('Dendr_ADMM_ROFLLT'+'_'+str(i)+'.tiff', mode='w')
     tiff.write_image(np.uint16(RecADMM_reg_rofllt[i,:,:]*multiplier))
     tiff.close()
-
+"""
 
 # Saving recpnstructed data with a unique time label
 np.save('Dendr_ADMM_ROFLLT'+str(time_label)+'.npy', RecADMM_reg_rofllt)
 del RecADMM_reg_rofllt
 #%%
-RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = 10,  # DetectorsDimV # detector dimension (vertical) for 3D case only
-                    AnglesVec = angles_rad, # array of angles in radians
-                    ObjSize = N_size, # a scalar to define reconstructed object dimensions
-                    datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
-                    nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
-                    OS_number = None, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
-                    tolerance = 1e-08, # tolerance to stop outer iterations earlier
-                    device='gpu')
-
 print ("Reconstructing with ADMM method using TGV penalty")
-RecADMM_reg_tgv = RectoolsIR.ADMM(data_norm[0:10,:,det_y_crop],
+RecADMM_reg_tgv = RectoolsIR.ADMM(data_norm[0:100,:,det_y_crop],
                               rho_const = 2000.0, \
                               iterationsADMM = 15, \
                               regularisation = 'TGV', \
                               regularisation_parameter = 0.01,\
-                              regularisation_iterations = 450)
+                              regularisation_iterations = 500)
 
-sliceSel = 7
+sliceSel = 50
 max_val = 0.003
 plt.figure() 
 plt.subplot(131)
@@ -207,16 +216,16 @@ plt.imshow(RecADMM_reg_tgv[:,:,sliceSel],vmin=0, vmax=max_val)
 plt.title('3D ADMM-TGV Reconstruction, sagittal view')
 plt.show()
 
-multiplier = (int)(65535/(np.max(RecADMM_reg_tgv)))
-
 # saving to tiffs (16bit)
+"""
+from libtiff import TIFF
+multiplier = (int)(65535/(np.max(RecADMM_reg_tgv)))
 for i in range(0,np.size(RecADMM_reg_tgv,0)):
     tiff = TIFF.open('Dendr_ADMM_TGV'+'_'+str(i)+'.tiff', mode='w')
     tiff.write_image(np.uint16(RecADMM_reg_tgv[i,:,:]*multiplier))
     tiff.close()
-
-
+"""
 # Saving recpnstructed data with a unique time label
-#np.save('Dendr_ADMM_TGV'+str(time_label)+'.npy', RecADMM_reg_tgv)
+np.save('Dendr_ADMM_TGV'+str(time_label)+'.npy', RecADMM_reg_tgv)
 del RecADMM_reg_tgv
 #%%
