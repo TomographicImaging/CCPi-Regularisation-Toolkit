@@ -31,7 +31,7 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 #%%
-filename = os.path.join(".." , ".." , ".." , "data" ,"lena_gray_512.tif")
+filename = os.path.join( "data" ,"lena_gray_512.tif")
 
 # read image
 Im = plt.imread(filename)                     

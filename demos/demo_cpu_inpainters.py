@@ -29,7 +29,7 @@ def printParametersToString(pars):
 ###############################################################################
 
 # read sinogram and the mask
-filename = os.path.join(".." , ".." , ".." , "data" ,"SinoInpaint.mat")
+filename = os.path.join("data" ,"SinoInpaint.mat")
 sino = io.loadmat(filename)
 sino_full = sino.get('Sinogram')
 Mask = sino.get('Mask')

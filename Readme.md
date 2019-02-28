@@ -9,15 +9,15 @@
 **Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem (inverse problem) more well-posed. The CCPi-RGL software provides 2D/3D and multi-channel regularisation strategies to ensure better performance of IIR methods. The regularisation modules are well-suited to use with [splitting algorithms](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method#Alternating_direction_method_of_multipliers), such as, [ADMM](https://github.com/dkazanc/ADMM-tomo) and [FISTA](https://github.com/dkazanc/FISTA-tomo). Furthermore, the toolkit can be used for simpler inversion tasks, such as, image denoising, inpaiting, deconvolution etc. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 <div align="center">
-  <img src="docs/images/probl.png" height="225"><br>  
+  <img src="demos/images/probl.png" height="225"><br>  
 </div>
 
 <div align="center">
-  <img src="docs/images/reg_penalties.jpg" height="450"><br>  
+  <img src="demos/images/reg_penalties.jpg" height="450"><br>  
 </div>
 
 <div align="center">
-  <img src="docs/images/TV_vs_NLTV.jpg" height="300"><br>  
+  <img src="demos/images/TV_vs_NLTV.jpg" height="300"><br>  
 </div>
 
 ## Prerequisites: 
@@ -50,13 +50,29 @@
 
 ## Installation:
 
-The package comes as a [CMake](https://cmake.org) project so you will need CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this). We provide wrappers for Python and Matlab.
+The package comes as a [CMake](https://cmake.org) project
+and additional wrappers for Python and Matlab.
 
+To install precompiled binaries, you need `conda` and install from `ccpi` channel using :
+```
+conda install ccpi-regulariser -c ccpi -c conda-forge
+```
+
+In order to compile C/C++ sources and additional wrappers from source code for numpy 1.12 and python 3.6, the recommended way is:
+```
+git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+cd CCPi-Regularisation-Toolkit
+export CCPI_BUILD_ARGS="--numpy 1.12 --python 3.6"
+build/jenkins-build.sh
+```
+this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests for environment with python 3.6 and numpy 1.12.
+
+### CMake
+If you want to build directly using cmake, install CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this) 
 1. Clone this repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, 
 2. create a build directory. 
 3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`, or `cmake3`). Use additional flags to fine tune the configuration. 
 
-### CMake flags
 Flags used during configuration
 
 | CMake flag | type | meaning |
@@ -94,7 +110,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 #### Python (conda-build)
 ```
 	export CIL_VERSION=19.02
-	conda build Wrappers/Python/conda-recipe --numpy 1.12 --python 3.5 
+	conda build recipe/ --numpy 1.12 --python 3.5  
 	conda install ccpi-regulariser=${CIL_VERSION} --use-local --force
 	cd demos/
 	python demo_cpu_regularisers.py # to run CPU demo
@@ -167,8 +183,7 @@ addpath(/path/to/library);
 
 ### Applications:
 
-* [Regularised FISTA iterative reconstruction algorithm for X-ray tomographic reconstruction with highly inaccurate measurements (MATLAB/Python code)](https://github.com/dkazanc/FISTA-tomo)
-* [Regularised ADMM iterative reconstruction algorithm for X-ray tomographic reconstruction (MATLAB code)](https://github.com/dkazanc/ADMM-tomo)
+* [A library of tomographic reconstruction methods: direct and model-based iterative (MATLAB/Python code)](https://github.com/dkazanc/TomoRec)
 * [Joint image reconstruction method with correlative multi-channel prior for X-ray spectral computed tomography (MATLAB code)](https://github.com/dkazanc/multi-channel-X-ray-CT)
 
 ### License:

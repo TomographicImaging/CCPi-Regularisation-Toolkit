@@ -9,7 +9,7 @@ find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM MX_LIBRARY ENG_LIBRARY )
 # matlab_add_mex(
     # NAME CPU_ROF
     # SRC 
-      # ${CMAKE_SOURCE_DIR}/Wrappers/Matlab/mex_compile/regularisers_CPU/ROF_TV.c
+      # ${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_CPU/ROF_TV.c
     # LINK_TO cilreg ${Matlab_LIBRARIES}
     # )
     
@@ -23,7 +23,7 @@ find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM MX_LIBRARY ENG_LIBRARY )
    # matlab_add_mex(
     # NAME CPU_TNV
     # SRC 
-      # ${CMAKE_SOURCE_DIR}/Wrappers/Matlab/mex_compile/regularisers_CPU/TNV.c 
+      # ${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_CPU/TNV.c 
     # LINK_TO cilreg ${Matlab_LIBRARIES}
     # )
     
@@ -40,8 +40,8 @@ find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM MX_LIBRARY ENG_LIBRARY )
 #list(APPEND MEX_TARGETS "CPU_ROF")
 
 file(GLOB CPU_MEX_FILES
-    "${CMAKE_SOURCE_DIR}/Wrappers/Matlab/mex_compile/regularisers_CPU/*.c"
-    #"${CMAKE_SOURCE_DIR}/Wrappers/Matlab/mex_compile/regularisers_GPU/*.c"
+    "${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_CPU/*.c"
+    #"${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_GPU/*.c"
 )
 
 #message("CPU_MEX_FILES " ${CPU_MEX_FILES})
@@ -101,7 +101,7 @@ if (BUILD_CUDA)
     find_package(CUDA)
     if (CUDA_FOUND)
       file(GLOB GPU_MEX_FILES
-        "${CMAKE_SOURCE_DIR}/Wrappers/Matlab/mex_compile/regularisers_GPU/*.cpp"
+        "${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_GPU/*.cpp"
       )
 
       list(LENGTH GPU_MEX_FILES num)
