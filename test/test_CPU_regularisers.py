@@ -2,6 +2,7 @@ import unittest
 import math
 import os
 import timeit
+import numpy as np
 from ccpi.filters.regularisers import FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th, ROF_TV
 from testroutines import *
 
