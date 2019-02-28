@@ -13,87 +13,119 @@ Im = double(imread('lena_gray_512.tif'))/255;  % loading image
 u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
 figure; imshow(u0, [0 1]); title('Noisy image');
 
-lambda_reg = 0.03; % regularsation parameter for all methods
 %%
 fprintf('Denoise using the ROF-TV model (CPU) \n');
+lambda_reg = 0.017; % regularsation parameter for all methods
 tau_rof = 0.0025; % time-marching constant 
-iter_rof = 750; % number of ROF iterations
+iter_rof = 1200; % number of ROF iterations
 tic; u_rof = ROF_TV(single(u0), lambda_reg, iter_rof, tau_rof); toc; 
 energyfunc_val_rof = TV_energy(single(u_rof),single(u0),lambda_reg, 1);  % get energy function value
 rmseROF = (RMSE(u_rof(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for ROF-TV is:', rmseROF);
+[ssimval] = ssim(u_rof*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for ROF-TV is:', ssimval);
 figure; imshow(u_rof, [0 1]); title('ROF-TV denoised image (CPU)');
 %%
 % fprintf('Denoise using the ROF-TV model (GPU) \n');
 % tau_rof = 0.0025; % time-marching constant 
-% iter_rof = 750; % number of ROF iterations
+% iter_rof = 1200; % number of ROF iterations
 % tic; u_rofG = ROF_TV_GPU(single(u0), lambda_reg, iter_rof, tau_rof); toc;
 % figure; imshow(u_rofG, [0 1]); title('ROF-TV denoised image (GPU)');
 %%
 fprintf('Denoise using the FGP-TV model (CPU) \n');
-iter_fgp = 1300; % number of FGP iterations
-epsil_tol =  1.0e-06; % tolerance
+lambda_reg = 0.033;
+iter_fgp = 300; % number of FGP iterations
+epsil_tol =  1.0e-09; % tolerance
 tic; u_fgp = FGP_TV(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 energyfunc_val_fgp = TV_energy(single(u_fgp),single(u0),lambda_reg, 1); % get energy function value
 rmseFGP = (RMSE(u_fgp(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for FGP-TV is:', rmseFGP);
+[ssimval] = ssim(u_fgp*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for FGP-TV is:', ssimval);
 figure; imshow(u_fgp, [0 1]); title('FGP-TV denoised image (CPU)');
-
 %%
 % fprintf('Denoise using the FGP-TV model (GPU) \n');
-% iter_fgp = 1300; % number of FGP iterations
-% epsil_tol =  1.0e-06; % tolerance
+% iter_fgp = 300; % number of FGP iterations
+% epsil_tol =  1.0e-09; % tolerance
 % tic; u_fgpG = FGP_TV_GPU(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 % figure; imshow(u_fgpG, [0 1]); title('FGP-TV denoised image (GPU)');
 %%
 fprintf('Denoise using the SB-TV model (CPU) \n');
-iter_sb = 150; % number of SB iterations
-epsil_tol =  1.0e-06; % tolerance
+iter_sb = 80; % number of SB iterations
+epsil_tol =  1.0e-08; % tolerance
 tic; u_sb = SB_TV(single(u0), lambda_reg, iter_sb, epsil_tol); toc; 
 energyfunc_val_sb = TV_energy(single(u_sb),single(u0),lambda_reg, 1);  % get energy function value
 rmseSB = (RMSE(u_sb(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for SB-TV is:', rmseSB);
+[ssimval] = ssim(u_sb*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for SB-TV is:', ssimval);
 figure; imshow(u_sb, [0 1]); title('SB-TV denoised image (CPU)');
 %%
 % fprintf('Denoise using the SB-TV model (GPU) \n');
-% iter_sb = 150; % number of SB iterations
+% iter_sb = 80; % number of SB iterations
 % epsil_tol =  1.0e-06; % tolerance
 % tic; u_sbG = SB_TV_GPU(single(u0), lambda_reg, iter_sb, epsil_tol); toc; 
 % figure; imshow(u_sbG, [0 1]); title('SB-TV denoised image (GPU)');
 %%
+fprintf('Denoise using Nonlinear-Diffusion model (CPU) \n');
+iter_diff = 450; % number of diffusion iterations
+lambda_regDiff = 0.025; % regularisation for the diffusivity 
+sigmaPar = 0.015; % edge-preserving parameter
+tau_param = 0.02; % time-marching constant 
+tic; u_diff = NonlDiff(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+rmseDiffus = (RMSE(u_diff(:),Im(:)));
+fprintf('%s %f \n', 'RMSE error for Nonlinear Diffusion is:', rmseDiffus);
+[ssimval] = ssim(u_diff*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for NDF is:', ssimval);
+figure; imshow(u_diff, [0 1]); title('Diffusion denoised image (CPU)');
+%%
+% fprintf('Denoise using Nonlinear-Diffusion model (GPU) \n');
+% iter_diff = 450; % number of diffusion iterations
+% lambda_regDiff = 0.025; % regularisation for the diffusivity 
+% sigmaPar = 0.015; % edge-preserving parameter
+% tau_param = 0.025; % time-marching constant 
+% tic; u_diff_g = NonlDiff_GPU(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+% figure; imshow(u_diff_g, [0 1]); title('Diffusion denoised image (GPU)');
+%%
 fprintf('Denoise using the TGV model (CPU) \n');
-lambda_TGV = 0.045; % regularisation parameter
+lambda_TGV = 0.034; % regularisation parameter
 alpha1 = 1.0; % parameter to control the first-order term
-alpha0 = 2.0; % parameter to control the second-order term
-iter_TGV = 1500; % number of Primal-Dual iterations for TGV
+alpha0 = 1.0; % parameter to control the second-order term
+iter_TGV = 500; % number of Primal-Dual iterations for TGV
 tic; u_tgv = TGV(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
 rmseTGV = (RMSE(u_tgv(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
+[ssimval] = ssim(u_tgv*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for TGV is:', ssimval);
 figure; imshow(u_tgv, [0 1]); title('TGV denoised image (CPU)');
-
+%%
 % fprintf('Denoise using the TGV model (GPU) \n');
-% lambda_TGV = 0.045; % regularisation parameter
+% lambda_TGV = 0.034; % regularisation parameter
 % alpha1 = 1.0; % parameter to control the first-order term
-% alpha0 = 2.0; % parameter to control the second-order term
-% iter_TGV = 1500; % number of Primal-Dual iterations for TGV
+% alpha0 = 1.0; % parameter to control the second-order term
+% iter_TGV = 500; % number of Primal-Dual iterations for TGV
 % tic; u_tgv_gpu = TGV_GPU(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
 % rmseTGV_gpu = (RMSE(u_tgv_gpu(:),Im(:)));
 % fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV_gpu);
+% [ssimval] = ssim(u_tgv_gpu*255,single(Im)*255);
+% fprintf('%s %f \n', 'MSSIM error for TGV is:', ssimval);
 % figure; imshow(u_tgv_gpu, [0 1]); title('TGV denoised image (GPU)');
 %%
 fprintf('Denoise using the ROF-LLT model (CPU) \n');
-lambda_ROF = lambda_reg; % ROF regularisation parameter
-lambda_LLT = lambda_reg*0.45; % LLT regularisation parameter
-iter_LLT = 1; % iterations 
+lambda_ROF = 0.016; % ROF regularisation parameter
+lambda_LLT = lambda_reg*0.25; % LLT regularisation parameter
+iter_LLT = 500; % iterations 
 tau_rof_llt = 0.0025; % time-marching constant 
 tic; u_rof_llt = LLT_ROF(single(u0), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt); toc; 
 rmseROFLLT = (RMSE(u_rof_llt(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseROFLLT);
+[ssimval] = ssim(u_rof_llt*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for ROFLLT is:', ssimval);
 figure; imshow(u_rof_llt, [0 1]); title('ROF-LLT denoised image (CPU)');
 %%
 % fprintf('Denoise using the ROF-LLT model (GPU) \n');
-% lambda_ROF = lambda_reg; % ROF regularisation parameter
-% lambda_LLT = lambda_reg*0.45; % LLT regularisation parameter
+% lambda_ROF = 0.016; % ROF regularisation parameter
+% lambda_LLT = lambda_reg*0.25; % LLT regularisation parameter
 % iter_LLT = 500; % iterations 
 % tau_rof_llt = 0.0025; % time-marching constant 
 % tic; u_rof_llt_g = LLT_ROF_GPU(single(u0), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt); toc; 
@@ -101,32 +133,16 @@ figure; imshow(u_rof_llt, [0 1]); title('ROF-LLT denoised image (CPU)');
 % fprintf('%s %f \n', 'RMSE error for TGV is:', rmseROFLLT_g);
 % figure; imshow(u_rof_llt_g, [0 1]); title('ROF-LLT denoised image (GPU)');
 %%
-fprintf('Denoise using Nonlinear-Diffusion model (CPU) \n');
-iter_diff = 800; % number of diffusion iterations
-lambda_regDiff = 0.025; % regularisation for the diffusivity 
-sigmaPar = 0.015; % edge-preserving parameter
-tau_param = 0.025; % time-marching constant 
-tic; u_diff = NonlDiff(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
-rmseDiffus = (RMSE(u_diff(:),Im(:)));
-fprintf('%s %f \n', 'RMSE error for Nonlinear Diffusion is:', rmseDiffus);
-figure; imshow(u_diff, [0 1]); title('Diffusion denoised image (CPU)');
-%%
-% fprintf('Denoise using Nonlinear-Diffusion model (GPU) \n');
-% iter_diff = 800; % number of diffusion iterations
-% lambda_regDiff = 0.025; % regularisation for the diffusivity 
-% sigmaPar = 0.015; % edge-preserving parameter
-% tau_param = 0.025; % time-marching constant 
-% tic; u_diff_g = NonlDiff_GPU(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
-% figure; imshow(u_diff_g, [0 1]); title('Diffusion denoised image (GPU)');
-%%
 fprintf('Denoise using Fourth-order anisotropic diffusion model (CPU) \n');
 iter_diff = 800; % number of diffusion iterations
 lambda_regDiff = 3.5; % regularisation for the diffusivity 
-sigmaPar = 0.02; % edge-preserving parameter
+sigmaPar = 0.021; % edge-preserving parameter
 tau_param = 0.0015; % time-marching constant 
 tic; u_diff4 = Diffusion_4thO(single(u0), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
 rmseDiffHO = (RMSE(u_diff4(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for Fourth-order anisotropic diffusion is:', rmseDiffHO);
+[ssimval] = ssim(u_diff4*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for DIFF4th is:', ssimval);
 figure; imshow(u_diff4, [0 1]); title('Diffusion 4thO denoised image (CPU)');
 %%
 % fprintf('Denoise using Fourth-order anisotropic diffusion model (GPU) \n');
@@ -146,10 +162,12 @@ tic; [H_i, H_j, Weights] = PatchSelect(single(u0), SearchingWindow, PatchWindow,
 %%
 fprintf('Denoise using Non-local Total Variation (CPU) \n');
 iter_nltv = 3; % number of nltv iterations
-lambda_nltv = 0.05; % regularisation parameter for nltv
+lambda_nltv = 0.055; % regularisation parameter for nltv
 tic; u_nltv = Nonlocal_TV(single(u0), H_i, H_j, 0, Weights, lambda_nltv, iter_nltv); toc; 
 rmse_nltv = (RMSE(u_nltv(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for Non-local Total Variation is:', rmse_nltv);
+[ssimval] = ssim(u_nltv*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for NLTV is:', ssimval);
 figure; imagesc(u_nltv, [0 1]); colormap(gray); daspect([1 1 1]); title('Non-local Total Variation denoised image (CPU)');
 %%
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
