@@ -9,14 +9,14 @@ build:
     - CIL_VERSION
   
 test:
-  files:
-    - ../test/lena_gray_512.tif
+  source_files:
+    - ./test/ 
   requires:
     - pillow
     - pillow=4.1.1 # [win]
-#  command:
-#    - unittest -d discover .... ../test
-
+  commands:
+    - python -c "import os; print (os.getcwd())"
+    - python -m unittest discover -s test
 requirements:
   build:
     - python
