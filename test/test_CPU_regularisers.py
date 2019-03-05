@@ -11,7 +11,7 @@ from testroutines import *
 class TestRegularisers(unittest.TestCase):
 
     def getPars(self):
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)

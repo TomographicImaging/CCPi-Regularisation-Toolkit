@@ -39,7 +39,7 @@ class TestRegularisers(unittest.TestCase):
     def test_ROF_TV_CPU_vs_GPU(self):
         #print ("tomas debug test function")
         print(__name__)
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -107,7 +107,7 @@ class TestRegularisers(unittest.TestCase):
         
     def test_FGP_TV_CPU_vs_GPU(self):
         print(__name__)
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -192,7 +192,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_SB_TV_CPU_vs_GPU(self):
         print(__name__)
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -273,7 +273,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_TGV_CPU_vs_GPU(self):
         print(__name__)
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -352,7 +352,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_LLT_ROF_CPU_vs_GPU(self):
         print(__name__)
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -427,7 +427,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_NDF_CPU_vs_GPU(self):
         print(__name__)
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -505,7 +505,7 @@ class TestRegularisers(unittest.TestCase):
 
         
     def test_Diff4th_CPU_vs_GPU(self):
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -577,7 +577,7 @@ class TestRegularisers(unittest.TestCase):
         self.assertLessEqual(diff_im.sum() , 1)
 
     def test_FDGdTV_CPU_vs_GPU(self):
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
         plt = TiffReader()
         # read image
         Im = plt.imread(filename)                     
@@ -664,7 +664,7 @@ class TestRegularisers(unittest.TestCase):
     def test_cpu_ROF_TV(self):
         #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
         # read image
@@ -701,7 +701,7 @@ class TestRegularisers(unittest.TestCase):
     def test_cpu_FGP_TV(self):
         #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
         # read image
@@ -741,7 +741,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_gpu_ROF(self):
         #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
         # read image
@@ -776,7 +776,7 @@ class TestRegularisers(unittest.TestCase):
     
     def test_gpu_FGP(self):
         #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
-        filename = os.path.join("lena_gray_512.tif")
+        filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
         # read image
