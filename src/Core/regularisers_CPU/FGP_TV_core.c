@@ -28,28 +28,33 @@ limitations under the License.
  * 4. eplsilon: tolerance constant 
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 6. nonneg: 'nonnegativity (0 is OFF by default) 
- * 7. print information: 0 (off) or 1 (on) 
  *
  * Output:
- * [1] Filtered/regularized image
+ * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the Matlab's code and paper by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
  
-float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
 {
-	int ll;
+    int ll;
     long j, DimTotal;
-	float re, re1;
-	float tk = 1.0f;
-    float tkp1=1.0f;
+    float re, re1;
+    re = 0.0f; re1 = 0.0f;
+    float tk = 1.0f;
+    float tkp1 =1.0f;
     int count = 0;
+    
+            /*adding info into info_vector */
+//    infovector[0] = 50.1f;  /*iterations number (if stopped earlier based on tolerance)*/
+//    infovector[1] = 0.55f;  /* reached tolerance */
 	
 	if (dimZ <= 1) {
-		/*2D case */
-		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
-		DimTotal = (long)(dimX*dimY);
+	/*2D case */
+  	float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
+	DimTotal = (long)(dimX*dimY);
 		
         Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
@@ -59,7 +64,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
         R1 = calloc(DimTotal, sizeof(float));
         R2 = calloc(DimTotal, sizeof(float)); 
 		
-		/* begin iterations */
+	/* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
             
             /* computing the gradient of the objective function */
@@ -79,24 +84,32 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
             Rupd_func2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
             
             /* check early stopping criteria */
-            re = 0.0f; re1 = 0.0f;
-            for(j=0; j<DimTotal; j++)
-            {
-                re += pow(Output[j] - Output_prev[j],2);
-                re1 += pow(Output[j],2);
-            }
-            re = sqrt(re)/sqrt(re1);
-            if (re < epsil)  count++;
-				if (count > 4) break;
-            
-            /*storing old values*/
+            if (epsil != 0.0f) {
+	            for(j=0; j<DimTotal; j++)
+        	    {
+        	        re += pow(Output[j] - Output_prev[j],2);
+        	        re1 += pow(Output[j],2);
+        	    }
+              re = sqrt(re)/sqrt(re1);
+              if (re < epsil)  count++;
+              if (count > 4) break;
+              
             copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
+            }
+            /*storing old values*/
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
             tk = tkp1;
         }
-        if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
-		free(Output_prev); free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2);		
+        /*adding info into info_vector */
+        //info_vector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
+//        info_vector[1] = 0.55f;  /* reached tolerance */
+	
+	copyIm(Input, infovector, (long)(dimX), (long)(dimY), 1l);
+	
+//	printf("%f\n", infovector[128]);
+	
+	free(Output_prev); free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2);		
 	}
 	else {
 		/*3D case*/
@@ -134,26 +147,31 @@ float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
             Rupd_func3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
             
             /* calculate norm - stopping rules*/
-            re = 0.0f; re1 = 0.0f;
-            for(j=0; j<DimTotal; j++)
-            {
-                re += pow(Output[j] - Output_prev[j],2);
-                re1 += pow(Output[j],2);
-            }
+            if (epsil != 0.0f) {
+	            for(j=0; j<DimTotal; j++)
+        	    {
+        	        re += pow(Output[j] - Output_prev[j],2);
+        	        re1 += pow(Output[j],2);
+        	    }
             re = sqrt(re)/sqrt(re1);
             /* stop if the norm residual is less than the tolerance EPS */
             if (re < epsil)  count++;
-            if (count > 4) break;            
-                        
-            /*storing old values*/
-            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+            if (count > 4) break; 
+
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));           
+            }
+            
+            /*storing old values*/           
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             copyIm(P3, P3_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             tk = tkp1;            
         }	
-		if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", ll);   
-		free(Output_prev); free(P1); free(P2); free(P3); free(P1_prev); free(P2_prev); free(P3_prev); free(R1); free(R2); free(R3);
+        /*adding info into info_vector */
+        //infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
+	//infovector[1] = re;  /* reached tolerance */
+        
+	free(Output_prev); free(P1); free(P2); free(P3); free(P1_prev); free(P2_prev); free(P3_prev); free(R1); free(R2); free(R3);
 	}
 	return *Output;
 }

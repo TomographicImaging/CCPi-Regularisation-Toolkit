@@ -2,9 +2,11 @@
 clear; close all
 fsep = '/';
 
-Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
-Path2 = sprintf([ data' fsep], 1i);
-Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
+%Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
+Path1 = ('/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/src/Matlab/mex_compile/installed');
+Path2 = sprintf(['data' fsep], 1i);
+%Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
+Path3 = '/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/src/Matlab/supp';
 addpath(Path1);
 addpath(Path2);
 addpath(Path3);
@@ -34,8 +36,8 @@ figure; imshow(u_rof, [0 1]); title('ROF-TV denoised image (CPU)');
 %%
 fprintf('Denoise using the FGP-TV model (CPU) \n');
 lambda_reg = 0.033;
-iter_fgp = 300; % number of FGP iterations
-epsil_tol =  1.0e-09; % tolerance
+iter_fgp = 200; % number of FGP iterations
+epsil_tol =  1.0e-05; % tolerance
 tic; u_fgp = FGP_TV(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 energyfunc_val_fgp = TV_energy(single(u_fgp),single(u0),lambda_reg, 1); % get energy function value
 rmseFGP = (RMSE(u_fgp(:),Im(:)));

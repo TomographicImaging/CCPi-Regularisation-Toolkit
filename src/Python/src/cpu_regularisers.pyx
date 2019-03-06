@@ -19,7 +19,7 @@ import numpy as np
 cimport numpy as np
 
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
-cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
+cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern float SB_TV_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
 cdef extern float TGV_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY, int dimZ);
@@ -45,7 +45,7 @@ def TV_ROF_CPU(inputData, regularisation_parameter, iterationsNumb, marching_ste
 
 def TV_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,
-                     int iterationsNumb,                     
+                     int iterationsNumb,
                      float marching_step_parameter):
     cdef long dims[2]
     dims[0] = inputData.shape[0]
@@ -80,45 +80,46 @@ def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #********************** Total-variation FGP *********************#
 #****************************************************************#
 #******** Total-variation Fast-Gradient-Projection (FGP)*********#
-def TV_FGP_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, printM):
+def TV_FGP_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg):
     if inputData.ndim == 2:
-        return TV_FGP_2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, printM)
+        return TV_FGP_2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg)
     elif inputData.ndim == 3:
-        return TV_FGP_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, printM)
+        return TV_FGP_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg)
 
 def TV_FGP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,
                      int iterationsNumb, 
                      float tolerance_param,
                      int methodTV,
-                     int nonneg,
-                     int printM):
-                         
+                     int nonneg):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
-                   
+        
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] infovec = \
+            np.ones([dims[0],dims[1]], dtype='float32')
+    
     #/* Run FGP-TV iterations for 2D data */
-    TV_FGP_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, 
+    TV_FGP_CPU_main(&inputData[0,0], &outputData[0,0], &infovec[0,0], regularisation_parameter, 
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,
                        nonneg,
-                       printM,
                        dims[1],dims[0],1)
     
-    return outputData        
+    return (outputData,infovec)
             
 def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
                      float regularisation_parameter,
                      int iterationsNumb, 
                      float tolerance_param,
                      int methodTV,
-                     int nonneg,
-                     int printM):
+                     int nonneg):
+    
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -126,16 +127,17 @@ def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
             np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
-           
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.zeros([2], dtype='float32')
+
     #/* Run FGP-TV iterations for 3D data */
-    TV_FGP_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter,
+    TV_FGP_CPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0], regularisation_parameter,
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,
                        nonneg,
-                       printM,
                        dims[2], dims[1], dims[0])
-    return outputData 
+    return (outputData,infovec)
 
 #***************************************************************#
 #********************** Total-variation SB *********************#

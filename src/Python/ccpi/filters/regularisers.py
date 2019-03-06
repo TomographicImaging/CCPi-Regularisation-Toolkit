@@ -29,15 +29,14 @@ def ROF_TV(inputData, regularisation_parameter, iterations,
                          .format(device))
 
 def FGP_TV(inputData, regularisation_parameter,iterations,
-                     tolerance_param, methodTV, nonneg, printM, device='cpu'):
+                     tolerance_param, methodTV, nonneg, device='cpu'):
     if device == 'cpu':
         return TV_FGP_CPU(inputData,
                      regularisation_parameter,
                      iterations, 
                      tolerance_param,
                      methodTV,
-                     nonneg,
-                     printM)
+                     nonneg)
     elif device == 'gpu' and gpu_enabled:
         return TV_FGP_GPU(inputData,
                      regularisation_parameter,
@@ -45,7 +44,7 @@ def FGP_TV(inputData, regularisation_parameter,iterations,
                      tolerance_param,
                      methodTV,
                      nonneg,
-                     printM)
+                     1)
     else:
         if not gpu_enabled and device == 'gpu':
             raise ValueError ('GPU is not available')

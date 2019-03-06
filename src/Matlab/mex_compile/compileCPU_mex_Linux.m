@@ -2,9 +2,9 @@
 
 fsep = '/';
 
-pathcopyFrom = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'regularisers_CPU'], 1i);
-pathcopyFrom1 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
-pathcopyFrom2 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'inpainters_CPU'], 1i);
+pathcopyFrom = sprintf(['..' fsep '..' fsep 'Core' fsep 'regularisers_CPU'], 1i);
+pathcopyFrom1 = sprintf(['..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
+pathcopyFrom2 = sprintf(['..' fsep '..' fsep 'Core' fsep 'inpainters_CPU'], 1i);
 
 copyfile(pathcopyFrom, 'regularisers_CPU');
 copyfile(pathcopyFrom1, 'regularisers_CPU');
@@ -76,6 +76,7 @@ delete PatchSelect_core* Nonlocal_TV_core*
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 fprintf('%s \n', '<<<<<<< Regularisers successfully compiled! >>>>>>>');
 
-pathA2 = sprintf(['..' fsep '..' fsep], 1i);
-cd(pathA2);
-cd demos
+%pathA2 = sprintf(['..' fsep '..' fsep], 1i);
+% cd(pathA2);
+cd('/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/demos')
+%cd demos

@@ -60,13 +60,14 @@ plt.title('3D Phantom, sagittal view')
 plt.show()
 #%%
 print ("____________________Applying regularisers_______________________")
+print ("________________________________________________________________")
 
 print ("#############ROF TV CPU####################")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : phantom_noise,\
         'regularisation_parameter':0.04,\
-        'number_of_iterations': 100,\
+        'number_of_iterations': 600,\
         'time_marching_parameter': 0.0025
         }
 
@@ -116,6 +117,65 @@ win2d = win * (win.T)
 ssim_rof = Qtools.ssim(win2d)
 
 print("ROF-TV (gpu) ____ RMSE: {}, MMSIM: {}, run time: {} sec".format(RMSE_rof,ssim_rof[0],Run_time_rof))
-
 #%%
+print ("#############FGP TV CPU####################")
+# set parameters
+pars = {'algorithm':FGP_TV, \
+        'input' : phantom_noise,\
+        'regularisation_parameter':0.04,\
+        'number_of_iterations': 300,\
+        'time_marching_parameter': 0.0025,\
+        'tolerance_constant':1e-05,\
+        }
+
+tic=timeit.default_timer()
+fgp_cpu3D = FGP_TV(pars['input'],
+             pars['regularisation_parameter'],
+             pars['number_of_iterations'],
+             pars['time_marching_parameter'],'cpu')
+toc=timeit.default_timer()
+
+Run_time_fgp = toc - tic
+Qtools = QualityTools(phantom_tm, fgp_cpu3D)
+RMSE_rof = Qtools.rmse()
+
+# SSIM measure
+Qtools = QualityTools(phantom_tm[128,:,:]*255, fgp_cpu3D[128,:,:]*235)
+win = np.array([gaussian(11, 1.5)])
+win2d = win * (win.T)
+ssim_fgp = Qtools.ssim(win2d)
+
+print("FGP-TV (cpu) ____ RMSE: {}, MMSIM: {}, run time: {} sec".format(RMSE_rof,ssim_fgp[0],Run_time_fgp))
+#%%
+print ("#############FGP TV GPU####################")
+# set parameters
+pars = {'algorithm':FGP_TV, \
+        'input' : phantom_noise,\
+        'regularisation_parameter':0.04,\
+        'number_of_iterations': 300,\
+        'time_marching_parameter': 0.0025,\
+        'tolerance_constant':1e-05,\
+        }
+
+tic=timeit.default_timer()
+fgp_gpu3D = FGP_TV(pars['input'],
+             pars['regularisation_parameter'],
+             pars['number_of_iterations'],
+             pars['time_marching_parameter'],'gpu')
+toc=timeit.default_timer()
+
+Run_time_fgp = toc - tic
+Qtools = QualityTools(phantom_tm, fgp_gpu3D)
+RMSE_rof = Qtools.rmse()
+
+# SSIM measure
+Qtools = QualityTools(phantom_tm[128,:,:]*255, fgp_gpu3D[128,:,:]*235)
+win = np.array([gaussian(11, 1.5)])
+win2d = win * (win.T)
+ssim_fgp = Qtools.ssim(win2d)
+
+print("FGP-TV (gpu) ____ RMSE: {}, MMSIM: {}, run time: {} sec".format(RMSE_rof,ssim_fgp[0],Run_time_fgp))
+#%%
+
+
 

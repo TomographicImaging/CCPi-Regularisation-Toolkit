@@ -47,13 +47,13 @@ void mexFunction(
     int number_of_dims, iter, methTV, printswitch, nonneg;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;
-    float *Input, *Output=NULL, lambda, epsil;
+    float *Input, *Output=NULL, *Output2=NULL, lambda, epsil;
     
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     dim_array = mxGetDimensions(prhs[0]);
     
     /*Handling Matlab input data*/
-    if ((nrhs < 2) || (nrhs > 7)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D/3D), Regularization parameter, Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1'), nonnegativity switch, print switch");
+    if ((nrhs < 2) || (nrhs > 6)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D/3D), Regularization parameter, Regularization parameter, iterations number, tolerance, penalty type ('iso' or 'l1'), nonnegativity switch");
     
     Input  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
@@ -61,27 +61,24 @@ void mexFunction(
     epsil = 0.0001; /* default tolerance constant */
     methTV = 0;  /* default isotropic TV penalty */
     nonneg = 0; /* default nonnegativity switch, off - 0 */
-    printswitch = 0; /*default print is switched, off - 0 */
+//    printswitch = 0; /*default print is switched, off - 0 */
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
     
-    if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7))  iter = (int) mxGetScalar(prhs[2]); /* iterations number */
-    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7))  epsil =  (float) mxGetScalar(prhs[3]); /* tolerance constant */
-    if ((nrhs == 5) || (nrhs == 6) || (nrhs == 7))  {
+    if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5) || (nrhs == 6))  iter = (int) mxGetScalar(prhs[2]); /* iterations number */
+    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6))  epsil =  (float) mxGetScalar(prhs[3]); /* tolerance constant */
+    if ((nrhs == 5) || (nrhs == 6))  {
         char *penalty_type;
         penalty_type = mxArrayToString(prhs[4]); /* choosing TV penalty: 'iso' or 'l1', 'iso' is the default */
         if ((strcmp(penalty_type, "l1") != 0) && (strcmp(penalty_type, "iso") != 0)) mexErrMsgTxt("Choose TV type: 'iso' or 'l1',");
         if (strcmp(penalty_type, "l1") == 0)  methTV = 1;  /* enable 'l1' penalty */
         mxFree(penalty_type);
     }
-    if ((nrhs == 6) || (nrhs == 7))  {
+    if (nrhs == 6)  {
         nonneg = (int) mxGetScalar(prhs[5]);
         if ((nonneg != 0) && (nonneg != 1)) mexErrMsgTxt("Nonnegativity constraint can be enabled by choosing 1 or off - 0");
     }
-    if (nrhs == 7)  {
-        printswitch = (int) mxGetScalar(prhs[6]);
-        if ((printswitch != 0) && (printswitch != 1)) mexErrMsgTxt("Print can be enabled by choosing 1 or off - 0");
-    }
+    
     
     /*Handling Matlab output data*/
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
@@ -89,9 +86,12 @@ void mexFunction(
     if (number_of_dims == 2) {
         dimZ = 1; /*2D case*/
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
+        Output2 = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
     }
-    if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+    if (number_of_dims == 3) {    
+    Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
+    }
     
     /* running the function */
-    TV_FGP_CPU_main(Input, Output, lambda, iter, epsil, methTV, nonneg, printswitch, dimX, dimY, dimZ);
+    TV_FGP_CPU_main(Input, Output, Output2, lambda, iter, epsil, methTV, nonneg, dimX, dimY, dimZ);
 }

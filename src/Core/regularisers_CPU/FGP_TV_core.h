@@ -35,10 +35,11 @@ limitations under the License.
  * 4. eplsilon: tolerance constant 
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 6. nonneg: 'nonnegativity (0 is OFF by default) 
- * 7. print information: 0 (off) or 1 (on) 
  *
  * Output:
- * [1] Filtered/regularized image
+ * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
+
  *
  * This function is based on the Matlab's code and paper by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
@@ -47,7 +48,7 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float TV_FGP_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 
 CCPI_EXPORT float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
 CCPI_EXPORT float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);

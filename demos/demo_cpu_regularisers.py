@@ -30,8 +30,9 @@ def printParametersToString(pars):
             txt += '\n'
         return txt
 ###############################################################################
-#%%
-filename = os.path.join( "data" ,"lena_gray_512.tif")
+
+# filename = os.path.join( "data" ,"lena_gray_512.tif")
+filename = "/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/test/lena_gray_512.tif"
 
 # read image
 Im = plt.imread(filename)
@@ -127,23 +128,20 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.04, \
-        'number_of_iterations' :2000 ,\
+        'number_of_iterations' :200 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
-        'nonneg': 0 ,\
-        'printingOut': 0 
+        'nonneg': 0
         }
         
 print ("#############FGP TV CPU####################")
 start_time = timeit.default_timer()
-fgp_cpu = FGP_TV(pars['input'], 
+fgp_cpu,info_vec = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'],
-              pars['printingOut'],'cpu')  
-             
+              pars['nonneg'],'cpu')
 
 Qtools = QualityTools(Im, fgp_cpu)
 pars['rmse'] = Qtools.rmse()
