@@ -100,11 +100,11 @@ def TV_FGP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
         
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] infovec = \
-            np.ones([dims[0],dims[1]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
     
     #/* Run FGP-TV iterations for 2D data */
-    TV_FGP_CPU_main(&inputData[0,0], &outputData[0,0], &infovec[0,0], regularisation_parameter, 
+    TV_FGP_CPU_main(&inputData[0,0], &outputData[0,0], &infovec[0], regularisation_parameter, 
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,

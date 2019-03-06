@@ -47,16 +47,12 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
     float tkp1 =1.0f;
     int count = 0;
     
-            /*adding info into info_vector */
-//    infovector[0] = 50.1f;  /*iterations number (if stopped earlier based on tolerance)*/
-//    infovector[1] = 0.55f;  /* reached tolerance */
-	
 	if (dimZ <= 1) {
 	/*2D case */
   	float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
 	DimTotal = (long)(dimX*dimY);
 		
-        Output_prev = calloc(DimTotal, sizeof(float));
+	if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
         P2 = calloc(DimTotal, sizeof(float));
         P1_prev = calloc(DimTotal, sizeof(float));
@@ -92,31 +88,24 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
         	    }
               re = sqrt(re)/sqrt(re1);
               if (re < epsil)  count++;
-              if (count > 4) break;
-              
+              if (count > 4) break;         
             copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             }
+
             /*storing old values*/
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
             tk = tkp1;
-        }
-        /*adding info into info_vector */
-        //info_vector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
-//        info_vector[1] = 0.55f;  /* reached tolerance */
-	
-	copyIm(Input, infovector, (long)(dimX), (long)(dimY), 1l);
-	
-//	printf("%f\n", infovector[128]);
-	
-	free(Output_prev); free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2);		
+        }        	
+	if (epsil != 0.0f) free(Output_prev); 	
+	free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2);		
 	}
 	else {
 		/*3D case*/
-		float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;		
-		DimTotal = (long)(dimX*dimY*dimZ);        
+	float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;		
+        DimTotal = (long)(dimX*dimY*dimZ);        
         
-        Output_prev = calloc(DimTotal, sizeof(float));
+        if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
         P2 = calloc(DimTotal, sizeof(float));
         P3 = calloc(DimTotal, sizeof(float));
@@ -157,8 +146,8 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             /* stop if the norm residual is less than the tolerance EPS */
             if (re < epsil)  count++;
             if (count > 4) break; 
-
-            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));           
+            
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             }
             
             /*storing old values*/           
@@ -167,13 +156,16 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             copyIm(P3, P3_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             tk = tkp1;            
         }	
-        /*adding info into info_vector */
-        //infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
-	//infovector[1] = re;  /* reached tolerance */
         
-	free(Output_prev); free(P1); free(P2); free(P3); free(P1_prev); free(P2_prev); free(P3_prev); free(R1); free(R2); free(R3);
-	}
-	return *Output;
+	if (epsil != 0.0f) free(Output_prev); 
+	free(P1); free(P2); free(P3); free(P1_prev); free(P2_prev); free(P3_prev); free(R1); free(R2); free(R3);
+	}	
+	
+       /*adding info into info_vector */
+        infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
+        infovector[1] = re;  /* reached tolerance */
+	
+	return 0;
 }
 
 float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY)

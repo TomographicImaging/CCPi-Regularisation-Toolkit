@@ -31,7 +31,7 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 
-# filename = os.path.join( "data" ,"lena_gray_512.tif")
+#filename = os.path.join( "data" ,"lena_gray_512.tif")
 filename = "/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/test/lena_gray_512.tif"
 
 # read image
@@ -128,8 +128,8 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.04, \
-        'number_of_iterations' :200 ,\
-        'tolerance_constant':1e-06,\
+        'number_of_iterations' :800 ,\
+        'tolerance_constant':1e-07,\
         'methodTV': 0 ,\
         'nonneg': 0
         }
