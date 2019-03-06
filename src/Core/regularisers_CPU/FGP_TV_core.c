@@ -3,8 +3,8 @@ This work is part of the Core Imaging Library developed by
 Visual Analytics and Imaging System Group of the Science Technology
 Facilities Council, STFC
 
-Copyright 2017 Daniil Kazantsev
-Copyright 2017 Srikanth Nagella, Edoardo Pasca
+Copyright 2019 Daniil Kazantsev
+Copyright 2019 Srikanth Nagella, Edoardo Pasca
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -79,6 +79,11 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_func2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
             
+            /*storing old values*/
+            copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
+            copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
+            tk = tkp1;
+            
             /* check early stopping criteria */
             if (epsil != 0.0f) {
 	            for(j=0; j<DimTotal; j++)
@@ -91,12 +96,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
               if (count > 4) break;         
             copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             }
-
-            /*storing old values*/
-            copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
-            copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
-            tk = tkp1;
-        }        	
+     }        	
 	if (epsil != 0.0f) free(Output_prev); 	
 	free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2);		
 	}

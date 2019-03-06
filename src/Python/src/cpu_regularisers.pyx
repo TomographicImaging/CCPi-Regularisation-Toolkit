@@ -18,7 +18,7 @@ import cython
 import numpy as np
 cimport numpy as np
 
-cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
+cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern float SB_TV_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
@@ -37,32 +37,36 @@ cdef extern float TV_energy3D(float *U, float *U0, float *E_val, float lambdaPar
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
-def TV_ROF_CPU(inputData, regularisation_parameter, iterationsNumb, marching_step_parameter):
+def TV_ROF_CPU(inputData, regularisation_parameter, iterationsNumb, marching_step_parameter,tolerance_param):
     if inputData.ndim == 2:
-        return TV_ROF_2D(inputData, regularisation_parameter, iterationsNumb, marching_step_parameter)
+        return TV_ROF_2D(inputData, regularisation_parameter, iterationsNumb, marching_step_parameter,tolerance_param)
     elif inputData.ndim == 3:
-        return TV_ROF_3D(inputData, regularisation_parameter, iterationsNumb, marching_step_parameter)
+        return TV_ROF_3D(inputData, regularisation_parameter, iterationsNumb, marching_step_parameter,tolerance_param)
 
 def TV_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,
                      int iterationsNumb,
-                     float marching_step_parameter):
+                     float marching_step_parameter,
+                     float tolerance_param):
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
-                   
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+            
     # Run ROF iterations for 2D data 
-    TV_ROF_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, iterationsNumb, marching_step_parameter, dims[1], dims[0], 1)
+    TV_ROF_CPU_main(&inputData[0,0], &outputData[0,0], &infovec[0], regularisation_parameter, iterationsNumb, marching_step_parameter, tolerance_param, dims[1], dims[0], 1)
     
-    return outputData
+    return (outputData,infovec)
             
 def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
                      float regularisation_parameter,
                      int iterationsNumb,
-                     float marching_step_parameter):
+                     float marching_step_parameter,
+                     float tolerance_param):
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -70,11 +74,13 @@ def TV_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
             np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
            
     # Run ROF iterations for 3D data 
-    TV_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, iterationsNumb, marching_step_parameter, dims[2], dims[1], dims[0])
+    TV_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0], regularisation_parameter, iterationsNumb, marching_step_parameter, tolerance_param, dims[2], dims[1], dims[0])
 
-    return outputData
+    return (outputData,infovec)
 
 #****************************************************************#
 #********************** Total-variation FGP *********************#

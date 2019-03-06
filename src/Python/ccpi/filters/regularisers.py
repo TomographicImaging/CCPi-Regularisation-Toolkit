@@ -11,12 +11,13 @@ except ImportError:
 from ccpi.filters.cpu_regularisers import NDF_INPAINT_CPU, NVM_INPAINT_CPU
 
 def ROF_TV(inputData, regularisation_parameter, iterations,
-                     time_marching_parameter,device='cpu'):
+                     time_marching_parameter,tolerance_param,device='cpu'):
     if device == 'cpu':
         return TV_ROF_CPU(inputData,
                      regularisation_parameter,
                      iterations, 
-                     time_marching_parameter)
+                     time_marching_parameter,
+                     tolerance_param)
     elif device == 'gpu' and gpu_enabled:
         return TV_ROF_GPU(inputData,
                      regularisation_parameter,

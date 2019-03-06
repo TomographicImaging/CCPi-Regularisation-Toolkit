@@ -120,19 +120,21 @@ print("ROF-TV (gpu) ____ RMSE: {}, MMSIM: {}, run time: {} sec".format(RMSE_rof,
 #%%
 print ("#############FGP TV CPU####################")
 # set parameters
-pars = {'algorithm':FGP_TV, \
+pars =  {'algorithm' : FGP_TV, \
         'input' : phantom_noise,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 300,\
-        'time_marching_parameter': 0.0025,\
-        'tolerance_constant':1e-05,\
-        }
+        'regularisation_parameter':0.05, \
+        'number_of_iterations' :100 ,\
+        'tolerance_constant':1e-04,\
+        'methodTV': 0 ,\
+        'nonneg': 0}
 
 tic=timeit.default_timer()
-fgp_cpu3D = FGP_TV(pars['input'],
-             pars['regularisation_parameter'],
-             pars['number_of_iterations'],
-             pars['time_marching_parameter'],'cpu')
+(fgp_cpu3D, infoFGP) = FGP_TV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['nonneg'],'cpu')
 toc=timeit.default_timer()
 
 Run_time_fgp = toc - tic
@@ -149,19 +151,21 @@ print("FGP-TV (cpu) ____ RMSE: {}, MMSIM: {}, run time: {} sec".format(RMSE_rof,
 #%%
 print ("#############FGP TV GPU####################")
 # set parameters
-pars = {'algorithm':FGP_TV, \
+pars = {'algorithm' : FGP_TV, \
         'input' : phantom_noise,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 300,\
-        'time_marching_parameter': 0.0025,\
-        'tolerance_constant':1e-05,\
-        }
+        'regularisation_parameter':0.05, \
+        'number_of_iterations' :80 ,\
+        'tolerance_constant':1e-04,\
+        'methodTV': 0 ,\
+        'nonneg': 0}
 
 tic=timeit.default_timer()
-fgp_gpu3D = FGP_TV(pars['input'],
-             pars['regularisation_parameter'],
-             pars['number_of_iterations'],
-             pars['time_marching_parameter'],'gpu')
+(fgp_gpu3D)  = FGP_TV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['nonneg'],'gpu')
 toc=timeit.default_timer()
 
 Run_time_fgp = toc - tic

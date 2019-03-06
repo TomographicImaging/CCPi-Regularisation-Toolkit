@@ -19,7 +19,7 @@
 
 #include "ROF_TV_core.h"
 
-#define EPS 1.0e-12
+#define EPS 1.0e-15
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -37,20 +37,25 @@ int sign(float x) {
  * 2. lambda - regularization parameter [REQUIRED]
  * 3. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
  * 4. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
+ * 5. eplsilon: tolerance constant 
  *
  * Output:
  * [1] Regularized image/volume 
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Rudin, Osher, Fatemi, "Nonlinear Total Variation based noise removal algorithms"
  */
 
 /* Running iterations of TV-ROF function */
-float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ)
+float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ)
 {
-    float *D1, *D2, *D3;
+    float *D1=NULL, *D2=NULL, *D3=NULL, *Output_prev=NULL;
+    float re, re1;
+    re = 0.0f; re1 = 0.0f;
+    int count = 0;
     int i; 
-    long DimTotal;
+    long DimTotal,j;
     DimTotal = (long)(dimX*dimY*dimZ);    
     
     D1 = calloc(DimTotal, sizeof(float));
@@ -59,6 +64,7 @@ float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
 	   
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
+    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
         
     /* start TV iterations */
     for(i=0; i < iterationsNumb; i++) {            
@@ -67,9 +73,28 @@ float TV_ROF_CPU_main(float *Input, float *Output, float lambdaPar, int iteratio
             D2_func(Output, D2, (long)(dimX), (long)(dimY), (long)(dimZ));
             if (dimZ > 1) D3_func(Output, D3, (long)(dimX), (long)(dimY), (long)(dimZ)); 
             TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
+            
+            /* check early stopping criteria */
+            if (epsil != 0.0f) {
+	            for(j=0; j<DimTotal; j++)
+        	    {
+        	        re += pow(Output[j] - Output_prev[j],2);
+        	        re1 += pow(Output[j],2);
+        	    }
+              re = sqrt(re)/sqrt(re1);
+              if (re < epsil)  count++;
+              if (count > 4) break;         
+            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+            }            
 		}           
     free(D1);free(D2); free(D3);
-    return *Output;
+    if (epsil != 0.0f) free(Output_prev); 
+    
+    /*adding info into info_vector */
+    infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
+    infovector[1] = re;  /* reached tolerance */
+	
+	return 0;
 }
 
 /* calculate differences 1 */
@@ -264,7 +289,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
                     
-                    B[index] += tau*(2.0f*lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
+                    B[index] += tau*(lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));   
                 }}}
     }
     else {
@@ -282,7 +307,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 dv1 = D1[index] - D1[j2*dimX + i];
                 dv2 = D2[index] - D2[j*dimX + i2];
 
-                B[index] += tau*(2.0f*lambda*(dv1 + dv2) - (B[index] - A[index]));
+                B[index] += tau*(lambda*(dv1 + dv2) - (B[index] - A[index]));
             }}
     }
     return *B;

@@ -32,7 +32,7 @@ def printParametersToString(pars):
 ###############################################################################
 
 #filename = os.path.join( "data" ,"lena_gray_512.tif")
-filename = "/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/test/lena_gray_512.tif"
+filename = "/home/algol/Documents/DEV/CCPi-Regularisation-Toolkit/test/lena_gray_512.tif"
 
 # read image
 Im = plt.imread(filename)
@@ -86,15 +86,17 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm': ROF_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02,\
-        'number_of_iterations': 2000,\
-        'time_marching_parameter': 0.0025
-        }
+        'number_of_iterations': 5000,\
+        'time_marching_parameter': 0.000385,\
+        'tolerance_constant':1e-06}
+
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
-rof_cpu = ROF_TV(pars['input'],
+(rof_cpu,info_vec) = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
-             pars['time_marching_parameter'],'cpu')
+             pars['time_marching_parameter'],
+             pars['tolerance_constant'], 'cpu')
 
 Qtools = QualityTools(Im, rof_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -127,12 +129,11 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
-        'regularisation_parameter':0.04, \
+        'regularisation_parameter':0.02, \
         'number_of_iterations' :800 ,\
-        'tolerance_constant':1e-07,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
-        'nonneg': 0
-        }
+        'nonneg': 0}
         
 print ("#############FGP TV CPU####################")
 start_time = timeit.default_timer()
