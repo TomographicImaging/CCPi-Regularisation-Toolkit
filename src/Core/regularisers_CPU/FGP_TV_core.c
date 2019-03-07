@@ -86,15 +86,17 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             
             /* check early stopping criteria */
             if (epsil != 0.0f) {
+            re = 0.0f; re1 = 0.0f;
 	            for(j=0; j<DimTotal; j++)
         	    {
-        	        re += pow(Output[j] - Output_prev[j],2);
-        	        re1 += pow(Output[j],2);
+        	        re += powf(Output[j] - Output_prev[j],2);
+        	        re1 += powf(Output[j],2);
         	    }
-              re = sqrt(re)/sqrt(re1);
-              if (re < epsil)  count++;
-              if (count > 4) break;         
-            copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
+           re = sqrtf(re)/sqrtf(re1);
+           if (re < epsil)  count++;
+           if (count > 4) break;         
+           
+           copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             }
      }        	
 	if (epsil != 0.0f) free(Output_prev); 	
@@ -137,12 +139,13 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             
             /* calculate norm - stopping rules*/
             if (epsil != 0.0f) {
+            re = 0.0f; re1 = 0.0f;
 	            for(j=0; j<DimTotal; j++)
         	    {
-        	        re += pow(Output[j] - Output_prev[j],2);
-        	        re1 += pow(Output[j],2);
+        	        re += powf(Output[j] - Output_prev[j],2);
+        	        re1 += powf(Output[j],2);
         	    }
-            re = sqrt(re)/sqrt(re1);
+            re = sqrtf(re)/sqrtf(re1);
             /* stop if the norm residual is less than the tolerance EPS */
             if (re < epsil)  count++;
             if (count > 4) break; 

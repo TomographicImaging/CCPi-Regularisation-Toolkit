@@ -19,7 +19,7 @@
 
 #include "ROF_TV_core.h"
 
-#define EPS 1.0e-15
+#define EPS 1.0e-8
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -76,12 +76,13 @@ float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lamb
             
             /* check early stopping criteria */
             if (epsil != 0.0f) {
+            re = 0.0f; re1 = 0.0f;
 	            for(j=0; j<DimTotal; j++)
         	    {
-        	        re += pow(Output[j] - Output_prev[j],2);
-        	        re1 += pow(Output[j],2);
+        	        re += powf(Output[j] - Output_prev[j],2);
+        	        re1 += powf(Output[j],2);
         	    }
-              re = sqrt(re)/sqrt(re1);
+              re = sqrtf(re)/sqrtf(re1);
               if (re < epsil)  count++;
               if (count > 4) break;         
             copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));

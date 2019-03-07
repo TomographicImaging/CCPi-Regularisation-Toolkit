@@ -22,7 +22,8 @@ def ROF_TV(inputData, regularisation_parameter, iterations,
         return TV_ROF_GPU(inputData,
                      regularisation_parameter,
                      iterations, 
-                     time_marching_parameter)
+                     time_marching_parameter,
+                     tolerance_param)
     else:
         if not gpu_enabled and device == 'gpu':
             raise ValueError ('GPU is not available')
@@ -44,8 +45,7 @@ def FGP_TV(inputData, regularisation_parameter,iterations,
                      iterations, 
                      tolerance_param,
                      methodTV,
-                     nonneg,
-                     1)
+                     nonneg)
     else:
         if not gpu_enabled and device == 'gpu':
             raise ValueError ('GPU is not available')

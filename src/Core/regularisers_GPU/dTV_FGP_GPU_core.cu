@@ -53,7 +53,7 @@ limitations under the License.
 #define BLKZSIZE 8
 
 #define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
-struct square { __host__ __device__ float operator()(float x) { return x * x; } };
+//struct square { __host__ __device__ float operator()(float x) { return x * x; } };
 
 /************************************************/
 /*****************2D modules*********************/
@@ -552,14 +552,14 @@ extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, fl
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
-                thrust::device_vector<float> d_vec(P1_prev, P1_prev + ImSize); 
-                float reduction = sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), square(), 0.0f, thrust::plus<float>()));
-                thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
-                float reduction2 = sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), square(), 0.0f, thrust::plus<float>()));
+          //      thrust::device_vector<float> d_vec(P1_prev, P1_prev + ImSize); 
+         //       float reduction = sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), square(), 0.0f, thrust::plus<float>()));
+          //      thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
+         //       float reduction2 = sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), square(), 0.0f, thrust::plus<float>()));
                     
-                re = (reduction/reduction2);      
-                if (re < epsil)  count++;
-                    if (count > 4) break;       
+          //      re = (reduction/reduction2);      
+          //      if (re < epsil)  count++;
+          //          if (count > 4) break;       
              
                 dTVcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );
@@ -686,14 +686,14 @@ extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, fl
                 checkCudaErrors( cudaDeviceSynchronize() );
                 checkCudaErrors(cudaPeekAtLastError() );               
                 
-                thrust::device_vector<float> d_vec(P1_prev, P1_prev + ImSize); 
-                float reduction = sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), square(), 0.0f, thrust::plus<float>()));
-                thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
-                float reduction2 = sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), square(), 0.0f, thrust::plus<float>()));
+          //      thrust::device_vector<float> d_vec(P1_prev, P1_prev + ImSize); 
+         //       float reduction = sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), square(), 0.0f, thrust::plus<float>()));
+         //       thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
+         //       float reduction2 = sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), square(), 0.0f, thrust::plus<float>()));
                     
-                re = (reduction/reduction2);      
-                if (re < epsil)  count++;
-                    if (count > 4) break;       
+        //        re = (reduction/reduction2);      
+         //       if (re < epsil)  count++;
+        //            if (count > 4) break;       
              
                 dTVcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, ImSize);
                 checkCudaErrors( cudaDeviceSynchronize() );

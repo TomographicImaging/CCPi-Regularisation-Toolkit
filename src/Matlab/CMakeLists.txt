@@ -40,7 +40,7 @@ find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM MX_LIBRARY ENG_LIBRARY )
 #list(APPEND MEX_TARGETS "CPU_ROF")
 
 file(GLOB CPU_MEX_FILES
-    "${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_CPU/*.c"
+    "${CMAKE_SOURCE_DIR}/src/Matlab/mex_compile/regularisers_CPU/*.c"
     #"${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_GPU/*.c"
 )
 
@@ -101,7 +101,7 @@ if (BUILD_CUDA)
     find_package(CUDA)
     if (CUDA_FOUND)
       file(GLOB GPU_MEX_FILES
-        "${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_GPU/*.cpp"
+        "${CMAKE_SOURCE_DIR}/src/Matlab/mex_compile/regularisers_GPU/*.cpp"
       )
 
       list(LENGTH GPU_MEX_FILES num)

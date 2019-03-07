@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "TV_FGP_GPU_core.h"
 #include "shared.h"
+#include <thrust/functional.h>
 #include <thrust/device_vector.h>
 #include <thrust/transform_reduce.h>
 
@@ -31,10 +32,10 @@ limitations under the License.
  * 4. eplsilon: tolerance constant 
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 6. nonneg: 'nonnegativity (0 is OFF by default) 
- * 7. print information: 0 (off) or 1 (on) 
  *
  * Output:
- * [1] Filtered/regularized image
+ * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the Matlab's code and paper by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
@@ -49,7 +50,7 @@ limitations under the License.
 #define BLKZSIZE 8
 
 #define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
-struct square { __host__ __device__ float operator()(float x) { return x * x; } };
+// struct square { __host__ __device__ float operator()(float x) { return x * x; } };
 
 /************************************************/
 /*****************2D modules*********************/
@@ -343,7 +344,7 @@ __global__ void FGPResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ)
+extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -354,20 +355,21 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int
     
     int count = 0, i;
     float re, multip,multip2;    
-	float tk = 1.0f;
+    re = 0.0f;
+    float tk = 1.0f;
     float tkp1=1.0f;
         
     if (dimZ <= 1) {
 		/*2D verson*/
-		int ImSize = dimX*dimY;    
-		float *d_input, *d_update=NULL, *d_update_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
+      int ImSize = dimX*dimY;    
+      float *d_input, *d_update=NULL, *d_update_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
    
-		dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
-		dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
+      dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
+      dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
     
 		/*allocate space for images on device*/
-		checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
+       checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
+       checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
 		if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
 		checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
 		checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
@@ -416,27 +418,7 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int
         
             Rupd_func2D_kernel<<<dimGrid,dimBlock>>>(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, multip2, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
-            checkCudaErrors(cudaPeekAtLastError() );
-        
-            if (epsil != 0.0f) {
-                /* calculate norm - stopping rules using the Thrust library */
-                FGPResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1_prev, dimX, dimY, ImSize);
-                checkCudaErrors( cudaDeviceSynchronize() );
-                checkCudaErrors(cudaPeekAtLastError() );               
-                
-                thrust::device_vector<float> d_vec(P1_prev, P1_prev + ImSize); 
-                float reduction = sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), square(), 0.0f, thrust::plus<float>()));
-                thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
-                float reduction2 = sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), square(), 0.0f, thrust::plus<float>()));
-                    
-                re = (reduction/reduction2);      
-                if (re < epsil)  count++;
-                    if (count > 4) break;       
-             
-                FGPcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
-                checkCudaErrors( cudaDeviceSynchronize() );
-                checkCudaErrors(cudaPeekAtLastError() );                                              
-            }                  
+            checkCudaErrors(cudaPeekAtLastError() );                
         
             FGPcopy_kernel2D<<<dimGrid,dimBlock>>>(P1, P1_prev, dimX, dimY, ImSize);
             checkCudaErrors( cudaDeviceSynchronize() );
@@ -447,9 +429,32 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int
             checkCudaErrors(cudaPeekAtLastError() );       
  
             tk = tkp1;
-        }
-        if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", i);   
-            /***************************************************************/    
+            
+            if (epsil != 0.0f) {
+                /* calculate norm - stopping rules using the Thrust library */
+                FGPResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_update_prev, P1, dimX, dimY, ImSize);
+                checkCudaErrors( cudaDeviceSynchronize() );
+                checkCudaErrors(cudaPeekAtLastError() );               
+                
+                // setup arguments
+		square<float>        unary_op;
+		thrust::plus<float> binary_op;
+                thrust::device_vector<float> d_vec(P1, P1 + ImSize); 
+		float reduction = std::sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), unary_op, 0.0f, binary_op));                
+                thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
+      		float reduction2 = std::sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), unary_op, 0.0f, binary_op));      		
+                   
+                // compute norm
+                re = (reduction/reduction2);      
+                if (re < epsil)  count++;
+                if (count > 4) break;       
+             
+                FGPcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, ImSize);
+                checkCudaErrors( cudaDeviceSynchronize() );
+                checkCudaErrors(cudaPeekAtLastError() );                                              
+            }
+            
+        }	      
             //copy result matrix from device to host memory
             cudaMemcpy(Output,d_update,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
     
@@ -542,7 +547,6 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int
  
             tk = tkp1;
         }
-        if (printM == 1) printf("FGP-TV iterations stopped at iteration %i \n", i);   
             /***************************************************************/    
             //copy result matrix from device to host memory
             cudaMemcpy(Output,d_update,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
@@ -560,5 +564,8 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int
             cudaFree(R3);        
     } 
     //cudaDeviceReset();
+    /*adding info into info_vector */
+    infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
+    infovector[1] = re;  /* reached tolerance */
     return 0;
 }

@@ -68,7 +68,7 @@ setup(
     
     ],
 	zip_safe = False,	
-	packages = {'ccpi','ccpi.filters', 'ccpi.supp'},
+	packages = {'ccpi', 'ccpi.filters', 'ccpi.supp'},
 )
 
 

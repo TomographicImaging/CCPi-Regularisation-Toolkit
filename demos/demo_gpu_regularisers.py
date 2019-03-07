@@ -83,16 +83,18 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : u0,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 1200,\
-        'time_marching_parameter': 0.0025
-        }
+        'regularisation_parameter':0.02,\
+        'number_of_iterations': 5000,\
+        'time_marching_parameter': 0.001,\
+        'tolerance_constant':1e-06}
+
 print ("##############ROF TV GPU##################")
 start_time = timeit.default_timer()
-rof_gpu = ROF_TV(pars['input'], 
-                     pars['regularisation_parameter'],
-                     pars['number_of_iterations'], 
-                     pars['time_marching_parameter'],'gpu')
+(rof_gpu, info_vec_gpu) = ROF_TV(pars['input'],
+             pars['regularisation_parameter'],
+             pars['number_of_iterations'],
+             pars['time_marching_parameter'],
+             pars['tolerance_constant'], 'gpu')
 
 Qtools = QualityTools(Im, rof_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -125,23 +127,20 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :1200 ,\
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :300 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
-        'nonneg': 0 ,\
-        'printingOut': 0 
-        }
+        'nonneg': 0}
 
 print ("##############FGP TV GPU##################")
 start_time = timeit.default_timer()
-fgp_gpu = FGP_TV(pars['input'], 
+(fgp_gpu, info_vec_gpu) = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'],
-              pars['printingOut'],'gpu')
+              pars['nonneg'],'gpu')
 Qtools = QualityTools(Im, fgp_gpu)
 pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = FGP_TV
@@ -157,7 +156,6 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(fgp_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
-
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("____________SB-TV regulariser______________")
