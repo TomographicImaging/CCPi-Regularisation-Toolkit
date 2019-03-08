@@ -20,8 +20,8 @@ cimport numpy as np
 
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
-cdef extern float SB_TV_CPU_main(float *Input, float *Output, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
-cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
+cdef extern float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int dimX, int dimY, int dimZ);
+cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TGV_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY, int dimZ);
 cdef extern float Diffusion_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
 cdef extern float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
@@ -149,18 +149,17 @@ def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #********************** Total-variation SB *********************#
 #***************************************************************#
 #*************** Total-variation Split Bregman (SB)*************#
-def TV_SB_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, printM):
+def TV_SB_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV):
     if inputData.ndim == 2:
-        return TV_SB_2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, printM)
+        return TV_SB_2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV)
     elif inputData.ndim == 3:
-        return TV_SB_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, printM)
+        return TV_SB_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV)
 
 def TV_SB_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
                      float regularisation_parameter,
                      int iterationsNumb, 
                      float tolerance_param,
-                     int methodTV,
-                     int printM):
+                     int methodTV):
                          
     cdef long dims[2]
     dims[0] = inputData.shape[0]
@@ -168,23 +167,24 @@ def TV_SB_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.zeros([2], dtype='float32')
                    
     #/* Run SB-TV iterations for 2D data */
-    SB_TV_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, 
+    SB_TV_CPU_main(&inputData[0,0], &outputData[0,0], &infovec[0],
+                       regularisation_parameter, 
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,
-                       printM,
-                       dims[1],dims[0],1)
+                       dims[1],dims[0], 1)
     
-    return outputData        
+    return (outputData,infovec)
             
 def TV_SB_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
                      float regularisation_parameter,
                      int iterationsNumb, 
                      float tolerance_param,
-                     int methodTV,
-                     int printM):
+                     int methodTV):
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -192,16 +192,71 @@ def TV_SB_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
             np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
-           
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.zeros([2], dtype='float32')
+            
     #/* Run SB-TV iterations for 3D data */
-    SB_TV_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter,
+    SB_TV_CPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0],
+                       regularisation_parameter,
                        iterationsNumb, 
                        tolerance_param,
                        methodTV,
-                       printM,
                        dims[2], dims[1], dims[0])
-    return outputData 
+    return (outputData,infovec) 
+#***************************************************************#
+#******************* ROF - LLT regularisation ******************#
+#***************************************************************#
+def LLT_ROF_CPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param):
+    if inputData.ndim == 2:
+        return LLT_ROF_2D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param)
+    elif inputData.ndim == 3:
+        return LLT_ROF_3D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param)
 
+def LLT_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+                     float regularisation_parameterROF,
+                     float regularisation_parameterLLT,
+                     int iterations, 
+                     float time_marching_parameter,
+                     float tolerance_param):
+                         
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.zeros([2], dtype='float32')
+            
+    #/* Run ROF-LLT iterations for 2D data */
+    LLT_ROF_CPU_main(&inputData[0,0], &outputData[0,0], &infovec[0], regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, 
+                     tolerance_param,
+                     dims[1],dims[0],1)
+    return (outputData,infovec) 
+
+def LLT_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+                     float regularisation_parameterROF,
+                     float regularisation_parameterLLT,
+                     int iterations, 
+                     float time_marching_parameter,
+                     float tolerance_param):
+						 
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+    
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+            np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.zeros([2], dtype='float32')
+            
+    #/* Run ROF-LLT iterations for 3D data */
+    LLT_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0], regularisation_parameterROF, regularisation_parameterLLT, iterations, 
+                     time_marching_parameter,
+                     tolerance_param, 
+                     dims[2], dims[1], dims[0])
+    return (outputData,infovec)
 #***************************************************************#
 #***************** Total Generalised Variation *****************#
 #***************************************************************#
@@ -259,49 +314,6 @@ def TGV_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        dims[2], dims[1], dims[0])
     return outputData
 
-#***************************************************************#
-#******************* ROF - LLT regularisation ******************#
-#***************************************************************#
-def LLT_ROF_CPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter):
-    if inputData.ndim == 2:
-        return LLT_ROF_2D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
-    elif inputData.ndim == 3:
-        return LLT_ROF_3D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
-
-def LLT_ROF_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-                     float regularisation_parameterROF,
-                     float regularisation_parameterLLT,
-                     int iterations, 
-                     float time_marching_parameter):
-                         
-    cdef long dims[2]
-    dims[0] = inputData.shape[0]
-    dims[1] = inputData.shape[1]
-    
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
-            np.zeros([dims[0],dims[1]], dtype='float32')
-                   
-    #/* Run ROF-LLT iterations for 2D data */
-    LLT_ROF_CPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, dims[1],dims[0],1)
-    return outputData
-
-def LLT_ROF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-                     float regularisation_parameterROF,
-                     float regularisation_parameterLLT,
-                     int iterations, 
-                     float time_marching_parameter):
-						 
-    cdef long dims[3]
-    dims[0] = inputData.shape[0]
-    dims[1] = inputData.shape[1]
-    dims[2] = inputData.shape[2]
-    
-    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
-            np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
-           
-    #/* Run ROF-LLT iterations for 3D data */
-    LLT_ROF_CPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, dims[2], dims[1], dims[0])
-    return outputData 
 
 #****************************************************************#
 #**************Directional Total-variation FGP ******************#

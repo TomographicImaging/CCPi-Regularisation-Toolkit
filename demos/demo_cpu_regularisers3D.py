@@ -29,8 +29,9 @@ def printParametersToString(pars):
             txt += '\n'
         return txt
 ###############################################################################
-#%%
-filename = os.path.join( "data" ,"lena_gray_512.tif")
+
+# filename = os.path.join( "data" ,"lena_gray_512.tif")
+filename = "/home/algol/Documents/DEV/CCPi-Regularisation-Toolkit/test/lena_gray_512.tif"
 
 # read image
 Im = plt.imread(filename)
@@ -94,16 +95,18 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 500,\
-        'time_marching_parameter': 0.0025
-        }
+        'regularisation_parameter':0.02,\
+        'number_of_iterations': 7000,\
+        'time_marching_parameter': 0.0007,\
+        'tolerance_constant':1e-06}
+
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
-rof_cpu3D = ROF_TV(pars['input'],
+(rof_cpu3D, info_vec_cpu) = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
-             pars['time_marching_parameter'],'cpu')
+             pars['time_marching_parameter'],
+              pars['tolerance_constant'], 'cpu')
 
 Qtools = QualityTools(idealVol, rof_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -136,23 +139,20 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : FGP_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :300 ,\
-        'tolerance_constant':0.00001,\
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :1000 ,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
-        'nonneg': 0 ,\
-        'printingOut': 0 
-        }
-        
-print ("#############FGP TV CPU####################")
+        'nonneg': 0}
+
+print ("#############FGP TV GPU####################")
 start_time = timeit.default_timer()
-fgp_cpu3D = FGP_TV(pars['input'], 
+(fgp_cpu3D, info_vec_cpu)  = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'],
-              pars['printingOut'],'cpu')  
+              pars['nonneg'], 'cpu')
              
 Qtools = QualityTools(idealVol, fgp_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -185,22 +185,18 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : SB_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :150 ,\
-        'tolerance_constant':0.00001,\
-        'methodTV': 0 ,\
-        'printingOut': 0 
-        }
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :250 ,\
+        'tolerance_constant':1e-06,\
+        'methodTV': 0}
         
 print ("#############SB TV CPU####################")
 start_time = timeit.default_timer()
-sb_cpu3D = SB_TV(pars['input'], 
+(sb_cpu3D, info_vec_cpu) = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'],
-              pars['printingOut'],'cpu')
-             
+              pars['methodTV'],'cpu')
 
 Qtools = QualityTools(idealVol, sb_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -234,19 +230,20 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : LLT_ROF, \
         'input' : noisyVol,\
-        'regularisation_parameterROF':0.04, \
-        'regularisation_parameterLLT':0.015, \
-        'number_of_iterations' :300 ,\
-        'time_marching_parameter' :0.0025 ,\
-        }
+        'regularisation_parameterROF':0.01, \
+        'regularisation_parameterLLT':0.008, \
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter' :0.001 ,\
+        'tolerance_constant':1e-06}
 
 print ("#############LLT ROF CPU####################")
 start_time = timeit.default_timer()
-lltrof_cpu3D = LLT_ROF(pars['input'], 
+(lltrof_cpu3D,info_vec_cpu) = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
-              pars['time_marching_parameter'],'cpu')
+              pars['time_marching_parameter'],
+              pars['tolerance_constant'], 'cpu')
 
 
 Qtools = QualityTools(idealVol, lltrof_cpu3D)

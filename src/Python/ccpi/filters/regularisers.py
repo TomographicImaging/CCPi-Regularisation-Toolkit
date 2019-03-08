@@ -52,21 +52,30 @@ def FGP_TV(inputData, regularisation_parameter,iterations,
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
 def SB_TV(inputData, regularisation_parameter, iterations,
-                     tolerance_param, methodTV, printM, device='cpu'):
+                     tolerance_param, methodTV, device='cpu'):
     if device == 'cpu':
         return TV_SB_CPU(inputData,
                      regularisation_parameter,
                      iterations, 
                      tolerance_param,
-                     methodTV,
-                     printM)
+                     methodTV)
     elif device == 'gpu' and gpu_enabled:
         return TV_SB_GPU(inputData,
                      regularisation_parameter,
                      iterations, 
                      tolerance_param,
-                     methodTV,
-                     printM)
+                     methodTV)
+    else:
+        if not gpu_enabled and device == 'gpu':
+            raise ValueError ('GPU is not available')
+        raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
+                         .format(device))
+def LLT_ROF(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations,
+                     time_marching_parameter, tolerance_param, device='cpu'):
+    if device == 'cpu':
+        return LLT_ROF_CPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param)
+    elif device == 'gpu' and gpu_enabled:
+        return LLT_ROF_GPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param)
     else:
         if not gpu_enabled and device == 'gpu':
             raise ValueError ('GPU is not available')
@@ -189,17 +198,6 @@ def TGV(inputData, regularisation_parameter, alpha1, alpha0, iterations,
 					alpha0, 
 					iterations,
                     LipshitzConst)
-    else:
-        if not gpu_enabled and device == 'gpu':
-            raise ValueError ('GPU is not available')
-        raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
-                         .format(device))
-def LLT_ROF(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations,
-                     time_marching_parameter, device='cpu'):
-    if device == 'cpu':
-        return LLT_ROF_CPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
-    elif device == 'gpu' and gpu_enabled:
-        return LLT_ROF_GPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
     else:
         if not gpu_enabled and device == 'gpu':
             raise ValueError ('GPU is not available')

@@ -75,7 +75,7 @@ float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lamb
             TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
             
             /* check early stopping criteria */
-            if (epsil != 0.0f) {
+            if ((epsil != 0.0f) && (i % 5 == 0)) {
             re = 0.0f; re1 = 0.0f;
 	            for(j=0; j<DimTotal; j++)
         	    {
@@ -84,7 +84,7 @@ float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lamb
         	    }
               re = sqrtf(re)/sqrtf(re1);
               if (re < epsil)  count++;
-              if (count > 4) break;         
+              if (count > 3) break;         
             copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             }            
 		}           

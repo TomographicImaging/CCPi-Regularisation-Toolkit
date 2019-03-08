@@ -84,7 +84,7 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm': ROF_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02,\
-        'number_of_iterations': 5000,\
+        'number_of_iterations': 6000,\
         'time_marching_parameter': 0.001,\
         'tolerance_constant':1e-06}
 
@@ -128,7 +128,7 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
-        'number_of_iterations' :300 ,\
+        'number_of_iterations' :400 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0}
@@ -171,21 +171,18 @@ imgplot = plt.imshow(u0,cmap="gray")
 # set parameters
 pars = {'algorithm' : SB_TV, \
         'input' : u0,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :150 ,\
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :250 ,\
         'tolerance_constant':1e-06,\
-        'methodTV': 0 ,\
-        'printingOut': 0 
-        }
+        'methodTV': 0}
 
 print ("##############SB TV GPU##################")
 start_time = timeit.default_timer()
-sb_gpu = SB_TV(pars['input'], 
+(sb_gpu, info_vec_gpu) = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'],
-              pars['printingOut'],'gpu')
+              pars['methodTV'], 'gpu')
 
 Qtools = QualityTools(Im, sb_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -202,6 +199,52 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(sb_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
+#%%
+
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("______________LLT- ROF (2D)________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of LLT-ROF regulariser using the GPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : LLT_ROF, \
+        'input' : u0,\
+        'regularisation_parameterROF':0.01, \
+        'regularisation_parameterLLT':0.0085, \
+        'number_of_iterations' : 6000 ,\
+        'time_marching_parameter' :0.001 ,\
+        'tolerance_constant':1e-06}
+        
+print ("#############LLT- ROF GPU####################")
+start_time = timeit.default_timer()
+(lltrof_gpu, info_vec_gpu) = LLT_ROF(pars['input'], 
+              pars['regularisation_parameterROF'],
+              pars['regularisation_parameterLLT'],
+              pars['number_of_iterations'],
+              pars['time_marching_parameter'],
+              pars['tolerance_constant'], 'gpu')
+             
+Qtools = QualityTools(Im, lltrof_gpu)
+pars['rmse'] = Qtools.rmse()
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(lltrof_gpu, cmap="gray")
+plt.title('{}'.format('GPU results'))
+
 #%%
 
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -247,51 +290,6 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
 a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(tgv_gpu, cmap="gray")
-plt.title('{}'.format('GPU results'))
-
-#%%
-
-print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("______________LLT- ROF (2D)________________")
-print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-
-## plot 
-fig = plt.figure()
-plt.suptitle('Performance of LLT-ROF regulariser using the GPU')
-a=fig.add_subplot(1,2,1)
-a.set_title('Noisy Image')
-imgplot = plt.imshow(u0,cmap="gray")
-
-# set parameters
-pars = {'algorithm' : LLT_ROF, \
-        'input' : u0,\
-        'regularisation_parameterROF':0.04, \
-        'regularisation_parameterLLT':0.01, \
-        'number_of_iterations' :500 ,\
-        'time_marching_parameter' :0.0025 ,\
-        }
-        
-print ("#############LLT- ROF GPU####################")
-start_time = timeit.default_timer()
-lltrof_gpu = LLT_ROF(pars['input'], 
-              pars['regularisation_parameterROF'],
-              pars['regularisation_parameterLLT'],
-              pars['number_of_iterations'],
-              pars['time_marching_parameter'],'gpu')
-             
-Qtools = QualityTools(Im, lltrof_gpu)
-pars['rmse'] = Qtools.rmse()
-txtstr = printParametersToString(pars)
-txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
-print (txtstr)
-a=fig.add_subplot(1,2,2)
-
-# these are matplotlib.patch.Patch properties
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
-# place a text box in upper left in axes coords
-a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
-         verticalalignment='top', bbox=props)
-imgplot = plt.imshow(lltrof_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
 
 #%%
