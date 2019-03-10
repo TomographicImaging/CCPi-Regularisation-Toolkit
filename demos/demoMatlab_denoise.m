@@ -2,11 +2,9 @@
 clear; close all
 fsep = '/';
 
-%Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
-Path1 = ('/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/src/Matlab/mex_compile/installed');
+Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
 Path2 = sprintf(['data' fsep], 1i);
-%Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
-Path3 = '/home/kjy41806/Documents/SOFT/CCPi-Regularisation-Toolkit/src/Matlab/supp';
+Path3 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'supp'], 1i);
 addpath(Path1);
 addpath(Path2);
 addpath(Path3);
@@ -14,14 +12,14 @@ addpath(Path3);
 Im = double(imread('lena_gray_512.tif'))/255;  % loading image
 u0 = Im + .05*randn(size(Im)); u0(u0 < 0) = 0;
 figure; imshow(u0, [0 1]); title('Noisy image');
-
 %%
 fprintf('Denoise using the ROF-TV model (CPU) \n');
-lambda_reg = 0.017; % regularsation parameter for all methods
-tau_rof = 0.0025; % time-marching constant 
-iter_rof = 1200; % number of ROF iterations
-tic; u_rof = ROF_TV(single(u0), lambda_reg, iter_rof, tau_rof); toc; 
-energyfunc_val_rof = TV_energy(single(u_rof),single(u0),lambda_reg, 1);  % get energy function value
+lambda_reg = 0.02; % regularsation parameter for all methods
+iter_rof = 2000; % number of ROF iterations
+tau_rof = 0.001; % time-marching constant 
+epsil_tol =  0.0; % tolerance
+tic; [u_rof,infovec] = ROF_TV(single(u0), lambda_reg, iter_rof, tau_rof, epsil_tol); toc; 
+%energyfunc_val_rof = TV_energy(single(u_rof),single(u0),lambda_reg, 1);  % get energy function value
 rmseROF = (RMSE(u_rof(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for ROF-TV is:', rmseROF);
 [ssimval] = ssim(u_rof*255,single(Im)*255);
@@ -29,16 +27,14 @@ fprintf('%s %f \n', 'MSSIM error for ROF-TV is:', ssimval);
 figure; imshow(u_rof, [0 1]); title('ROF-TV denoised image (CPU)');
 %%
 % fprintf('Denoise using the ROF-TV model (GPU) \n');
-% tau_rof = 0.0025; % time-marching constant 
-% iter_rof = 1200; % number of ROF iterations
-% tic; u_rofG = ROF_TV_GPU(single(u0), lambda_reg, iter_rof, tau_rof); toc;
+% tic; u_rofG = ROF_TV_GPU(single(u0), lambda_reg, iter_rof, tau_rof, epsil_tol); toc; 
 % figure; imshow(u_rofG, [0 1]); title('ROF-TV denoised image (GPU)');
 %%
 fprintf('Denoise using the FGP-TV model (CPU) \n');
-lambda_reg = 0.033;
-iter_fgp = 200; % number of FGP iterations
-epsil_tol =  1.0e-05; % tolerance
-tic; u_fgp = FGP_TV(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
+lambda_reg = 0.02;
+iter_fgp = 500; % number of FGP iterations
+epsil_tol =  1.0e-06; % tolerance
+tic; [u_fgp,infovec] = FGP_TV(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 energyfunc_val_fgp = TV_energy(single(u_fgp),single(u0),lambda_reg, 1); % get energy function value
 rmseFGP = (RMSE(u_fgp(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for FGP-TV is:', rmseFGP);
@@ -47,15 +43,14 @@ fprintf('%s %f \n', 'MSSIM error for FGP-TV is:', ssimval);
 figure; imshow(u_fgp, [0 1]); title('FGP-TV denoised image (CPU)');
 %%
 % fprintf('Denoise using the FGP-TV model (GPU) \n');
-% iter_fgp = 300; % number of FGP iterations
-% epsil_tol =  1.0e-09; % tolerance
 % tic; u_fgpG = FGP_TV_GPU(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 % figure; imshow(u_fgpG, [0 1]); title('FGP-TV denoised image (GPU)');
 %%
 fprintf('Denoise using the SB-TV model (CPU) \n');
-iter_sb = 80; % number of SB iterations
-epsil_tol =  1.0e-08; % tolerance
-tic; u_sb = SB_TV(single(u0), lambda_reg, iter_sb, epsil_tol); toc; 
+lambda_reg = 0.03;
+iter_sb = 300; % number of SB iterations
+epsil_tol =  1.0e-06; % tolerance
+tic; [u_sb,infovec] = SB_TV(single(u0), lambda_reg, iter_sb, epsil_tol); toc; 
 energyfunc_val_sb = TV_energy(single(u_sb),single(u0),lambda_reg, 1);  % get energy function value
 rmseSB = (RMSE(u_sb(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for SB-TV is:', rmseSB);

@@ -486,17 +486,25 @@ extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector,
             dim3 dimGrid(idivup(N,BLKXSIZE2D), idivup(M,BLKYSIZE2D));
 
             for(n=0; n < iterationsNumb; n++) {
+
+
+              if ((epsil != 0.0f) && (n % 5 == 0)) {
+              ROFLLTcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, DimTotal);
+              checkCudaErrors( cudaDeviceSynchronize() );
+              checkCudaErrors(cudaPeekAtLastError() );
+                }
+
                 /****************ROF******************/
-				/* calculate first-order differences */
+				        /* calculate first-order differences */
                 D1_func2D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D1_ROF, N, M);
                 CHECK(cudaDeviceSynchronize());
-				D2_func2D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D2_ROF, N, M);
+				        D2_func2D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D2_ROF, N, M);
                 CHECK(cudaDeviceSynchronize());
                 /****************LLT******************/
-                 /* estimate second-order derrivatives */
-				der2D_LLT_kernel<<<dimGrid,dimBlock>>>(d_update, D1_LLT, D2_LLT, N, M);
-				/* Joint update for ROF and LLT models */
-				Update2D_LLT_ROF_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, D1_LLT, D2_LLT, D1_ROF, D2_ROF, lambdaROF, lambdaLLT, tau, N, M);
+                /* estimate second-order derrivatives */
+				        der2D_LLT_kernel<<<dimGrid,dimBlock>>>(d_update, D1_LLT, D2_LLT, N, M);
+				        /* Joint update for ROF and LLT models */
+				        Update2D_LLT_ROF_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, D1_LLT, D2_LLT, D1_ROF, D2_ROF, lambdaROF, lambdaLLT, tau, N, M);
                 CHECK(cudaDeviceSynchronize());
 
                 if ((epsil != 0.0f) && (n % 5 == 0)) {
@@ -517,10 +525,6 @@ extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector,
                 re = (reduction/reduction2);
                 if (re < epsil)  count++;
                 if (count > 3) break;
-
-                ROFLLTcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, DimTotal);
-                checkCudaErrors( cudaDeviceSynchronize() );
-                checkCudaErrors(cudaPeekAtLastError() );
               }
             }
     }
@@ -535,19 +539,26 @@ extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector,
             CHECK(cudaMalloc((void**)&D3_ROF,DimTotal*sizeof(float)));
 
             for(n=0; n < iterationsNumb; n++) {
+
+              if ((epsil != 0.0f) && (n % 5 == 0)) {
+              ROFLLTcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, Z, DimTotal);
+              checkCudaErrors( cudaDeviceSynchronize() );
+              checkCudaErrors(cudaPeekAtLastError() );
+              }
+
                 /****************ROF******************/
-				/* calculate first-order differences */
+				         /* calculate first-order differences */
                 D1_func3D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D1_ROF, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
-				D2_func3D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D2_ROF, N, M, Z);
+				        D2_func3D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D2_ROF, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
                 D3_func3D_ROF_kernel<<<dimGrid,dimBlock>>>(d_update, D3_ROF, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
                 /****************LLT******************/
                  /* estimate second-order derrivatives */
-				der3D_LLT_kernel<<<dimGrid,dimBlock>>>(d_update, D1_LLT, D2_LLT, D3_LLT, N, M, Z);
-				/* Joint update for ROF and LLT models */
-				Update3D_LLT_ROF_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, D1_LLT, D2_LLT, D3_LLT, D1_ROF, D2_ROF, D3_ROF, lambdaROF, lambdaLLT, tau, N, M, Z);
+				        der3D_LLT_kernel<<<dimGrid,dimBlock>>>(d_update, D1_LLT, D2_LLT, D3_LLT, N, M, Z);
+				        /* Joint update for ROF and LLT models */
+				        Update3D_LLT_ROF_kernel<<<dimGrid,dimBlock>>>(d_input, d_update, D1_LLT, D2_LLT, D3_LLT, D1_ROF, D2_ROF, D3_ROF, lambdaROF, lambdaLLT, tau, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
 
 
@@ -569,10 +580,6 @@ extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector,
                 re = (reduction/reduction2);
                 if (re < epsil)  count++;
                 if (count > 3) break;
-
-                ROFLLTcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, Z, DimTotal);
-                checkCudaErrors( cudaDeviceSynchronize() );
-                checkCudaErrors(cudaPeekAtLastError() );
               }
 
             }

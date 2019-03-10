@@ -379,10 +379,16 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
             dim3 dimGrid(idivup(N,BLKXSIZE2D), idivup(M,BLKYSIZE2D));
 
             for(n=0; n < iter; n++) {
+
+              if ((epsil != 0.0f) && (n % 5 == 0)) {
+              ROFcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, ImSize);
+              checkCudaErrors( cudaDeviceSynchronize() );
+              checkCudaErrors(cudaPeekAtLastError() );
+              }
                 /* calculate differences */
                 D1_func2D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M);
                 CHECK(cudaDeviceSynchronize());
-		D2_func2D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M);
+		            D2_func2D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M);
                 CHECK(cudaDeviceSynchronize());
                 /*running main kernel*/
                 TV_kernel2D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_update, d_input, lambdaPar, tau, N, M);
@@ -395,21 +401,17 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
                 checkCudaErrors( cudaPeekAtLastError() );
 
                 // setup arguments
-		square<float>        unary_op;
-		thrust::plus<float> binary_op;
+		            square<float>        unary_op;
+		            thrust::plus<float> binary_op;
                 thrust::device_vector<float> d_vec(d_D1, d_D1 + ImSize);
-		float reduction = std::sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), unary_op, 0.0f, binary_op));
+		            float reduction = std::sqrt(thrust::transform_reduce(d_vec.begin(), d_vec.end(), unary_op, 0.0f, binary_op));
                 thrust::device_vector<float> d_vec2(d_update, d_update + ImSize);
-      		float reduction2 = std::sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), unary_op, 0.0f, binary_op));
+      		      float reduction2 = std::sqrt(thrust::transform_reduce(d_vec2.begin(), d_vec2.end(), unary_op, 0.0f, binary_op));
 
                 // compute norm
                 re = (reduction/reduction2);
                 if (re < epsil)  count++;
                 if (count > 3) break;
-
-                ROFcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, ImSize);
-                checkCudaErrors( cudaDeviceSynchronize() );
-                checkCudaErrors(cudaPeekAtLastError() );
            	}
 
             }
@@ -423,10 +425,17 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
             CHECK(cudaMalloc((void**)&d_D3,N*M*Z*sizeof(float)));
 
             for(n=0; n < iter; n++) {
+
+              if ((epsil != 0.0f) && (n % 5 == 0)) {
+              ROFcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, Z, ImSize);
+              checkCudaErrors( cudaDeviceSynchronize() );
+              checkCudaErrors(cudaPeekAtLastError() );
+              }
+
                 /* calculate differences */
                 D1_func3D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
-		D2_func3D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M, Z);
+		            D2_func3D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
                 D3_func3D<<<dimGrid,dimBlock>>>(d_update, d_D3, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
@@ -453,9 +462,6 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
                 if (re < epsil)  count++;
                 if (count > 3) break;
 
-                ROFcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, N, M, Z, ImSize);
-                checkCudaErrors( cudaDeviceSynchronize() );
-                checkCudaErrors(cudaPeekAtLastError() );
             }
 
 

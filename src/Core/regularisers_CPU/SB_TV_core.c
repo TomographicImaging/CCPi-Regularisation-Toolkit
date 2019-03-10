@@ -37,7 +37,7 @@ limitations under the License.
 
 float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int dimX, int dimY, int dimZ)
 {
-	int ll;
+	  int ll;
     long j, DimTotal;
 	  float re, re1, lambda;
     re = 0.0f; re1 = 0.0f;

@@ -440,10 +440,6 @@ extern "C" int TV_SB_GPU_main(float *Input, float *Output, float *infovector, fl
             re = (reduction/reduction2);
             if (re < epsil)  count++;
             if (count > 3) break;
-
-            SBcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, DimTotal);
-            checkCudaErrors( cudaDeviceSynchronize() );
-            checkCudaErrors(cudaPeekAtLastError() );
                     }
                 }
             /***************************************************************/
@@ -510,11 +506,7 @@ extern "C" int TV_SB_GPU_main(float *Input, float *Output, float *infovector, fl
             re = (reduction/reduction2);
             if (re < epsil)  count++;
             if (count > 3) break;
-
-            SBcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update, d_update_prev, dimX, dimY, dimZ, DimTotal);
-            checkCudaErrors( cudaDeviceSynchronize() );
-            checkCudaErrors(cudaPeekAtLastError() );
-                    }
+            }
         }
         cudaFree(Dz);
         cudaFree(Bz);

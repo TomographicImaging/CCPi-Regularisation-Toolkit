@@ -30,48 +30,75 @@ int signNDFc(float x) {
 }
 
 /* C-OMP implementation of linear and nonlinear diffusion with the regularisation model [1,2] (2D/3D case)
- * The minimisation is performed using explicit scheme. 
+ * The minimisation is performed using explicit scheme.
  *
  * Input Parameters:
- * 1. Noisy image/volume 
+ * 1. Noisy image/volume
  * 2. lambda - regularization parameter
  * 3. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
- * 4. Number of iterations, for explicit scheme >= 150 is recommended 
+ * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
  * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight
- *
+ * 7. eplsilon - tolerance constant
+
  * Output:
- * [1] Regularized image/volume 
+ * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Perona, P. and Malik, J., 1990. Scale-space and edge detection using anisotropic diffusion. IEEE Transactions on pattern analysis and machine intelligence, 12(7), pp.629-639.
  * [2] Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.
  */
 
-float Diffusion_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ)
+float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ)
 {
     int i;
-    float sigmaPar2;
+    float sigmaPar2, *Output_prev=NULL;
     sigmaPar2 = sigmaPar/sqrt(2.0f);
-    
+    long j, DimTotal;
+    float re, re1;
+    re = 0.0f; re1 = 0.0f;
+    int count = 0;
+    DimTotal = (long)(dimX*dimY*dimZ);
+
+    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
+
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
-    
-    if (dimZ == 1) {
-    /* running 2D diffusion iterations */
+
     for(i=0; i < iterationsNumb; i++) {
+
+      if ((epsil != 0.0f)  && (i % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+      if (dimZ == 1) {
+            /* running 2D diffusion iterations */
             if (sigmaPar == 0.0f) LinearDiff2D(Input, Output, lambdaPar, tau, (long)(dimX), (long)(dimY)); /* linear diffusion (heat equation) */
             else NonLinearDiff2D(Input, Output, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY)); /* nonlinear diffusion */
+          }
+      else {
+        	/* running 3D diffusion iterations */
+        if (sigmaPar == 0.0f) LinearDiff3D(Input, Output, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
+        else NonLinearDiff3D(Input, Output, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY), (long)(dimZ));
+          }
+          /* check early stopping criteria if epsilon not equal zero */
+          if ((epsil != 0.0f)  && (i % 5 == 0)) {
+          re = 0.0f; re1 = 0.0f;
+            for(j=0; j<DimTotal; j++)
+            {
+                re += powf(Output[j] - Output_prev[j],2);
+                re1 += powf(Output[j],2);
+            }
+          re = sqrtf(re)/sqrtf(re1);
+          /* stop if the norm residual is less than the tolerance EPS */
+          if (re < epsil)  count++;
+          if (count > 3) break;
+          }
 		}
-	}
-	else {
-	/* running 3D diffusion iterations */
-    for(i=0; i < iterationsNumb; i++) {
-            if (sigmaPar == 0.0f) LinearDiff3D(Input, Output, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
-            else NonLinearDiff3D(Input, Output, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY), (long)(dimZ));
-		}
-	}
-    return *Output;
+
+    free(Output_prev);
+  /*adding info into info_vector */
+    infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
+    infovector[1] = re;  /* reached tolerance */
+    return 0;
 }
 
 
@@ -83,7 +110,7 @@ float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, long
 {
 	long i,j,i1,i2,j1,j2,index;
 	float e,w,n,s,e1,w1,n1,s1;
-	
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1)
     for(i=0; i<dimX; i++) {
         /* symmetric boundary conditions (Neuman) */
@@ -94,18 +121,18 @@ float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, long
             j1 = j+1; if (j1 == dimY) j1 = j-1;
             j2 = j-1; if (j2 < 0) j2 = j+1;
             index = j*dimX+i;
-            
+
                 e = Output[j*dimX+i1];
                 w = Output[j*dimX+i2];
                 n = Output[j1*dimX+i];
                 s = Output[j2*dimX+i];
-                
+
                 e1 = e - Output[index];
                 w1 = w - Output[index];
                 n1 = n - Output[index];
                 s1 = s - Output[index];
-                
-                Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));  
+
+                Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
 		}}
 	return *Output;
 }
@@ -115,7 +142,7 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
 {
 	long i,j,i1,i2,j1,j2,index;
 	float e,w,n,s,e1,w1,n1,s1;
-	
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1)
     for(i=0; i<dimX; i++) {
         /* symmetric boundary conditions (Neuman) */
@@ -126,28 +153,28 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
             j1 = j+1; if (j1 == dimY) j1 = j-1;
             j2 = j-1; if (j2 < 0) j2 = j+1;
             index = j*dimX+i;
-            
+
                 e = Output[j*dimX+i1];
                 w = Output[j*dimX+i2];
                 n = Output[j1*dimX+i];
                 s = Output[j2*dimX+i];
-                
+
                 e1 = e - Output[index];
                 w1 = w - Output[index];
                 n1 = n - Output[index];
                 s1 = s - Output[index];
-                
+
             if (penaltytype == 1){
             /* Huber penalty */
             if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
             else e1 = e1/sigmaPar;
-            
+
             if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
             else w1 = w1/sigmaPar;
-            
+
             if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
             else n1 = n1/sigmaPar;
-            
+
             if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
             else s1 = s1/sigmaPar;
             }
@@ -173,7 +200,7 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
 				printf("%s \n", "No penalty function selected! Use 1,2 or 3.");
 				break;
 				}
-           Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));  
+           Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
 		}}
 	return *Output;
 }
@@ -185,7 +212,7 @@ float LinearDiff3D(float *Input, float *Output, float lambdaPar, float tau, long
 {
 	long i,j,k,i1,i2,j1,j2,k1,k2,index;
 	float e,w,n,s,u,d,e1,w1,n1,s1,u1,d1;
-	
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1,k,k1,k2,u1,d1,u,d)
 for(k=0; k<dimZ; k++) {
 	k1 = k+1; if (k1 == dimZ) k1 = k-1;
@@ -199,22 +226,22 @@ for(k=0; k<dimZ; k++) {
             j1 = j+1; if (j1 == dimY) j1 = j-1;
             j2 = j-1; if (j2 < 0) j2 = j+1;
             index = (dimX*dimY)*k + j*dimX+i;
-            
+
                 e = Output[(dimX*dimY)*k + j*dimX+i1];
                 w = Output[(dimX*dimY)*k + j*dimX+i2];
                 n = Output[(dimX*dimY)*k + j1*dimX+i];
                 s = Output[(dimX*dimY)*k + j2*dimX+i];
                 u = Output[(dimX*dimY)*k1 + j*dimX+i];
                 d = Output[(dimX*dimY)*k2 + j*dimX+i];
-                
+
                 e1 = e - Output[index];
                 w1 = w - Output[index];
                 n1 = n - Output[index];
                 s1 = s - Output[index];
                 u1 = u - Output[index];
                 d1 = d - Output[index];
-                
-                Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));  
+
+                Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));
 		}}}
 	return *Output;
 }
@@ -223,7 +250,7 @@ float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaP
 {
 	long i,j,k,i1,i2,j1,j2,k1,k2,index;
 	float e,w,n,s,u,d,e1,w1,n1,s1,u1,d1;
-	
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1,k,k1,k2,u1,d1,u,d)
 for(k=0; k<dimZ; k++) {
 	k1 = k+1; if (k1 == dimZ) k1 = k-1;
@@ -237,40 +264,40 @@ for(k=0; k<dimZ; k++) {
             j1 = j+1; if (j1 == dimY) j1 = j-1;
             j2 = j-1; if (j2 < 0) j2 = j+1;
             index = (dimX*dimY)*k + j*dimX+i;
-            
+
                 e = Output[(dimX*dimY)*k + j*dimX+i1];
                 w = Output[(dimX*dimY)*k + j*dimX+i2];
                 n = Output[(dimX*dimY)*k + j1*dimX+i];
                 s = Output[(dimX*dimY)*k + j2*dimX+i];
                 u = Output[(dimX*dimY)*k1 + j*dimX+i];
                 d = Output[(dimX*dimY)*k2 + j*dimX+i];
-                
+
                 e1 = e - Output[index];
                 w1 = w - Output[index];
                 n1 = n - Output[index];
                 s1 = s - Output[index];
                 u1 = u - Output[index];
                 d1 = d - Output[index];
-                
+
              if (penaltytype == 1){
             /* Huber penalty */
             if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
             else e1 = e1/sigmaPar;
-            
+
             if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
             else w1 = w1/sigmaPar;
-            
+
             if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
             else n1 = n1/sigmaPar;
-            
+
             if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
             else s1 = s1/sigmaPar;
-            
+
             if (fabs(u1) > sigmaPar) u1 =  signNDFc(u1);
             else u1 = u1/sigmaPar;
-            
+
             if (fabs(d1) > sigmaPar) d1 =  signNDFc(d1);
-            else d1 = d1/sigmaPar;            
+            else d1 = d1/sigmaPar;
             }
             else if (penaltytype == 2) {
             /* Perona-Malik */
@@ -301,7 +328,7 @@ for(k=0; k<dimZ; k++) {
 				break;
 				}
 
-                Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));  
+                Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));
 		}}}
 	return *Output;
 }

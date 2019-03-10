@@ -29,7 +29,7 @@ from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, LLT_ROF, NDF, Diff4
 #%%
 print ("Building 3D phantom using TomoPhantom software")
 tic=timeit.default_timer()
-model = 9 # select a model number from the library
+model = 16 # select a model number from the library
 N_size = 256 # Define phantom dimensions using a scalar value (cubic phantom)
 path = os.path.dirname(tomophantom.__file__)
 path_library3D = os.path.join(path, "Phantom3DLibrary.dat")
@@ -66,16 +66,18 @@ print ("#############ROF TV CPU####################")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : phantom_noise,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 600,\
-        'time_marching_parameter': 0.0025
-        }
+        'regularisation_parameter':0.02,\
+        'number_of_iterations': 1000,\
+        'time_marching_parameter': 0.001,\
+        'tolerance_constant':0.0}
 
 tic=timeit.default_timer()
-rof_cpu3D = ROF_TV(pars['input'],
+(rof_cpu3D, infcpu) = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
-             pars['time_marching_parameter'],'cpu')
+             pars['time_marching_parameter'],
+             pars['tolerance_constant'],'cpu')
+
 toc=timeit.default_timer()
 
 Run_time_rof = toc - tic
@@ -94,27 +96,46 @@ print ("#############ROF TV GPU####################")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : phantom_noise,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 600,\
-        'time_marching_parameter': 0.0025
-        }
+        'regularisation_parameter':0.06,\
+        'number_of_iterations': 10000,\
+        'time_marching_parameter': 0.00025,\
+        'tolerance_constant':1e-06}
 
 tic=timeit.default_timer()
-rof_gpu3D = ROF_TV(pars['input'],
+(rof_gpu3D, infogpu) = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
-             pars['time_marching_parameter'],'gpu')
+             pars['time_marching_parameter'],
+             pars['tolerance_constant'],'gpu')
+
 toc=timeit.default_timer()
 
 Run_time_rof = toc - tic
 Qtools = QualityTools(phantom_tm, rof_gpu3D)
 RMSE_rof = Qtools.rmse()
 
+sliceNo = 128
 # SSIM measure
-Qtools = QualityTools(phantom_tm[128,:,:]*255, rof_gpu3D[128,:,:]*235)
+Qtools = QualityTools(phantom_tm[sliceNo,:,:]*255, rof_gpu3D[sliceNo,:,:]*235)
 win = np.array([gaussian(11, 1.5)])
 win2d = win * (win.T)
 ssim_rof = Qtools.ssim(win2d)
+
+sliceSel = int(0.5*N_size)
+#plt.gray()
+plt.figure() 
+plt.subplot(131)
+plt.imshow(rof_gpu3D[sliceSel,:,:],vmin=0, vmax=1.4)
+plt.title('3D ROF-TV, axial view')
+
+plt.subplot(132)
+plt.imshow(rof_gpu3D[:,sliceSel,:],vmin=0, vmax=1.4)
+plt.title('3D ROF-TV, coronal view')
+
+plt.subplot(133)
+plt.imshow(rof_gpu3D[:,:,sliceSel],vmin=0, vmax=1.4)
+plt.title('3D ROF-TV, sagittal view')
+plt.show()
 
 print("ROF-TV (gpu) ____ RMSE: {}, MMSIM: {}, run time: {} sec".format(RMSE_rof,ssim_rof[0],Run_time_rof))
 #%%
@@ -154,13 +175,13 @@ print ("#############FGP TV GPU####################")
 pars = {'algorithm' : FGP_TV, \
         'input' : phantom_noise,\
         'regularisation_parameter':0.05, \
-        'number_of_iterations' :80 ,\
-        'tolerance_constant':1e-04,\
+        'number_of_iterations' :1500 ,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0}
 
 tic=timeit.default_timer()
-(fgp_gpu3D)  = FGP_TV(pars['input'], 
+(fgp_gpu3D,infogpu)  = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 

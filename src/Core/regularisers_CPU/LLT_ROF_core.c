@@ -74,10 +74,12 @@ float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lam
         if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
 
 		for(ll = 0; ll < iterationsNumb; ll++) {
+            if ((epsil != 0.0f) && (ll % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+
             if (dimZ == 1) {
-			           /* 2D case */
-			              /****************ROF******************/
-			                 /* calculate first-order differences */
+			      /* 2D case */
+			      /****************ROF******************/
+			      /* calculate first-order differences */
             D1_func_ROF(Output, D1_ROF, (long)(dimX), (long)(dimY), 1l);
             D2_func_ROF(Output, D2_ROF, (long)(dimX), (long)(dimY), 1l);
             /****************LLT******************/
@@ -87,8 +89,8 @@ float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lam
             Update2D_LLT_ROF(Input, Output, D1_LLT, D2_LLT, D1_ROF, D2_ROF, lambdaROF, lambdaLLT, tau, (long)(dimX), (long)(dimY), 1l);
             }
             else {
-			           /* 3D case */
-			              /* calculate first-order differences */
+			      /* 3D case */
+			      /* calculate first-order differences */
             D1_func_ROF(Output, D1_ROF, (long)(dimX), (long)(dimY), (long)(dimZ));
             D2_func_ROF(Output, D2_ROF, (long)(dimX), (long)(dimY), (long)(dimZ));
             D3_func_ROF(Output, D3_ROF, (long)(dimX), (long)(dimY), (long)(dimZ));
@@ -110,7 +112,6 @@ float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lam
                re = sqrtf(re)/sqrtf(re1);
                if (re < epsil)  count++;
                if (count > 3) break;
-             copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
              }
 
     } /*end of iterations*/

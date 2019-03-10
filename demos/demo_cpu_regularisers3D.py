@@ -277,22 +277,23 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : TGV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04, \
+        'regularisation_parameter':0.02, \
         'alpha1':1.0,\
         'alpha0':2.0,\
-        'number_of_iterations' :250 ,\
+        'number_of_iterations' :500 ,\
         'LipshitzConstant' :12 ,\
-        }
+        'tolerance_constant':1e-06}
 
 print ("#############TGV CPU####################")
 start_time = timeit.default_timer()
-tgv_cpu3D = TGV(pars['input'], 
+(tgv_cpu3D,info_vec_cpu)  = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
-              pars['LipshitzConstant'],'cpu')
-             
+              pars['LipshitzConstant'],
+              pars['tolerance_constant'],'cpu')
+
 
 Qtools = QualityTools(idealVol, tgv_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -325,21 +326,22 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : NDF, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.025, \
+        'regularisation_parameter':0.02, \
         'edge_parameter':0.015,\
-        'number_of_iterations' :500 ,\
-        'time_marching_parameter':0.025,\
-        'penalty_type':  1
-        }
-        
+        'number_of_iterations' :700 ,\
+        'time_marching_parameter':0.01,\
+        'penalty_type':  1,\
+        'tolerance_constant':1e-06}
+
 print ("#############NDF CPU################")
 start_time = timeit.default_timer()
-ndf_cpu3D = NDF(pars['input'], 
+(ndf_cpu3D,info_vec_cpu)  = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
-              pars['penalty_type'])  
+              pars['penalty_type'],
+              pars['tolerance_constant'], 'cpu')
              
 
 Qtools = QualityTools(idealVol, ndf_cpu3D)
@@ -373,19 +375,20 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : Diff4th, \
         'input' : noisyVol,\
-        'regularisation_parameter':3.5, \
+        'regularisation_parameter':0.8, \
         'edge_parameter':0.02,\
-        'number_of_iterations' :300 ,\
-        'time_marching_parameter':0.0015
-        }
-        
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter':0.001,\
+        'tolerance_constant':1e-06}
+
 print ("#############Diff4th CPU################")
 start_time = timeit.default_timer()
-diff4th_cpu3D = Diff4th(pars['input'], 
+(diff4th_cpu3D,info_vec_cpu) = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
-              pars['time_marching_parameter'])  
+              pars['time_marching_parameter'],
+              pars['tolerance_constant'],'cpu')
              
 
 Qtools = QualityTools(idealVol, diff4th_cpu3D)
@@ -420,26 +423,23 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 pars = {'algorithm' : FGP_dTV,\
         'input' : noisyVol,\
         'refdata' : noisyRef,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :300 ,\
-        'tolerance_constant':0.00001,\
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :500 ,\
+        'tolerance_constant':1e-06,\
         'eta_const':0.2,\
         'methodTV': 0 ,\
-        'nonneg': 0 ,\
-        'printingOut': 0 
-        }
+        'nonneg': 0}
         
 print ("#############FGP dTV CPU####################")
 start_time = timeit.default_timer()
-fgp_dTV_cpu3D = FGP_dTV(pars['input'],
+(fgp_dTV_cpu3D,info_vec_cpu)  = FGP_dTV(pars['input'],
               pars['refdata'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],
-              pars['printingOut'],'cpu')
+              pars['nonneg'],'cpu')
              
 
 Qtools = QualityTools(idealVol, fgp_dTV_cpu3D)

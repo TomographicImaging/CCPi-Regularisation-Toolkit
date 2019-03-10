@@ -29,9 +29,11 @@
  * 2. lambda - regularization parameter [REQUIRED]
  * 3. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
  * 4. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
+ * 5. eplsilon: tolerance constant [REQUIRED]
  *
  * Output:
  * [1] Regularized image/volume 
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Rudin, Osher, Fatemi, "Nonlinear Total Variation based noise removal algorithms"
@@ -47,7 +49,8 @@ void mexFunction(
     int number_of_dims, iter_numb;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array_i;
-    float *Input, *Output=NULL, lambda, tau;    
+    float *Input, *Output=NULL, lambda, tau, epsil;    
+    float *infovec=NULL;
     
     dim_array_i = mxGetDimensions(prhs[0]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
@@ -57,9 +60,10 @@ void mexFunction(
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
     iter_numb =  (int) mxGetScalar(prhs[2]); /* iterations number */
     tau =  (float) mxGetScalar(prhs[3]); /* marching step parameter */  
+    epsil = (float) mxGetScalar(prhs[4]); /* tolerance */  
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
-    if(nrhs != 4) mexErrMsgTxt("Four inputs reqired: Image(2D,3D), regularization parameter, iterations number,  marching step constant");
+    if(nrhs != 5) mexErrMsgTxt("Four inputs reqired: Image(2D,3D), regularization parameter, iterations number,  marching step constant, tolerance");
     /*Handling Matlab output data*/
     dimX = dim_array_i[0]; dimY = dim_array_i[1]; dimZ = dim_array_i[2];        
     
@@ -72,6 +76,10 @@ void mexFunction(
     if (number_of_dims == 3) {
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array_i, mxSINGLE_CLASS, mxREAL));
     }
+    
+    int vecdim[1];
+    vecdim[0] = 2;
+    infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));
      
-    TV_ROF_CPU_main(Input, Output, lambda, iter_numb, tau, dimX, dimY, dimZ);    
+    TV_ROF_CPU_main(Input, Output, infovec, lambda, iter_numb, tau, epsil, dimX, dimY, dimZ);    
 }

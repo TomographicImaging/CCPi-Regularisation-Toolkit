@@ -36,23 +36,24 @@ limitations under the License.
  * 3. lambdaPar - regularization parameter [REQUIRED]
  * 4. Number of iterations [OPTIONAL]
  * 5. eplsilon: tolerance constant [OPTIONAL]
- * 6. eta: smoothing constant to calculate gradient of the reference [OPTIONAL] * 
+ * 6. eta: smoothing constant to calculate gradient of the reference [OPTIONAL] *
  * 7. TV-type: methodTV - 'iso' (0) or 'l1' (1) [OPTIONAL]
  * 8. nonneg: 'nonnegativity (0 is OFF by default) [OPTIONAL]
  * 9. print information: 0 (off) or 1 (on) [OPTIONAL]
  *
  * Output:
  * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the Matlab's codes and papers by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  * [2] M. J. Ehrhardt and M. M. Betcke, Multi-Contrast MRI Reconstruction with Structure-Guided Total Variation, SIAM Journal on Imaging Sciences 9(3), pp. 1084–1106
  */
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 
 CCPI_EXPORT float GradNorm_func2D(float *B, float *B_x, float *B_y, float eta, long dimX, long dimY);
 CCPI_EXPORT float ProjectVect_func2D(float *R1, float *R2, float *B_x, float *B_y, long dimX, long dimY);
