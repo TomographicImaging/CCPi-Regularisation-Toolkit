@@ -8,13 +8,14 @@
 % ! paths to matlab and CUDA sdk can be different, modify accordingly !
 
 % Tested on Ubuntu 18.04/MATLAB 2016b/cuda10.0/gcc7.3
-
+%>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<
 % Installation HAS NOT been tested on Windows, please you Cmake build or
 % modify the code bellow accordingly
 fsep = '/';
 
-pathcopyFrom = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'regularisers_GPU'], 1i);
-pathcopyFrom1 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
+pathcopyFrom = sprintf(['..' fsep '..' fsep 'Core' fsep 'regularisers_GPU'], 1i);
+pathcopyFrom1 = sprintf(['..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
+
 
 copyfile(pathcopyFrom, 'regularisers_GPU');
 copyfile(pathcopyFrom1, 'regularisers_GPU');
@@ -69,6 +70,5 @@ movefile('LLT_ROF_GPU.mex*',Pathmove);
 delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* TGV_GPU_core* LLT_ROF_GPU_core* CCPiDefines.h
 fprintf('%s \n', 'All successfully compiled!');
 
-pathA2 = sprintf(['..' fsep '..' fsep], 1i);
+pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos'], 1i);
 cd(pathA2);
-cd demos

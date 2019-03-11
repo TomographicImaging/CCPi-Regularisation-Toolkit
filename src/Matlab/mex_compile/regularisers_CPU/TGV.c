@@ -30,9 +30,12 @@ limitations under the License.
  * 4. parameter to control the second-order term (alpha0)
  * 5. Number of Chambolle-Pock (Primal-Dual) iterations
  * 6. Lipshitz constant (default is 12)
+ * 7. eplsilon - tolerance constant [OPTIONAL parameter]
  *
  * Output:
- * Filtered/regulariaed image 
+ * [1] Regularized image/volume 
+ * [2] Information vector which contains [iteration no., reached tolerance]
+ *
  *
  * References:
  * [1] K. Bredies "Total Generalized Variation"
@@ -47,7 +50,8 @@ void mexFunction(
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;
     
-    float *Input, *Output=NULL, lambda, alpha0, alpha1, L2;
+    float *Input, *Output=NULL, lambda, alpha0, alpha1, L2, epsil;
+    float *infovec=NULL;
     
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     dim_array = mxGetDimensions(prhs[0]);
@@ -58,15 +62,17 @@ void mexFunction(
     Input  = (float *) mxGetData(prhs[0]); /*noisy image/volume */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularisation parameter */
     alpha1 =  1.0f; /* parameter to control the first-order term */ 
-    alpha0 =  0.5f; /* parameter to control the second-order term */
-    iter =  300; /* Iterations number */      
+    alpha0 =  2.0f; /* parameter to control the second-order term */
+    iter =  500; /* Iterations number */      
     L2 =  12.0f; /* Lipshitz constant */
+    epsil = 1.0e-06; /*tolerance parameter*/
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }   
-    if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5) || (nrhs == 6))  alpha1 =  (float) mxGetScalar(prhs[2]); /* parameter to control the first-order term */ 
-    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6))  alpha0 =  (float) mxGetScalar(prhs[3]);  /* parameter to control the second-order term */
-    if ((nrhs == 5) || (nrhs == 6))  iter =  (int) mxGetScalar(prhs[4]); /* Iterations number */      
-    if (nrhs == 6)  L2 =  (float) mxGetScalar(prhs[5]); /* Lipshitz constant */
+    if ((nrhs == 3) || (nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7))  alpha1 =  (float) mxGetScalar(prhs[2]); /* parameter to control the first-order term */ 
+    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7))  alpha0 =  (float) mxGetScalar(prhs[3]);  /* parameter to control the second-order term */
+    if ((nrhs == 5) || (nrhs == 6) || (nrhs == 7))  iter =  (int) mxGetScalar(prhs[4]); /* Iterations number */      
+    if ((nrhs == 6) || (nrhs == 7))  L2 =  (float) mxGetScalar(prhs[5]); /* Lipshitz constant */
+    if (nrhs == 7) epsil =  (float) mxGetScalar(prhs[6]); /* epsilon */
     
     /*Handling Matlab output data*/
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
@@ -77,7 +83,12 @@ void mexFunction(
     }
     if (number_of_dims == 3) {
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
-    }       
+    }    
+ 
+    int vecdim[1];
+    vecdim[0] = 2;
+    infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));    
+    
     /* running the function */
-    TGV_main(Input, Output, lambda, alpha1, alpha0, iter, L2, dimX, dimY, dimZ);        
+    TGV_main(Input, Output, infovec, lambda, alpha1, alpha0, iter, L2, epsil, dimX, dimY, dimZ);        
 }

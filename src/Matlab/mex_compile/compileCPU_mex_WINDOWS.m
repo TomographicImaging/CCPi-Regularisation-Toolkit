@@ -10,9 +10,9 @@
 
 fsep = '/';
 
-pathcopyFrom = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'regularisers_CPU'], 1i);
-pathcopyFrom1 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
-pathcopyFrom2 = sprintf(['..' fsep '..' fsep '..' fsep 'Core' fsep 'inpainters_CPU'], 1i);
+pathcopyFrom = sprintf(['..' fsep '..' fsep 'Core' fsep 'regularisers_CPU'], 1i);
+pathcopyFrom1 = sprintf(['..' fsep '..' fsep 'Core' fsep 'CCPiDefines.h'], 1i);
+pathcopyFrom2 = sprintf(['..' fsep '..' fsep 'Core' fsep 'inpainters_CPU'], 1i);
 
 copyfile(pathcopyFrom, 'regularisers_CPU');
 copyfile(pathcopyFrom1, 'regularisers_CPU');
@@ -79,7 +79,6 @@ fprintf('%s \n', 'Compiling Nonlocal marching method for inpaiting...');
 mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c COMPFLAGS="\$COMPFLAGS -fopenmp -Wall -std=c99"
 movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 
-
 %%
 %%% The second approach to compile using TDM-GCC which follows this
 %%% discussion:
@@ -129,7 +128,5 @@ fprintf('%s \n', 'Regularisers successfully compiled!');
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%pathA2 = sprintf(['..' fsep '..' fsep], 1i);
-%cd(pathA2);
-%cd demos
+pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos'], 1i);
+cd(pathA2);

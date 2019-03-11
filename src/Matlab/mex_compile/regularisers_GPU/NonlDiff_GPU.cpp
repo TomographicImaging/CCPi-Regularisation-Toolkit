@@ -26,19 +26,20 @@
  * The minimisation is performed using explicit scheme. 
  *
  * Input Parameters:
- * 1. Noisy image/volume 
+ * 1. Noisy image/volume
  * 2. lambda - regularization parameter
  * 3. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
- * 4. Number of iterations, for explicit scheme >= 150 is recommended 
- * 5. tau - time-marching step for explicit scheme
- * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight
+ * 4. Number of iterations, for explicit scheme >= 150 is recommended  [OPTIONAL parameter]
+ * 5. tau - time-marching step for explicit scheme [OPTIONAL parameter]
+ * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight [OPTIONAL parameter]
+ * 7. eplsilon - tolerance constant [OPTIONAL parameter]
  *
  * Output:
  * [1] Regularized image/volume 
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Perona, P. and Malik, J., 1990. Scale-space and edge detection using anisotropic diffusion. IEEE Transactions on pattern analysis and machine intelligence, 12(7), pp.629-639.
- * [2] Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.
  */
 
 void mexFunction(
@@ -48,9 +49,10 @@ void mexFunction(
 {
     int number_of_dims, iter_numb, penaltytype;
     mwSize dimX, dimY, dimZ;
-    const mwSize *dim_array;
+    const mwSize *dim_array;   
     
-    float *Input, *Output=NULL, lambda, tau, sigma;
+    float *Input, *Output=NULL, lambda, tau, sigma, epsil;
+    float *infovec=NULL;
     
     dim_array = mxGetDimensions(prhs[0]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
@@ -62,12 +64,13 @@ void mexFunction(
     iter_numb = 300; /* iterations number */
     tau = 0.025; /* marching step parameter */
     penaltytype = 1; /* Huber penalty by default */
+    epsil = 1.0e-06; /*tolerance parameter*/
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
-    if ((nrhs < 3) || (nrhs > 6)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Regularisation parameter, Edge-preserving parameter, iterations number, time-marching constant, penalty type - Huber, PM or Tukey");
-    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6))  iter_numb = (int) mxGetScalar(prhs[3]); /* iterations number */
-    if ((nrhs == 5) || (nrhs == 6))  tau =  (float) mxGetScalar(prhs[4]); /* marching step parameter */
-    if (nrhs == 6)  {
+    if ((nrhs < 3) || (nrhs > 7)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Regularisation parameter, Edge-preserving parameter, iterations number, time-marching constant, penalty type - Huber, PM or Tukey, tolerance");
+    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7))  iter_numb = (int) mxGetScalar(prhs[3]); /* iterations number */
+    if ((nrhs == 5) || (nrhs == 6) || (nrhs == 7))  tau =  (float) mxGetScalar(prhs[4]); /* marching step parameter */
+    if ((nrhs == 6) || (nrhs == 7))  {
         char *penalty_type;
         penalty_type = mxArrayToString(prhs[5]); /* Huber, PM or Tukey 'Huber' is the default */
         if ((strcmp(penalty_type, "Huber") != 0) && (strcmp(penalty_type, "PM") != 0) && (strcmp(penalty_type, "Tukey") != 0)) mexErrMsgTxt("Choose penalty: 'Huber', 'PM' or 'Tukey',");
@@ -76,6 +79,7 @@ void mexFunction(
         if (strcmp(penalty_type, "Tukey") == 0)  penaltytype = 3;  /* enable Tikey Biweight penalty */
         mxFree(penalty_type);
     }    
+    if ((nrhs == 7)) epsil =  (float) mxGetScalar(prhs[6]); /* epsilon */
     
     /*Handling Matlab output data*/
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
@@ -88,5 +92,9 @@ void mexFunction(
     }
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     
-    NonlDiff_GPU_main(Input, Output, lambda, sigma, iter_numb, tau, penaltytype, dimX, dimY, dimZ);
+    int vecdim[1];
+    vecdim[0] = 2;
+    infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));   
+    
+    NonlDiff_GPU_main(Input, Output, infovec, lambda, sigma, iter_numb, tau, penaltytype, epsil, dimX, dimY, dimZ);
 }

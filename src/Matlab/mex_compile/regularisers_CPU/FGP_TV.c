@@ -58,7 +58,7 @@ void mexFunction(
     Input  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
     iter = 400; /* default iterations number */
-    epsil = 0.0; /* default tolerance constant */
+    epsil = 1.0e-06; /* default tolerance constant */
     methTV = 0;  /* default isotropic TV penalty */
     nonneg = 0; /* default nonnegativity switch, off - 0 */
     
