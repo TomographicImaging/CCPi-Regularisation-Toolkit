@@ -92,7 +92,7 @@ void mexFunction(
     }
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     
-    int vecdim[1];
+    mwSize vecdim[1];
     vecdim[0] = 2;
     infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));   
     

@@ -57,7 +57,7 @@ void mexFunction(
     dim_array = mxGetDimensions(prhs[0]);
     
     /*Handling Matlab input data*/
-    if ((nrhs < 2) || (nrhs > 6)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D), Regularisation parameter, alpha0, alpha1, iterations number, Lipshitz Constant");
+    if ((nrhs < 2) || (nrhs > 7)) mexErrMsgTxt("At least 2 parameters is required, all parameters are: Image(2D), Regularisation parameter, alpha0, alpha1, iterations number, Lipshitz Constant");
     
     Input  = (float *) mxGetData(prhs[0]); /*noisy image/volume */
     lambda =  (float) mxGetScalar(prhs[1]); /* regularisation parameter */
@@ -85,7 +85,7 @@ void mexFunction(
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     }    
  
-    int vecdim[1];
+    mwSize vecdim[1];
     vecdim[0] = 2;
     infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));    
     

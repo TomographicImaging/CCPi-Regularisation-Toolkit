@@ -23,7 +23,8 @@ lambda_reg = 0.03; % regularsation parameter for all methods
 fprintf('Denoise a volume using the ROF-TV model (CPU) \n');
 tau_rof = 0.0025; % time-marching constant 
 iter_rof = 300; % number of ROF iterations
-tic; u_rof = ROF_TV(single(vol3D), lambda_reg, iter_rof, tau_rof); toc; 
+epsil_tol =  0.0; % tolerance
+tic; [u_rof,infovec] = ROF_TV(single(vol3D), lambda_reg, iter_rof, tau_rof, epsil_tol); toc; 
 energyfunc_val_rof = TV_energy(single(u_rof),single(vol3D),lambda_reg, 1);  % get energy function value
 rmse_rof = (RMSE(Ideal3D(:),u_rof(:)));
 fprintf('%s %f \n', 'RMSE error for ROF is:', rmse_rof);
@@ -39,8 +40,8 @@ figure; imshow(u_rof(:,:,7), [0 1]); title('ROF-TV denoised volume (CPU)');
 %%
 fprintf('Denoise a volume using the FGP-TV model (CPU) \n');
 iter_fgp = 300; % number of FGP iterations
-epsil_tol =  1.0e-05; % tolerance
-tic; u_fgp = FGP_TV(single(vol3D), lambda_reg, iter_fgp, epsil_tol); toc; 
+epsil_tol =  0.0; % tolerance
+tic; [u_fgp,infovec] = FGP_TV(single(vol3D), lambda_reg, iter_fgp, epsil_tol); toc; 
 energyfunc_val_fgp = TV_energy(single(u_fgp),single(vol3D),lambda_reg, 1); % get energy function value
 rmse_fgp = (RMSE(Ideal3D(:),u_fgp(:)));
 fprintf('%s %f \n', 'RMSE error for FGP-TV is:', rmse_fgp);
@@ -56,8 +57,8 @@ figure; imshow(u_fgp(:,:,7), [0 1]); title('FGP-TV denoised volume (CPU)');
 %%
 fprintf('Denoise a volume using the SB-TV model (CPU) \n');
 iter_sb = 150; % number of SB iterations
-epsil_tol =  1.0e-05; % tolerance
-tic; u_sb = SB_TV(single(vol3D), lambda_reg, iter_sb, epsil_tol); toc; 
+epsil_tol =  0.0; % tolerance
+tic; [u_sb,infovec] = SB_TV(single(vol3D), lambda_reg, iter_sb, epsil_tol); toc; 
 energyfunc_val_sb = TV_energy(single(u_sb),single(vol3D),lambda_reg, 1);  % get energy function value
 rmse_sb = (RMSE(Ideal3D(:),u_sb(:)));
 fprintf('%s %f \n', 'RMSE error for SB-TV is:', rmse_sb);
@@ -76,7 +77,8 @@ lambda_ROF = lambda_reg; % ROF regularisation parameter
 lambda_LLT = lambda_reg*0.35; % LLT regularisation parameter
 iter_LLT = 300; % iterations 
 tau_rof_llt = 0.0025; % time-marching constant 
-tic; u_rof_llt = LLT_ROF(single(vol3D), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt); toc; 
+epsil_tol =  0.0; % tolerance
+tic; [u_rof_llt, infovec] = LLT_ROF(single(vol3D), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt, epsil_tol); toc; 
 rmse_rof_llt = (RMSE(Ideal3D(:),u_rof_llt(:)));
 fprintf('%s %f \n', 'RMSE error for ROF-LLT is:', rmse_rof_llt);
 figure; imshow(u_rof_llt(:,:,7), [0 1]); title('ROF-LLT denoised volume (CPU)');
@@ -86,7 +88,7 @@ figure; imshow(u_rof_llt(:,:,7), [0 1]); title('ROF-LLT denoised volume (CPU)');
 % lambda_LLT = lambda_reg*0.35; % LLT regularisation parameter
 % iter_LLT = 300; % iterations 
 % tau_rof_llt = 0.0025; % time-marching constant 
-% tic; u_rof_llt_g = LLT_ROF_GPU(single(vol3D), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt); toc; 
+% tic; u_rof_llt_g = LLT_ROF_GPU(single(vol3D), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt, epsil_tol); toc; 
 % rmse_rof_llt = (RMSE(Ideal3D(:),u_rof_llt_g(:)));
 % fprintf('%s %f \n', 'RMSE error for ROF-LLT is:', rmse_rof_llt);
 % figure; imshow(u_rof_llt_g(:,:,7), [0 1]); title('ROF-LLT denoised volume (GPU)');
@@ -96,7 +98,8 @@ iter_diff = 300; % number of diffusion iterations
 lambda_regDiff = 0.025; % regularisation for the diffusivity 
 sigmaPar = 0.015; % edge-preserving parameter
 tau_param = 0.025; % time-marching constant 
-tic; u_diff = NonlDiff(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+epsil_tol =  0.0; % tolerance
+tic; [u_diff, infovec]  = NonlDiff(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber', epsil_tol); toc; 
 rmse_diff = (RMSE(Ideal3D(:),u_diff(:)));
 fprintf('%s %f \n', 'RMSE error for Diffusion is:', rmse_diff);
 figure; imshow(u_diff(:,:,7), [0 1]); title('Diffusion denoised volume (CPU)');
@@ -106,7 +109,7 @@ figure; imshow(u_diff(:,:,7), [0 1]); title('Diffusion denoised volume (CPU)');
 % lambda_regDiff = 0.025; % regularisation for the diffusivity 
 % sigmaPar = 0.015; % edge-preserving parameter
 % tau_param = 0.025; % time-marching constant 
-% tic; u_diff_g = NonlDiff_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber'); toc; 
+% tic; u_diff_g = NonlDiff_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, 'Huber', epsil_tol); toc; 
 % rmse_diff = (RMSE(Ideal3D(:),u_diff_g(:)));
 % fprintf('%s %f \n', 'RMSE error for Diffusion is:', rmse_diff);
 % figure; imshow(u_diff_g(:,:,7), [0 1]); title('Diffusion denoised volume (GPU)');
@@ -116,7 +119,8 @@ iter_diff = 300; % number of diffusion iterations
 lambda_regDiff = 3.5; % regularisation for the diffusivity 
 sigmaPar = 0.02; % edge-preserving parameter
 tau_param = 0.0015; % time-marching constant 
-tic; u_diff4 = Diffusion_4thO(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
+epsil_tol =  0.0; % tolerance
+tic; u_diff4 = Diffusion_4thO(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, epsil_tol); toc; 
 rmse_diff4 = (RMSE(Ideal3D(:),u_diff4(:)));
 fprintf('%s %f \n', 'RMSE error for Anis.Diff of 4th order is:', rmse_diff4);
 figure; imshow(u_diff4(:,:,7), [0 1]); title('Diffusion 4thO denoised volume (CPU)');
@@ -126,7 +130,7 @@ figure; imshow(u_diff4(:,:,7), [0 1]); title('Diffusion 4thO denoised volume (CP
 % lambda_regDiff = 3.5; % regularisation for the diffusivity 
 % sigmaPar = 0.02; % edge-preserving parameter
 % tau_param = 0.0015; % time-marching constant 
-% tic; u_diff4_g = Diffusion_4thO_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param); toc; 
+% tic; u_diff4_g = Diffusion_4thO_GPU(single(vol3D), lambda_regDiff, sigmaPar, iter_diff, tau_param, epsil_tol); toc; 
 % rmse_diff4 = (RMSE(Ideal3D(:),u_diff4_g(:)));
 % fprintf('%s %f \n', 'RMSE error for Anis.Diff of 4th order is:', rmse_diff4);
 % figure; imshow(u_diff4_g(:,:,7), [0 1]); title('Diffusion 4thO denoised volume (GPU)');
@@ -136,7 +140,8 @@ lambda_TGV = 0.03; % regularisation parameter
 alpha1 = 1.0; % parameter to control the first-order term
 alpha0 = 2.0; % parameter to control the second-order term
 iter_TGV = 500; % number of Primal-Dual iterations for TGV
-tic; u_tgv = TGV(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
+epsil_tol =  0.0; % tolerance
+tic; u_tgv = TGV(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV, epsil_tol); toc; 
 rmseTGV = RMSE(Ideal3D(:),u_tgv(:));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
 figure; imshow(u_tgv(:,:,3), [0 1]); title('TGV denoised volume (CPU)');
@@ -146,7 +151,7 @@ figure; imshow(u_tgv(:,:,3), [0 1]); title('TGV denoised volume (CPU)');
 % alpha1 = 1.0; % parameter to control the first-order term
 % alpha0 = 2.0; % parameter to control the second-order term
 % iter_TGV = 500; % number of Primal-Dual iterations for TGV
-% tic; u_tgv_gpu = TGV_GPU(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV); toc; 
+% tic; u_tgv_gpu = TGV_GPU(single(vol3D), lambda_TGV, alpha1, alpha0, iter_TGV, epsil_tol); toc; 
 % rmseTGV = RMSE(Ideal3D(:),u_tgv_gpu(:));
 % fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
 % figure; imshow(u_tgv_gpu(:,:,3), [0 1]); title('TGV denoised volume (GPU)');
@@ -163,7 +168,7 @@ vol3D_ref(vol3D_ref < 0) = 0;
 % vol3D_ref = zeros(size(Im),'single'); % pass zero reference (dTV -> TV)
 
 iter_fgp = 300; % number of FGP iterations
-epsil_tol =  1.0e-05; % tolerance
+epsil_tol =  0.0; % tolerance
 eta =  0.2; % Reference image gradient smoothing constant
 tic; u_fgp_dtv = FGP_dTV(single(vol3D), single(vol3D_ref), lambda_reg, iter_fgp, epsil_tol, eta); toc; 
 figure; imshow(u_fgp_dtv(:,:,7), [0 1]); title('FGP-dTV denoised volume (CPU)');
@@ -179,7 +184,7 @@ vol3D_ref(vol3D_ref < 0) = 0;
 % vol3D_ref = zeros(size(Im),'single'); % pass zero reference (dTV -> TV)
 
 iter_fgp = 300; % number of FGP iterations
-epsil_tol =  1.0e-05; % tolerance
+epsil_tol =  0.0; % tolerance
 eta =  0.2; % Reference image gradient smoothing constant
 tic; u_fgp_dtv_g = FGP_dTV_GPU(single(vol3D), single(vol3D_ref), lambda_reg, iter_fgp, epsil_tol, eta); toc; 
 figure; imshow(u_fgp_dtv_g(:,:,7), [0 1]); title('FGP-dTV denoised volume (GPU)');

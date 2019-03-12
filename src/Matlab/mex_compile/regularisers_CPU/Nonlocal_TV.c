@@ -51,8 +51,8 @@ void mexFunction(
     long number_of_dims,  dimX, dimY, dimZ;
     int IterNumb, NumNeighb = 0;
     unsigned short *H_i, *H_j, *H_k;
-    const int  *dim_array;
-    const int  *dim_array2;
+    const mwSize  *dim_array;
+    const mwSize *dim_array2;
     float *A_orig, *Output=NULL, *Weights, lambda;
     
     dim_array = mxGetDimensions(prhs[0]);
