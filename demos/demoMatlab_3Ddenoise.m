@@ -18,9 +18,10 @@ Ideal3D(:,:,i) = Im;
 end
 vol3D(vol3D < 0) = 0;
 figure; imshow(vol3D(:,:,7), [0 1]); title('Noisy image');
-lambda_reg = 0.03; % regularsation parameter for all methods
+
 %%
 fprintf('Denoise a volume using the ROF-TV model (CPU) \n');
+lambda_reg = 0.03; % regularsation parameter for all methods
 tau_rof = 0.0025; % time-marching constant 
 iter_rof = 300; % number of ROF iterations
 epsil_tol =  0.0; % tolerance
@@ -31,14 +32,17 @@ fprintf('%s %f \n', 'RMSE error for ROF is:', rmse_rof);
 figure; imshow(u_rof(:,:,7), [0 1]); title('ROF-TV denoised volume (CPU)');
 %%
 % fprintf('Denoise a volume using the ROF-TV model (GPU) \n');
+% lambda_reg = 0.03; % regularsation parameter for all methods
 % tau_rof = 0.0025; % time-marching constant 
 % iter_rof = 300; % number of ROF iterations
-% tic; u_rofG = ROF_TV_GPU(single(vol3D), lambda_reg, iter_rof, tau_rof); toc;
+% epsil_tol =  0.0; % tolerance
+% tic; u_rofG = ROF_TV_GPU(single(vol3D), lambda_reg, iter_rof, tau_rof, epsil_tol); toc;
 % rmse_rofG = (RMSE(Ideal3D(:),u_rofG(:)));
 % fprintf('%s %f \n', 'RMSE error for ROF is:', rmse_rofG);
 % figure; imshow(u_rofG(:,:,7), [0 1]); title('ROF-TV denoised volume (GPU)');
 %%
 fprintf('Denoise a volume using the FGP-TV model (CPU) \n');
+lambda_reg = 0.03; % regularsation parameter for all methods
 iter_fgp = 300; % number of FGP iterations
 epsil_tol =  0.0; % tolerance
 tic; [u_fgp,infovec] = FGP_TV(single(vol3D), lambda_reg, iter_fgp, epsil_tol); toc; 
@@ -47,9 +51,10 @@ rmse_fgp = (RMSE(Ideal3D(:),u_fgp(:)));
 fprintf('%s %f \n', 'RMSE error for FGP-TV is:', rmse_fgp);
 figure; imshow(u_fgp(:,:,7), [0 1]); title('FGP-TV denoised volume (CPU)');
 %%
-% fprintf('Denoise a volume using the FGP-TV model (GPU) \n');
+fprintf('Denoise a volume using the FGP-TV model (GPU) \n');
+% lambda_reg = 0.03; % regularsation parameter for all methods
 % iter_fgp = 300; % number of FGP iterations
-% epsil_tol =  1.0e-05; % tolerance
+% epsil_tol =  0.0; % tolerance
 % tic; u_fgpG = FGP_TV_GPU(single(vol3D), lambda_reg, iter_fgp, epsil_tol); toc; 
 % rmse_fgpG = (RMSE(Ideal3D(:),u_fgpG(:)));
 % fprintf('%s %f \n', 'RMSE error for FGP-TV is:', rmse_fgpG);
@@ -66,7 +71,7 @@ figure; imshow(u_sb(:,:,7), [0 1]); title('SB-TV denoised volume (CPU)');
 %%
 % fprintf('Denoise a volume using the SB-TV model (GPU) \n');
 % iter_sb = 150; % number of SB iterations
-% epsil_tol =  1.0e-05; % tolerance
+% epsil_tol =  0.0; % tolerance
 % tic; u_sbG = SB_TV_GPU(single(vol3D), lambda_reg, iter_sb, epsil_tol); toc; 
 % rmse_sbG = (RMSE(Ideal3D(:),u_sbG(:)));
 % fprintf('%s %f \n', 'RMSE error for SB-TV is:', rmse_sbG);
@@ -88,6 +93,7 @@ figure; imshow(u_rof_llt(:,:,7), [0 1]); title('ROF-LLT denoised volume (CPU)');
 % lambda_LLT = lambda_reg*0.35; % LLT regularisation parameter
 % iter_LLT = 300; % iterations 
 % tau_rof_llt = 0.0025; % time-marching constant 
+% epsil_tol =  0.0; % tolerance
 % tic; u_rof_llt_g = LLT_ROF_GPU(single(vol3D), lambda_ROF, lambda_LLT, iter_LLT, tau_rof_llt, epsil_tol); toc; 
 % rmse_rof_llt = (RMSE(Ideal3D(:),u_rof_llt_g(:)));
 % fprintf('%s %f \n', 'RMSE error for ROF-LLT is:', rmse_rof_llt);

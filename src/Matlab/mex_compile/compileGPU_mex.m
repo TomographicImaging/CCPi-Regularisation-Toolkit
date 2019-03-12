@@ -4,7 +4,7 @@
 % In order to compile CUDA modules one needs to have nvcc-compiler
 % installed (see CUDA SDK), check it under MATLAB with !nvcc --version
 
-% In the code bellow we provide a full explicit path to nvcc compiler 
+% In the code bellow we provide a full explicit path to nvcc compiler
 % ! paths to matlab and CUDA sdk can be different, modify accordingly !
 
 % Tested on Ubuntu 18.04/MATLAB 2016b/cuda10.0/gcc7.3
@@ -68,6 +68,7 @@ movefile('LLT_ROF_GPU.mex*',Pathmove);
 
 
 delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* TGV_GPU_core* LLT_ROF_GPU_core* CCPiDefines.h
+delete PatchSelect_core* Nonlocal_TV_core* shared.h
 fprintf('%s \n', 'All successfully compiled!');
 
 pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos'], 1i);

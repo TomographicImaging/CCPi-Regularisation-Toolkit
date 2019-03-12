@@ -52,8 +52,8 @@ void mexFunction(
 {
     int number_of_dims,  SearchWindow, SimilarWin, NumNeighb;
     mwSize dimX, dimY, dimZ;
-    unsigned short *H_i=NULL, *H_j=NULL, *H_k=NULL;
-    mwSize  *dim_array;
+    const mwSize *dim_array;
+    unsigned short *H_i=NULL, *H_j=NULL, *H_k=NULL;    
     float *A, *Weights = NULL, h;
     mwSize dim_array2[3]; /* for 2D data */
     mwSize dim_array3[4]; /* for 3D data */

@@ -1,12 +1,11 @@
 # CCPi-Regularisation Toolkit (CCPi-RGL)
 
-
-
 | Master | Development | Anaconda binaries |
 |--------|-------------|-------------------|
 | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/) | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit-dev)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit-dev/) | ![conda version](https://anaconda.org/ccpi/ccpi-regulariser/badges/version.svg) ![conda last release](https://anaconda.org/ccpi/ccpi-regulariser/badges/latest_release_date.svg) [![conda platforms](https://anaconda.org/ccpi/ccpi-regulariser/badges/platforms.svg) ![conda dowloads](https://anaconda.org/ccpi/ccpi-regulariser/badges/downloads.svg)](https://anaconda.org/ccpi/ccpi-regulariser) |
 
-**Iterative image reconstruction (IIR) methods normally require regularisation to stabilise the convergence and make the reconstruction problem (inverse problem) more well-posed. The CCPi-RGL software provides 2D/3D and multi-channel regularisation strategies to ensure better performance of IIR methods. The regularisation modules are well-suited to use with [splitting algorithms](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method#Alternating_direction_method_of_multipliers), such as, [ADMM](https://github.com/dkazanc/ADMM-tomo) and [FISTA](https://github.com/dkazanc/FISTA-tomo). Furthermore, the toolkit can be used for simpler inversion tasks, such as, image denoising, inpaiting, deconvolution etc. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
+**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-RGL toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/TomoRec), the toolkit can be used for image denoising and inpaiting problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
+
 
 <div align="center">
   <img src="demos/images/probl.png" height="225"><br>  
@@ -20,7 +19,7 @@
   <img src="demos/images/TV_vs_NLTV.jpg" height="300"><br>  
 </div>
 
-## Prerequisites: 
+## Prerequisites:
 
  * [MATLAB](www.mathworks.com/products/matlab/) OR
  * Python (tested ver. 3.5/2.7); Cython
@@ -29,7 +28,7 @@
 
 ## Package modules:
 
-### Single-channel (denoising):
+### Single-channel (scalar):
 1. Rudin-Osher-Fatemi (ROF) Total Variation (explicit PDE minimisation scheme) **2D/3D CPU/GPU** (Ref. *1*)
 2. Fast-Gradient-Projection (FGP) Total Variation **2D/3D CPU/GPU** (Ref. *2*)
 3. Split-Bregman (SB) Total Variation **2D/3D CPU/GPU** (Ref. *5*)
@@ -39,7 +38,7 @@
 7. A joint ROF-LLT (Lysaker-Lundervold-Tai) model for higher-order regularisation **2D/3D CPU/GPU** (Ref. *10,11*)
 8. Nonlocal Total Variation regularisation (GS fixed point iteration) **2D CPU/GPU** (Ref. *12*)
 
-### Multi-channel (denoising):
+### Multi-channel (vectorial):
 1. Fast-Gradient-Projection (FGP) Directional Total Variation **2D/3D CPU/GPU** (Ref. *3,4,2*)
 2. Total Nuclear Variation (TNV) penalty **2D+channels CPU** (Ref. *7*)
 
@@ -68,10 +67,10 @@ build/jenkins-build.sh
 this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests for environment with python 3.6 and numpy 1.12.
 
 ### CMake
-If you want to build directly using cmake, install CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this) 
-1. Clone this repository to a directory, i.e. `CCPi-Regularisation-Toolkit`, 
-2. create a build directory. 
-3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`, or `cmake3`). Use additional flags to fine tune the configuration. 
+If you want to build directly using cmake, install CMake (v.>=3) to configure it. Additionally you will need a C compiler, `make` (on linux) and CUDA SDK where available. The toolkit may be used directly from C/C++ as it is compiled as a shared library (check-out the include files in `Core` for this)
+1. Clone this repository to a directory, i.e. `CCPi-Regularisation-Toolkit`,
+2. create a build directory.
+3. Issue `cmake` to configure (or `cmake-gui`, or `ccmake`, or `cmake3`). Use additional flags to fine tune the configuration.
 
 Flags used during configuration
 
@@ -119,7 +118,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 #### Python build
 
-If passed `CONDA_BUILD=ON` the software will be installed by issuing `python setup.py install` which will install in the system python (or whichever other python it's been picked up by CMake at configuration time.) 
+If passed `CONDA_BUILD=ON` the software will be installed by issuing `python setup.py install` which will install in the system python (or whichever other python it's been picked up by CMake at configuration time.)
 If passed `CONDA_BUILD=OFF` the software will be installed in the directory pointed by `${PYTHON_DEST_DIR}` which defaults to `${CMAKE_INSTALL_PREFIX}/python`. Therefore this directory should be added to the `PYTHONPATH`.
 
 If Python is not picked by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/python/executable`.
@@ -128,12 +127,12 @@ If Python is not picked by CMake you can provide the additional flag to CMake `-
 
 Matlab wrapper will install in the `${MATLAB_DEST_DIR}` directory, which defaults to `${CMAKE_INSTALL_PREFIX}/matlab`
 
-If Matlab is not picked by CMake, you could add `-DMatlab_ROOT_DIR=<Matlab directory>`. 
+If Matlab is not picked by CMake, you could add `-DMatlab_ROOT_DIR=<Matlab directory>`.
 
 #### Linux
 Because you've installed the modules in `<your favourite install directory>` you need to instruct Matlab to look in those directories:
 
-```bash 
+```bash
 
 PATH="/path/to/mex/:$PATH" LD_LIBRARY_PATH="/path/to/library:$LD_LIBRARY_PATH" matlab
 ```
@@ -147,8 +146,8 @@ addpath(/path/to/library);
 
 #### Legacy Matlab installation (partly supported, please use Cmake)
 ```
-	
-	cd /Wrappers/Matlab/mex_compile
+
+	cd src/Matlab/mex_compile
 	compileCPU_mex.m % to compile CPU modules
 	compileGPU_mex.m % to compile GPU modules (see instructions in the file)
 ```
@@ -179,7 +178,7 @@ addpath(/path/to/library);
 12. [Abderrahim E., Lezoray O. and Bougleux S. 2008. Nonlocal discrete regularization on weighted graphs: a framework for image and manifold processing." IEEE Trans. Image Processing 17(7), pp. 1047-1060.](https://ieeexplore.ieee.org/document/4526700)
 
 ### References to Software:
-* If software is used, please refer to [11], however, the supporting publication is in progress. 
+* If software is used, please refer to [11], however, the supporting publication is in progress.
 
 ### Applications:
 

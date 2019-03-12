@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This demo scripts support the following publication: 
-"CCPi-Regularisation Toolkit for computed tomographic image reconstruction with 
+This demo scripts support the following publication:
+"CCPi-Regularisation Toolkit for computed tomographic image reconstruction with
 proximal splitting algorithms" by Daniil Kazantsev, Edoardo Pasca, Martin J. Turner,
  Philip J. Withers; Software X, 2019
 ____________________________________________________________________________
 * Reads real tomographic data (stored at Zenodo)
 --- https://doi.org/10.5281/zenodo.2578893
 * Reconstructs using TomoRec software
-* Saves reconstructed images 
+* Saves reconstructed images
 ____________________________________________________________________________
 >>>>> Dependencies: <<<<<
 1. ASTRA toolbox: conda install -c astra-toolbox astra-toolbox
@@ -40,7 +40,7 @@ data_norm = normaliser(dataRaw, flats, darks, log='log')
 del dataRaw, darks, flats
 
 intens_max = 2.3
-plt.figure() 
+plt.figure()
 plt.subplot(131)
 plt.imshow(data_norm[:,150,:],vmin=0, vmax=intens_max)
 plt.title('2D Projection (analytical)')
@@ -72,7 +72,7 @@ FBPrec = RectoolsDIR.FBP(data_norm[0:100,:,det_y_crop])
 
 sliceSel = 50
 max_val = 0.003
-plt.figure() 
+plt.figure()
 plt.subplot(131)
 plt.imshow(FBPrec[sliceSel,:,:],vmin=0, vmax=max_val, cmap="gray")
 plt.title('FBP Reconstruction, axial view')
@@ -108,7 +108,7 @@ RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH #
                     DetectorsDimV = 100,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
-                    datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
+                    datafidelity='LS',# data fidelity, choose LS, PWLS, GH (wip), Students t (wip)
                     nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
                     OS_number = None, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
                     tolerance = 0.0, # tolerance to stop inner (regularisation) iterations earlier
@@ -124,7 +124,7 @@ RecADMM_reg_sbtv = RectoolsIR.ADMM(data_norm[0:100,:,det_y_crop],
 
 sliceSel = 50
 max_val = 0.003
-plt.figure() 
+plt.figure()
 plt.subplot(131)
 plt.imshow(RecADMM_reg_sbtv[sliceSel,:,:],vmin=0, vmax=max_val, cmap="gray")
 plt.title('3D ADMM-SB-TV Reconstruction, axial view')
@@ -164,7 +164,7 @@ RecADMM_reg_rofllt = RectoolsIR.ADMM(data_norm[0:100,:,det_y_crop],
 
 sliceSel = 50
 max_val = 0.003
-plt.figure() 
+plt.figure()
 plt.subplot(131)
 plt.imshow(RecADMM_reg_rofllt[sliceSel,:,:],vmin=0, vmax=max_val)
 plt.title('3D ADMM-ROFLLT Reconstruction, axial view')
@@ -202,7 +202,7 @@ RecADMM_reg_tgv = RectoolsIR.ADMM(data_norm[0:100,:,det_y_crop],
 
 sliceSel = 50
 max_val = 0.003
-plt.figure() 
+plt.figure()
 plt.subplot(131)
 plt.imshow(RecADMM_reg_tgv[sliceSel,:,:],vmin=0, vmax=max_val)
 plt.title('3D ADMM-TGV Reconstruction, axial view')
