@@ -83,17 +83,18 @@ fprintf('Denoise using the TGV model (CPU) \n');
 lambda_TGV = 0.035; % regularisation parameter
 alpha1 = 1.0; % parameter to control the first-order term
 alpha0 = 2.0; % parameter to control the second-order term
-iter_TGV = 20; % number of Primal-Dual iterations for TGV
+L2 =  12.0; % convergence parameter
+iter_TGV = 1200; % number of Primal-Dual iterations for TGV
 epsil_tol =  0.0; % tolerance
-tic; [u_tgv,infovec] = TGV(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV, epsil_tol); toc; 
+tic; [u_tgv,infovec] = TGV(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV, L2, epsil_tol); toc; 
+figure; imshow(u_tgv, [0 1]); title('TGV denoised image (CPU)');
 rmseTGV = (RMSE(u_tgv(:),Im(:)));
 fprintf('%s %f \n', 'RMSE error for TGV is:', rmseTGV);
 [ssimval] = ssim(u_tgv*255,single(Im)*255);
 fprintf('%s %f \n', 'MSSIM error for TGV is:', ssimval);
-figure; imshow(u_tgv, [0 1]); title('TGV denoised image (CPU)');
 %%
 % fprintf('Denoise using the TGV model (GPU) \n');
-% tic; u_tgv_gpu = TGV_GPU(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV, epsil_tol); toc; 
+% tic; u_tgv_gpu = TGV_GPU(single(u0), lambda_TGV, alpha1, alpha0, iter_TGV, L2, epsil_tol); toc; 
 % figure; imshow(u_tgv_gpu, [0 1]); title('TGV denoised image (GPU)');
 %%
 fprintf('Denoise using the ROF-LLT model (CPU) \n');
