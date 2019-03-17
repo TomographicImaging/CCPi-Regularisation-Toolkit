@@ -77,7 +77,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             Proj_func2D(P1, P2, methodTV, DimTotal);
 
             /*updating R and t*/
-            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+            tkp1 = (1.0f + sqrtf(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_func2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
 
             /*storing old values*/
@@ -135,7 +135,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             Proj_func3D(P1, P2, P3, methodTV, DimTotal);
 
             /*updating R and t*/
-            tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
+            tkp1 = (1.0f + sqrtf(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_func3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
 
             /* calculate norm - stopping rules*/
