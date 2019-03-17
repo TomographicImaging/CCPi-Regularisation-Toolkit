@@ -52,9 +52,9 @@ reg_param_tgv_vec = h5f['reg_param_tgv_vec'][:]
 erros_vec_tgv = h5f['erros_vec_tgv'][:]
 h5f.close()
 
-index_minSBTV = min(xrange(len(erros_vec_sbtv)), key=erros_vec_sbtv.__getitem__)
-index_minROFLLT = min(xrange(len(erros_vec_rofllt)), key=erros_vec_rofllt.__getitem__)
-index_minTGV = min(xrange(len(erros_vec_tgv)), key=erros_vec_tgv.__getitem__)
+index_minSBTV = np.argmin(erros_vec_sbtv)
+index_minROFLLT = np.argmin(erros_vec_rofllt)
+index_minTGV = np.argmin(erros_vec_tgv) 
 # assign optimal regularisation parameters:
 optimReg_sbtv = reg_param_sb_vec[index_minSBTV]
 optimReg_rofllt = reg_param_rofllt_vec[index_minROFLLT]
@@ -163,7 +163,7 @@ RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector d
                     datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
                     nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
                     OS_number = None, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
-                    tolerance = 0.0, # tolerance to stop inner (regularisation) iterations earlier
+                    tolerance = 1e-06, # tolerance to stop outer -ADMM iterations earlier
                     device='gpu')
 #%%
 print ("Reconstructing with ADMM method using SB-TV penalty")
@@ -198,7 +198,7 @@ plt.imshow(RecADMM_reg_sbtv[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
 plt.title('ADMM-SBTV (Y-Z) view', fontsize=19)
 plt.colorbar(ax=ax4)
 plt.show()
-plt.savefig('SBTV_phantom.pdf', format='pdf', dpi=1600)
+#plt.savefig('SBTV_phantom.pdf', format='pdf', dpi=1600)
 
 # calculate errors 
 Qtools = QualityTools(phantom, RecADMM_reg_sbtv)
