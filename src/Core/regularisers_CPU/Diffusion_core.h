@@ -27,29 +27,31 @@ limitations under the License.
 
 
 /* C-OMP implementation of linear and nonlinear diffusion with the regularisation model [1,2] (2D/3D case)
- * The minimisation is performed using explicit scheme. 
+ * The minimisation is performed using explicit scheme.
  *
  * Input Parameters:
- * 1. Noisy image/volume 
+ * 1. Noisy image/volume
  * 2. lambda - regularization parameter
  * 3. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
- * 4. Number of iterations, for explicit scheme >= 150 is recommended 
+ * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
  * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight
- *
+ * 7. eplsilon - tolerance constant
+
  * Output:
- * [1] Regularized image/volume 
+ * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Perona, P. and Malik, J., 1990. Scale-space and edge detection using anisotropic diffusion. IEEE Transactions on pattern analysis and machine intelligence, 12(7), pp.629-639.
  * [2] Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.
  */
 
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float Diffusion_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb,  float tau, int penaltytype, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
 CCPI_EXPORT float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, long dimX, long dimY);
 CCPI_EXPORT float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY);
 CCPI_EXPORT float LinearDiff3D(float *Input, float *Output, float lambdaPar, float tau, long dimX, long dimY, long dimZ);

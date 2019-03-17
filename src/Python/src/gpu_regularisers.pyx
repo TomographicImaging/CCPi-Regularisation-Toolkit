@@ -20,190 +20,195 @@ cimport numpy as np
 
 CUDAErrorMessage = 'CUDA error'
 
-cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float lambdaPar, int iter, float tau, int N, int M, int Z);
-cdef extern int TV_FGP_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int printM, int N, int M, int Z);
-cdef extern int TV_SB_GPU_main(float *Input, float *Output, float lambdaPar, int iter, float epsil, int methodTV, int printM, int N, int M, int Z);
-cdef extern int TGV_GPU_main(float *Input, float *Output, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, int dimX, int dimY, int dimZ);
-cdef extern int LLT_ROF_GPU_main(float *Input, float *Output, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, int N, int M, int Z);
-cdef extern int NonlDiff_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int N, int M, int Z);
-cdef extern int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int printM, int N, int M, int Z);
-cdef extern int Diffus4th_GPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int N, int M, int Z);
+cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float lambdaPar, int iter, float tau, float epsil, int N, int M, int Z);
+cdef extern int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int N, int M, int Z);
+cdef extern int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int N, int M, int Z);
+cdef extern int LLT_ROF_GPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau,  float epsil, int N, int M, int Z);
+cdef extern int TGV_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ);
+cdef extern int NonlDiff_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int N, int M, int Z);
+cdef extern int Diffus4th_GPU_main(float *Input, float *Output,  float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int N, int M, int Z);
+cdef extern int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int N, int M, int Z);
 cdef extern int PatchSelect_GPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, float *Weights, int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h);
 
 # Total-variation Rudin-Osher-Fatemi (ROF)
 def TV_ROF_GPU(inputData,
                      regularisation_parameter,
-                     iterations, 
-                     time_marching_parameter):
+                     iterations,
+                     time_marching_parameter,
+                     tolerance_param):
     if inputData.ndim == 2:
-        return ROFTV2D(inputData, 
+        return ROFTV2D(inputData,
                      regularisation_parameter,
                      iterations,
-                     time_marching_parameter)
+                     time_marching_parameter,
+                     tolerance_param)
     elif inputData.ndim == 3:
-        return ROFTV3D(inputData, 
+        return ROFTV3D(inputData,
                      regularisation_parameter,
-                     iterations, 
-                     time_marching_parameter)
-                     
+                     iterations,
+                     time_marching_parameter,
+                     tolerance_param)
+
 # Total-variation Fast-Gradient-Projection (FGP)
 def TV_FGP_GPU(inputData,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
                      methodTV,
-                     nonneg,
-                     printM):
+                     nonneg):
     if inputData.ndim == 2:
         return FGPTV2D(inputData,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
                      methodTV,
-                     nonneg,
-                     printM)
+                     nonneg)
     elif inputData.ndim == 3:
         return FGPTV3D(inputData,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
                      methodTV,
-                     nonneg,
-                     printM)
+                     nonneg)
 # Total-variation Split Bregman (SB)
 def TV_SB_GPU(inputData,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
-                     methodTV,
-                     printM):
+                     methodTV):
     if inputData.ndim == 2:
         return SBTV2D(inputData,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
-                     methodTV,
-                     printM)
+                     methodTV)
     elif inputData.ndim == 3:
         return SBTV3D(inputData,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
-                     methodTV,
-                     printM)
+                     methodTV)
 # LLT-ROF model
-def LLT_ROF_GPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter):
+def LLT_ROF_GPU(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param):
     if inputData.ndim == 2:
-        return LLT_ROF_GPU2D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
+        return LLT_ROF_GPU2D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param)
     elif inputData.ndim == 3:
-        return LLT_ROF_GPU3D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter)
+        return LLT_ROF_GPU3D(inputData, regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, tolerance_param)
 # Total Generilised Variation (TGV)
-def TGV_GPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst):
+def TGV_GPU(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst, tolerance_param):
     if inputData.ndim == 2:
-        return TGV2D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst)
+        return TGV2D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst, tolerance_param)
     elif inputData.ndim == 3:
-        return TGV3D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst)
+        return TGV3D(inputData, regularisation_parameter, alpha1, alpha0, iterations, LipshitzConst, tolerance_param)
 # Directional Total-variation Fast-Gradient-Projection (FGP)
 def dTV_FGP_GPU(inputData,
                      refdata,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
                      eta_const,
                      methodTV,
-                     nonneg,
-                     printM):
+                     nonneg):
     if inputData.ndim == 2:
         return FGPdTV2D(inputData,
                      refdata,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
                      eta_const,
                      methodTV,
-                     nonneg,
-                     printM)
+                     nonneg)
     elif inputData.ndim == 3:
         return FGPdTV3D(inputData,
                      refdata,
                      regularisation_parameter,
-                     iterations, 
+                     iterations,
                      tolerance_param,
                      eta_const,
                      methodTV,
-                     nonneg,
-                     printM)
+                     nonneg)
 # Nonlocal Isotropic Diffusion (NDF)
 def NDF_GPU(inputData,
                      regularisation_parameter,
                      edge_parameter,
-                     iterations, 
+                     iterations,
                      time_marching_parameter,
-                     penalty_type):
+                     penalty_type,
+                     tolerance_param):
     if inputData.ndim == 2:
         return NDF_GPU_2D(inputData,
                      regularisation_parameter,
                      edge_parameter,
-                     iterations, 
+                     iterations,
                      time_marching_parameter,
-                     penalty_type)
+                     penalty_type,
+                     tolerance_param)
     elif inputData.ndim == 3:
         return NDF_GPU_3D(inputData,
                      regularisation_parameter,
                      edge_parameter,
-                     iterations, 
+                     iterations,
                      time_marching_parameter,
-                     penalty_type)
+                     penalty_type,
+                     tolerance_param)
 # Anisotropic Fourth-Order diffusion
 def Diff4th_GPU(inputData,
                      regularisation_parameter,
                      edge_parameter,
-                     iterations, 
-                     time_marching_parameter):
+                     iterations,
+                     time_marching_parameter,
+                     tolerance_param):
     if inputData.ndim == 2:
         return Diff4th_2D(inputData,
                      regularisation_parameter,
                      edge_parameter,
-                     iterations, 
-                     time_marching_parameter)
+                     iterations,
+                     time_marching_parameter,
+                     tolerance_param)
     elif inputData.ndim == 3:
         return Diff4th_3D(inputData,
                      regularisation_parameter,
                      edge_parameter,
-                     iterations, 
-                     time_marching_parameter)
-                     
+                     iterations,
+                     time_marching_parameter,
+                     tolerance_param)
+
 #****************************************************************#
 #********************** Total-variation ROF *********************#
 #****************************************************************#
-def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
-                     int iterations, 
-                     float time_marching_parameter):
-    
+                     int iterations,
+                     float time_marching_parameter,
+                     float tolerance_param):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
-          
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
     # Running CUDA code here
     if (TV_ROF_GPU_main(
-            &inputData[0,0], &outputData[0,0], 
+            &inputData[0,0], &outputData[0,0], &infovec[0],
                        regularisation_parameter,
-                       iterations , 
-                       time_marching_parameter, 
+                       iterations,
+                       time_marching_parameter,
+                       tolerance_param,
                        dims[1], dims[0], 1)==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
-    
-def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+
+def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameter,
-                     int iterations, 
-                     float time_marching_parameter):
-    
+                     int iterations,
+                     float time_marching_parameter,
+                     float tolerance_param):
+
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -211,76 +216,79 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
-          
-    # Running CUDA code here    
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
     if (TV_ROF_GPU_main(
-            &inputData[0,0,0], &outputData[0,0,0], 
+            &inputData[0,0,0], &outputData[0,0,0], &infovec[0],
                        regularisation_parameter,
-                       iterations , 
-                       time_marching_parameter, 
+                       iterations,
+                       time_marching_parameter,
+                       tolerance_param,
                        dims[2], dims[1], dims[0])==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 #****************************************************************#
 #********************** Total-variation FGP *********************#
 #****************************************************************#
 #******** Total-variation Fast-Gradient-Projection (FGP)*********#
-def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def FGPTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
-                     int iterations, 
+                     int iterations,
                      float tolerance_param,
                      int methodTV,
-                     int nonneg,
-                     int printM):
-    
+                     int nonneg):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (TV_FGP_GPU_main(&inputData[0,0], &outputData[0,0],
-                       regularisation_parameter, 
-                       iterations, 
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (TV_FGP_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0],
+                       regularisation_parameter,
+                       iterations,
                        tolerance_param,
                        methodTV,
                        nonneg,
-                       printM,
                        dims[1], dims[0], 1)==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
-    
-def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameter,
-                     int iterations, 
+                     int iterations,
                      float tolerance_param,
                      int methodTV,
-                     int nonneg,
-                     int printM):
-    
+                     int nonneg):
+
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     dims[2] = inputData.shape[2]
 
+
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (TV_FGP_GPU_main(&inputData[0,0,0], &outputData[0,0,0],
-                       regularisation_parameter , 
-                       iterations, 
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (TV_FGP_GPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0],
+                       regularisation_parameter,
+                       iterations,
                        tolerance_param,
                        methodTV,
                        nonneg,
-                       printM,
                        dims[2], dims[1], dims[0])==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
@@ -288,40 +296,39 @@ def FGPTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #********************** Total-variation SB *********************#
 #***************************************************************#
 #*************** Total-variation Split Bregman (SB)*************#
-def SBTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def SBTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
-                     int iterations, 
+                     int iterations,
                      float tolerance_param,
-                     int methodTV,
-                     int printM):
-    
+                     int methodTV):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (TV_SB_GPU_main(&inputData[0,0], &outputData[0,0],
-                       regularisation_parameter, 
-                       iterations, 
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (TV_SB_GPU_main(&inputData[0,0], &outputData[0,0],&infovec[0],
+                       regularisation_parameter,
+                       iterations,
                        tolerance_param,
                        methodTV,
-                       printM,
                        dims[1], dims[0], 1)==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
-    
-def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+
+def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameter,
-                     int iterations, 
+                     int iterations,
                      float tolerance_param,
-                     int methodTV,
-                     int printM):
-    
+                     int methodTV):
+
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -329,16 +336,17 @@ def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (TV_SB_GPU_main(&inputData[0,0,0], &outputData[0,0,0],
-                       regularisation_parameter , 
-                       iterations, 
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (TV_SB_GPU_main(&inputData[0,0,0], &outputData[0,0,0],&infovec[0],
+                       regularisation_parameter ,
+                       iterations,
                        tolerance_param,
                        methodTV,
-                       printM,
                        dims[2], dims[1], dims[0])==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
@@ -347,32 +355,39 @@ def SBTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #************************ LLT-ROF model ************************#
 #***************************************************************#
 #************Joint LLT-ROF model for higher order **************#
-def LLT_ROF_GPU2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def LLT_ROF_GPU2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameterROF,
                      float regularisation_parameterLLT,
-                     int iterations, 
-                     float time_marching_parameter):
-    
+                     int iterations,
+                     float time_marching_parameter,
+                     float tolerance_param):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (LLT_ROF_GPU_main(&inputData[0,0], &outputData[0,0],regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, dims[1],dims[0],1)==0):
-        return outputData;
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (LLT_ROF_GPU_main(&inputData[0,0], &outputData[0,0],&infovec[0],regularisation_parameterROF, regularisation_parameterLLT, iterations,
+                         time_marching_parameter,
+                         tolerance_param,
+                         dims[1],dims[0],1)==0):
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
-    
-def LLT_ROF_GPU3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+
+def LLT_ROF_GPU3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameterROF,
                      float regularisation_parameterLLT,
-                     int iterations, 
-                     float time_marching_parameter):
-    
+                     int iterations,
+                     float time_marching_parameter,
+                     float tolerance_param):
+
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -380,10 +395,16 @@ def LLT_ROF_GPU3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (LLT_ROF_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameterROF, regularisation_parameterLLT, iterations, time_marching_parameter, dims[2], dims[1], dims[0])==0):
-        return outputData;
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (LLT_ROF_GPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0], regularisation_parameterROF, regularisation_parameterLLT,
+                         iterations,
+                         time_marching_parameter,
+                         tolerance_param,
+                         dims[2], dims[1], dims[0])==0):
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
@@ -391,38 +412,43 @@ def LLT_ROF_GPU3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #***************************************************************#
 #***************** Total Generalised Variation *****************#
 #***************************************************************#
-def TGV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def TGV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
                      float alpha1,
                      float alpha0,
-                     int iterationsNumb, 
-                     float LipshitzConst):
-                         
+                     int iterationsNumb,
+                     float LipshitzConst,
+                     float tolerance_param):
+
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
-    
+
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
-                   
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
     #/* Run TGV iterations for 2D data */
-    if (TGV_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter,
+    if (TGV_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0], regularisation_parameter,
                        alpha1,
                        alpha0,
-                       iterationsNumb, 
+                       iterationsNumb,
                        LipshitzConst,
+                       tolerance_param,
                        dims[1],dims[0], 1)==0):
-        return outputData
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
-def TGV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+def TGV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameter,
                      float alpha1,
                      float alpha0,
-                     int iterationsNumb, 
-                     float LipshitzConst):
-    
+                     int iterationsNumb,
+                     float LipshitzConst,
+                     float tolerance_param):
+
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
@@ -430,178 +456,205 @@ def TGV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
-          
-    # Running CUDA code here    
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
     if (TGV_GPU_main(
-            &inputData[0,0,0], &outputData[0,0,0], regularisation_parameter,
+            &inputData[0,0,0], &outputData[0,0,0], &infovec[0], regularisation_parameter,
                        alpha1,
                        alpha0,
-                       iterationsNumb, 
+                       iterationsNumb,
                        LipshitzConst,
-                       dims[2], dims[1], dims[0])==0):
-        return outputData;
-    else:
-        raise ValueError(CUDAErrorMessage);
-
-
-#****************************************************************#
-#**************Directional Total-variation FGP ******************#
-#****************************************************************#
-#******** Directional TV Fast-Gradient-Projection (FGP)*********#
-def FGPdTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
-             np.ndarray[np.float32_t, ndim=2, mode="c"] refdata,
-                     float regularisation_parameter,
-                     int iterations, 
-                     float tolerance_param,
-                     float eta_const,
-                     int methodTV,
-                     int nonneg,
-                     int printM):
-    
-    cdef long dims[2]
-    dims[0] = inputData.shape[0]
-    dims[1] = inputData.shape[1]
-
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
-		    np.zeros([dims[0],dims[1]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (dTV_FGP_GPU_main(&inputData[0,0], &refdata[0,0], &outputData[0,0],
-                       regularisation_parameter, 
-                       iterations, 
                        tolerance_param,
-                       eta_const,
-                       methodTV,
-                       nonneg,
-                       printM,
-                       dims[1], dims[0], 1)==0):
-        return outputData
-    else:
-        raise ValueError(CUDAErrorMessage);
-
-    
-def FGPdTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
-             np.ndarray[np.float32_t, ndim=3, mode="c"] refdata, 
-                     float regularisation_parameter,
-                     int iterations, 
-                     float tolerance_param,
-                     float eta_const,
-                     int methodTV,
-                     int nonneg,
-                     int printM):
-    
-    cdef long dims[3]
-    dims[0] = inputData.shape[0]
-    dims[1] = inputData.shape[1]
-    dims[2] = inputData.shape[2]
-
-    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
-		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
-          
-    # Running CUDA code here    
-    if (dTV_FGP_GPU_main(&inputData[0,0,0], &refdata[0,0,0], &outputData[0,0,0],
-                       regularisation_parameter , 
-                       iterations, 
-                       tolerance_param,
-                       eta_const,
-                       methodTV,
-                       nonneg,
-                       printM,
                        dims[2], dims[1], dims[0])==0):
-        return outputData;
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
-
 
 #****************************************************************#
 #***************Nonlinear (Isotropic) Diffusion******************#
 #****************************************************************#
-def NDF_GPU_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def NDF_GPU_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
                      float edge_parameter,
-                     int iterationsNumb,                     
+                     int iterationsNumb,
                      float time_marching_parameter,
-                     int penalty_type):
+                     int penalty_type,
+                     float tolerance_param):
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
-    
+
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
-    
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
     #rangecheck = penalty_type < 1 and penalty_type > 3
     #if not rangecheck:
 #        raise ValueError('Choose penalty type as 1 for Huber, 2 - Perona-Malik, 3 - Tukey Biweight')
-    
-    # Run Nonlinear Diffusion iterations for 2D data 
-    # Running CUDA code here  
-    if (NonlDiff_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[1], dims[0], 1)==0):
-        return outputData;
+
+    # Run Nonlinear Diffusion iterations for 2D data
+    # Running CUDA code here
+    if (NonlDiff_GPU_main(&inputData[0,0], &outputData[0,0],&infovec[0],
+    regularisation_parameter,
+    edge_parameter, iterationsNumb,
+    time_marching_parameter, penalty_type,
+    tolerance_param,
+    dims[1], dims[0], 1)==0):
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
-
-            
-def NDF_GPU_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+def NDF_GPU_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameter,
                      float edge_parameter,
-                     int iterationsNumb,                     
+                     int iterationsNumb,
                      float time_marching_parameter,
-                     int penalty_type):
+                     int penalty_type,
+                     float tolerance_param):
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     dims[2] = inputData.shape[2]
-    
+
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
-            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')    
-       
-    # Run Nonlinear Diffusion iterations for  3D data 
-    # Running CUDA code here  
-    if (NonlDiff_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, dims[2], dims[1], dims[0])==0):
-        return outputData;
+            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Run Nonlinear Diffusion iterations for  3D data
+    # Running CUDA code here
+    if (NonlDiff_GPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0],
+    regularisation_parameter, edge_parameter,
+    iterationsNumb, time_marching_parameter,
+    penalty_type,
+    tolerance_param,
+    dims[2], dims[1], dims[0])==0):
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
 #****************************************************************#
 #************Anisotropic Fourth-Order diffusion******************#
 #****************************************************************#
-def Diff4th_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData, 
+def Diff4th_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
                      float edge_parameter,
                      int iterationsNumb,
-                     float time_marching_parameter):
+                     float time_marching_parameter,
+                     float tolerance_param):
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
-    
+
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
-    
-    # Run Anisotropic Fourth-Order diffusion for 2D data 
-    # Running CUDA code here  
-    if (Diffus4th_GPU_main(&inputData[0,0], &outputData[0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, dims[1], dims[0], 1)==0):
-        return outputData
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Run Anisotropic Fourth-Order diffusion for 2D data
+    # Running CUDA code here
+    if (Diffus4th_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0],
+    regularisation_parameter, edge_parameter, iterationsNumb,
+    time_marching_parameter,
+    tolerance_param,
+    dims[1], dims[0], 1)==0):
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
-            
-def Diff4th_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData, 
+def Diff4th_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float regularisation_parameter,
                      float edge_parameter,
                      int iterationsNumb,
-                     float time_marching_parameter):
+                     float time_marching_parameter,
+                     float tolerance_param):
     cdef long dims[3]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     dims[2] = inputData.shape[2]
-    
+
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
-            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')    
-       
-    # Run Anisotropic Fourth-Order diffusion for  3D data 
-    # Running CUDA code here  
-    if (Diffus4th_GPU_main(&inputData[0,0,0], &outputData[0,0,0], regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, dims[2], dims[1], dims[0])==0):
-        return outputData;
+            np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Run Anisotropic Fourth-Order diffusion for  3D data
+    # Running CUDA code here
+    if (Diffus4th_GPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0],
+    regularisation_parameter, edge_parameter,
+    iterationsNumb, time_marching_parameter,
+    tolerance_param,
+    dims[2], dims[1], dims[0])==0):
+        return (outputData,infovec)
+    else:
+        raise ValueError(CUDAErrorMessage);
+#****************************************************************#
+#**************Directional Total-variation FGP ******************#
+#****************************************************************#
+#******** Directional TV Fast-Gradient-Projection (FGP)*********#
+def FGPdTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
+             np.ndarray[np.float32_t, ndim=2, mode="c"] refdata,
+                     float regularisation_parameter,
+                     int iterations,
+                     float tolerance_param,
+                     float eta_const,
+                     int methodTV,
+                     int nonneg):
+
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+		    np.zeros([dims[0],dims[1]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (dTV_FGP_GPU_main(&inputData[0,0], &refdata[0,0], &outputData[0,0], &infovec[0],
+                       regularisation_parameter,
+                       iterations,
+                       tolerance_param,
+                       eta_const,
+                       methodTV,
+                       nonneg,
+                       dims[1], dims[0], 1)==0):
+        return (outputData,infovec)
+    else:
+        raise ValueError(CUDAErrorMessage);
+
+
+def FGPdTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
+             np.ndarray[np.float32_t, ndim=3, mode="c"] refdata,
+                     float regularisation_parameter,
+                     int iterations,
+                     float tolerance_param,
+                     float eta_const,
+                     int methodTV,
+                     int nonneg):
+
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    # Running CUDA code here
+    if (dTV_FGP_GPU_main(&inputData[0,0,0], &refdata[0,0,0], &outputData[0,0,0], &infovec[0],
+                       regularisation_parameter ,
+                       iterations,
+                       tolerance_param,
+                       eta_const,
+                       methodTV,
+                       nonneg,
+                       dims[2], dims[1], dims[0])==0):
+        return (outputData,infovec)
     else:
         raise ValueError(CUDAErrorMessage);
 
@@ -621,14 +674,14 @@ def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     cdef long dims[3]
     dims[0] = neighbours
     dims[1] = inputData.shape[0]
-    dims[2] = inputData.shape[1]    
-    
+    dims[2] = inputData.shape[1]
+
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] Weights = \
             np.zeros([dims[0], dims[1],dims[2]], dtype='float32')
-    
+
     cdef np.ndarray[np.uint16_t, ndim=3, mode="c"] H_i = \
             np.zeros([dims[0], dims[1],dims[2]], dtype='uint16')
-            
+
     cdef np.ndarray[np.uint16_t, ndim=3, mode="c"] H_j = \
             np.zeros([dims[0], dims[1],dims[2]], dtype='uint16')
 
@@ -637,4 +690,3 @@ def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
         return H_i, H_j, Weights;
     else:
         raise ValueError(CUDAErrorMessage);
-

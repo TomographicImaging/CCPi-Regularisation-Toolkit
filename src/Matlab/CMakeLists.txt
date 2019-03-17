@@ -40,7 +40,7 @@ find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM MX_LIBRARY ENG_LIBRARY )
 #list(APPEND MEX_TARGETS "CPU_ROF")
 
 file(GLOB CPU_MEX_FILES
-    "${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_CPU/*.c"
+    "${CMAKE_SOURCE_DIR}/src/Matlab/mex_compile/regularisers_CPU/*.c"
     #"${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_GPU/*.c"
 )
 
@@ -85,10 +85,10 @@ foreach(tgt RANGE 0 ${num})
     )
     
 target_include_directories(${current_target}
-   PUBLIC ${CMAKE_SOURCE_DIR}/Core/regularisers_CPU
-   ${CMAKE_SOURCE_DIR}/Core/regularisers_GPU
-   ${CMAKE_SOURCE_DIR}/Core/inpainters_CPU
-   ${CMAKE_SOURCE_DIR}/Core/
+   PUBLIC ${CMAKE_SOURCE_DIR}/src/Core/regularisers_CPU
+   ${CMAKE_SOURCE_DIR}/src/Core/regularisers_GPU
+   ${CMAKE_SOURCE_DIR}/src/Core/inpainters_CPU
+   ${CMAKE_SOURCE_DIR}/src/Core/
    ${MATLAB_INCLUDE_DIR})
    set_property(TARGET ${current_target} PROPERTY C_STANDARD 99)
    list(APPEND CPU_MEX_TARGETS ${current_target})
@@ -101,7 +101,7 @@ if (BUILD_CUDA)
     find_package(CUDA)
     if (CUDA_FOUND)
       file(GLOB GPU_MEX_FILES
-        "${CMAKE_SOURCE_DIR}/Matlab/mex_compile/regularisers_GPU/*.cpp"
+        "${CMAKE_SOURCE_DIR}/src/Matlab/mex_compile/regularisers_GPU/*.cpp"
       )
 
       list(LENGTH GPU_MEX_FILES num)
@@ -131,14 +131,16 @@ message("number of GPU files  " ${num})
           )
         
         target_include_directories(${current_target}
-        PUBLIC ${CMAKE_SOURCE_DIR}/Core/regularisers_CPU
-               ${CMAKE_SOURCE_DIR}/Core/regularisers_GPU
-               ${CMAKE_SOURCE_DIR}/Core/inpainters_CPU
-               ${CMAKE_SOURCE_DIR}/Core/
+        PUBLIC ${CMAKE_SOURCE_DIR}/src/Core/regularisers_CPU
+               ${CMAKE_SOURCE_DIR}/src/Core/regularisers_GPU
+               ${CMAKE_SOURCE_DIR}/src/Core/inpainters_CPU
+               ${CMAKE_SOURCE_DIR}/src/Core/
                ${MATLAB_INCLUDE_DIR})
        
         list(APPEND GPU_MEX_TARGETS ${current_target})
         INSTALL(TARGETS ${current_target} DESTINATION "${MATLAB_DEST}")
+        
+        
       endforeach()
        
       add_custom_target(MatlabWrapperGPU DEPENDS ${GPU_MEX_TARGETS})

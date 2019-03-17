@@ -101,16 +101,18 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04,\
-        'number_of_iterations': 500,\
-        'time_marching_parameter': 0.0025        
-        }
-print ("#############ROF TV GPU####################")
+        'regularisation_parameter':0.02,\
+        'number_of_iterations': 7000,\
+        'time_marching_parameter': 0.0007,\
+        'tolerance_constant':1e-06}
+
+print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
-rof_gpu3D = ROF_TV(pars['input'],
+(rof_gpu3D, info_vec_gpu) = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
-             pars['time_marching_parameter'],'gpu')
+             pars['time_marching_parameter'],
+              pars['tolerance_constant'], 'gpu')
 
 Qtools = QualityTools(idealVol, rof_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -141,23 +143,20 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : FGP_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :300 ,\
-        'tolerance_constant':0.00001,\
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :1000 ,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
-        'nonneg': 0 ,\
-        'printingOut': 0 
-        }
+        'nonneg': 0}
 
 print ("#############FGP TV GPU####################")
 start_time = timeit.default_timer()
-fgp_gpu3D = FGP_TV(pars['input'], 
+(fgp_gpu3D, info_vec_gpu)  = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'],
-              pars['printingOut'],'gpu')
+              pars['nonneg'], 'gpu')
 
 Qtools = QualityTools(idealVol, fgp_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -189,21 +188,18 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : SB_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :100 ,\
-        'tolerance_constant':1e-05,\
-        'methodTV': 0 ,\
-        'printingOut': 0 
-        }
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :300 ,\
+        'tolerance_constant':1e-06,\
+        'methodTV': 0 }
 
 print ("#############SB TV GPU####################")
 start_time = timeit.default_timer()
-sb_gpu3D = SB_TV(pars['input'], 
+(sb_gpu3D, info_vec_gpu) = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'],
-              pars['printingOut'],'gpu')
+              pars['methodTV'],'gpu')
 
 Qtools = QualityTools(idealVol, sb_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -235,19 +231,20 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : LLT_ROF, \
         'input' : noisyVol,\
-        'regularisation_parameterROF':0.04, \
-        'regularisation_parameterLLT':0.015, \
-        'number_of_iterations' :300 ,\
-        'time_marching_parameter' :0.0025 ,\
-        }
+        'regularisation_parameterROF':0.01, \
+        'regularisation_parameterLLT':0.008, \
+        'number_of_iterations' : 500 ,\
+        'time_marching_parameter' :0.001 ,\
+        'tolerance_constant':1e-06}
 
 print ("#############LLT ROF CPU####################")
 start_time = timeit.default_timer()
-lltrof_gpu3D = LLT_ROF(pars['input'], 
+(lltrof_gpu3D,info_vec_gpu) = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
-              pars['time_marching_parameter'],'gpu')
+              pars['time_marching_parameter'],
+              pars['tolerance_constant'], 'gpu')
 
 Qtools = QualityTools(idealVol, lltrof_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -280,21 +277,22 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : TGV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.04, \
+        'regularisation_parameter':0.02, \
         'alpha1':1.0,\
         'alpha0':2.0,\
-        'number_of_iterations' :600 ,\
+        'number_of_iterations' :500 ,\
         'LipshitzConstant' :12 ,\
-        }
+        'tolerance_constant':1e-06}
 
 print ("#############TGV GPU####################")
 start_time = timeit.default_timer()
-tgv_gpu3D = TGV(pars['input'], 
+(tgv_gpu3D,info_vec_gpu)  = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
-              pars['LipshitzConstant'],'gpu')
+              pars['LipshitzConstant'],
+              pars['tolerance_constant'],'gpu')
 
 Qtools = QualityTools(idealVol, tgv_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -325,21 +323,23 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : NDF, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.025, \
+        'regularisation_parameter':0.02, \
         'edge_parameter':0.015,\
-        'number_of_iterations' :500 ,\
-        'time_marching_parameter':0.025,\
-        'penalty_type':  1
-        }
+        'number_of_iterations' :700 ,\
+        'time_marching_parameter':0.01,\
+        'penalty_type':  1,\
+        'tolerance_constant':1e-06}
+
 
 print ("#############NDF GPU####################")
 start_time = timeit.default_timer()
-ndf_gpu3D = NDF(pars['input'], 
+(ndf_gpu3D,info_vec_gpu)  = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
-              pars['penalty_type'],'gpu')
+              pars['penalty_type'],
+              pars['tolerance_constant'], 'gpu')
 
 Qtools = QualityTools(idealVol, ndf_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -371,19 +371,20 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : Diff4th, \
         'input' : noisyVol,\
-        'regularisation_parameter':3.5, \
+        'regularisation_parameter':0.8, \
         'edge_parameter':0.02,\
-        'number_of_iterations' :300 ,\
-        'time_marching_parameter':0.0015
-        }
+        'number_of_iterations' :500 ,\
+        'time_marching_parameter':0.001,\
+        'tolerance_constant':1e-06}
         
 print ("#############DIFF4th CPU################")
 start_time = timeit.default_timer()
-diff4_gpu3D = Diff4th(pars['input'], 
+(diff4_gpu3D,info_vec_gpu) = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
-              pars['time_marching_parameter'],'gpu')
+              pars['time_marching_parameter'],
+              pars['tolerance_constant'],'gpu')
 
 Qtools = QualityTools(idealVol, diff4_gpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -413,29 +414,27 @@ a.set_title('Noisy Image')
 imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 
 # set parameters
-pars = {'algorithm' : FGP_dTV, \
+pars = {'algorithm' : FGP_dTV,\
         'input' : noisyVol,\
         'refdata' : noisyRef,\
-        'regularisation_parameter':0.04, \
-        'number_of_iterations' :300 ,\
-        'tolerance_constant':0.00001,\
+        'regularisation_parameter':0.02,
+        'number_of_iterations' :500 ,\
+        'tolerance_constant':1e-06,\
         'eta_const':0.2,\
         'methodTV': 0 ,\
-        'nonneg': 0 ,\
-        'printingOut': 0 
-        }
+        'nonneg': 0}
 
 print ("#############FGP TV GPU####################")
 start_time = timeit.default_timer()
-fgp_dTV_gpu3D = FGP_dTV(pars['input'],
+(fgp_dTV_gpu3D,info_vec_gpu)  = FGP_dTV(pars['input'],
               pars['refdata'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],
-              pars['printingOut'],'gpu')
+              pars['nonneg'],'gpu')
+             
 
 Qtools = QualityTools(idealVol, fgp_dTV_gpu3D)
 pars['rmse'] = Qtools.rmse()

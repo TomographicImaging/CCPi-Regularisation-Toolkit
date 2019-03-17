@@ -34,10 +34,10 @@ limitations under the License.
 * 3. Number of iterations [OPTIONAL parameter]
 * 4. eplsilon - tolerance constant [OPTIONAL parameter]
 * 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
-* 6. print information: 0 (off) or 1 (on)  [OPTIONAL parameter]
-*
+
 * Output:
-* 1. Filtered/regularized image
+* [1] Filtered/regularized image/volume
+* [2] Information vector which contains [iteration no., reached tolerance]
 *
 * [1]. Goldstein, T. and Osher, S., 2009. The split Bregman method for L1-regularized problems. SIAM journal on imaging sciences, 2(2), pp.323-343.
 */
@@ -45,7 +45,7 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float SB_TV_CPU_main(float *Input, float *Output, float mu, int iter, float epsil, int methodTV, int printM, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int dimX, int dimY, int dimZ);
 
 CCPI_EXPORT float gauss_seidel2D(float *U, float *A, float *U_prev, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda, float mu);
 CCPI_EXPORT float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, long dimX, long dimY, float lambda);

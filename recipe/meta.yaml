@@ -1,16 +1,16 @@
 package:
   name: ccpi-regulariser
   version: {{CIL_VERSION}}
-  
+
 build:
   preserve_egg_dir: False
   number: 0
   script_env:
     - CIL_VERSION
-  
+
 test:
   source_files:
-    - ./test/ 
+    - ./test/
   requires:
     - pillow
     - pillow=4.1.1 # [win]
@@ -23,17 +23,17 @@ requirements:
     - numpy {{ numpy }}
     - setuptools
     - cython
-    - vc 14 # [win and py36] 
-    - vc 14 # [win and py35] 
+    - vc 14 # [win and py36]
+    - vc 14 # [win and py35]
     - vc 9  # [win and py27]
-    - cmake 
+    - cmake
 
   run:
     - {{ pin_compatible('numpy', max_pin='x.x') }}
     - python
     - numpy
-    - vc 14 # [win and py36] 
-    - vc 14 # [win and py35] 
+    - vc 14 # [win and py36]
+    - vc 14 # [win and py35]
     - vc 9  # [win and py27]
     - libgcc-ng # [unix]
 

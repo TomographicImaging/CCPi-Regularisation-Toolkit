@@ -33,10 +33,10 @@
  * 6. eta: smoothing constant to calculate gradient of the reference [OPTIONAL] * 
  * 7. TV-type: methodTV - 'iso' (0) or 'l1' (1) [OPTIONAL]
  * 8. nonneg: 'nonnegativity (0 is OFF by default) [OPTIONAL]
- * 9. print information: 0 (off) or 1 (on) [OPTIONAL]
  *
  * Output:
- * [1] Filtered/regularized image/volume
+ * [1] Filtered/regularized image
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the Matlab's codes and papers by
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
@@ -49,28 +49,27 @@ void mexFunction(
         int nrhs, const mxArray *prhs[])
         
 {
-    int number_of_dims, iter, methTV, printswitch, nonneg;
+    int number_of_dims, iter, methTV, nonneg;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;
     const mwSize *dim_array2;    
-    float *Input, *InputRef, *Output=NULL, lambda, epsil, eta;
-    
+    float *Input, *InputRef, *Output=NULL, *infovec=NULL, lambda, epsil, eta;
+         
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     dim_array = mxGetDimensions(prhs[0]);
     dim_array2 = mxGetDimensions(prhs[1]);
     
     /*Handling Matlab input data*/
-    if ((nrhs < 3) || (nrhs > 9)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Reference(2D/3D), Regularization parameter, iterations number, tolerance, smoothing constant, penalty type ('iso' or 'l1'), nonnegativity switch, print switch");
+    if ((nrhs < 3) || (nrhs > 8)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Reference(2D/3D), Regularization parameter, iterations number, tolerance, smoothing constant, penalty type ('iso' or 'l1'), nonnegativity switch");
     
     Input  = (float *) mxGetData(prhs[0]); /*noisy image (2D/3D) */
     InputRef  = (float *) mxGetData(prhs[1]); /* reference image (2D/3D) */
     lambda =  (float) mxGetScalar(prhs[2]); /* regularization parameter */
     iter = 300; /* default iterations number */
-    epsil = 0.0001; /* default tolerance constant */
+    epsil = 1.0e-06; /* default tolerance constant */
     eta = 0.01; /* default smoothing constant */
     methTV = 0;  /* default isotropic TV penalty */
     nonneg = 0; /* default nonnegativity switch, off - 0 */
-    printswitch = 0; /*default print is switched, off - 0 */
     
         
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
@@ -80,35 +79,32 @@ void mexFunction(
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
     if (number_of_dims == 2) { if ((dimX != dim_array2[0]) || (dimY != dim_array2[1])) mexErrMsgTxt("The input images have different dimensionalities");}
     if (number_of_dims == 3) { if ((dimX != dim_array2[0]) || (dimY != dim_array2[1]) || (dimZ != dim_array2[2])) mexErrMsgTxt("The input volumes have different dimensionalities");}   
-    
-    
-    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7) || (nrhs == 8) || (nrhs == 9))  iter = (int) mxGetScalar(prhs[3]); /* iterations number */
-    if ((nrhs == 5) || (nrhs == 6) || (nrhs == 7) || (nrhs == 8) || (nrhs == 9))  epsil =  (float) mxGetScalar(prhs[4]); /* tolerance constant */
-    if ((nrhs == 6) || (nrhs == 7) || (nrhs == 8) || (nrhs == 9))  {
-    eta =  (float) mxGetScalar(prhs[5]); /* smoothing constant for the gradient of InputRef */
-    }
-    if ((nrhs == 7) || (nrhs == 8) || (nrhs == 9))  {        
+        
+    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6) || (nrhs == 7) || (nrhs == 8))  iter = (int) mxGetScalar(prhs[3]); /* iterations number */
+    if ((nrhs == 5) || (nrhs == 6) || (nrhs == 7) || (nrhs == 8))  epsil =  (float) mxGetScalar(prhs[4]); /* tolerance constant */
+    if ((nrhs == 6) || (nrhs == 7) || (nrhs == 8)) eta =  (float) mxGetScalar(prhs[5]); /* smoothing constant for the gradient of InputRef */    
+    if ((nrhs == 7) || (nrhs == 8))  {        
         char *penalty_type;
         penalty_type = mxArrayToString(prhs[6]); /* choosing TV penalty: 'iso' or 'l1', 'iso' is the default */
         if ((strcmp(penalty_type, "l1") != 0) && (strcmp(penalty_type, "iso") != 0)) mexErrMsgTxt("Choose TV type: 'iso' or 'l1',");
         if (strcmp(penalty_type, "l1") == 0)  methTV = 1;  /* enable 'l1' penalty */
         mxFree(penalty_type);
     }    
-    if ((nrhs == 8) || (nrhs == 9))  {
+    if ((nrhs == 8))  {
         nonneg = (int) mxGetScalar(prhs[7]);
         if ((nonneg != 0) && (nonneg != 1)) mexErrMsgTxt("Nonnegativity constraint can be enabled by choosing 1 or off - 0");
     }
-    if (nrhs == 9)  {
-        printswitch = (int) mxGetScalar(prhs[8]);
-        if ((printswitch != 0) && (printswitch != 1)) mexErrMsgTxt("Print can be enabled by choosing 1 or off - 0");
-    }    
-   
+
     if (number_of_dims == 2) {
         dimZ = 1; /*2D case*/
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
     }
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     
+    mwSize vecdim[1];
+    vecdim[0] = 2;
+    infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));
+    
     /* running the function */
-    dTV_FGP_CPU_main(Input, InputRef, Output, lambda, iter, epsil, eta, methTV, nonneg, printswitch, dimX, dimY, dimZ);
+    dTV_FGP_CPU_main(Input, InputRef, Output, infovec, lambda, iter, epsil, eta, methTV, nonneg, dimX, dimY, dimZ);
 }

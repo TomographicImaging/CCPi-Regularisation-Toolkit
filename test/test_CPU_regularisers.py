@@ -32,7 +32,7 @@ class TestRegularisers(unittest.TestCase):
     def test_FGP_TV_CPU(self):
         Im,input,ref = self.getPars()
 
-        fgp_cpu = FGP_TV(input,0.04,1200,1e-5,0,0,0,'cpu');
+        fgp_cpu,info = FGP_TV(input,0.02,300,0.0,0,0,'cpu');
 
         rms = rmse(Im, fgp_cpu)
 
@@ -42,7 +42,7 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        fgp_cpu = ROF_TV(input,0.04,1200,2e-5, 'cpu')
+        fgp_cpu,info = ROF_TV(input,0.02,1000,0.001,0.0, 'cpu')
 
         rms = rmse(Im, fgp_cpu)
 
@@ -53,7 +53,7 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        sb_cpu = SB_TV(input,0.04,150,1e-5,0,0,'cpu')
+        sb_cpu,info = SB_TV(input,0.02,150,0.0,0,'cpu')
 
         rms = rmse(Im, sb_cpu)
 
@@ -64,9 +64,9 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        sb_cpu = TGV(input,0.04,1.0,2.0,250,12,'cpu')
+        tgv_cpu,info = TGV(input,0.02,1.0,2.0,500,12,0.0,'cpu')
 
-        rms = rmse(Im, sb_cpu)
+        rms = rmse(Im, tgv_cpu)
 
         # now test that it generates some expected output
         self.assertAlmostEqual(rms,0.02,delta=0.01)
@@ -75,7 +75,7 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        sb_cpu = LLT_ROF(input,0.04,0.01,1000,1e-4,'cpu')
+        sb_cpu,info = LLT_ROF(input,0.01,0.008,1000,0.001,0.0,'cpu')
 
         rms = rmse(Im, sb_cpu)
 
@@ -86,7 +86,7 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        sb_cpu = NDF(input, 0.06, 0.04,1000,0.025,1, 'cpu')
+        sb_cpu,info = NDF(input, 0.02, 0.17,1000,0.01,1,0.0, 'cpu')
 
         rms = rmse(Im, sb_cpu)
 
@@ -97,7 +97,7 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        sb_cpu = Diff4th(input, 3.5,0.02,500,0.001, 'cpu')
+        sb_cpu,info = Diff4th(input, 0.8,0.02,1000,0.001,0.0, 'cpu')
 
         rms = rmse(Im, sb_cpu)
 
@@ -108,7 +108,7 @@ class TestRegularisers(unittest.TestCase):
         # set parameters
         Im, input,ref = self.getPars()
         # call routine
-        sb_cpu = FGP_dTV(input,ref,0.04,1000,1e-7,0.2,0,0,0, 'cpu')
+        sb_cpu,info = FGP_dTV(input,ref,0.02,500,0.0,0.2,0,0, 'cpu')
 
         rms = rmse(Im, sb_cpu)
 

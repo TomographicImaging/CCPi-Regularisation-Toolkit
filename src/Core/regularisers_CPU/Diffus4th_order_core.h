@@ -26,26 +26,28 @@ limitations under the License.
 #include "CCPiDefines.h"
 
 /* C-OMP implementation of fourth-order diffusion scheme [1] for piecewise-smooth recovery (2D/3D case)
- * The minimisation is performed using explicit scheme. 
+ * The minimisation is performed using explicit scheme.
  *
  * Input Parameters:
- * 1. Noisy image/volume 
+ * 1. Noisy image/volume
  * 2. lambda - regularization parameter
  * 3. Edge-preserving parameter (sigma)
- * 4. Number of iterations, for explicit scheme >= 150 is recommended 
+ * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
+ * 6. eplsilon: tolerance constant
  *
  * Output:
- * [1] Regularized image/volume 
+ * [1] Regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Hajiaboli, M.R., 2011. An anisotropic fourth-order diffusion filter for image noise removal. International Journal of Computer Vision, 92(2), pp.177-191.
  */
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float Diffus4th_CPU_main(float *Input, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float Diffus4th_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 CCPI_EXPORT float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, long dimX, long dimY);
 CCPI_EXPORT float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY);
 CCPI_EXPORT float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, long dimX, long dimY, long dimZ);

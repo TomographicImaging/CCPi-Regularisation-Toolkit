@@ -1,4 +1,13 @@
 /*shared macros*/
+template <typename T>
+struct square
+{
+    __host__ __device__
+        T operator()(const T& x) const { 
+            return (float)(x*x);
+        }
+};
+
 
 
 /*checks CUDA call, should be used in functions returning <int> value

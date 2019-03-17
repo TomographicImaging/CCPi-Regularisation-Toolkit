@@ -29,9 +29,11 @@
  * 3. Edge-preserving parameter (sigma) [REQUIRED]
  * 4. Number of iterations, for explicit scheme >= 150 is recommended [OPTIONAL, default 300]
  * 5. tau - time-marching step for the explicit scheme [OPTIONAL, default 0.015]
+ * 6. eplsilon - tolerance constant [OPTIONAL parameter]
  *
  * Output:
  * [1] Regularized image/volume 
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
  * [1] Hajiaboli, M.R., 2011. An anisotropic fourth-order diffusion filter for image noise removal. International Journal of Computer Vision, 92(2), pp.177-191.
@@ -45,7 +47,8 @@ void mexFunction(
     int number_of_dims, iter_numb;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;
-    float *Input, *Output=NULL, lambda, tau, sigma;
+    float *Input, *Output=NULL, lambda, tau, sigma, epsil;
+    float *infovec=NULL;
     
     dim_array = mxGetDimensions(prhs[0]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
@@ -54,13 +57,15 @@ void mexFunction(
     Input  = (float *) mxGetData(prhs[0]);
     lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
     sigma = (float) mxGetScalar(prhs[2]); /* Edge-preserving parameter */
-    iter_numb = 300; /* iterations number */
-    tau = 0.01; /* marching step parameter */
+    iter_numb = 500; /* iterations number */
+    tau = 0.0025; /* marching step parameter */
+    epsil = 1.0e-06; /*tolerance parameter*/
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }
-    if ((nrhs < 3) || (nrhs > 5)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Regularisation parameter, Edge-preserving parameter, iterations number, time-marching constant");
-    if ((nrhs == 4) || (nrhs == 5))  iter_numb = (int) mxGetScalar(prhs[3]); /* iterations number */
-    if (nrhs == 5)  tau =  (float) mxGetScalar(prhs[4]); /* marching step parameter */
+    if ((nrhs < 3) || (nrhs > 6)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Regularisation parameter, Edge-preserving parameter, iterations number, time-marching constant, tolerance");
+    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6))  iter_numb = (int) mxGetScalar(prhs[3]); /* iterations number */
+    if ((nrhs == 5) || (nrhs == 6))  tau =  (float) mxGetScalar(prhs[4]); /* marching step parameter */
+    if (nrhs == 6) epsil =  (float) mxGetScalar(prhs[5]); /* tolerance parameter */
     
     /*Handling Matlab output data*/
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
@@ -73,5 +78,9 @@ void mexFunction(
     }
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     
-    Diffus4th_CPU_main(Input, Output, lambda, sigma, iter_numb, tau, dimX, dimY, dimZ);
+    mwSize vecdim[1];
+    vecdim[0] = 2;
+    infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));    
+    
+    Diffus4th_CPU_main(Input, Output, infovec, lambda, sigma, iter_numb, tau, epsil, dimX, dimY, dimZ);
 }

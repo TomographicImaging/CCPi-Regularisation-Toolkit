@@ -32,9 +32,11 @@
 * 3. lambdaLLT - LLT-related regularisation parameter
 * 4. tau - time-marching step 
 * 5. iter - iterations number (for both models)
+* 6. eplsilon - tolerance constant [OPTIONAL parameter]
 *
 * Output:
-* Filtered/regularised image
+* [1] Regularized image/volume 
+* [2] Information vector which contains [iteration no., reached tolerance]
 *
 * References: 
 * [1] Lysaker, M., Lundervold, A. and Tai, X.C., 2003. Noise removal using fourth-order partial differential equation with applications to medical magnetic resonance images in space and time. IEEE Transactions on image processing, 12(12), pp.1579-1590.
@@ -49,12 +51,13 @@ void mexFunction(
     int number_of_dims, iterationsNumb;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;    
-    float *Input, *Output=NULL, lambdaROF, lambdaLLT, tau;
+    float *Input, *Output=NULL, lambdaROF, lambdaLLT, tau, epsil;
+    float *infovec=NULL;    
     
     dim_array = mxGetDimensions(prhs[0]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     
-    if ((nrhs < 3) || (nrhs > 5)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Regularisation parameter (ROF), Regularisation parameter (LTT), iterations number, time-marching parameter");
+    if ((nrhs < 3) || (nrhs > 6)) mexErrMsgTxt("At least 3 parameters is required, all parameters are: Image(2D/3D), Regularisation parameter (ROF), Regularisation parameter (LTT), iterations number, time-marching parameter, tolerance");
     
     /*Handling Matlab input data*/
     Input  = (float *) mxGetData(prhs[0]);
@@ -62,10 +65,12 @@ void mexFunction(
     lambdaLLT =  (float) mxGetScalar(prhs[2]); /* ROF regularization parameter */    
     iterationsNumb = 250;
     tau =  0.0025;
+    epsil = 1.0e-06; /*tolerance parameter*/
     
     if (mxGetClassID(prhs[0]) != mxSINGLE_CLASS) {mexErrMsgTxt("The input image must be in a single precision"); }   
-    if ((nrhs == 4) || (nrhs == 5)) iterationsNumb =  (int) mxGetScalar(prhs[3]); /* iterations number */    
-    if (nrhs == 5) tau =  (float) mxGetScalar(prhs[4]); /* marching step parameter */  
+    if ((nrhs == 4) || (nrhs == 5) || (nrhs == 6)) iterationsNumb =  (int) mxGetScalar(prhs[3]); /* iterations number */    
+    if ((nrhs == 5) || (nrhs == 6)) tau =  (float) mxGetScalar(prhs[4]); /* marching step parameter */  
+    if (nrhs == 6) epsil =  (float) mxGetScalar(prhs[5]); /* epsilon */
         
     /*Handling Matlab output data*/
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
@@ -77,6 +82,10 @@ void mexFunction(
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));                        
     }    
     if (number_of_dims == 3) Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));   
+    
+    mwSize vecdim[1];
+    vecdim[0] = 2;
+    infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));   
   
-    LLT_ROF_CPU_main(Input, Output, lambdaROF, lambdaLLT, iterationsNumb, tau, dimX, dimY, dimZ);    
+    LLT_ROF_CPU_main(Input, Output, infovec, lambdaROF, lambdaLLT, iterationsNumb, tau, epsil, dimX, dimY, dimZ);    
 }

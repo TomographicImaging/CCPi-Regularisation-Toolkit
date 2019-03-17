@@ -25,7 +25,7 @@ limitations under the License.
 #include "utils.h"
 #include "CCPiDefines.h"
 
-/* C-OMP implementation of Primal-Dual denoising method for 
+/* C-OMP implementation of Primal-Dual denoising method for
  * Total Generilized Variation (TGV)-L2 model [1] (2D/3D)
  *
  * Input Parameters:
@@ -35,20 +35,22 @@ limitations under the License.
  * 4. parameter to control the second-order term (alpha0)
  * 5. Number of Chambolle-Pock (Primal-Dual) iterations
  * 6. Lipshitz constant (default is 12)
- * 
+ * 7. eplsilon: tolerance constant
+ *
  * Output:
- * Filtered/regularised image/volume
+ * [1] Filtered/regularized image/volume
+ * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * References:
  * [1] K. Bredies "Total Generalized Variation"
  */
- 
- 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CCPI_EXPORT float TGV_main(float *U0, float *U, float lambda, float alpha1, float alpha0, int iter, float L2, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float TGV_main(float *U0, float *U, float *infovector, float lambda, float alpha1, float alpha0, int iter, float L2, float epsil, int dimX, int dimY, int dimZ);
 
 /* 2D functions */
 CCPI_EXPORT float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, long dimY, float sigma);
