@@ -8,15 +8,7 @@
 
 
 <div align="center">
-  <img src="demos/images/probl.png" height="225"><br>  
-</div>
-
-<div align="center">
-  <img src="demos/images/reg_penalties.jpg" height="450"><br>  
-</div>
-
-<div align="center">
-  <img src="demos/images/TV_vs_NLTV.jpg" height="300"><br>  
+  <img src="demos/images/CCPiRGL_sm.jpg" height="400"><br>  
 </div>
 
 ## Prerequisites:
