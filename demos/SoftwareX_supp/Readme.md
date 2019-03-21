@@ -9,7 +9,7 @@ Data is shared at Zenodo [here](https://doi.org/10.5281/zenodo.2578893)
 
 ## Dependencies:
 1. [ASTRA toolbox](https://github.com/astra-toolbox/astra-toolbox): `conda install -c astra-toolbox astra-toolbox`
-2. [TomoRec](https://github.com/dkazanc/TomoRec): `conda install -c dkazanc tomorec`
+2. [ToMoBAR](https://github.com/dkazanc/ToMoBAR): `conda install -c dkazanc tomobar`
 3. [Tomophantom](https://github.com/dkazanc/TomoPhantom): `conda install tomophantom -c ccpi`
 
 ## Files description: 

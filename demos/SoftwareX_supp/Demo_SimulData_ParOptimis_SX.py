@@ -12,10 +12,9 @@ ____________________________________________________________________________
 Demo_SimulData_Recon_SX.py
 ____________________________________________________________________________
 >>>>> Dependencies: <<<<<
->>>>> Dependencies: <<<<<
 1. ASTRA toolbox: conda install -c astra-toolbox astra-toolbox
-2. TomoRec: conda install -c dkazanc tomorec
-or install from https://github.com/dkazanc/TomoRec
+2. tomobar: conda install -c dkazanc tomobar
+or install from https://github.com/dkazanc/ToMoBAR
 
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 GPLv3 license (ASTRA toolbox)
@@ -66,10 +65,10 @@ plt.title('Tangentogram view')
 plt.show()
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("Reconstructing with ADMM method using TomoRec software")
+print ("Reconstructing with ADMM method using tomobar software")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-# initialise TomoRec ITERATIVE reconstruction class ONCE
-from tomorec.methodsIR import RecToolsIR
+# initialise tomobar ITERATIVE reconstruction class ONCE
+from tomobar.methodsIR import RecToolsIR
 RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = proj_angles, # array of angles in radians

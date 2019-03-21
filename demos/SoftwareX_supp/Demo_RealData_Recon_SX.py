@@ -8,13 +8,13 @@ proximal splitting algorithms" by Daniil Kazantsev, Edoardo Pasca, Martin J. Tur
 ____________________________________________________________________________
 * Reads real tomographic data (stored at Zenodo)
 --- https://doi.org/10.5281/zenodo.2578893
-* Reconstructs using TomoRec software
+* Reconstructs using ToMoBAR software
 * Saves reconstructed images
 ____________________________________________________________________________
 >>>>> Dependencies: <<<<<
 1. ASTRA toolbox: conda install -c astra-toolbox astra-toolbox
-2. TomoRec: conda install -c dkazanc tomorec
-or install from https://github.com/dkazanc/TomoRec
+2. tomobar: conda install -c dkazanc tomobar
+or install from https://github.com/dkazanc/ToMoBAR
 3. libtiff if one needs to save tiff images:
     install pip install libtiff
 
@@ -24,7 +24,7 @@ GPLv3 license (ASTRA toolbox)
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
-from tomorec.supp.suppTools import normaliser
+from tomobar.supp.suppTools import normaliser
 import time
 
 # load dendritic projection data
@@ -60,7 +60,7 @@ time_label = int(time.time())
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%Reconstructing with FBP method %%%%%%%%%%%%%%%%%")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-from tomorec.methodsDIR import RecToolsDIR
+from tomobar.methodsDIR import RecToolsDIR
 
 RectoolsDIR = RecToolsDIR(DetectorsDimH = np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = 100,  # DetectorsDimV # detector dimension (vertical) for 3D case only
@@ -100,10 +100,10 @@ for i in range(0,np.size(FBPrec,0)):
 """
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("Reconstructing with ADMM method using TomoRec software")
+print ("Reconstructing with ADMM method using tomobar software")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-# initialise TomoRec ITERATIVE reconstruction class ONCE
-from tomorec.methodsIR import RecToolsIR
+# initialise tomobar ITERATIVE reconstruction class ONCE
+from tomobar.methodsIR import RecToolsIR
 RectoolsIR = RecToolsIR(DetectorsDimH =  np.size(det_y_crop),  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = 100,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = angles_rad, # array of angles in radians

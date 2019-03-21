@@ -12,8 +12,8 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 >>>>> Dependencies: <<<<<
 1. ASTRA toolbox: conda install -c astra-toolbox astra-toolbox
-2. TomoRec: conda install -c dkazanc tomorec
-or install from https://github.com/dkazanc/TomoRec
+2. ToMoBAR: conda install -c dkazanc tomobar
+or install from https://github.com/dkazanc/ToMoBAR
 
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 GPLv3 license (ASTRA toolbox)
@@ -103,15 +103,15 @@ plt.title('Vertical (Y-Z) view', fontsize=19)
 plt.show()
 #plt.savefig('projdata.pdf', format='pdf', dpi=1200)
 #%%
-# initialise TomoRec DIRECT reconstruction class ONCE
-from tomorec.methodsDIR import RecToolsDIR
+# initialise tomobar DIRECT reconstruction class ONCE
+from tomobar.methodsDIR import RecToolsDIR
 RectoolsDIR = RecToolsDIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = proj_angles, # array of angles in radians
                     ObjSize = N_size, # a scalar to define reconstructed object dimensions
                     device = 'gpu')
 #%%
-print ("Reconstruction using FBP from TomoRec")
+print ("Reconstruction using FBP from tomobar")
 recFBP= RectoolsDIR.FBP(projdata_norm) # FBP reconstruction
 #%%
 x0, y0 = 0, 127 # These are in _pixel_ coordinates!!
@@ -152,10 +152,10 @@ ssim_fbp = Qtools.ssim(win2d)
 print("Mean SSIM for FBP is {}".format(ssim_fbp[0]))
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("Reconstructing with ADMM method using TomoRec software")
+print ("Reconstructing with ADMM method using tomobar software")
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-# initialise TomoRec ITERATIVE reconstruction class ONCE
-from tomorec.methodsIR import RecToolsIR
+# initialise tomobar ITERATIVE reconstruction class ONCE
+from tomobar.methodsIR import RecToolsIR
 RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
                     DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
                     AnglesVec = proj_angles, # array of angles in radians
