@@ -81,28 +81,22 @@ add_library(cilreg SHARED
 	    )
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
 include_directories(cilreg PUBLIC 
-                      ${LIBRARY_INC}/include 
-					  ${CMAKE_CURRENT_SOURCE_DIR}
-		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
-		              ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
+                  ${LIBRARY_INC}/include 
+					        ${CMAKE_CURRENT_SOURCE_DIR}/include
+		              ${CMAKE_CURRENT_SOURCE_DIR}/include/cpu/
+		               )
 
 ## Install
-
-if (UNIX)
-message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
+include(GNUInstallDirs)
 install(TARGETS cilreg
-	LIBRARY DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
-	)
-elseif(WIN32)
-message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
-  install(TARGETS cilreg 
 	RUNTIME DESTINATION bin
-	ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
 	)
-endif()
 
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}) 
 
 
 # GPU Regularisers
@@ -122,20 +116,25 @@ if (BUILD_CUDA)
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/PatchSelect_GPU_core.cu
       )
-      if (UNIX)
-        message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
-        install(TARGETS cilregcuda
-        LIBRARY DESTINATION lib
-        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
-        )
-      elseif(WIN32)
-        message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
-        install(TARGETS cilregcuda
+      include_directories(cilregcuda PUBLIC 
+                  ${LIBRARY_INC}/include 
+					        ${CMAKE_CURRENT_SOURCE_DIR}/include
+		              ${CMAKE_CURRENT_SOURCE_DIR}/include/gpu/
+		               )
+
+      install(TARGETS cilregcuda
+        #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        #LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        #ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
         )
-      endif()
+
+      install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}) 
+
     else()
       message("CUDA NOT FOUND")
     endif()
