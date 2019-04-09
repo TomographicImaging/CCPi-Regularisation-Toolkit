@@ -2,7 +2,7 @@
 script which assigns a proper device core function based on a flag ('cpu' or 'gpu')
 """
 
-from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, Diff4th_CPU, TGV_CPU, LLT_ROF_CPU, PATCHSEL_CPU, NLTV_CPU
+from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, NDF_MASK_CPU, Diff4th_CPU, TGV_CPU, LLT_ROF_CPU, PATCHSEL_CPU, NLTV_CPU
 try:
     from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU, TGV_GPU, LLT_ROF_GPU, PATCHSEL_GPU
     gpu_enabled = True
@@ -116,6 +116,31 @@ def NDF(inputData, regularisation_parameter, edge_parameter, iterations,
                      tolerance_param)
     elif device == 'gpu' and gpu_enabled:
         return NDF_GPU(inputData,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations,
+                     time_marching_parameter,
+                     penalty_type,
+                     tolerance_param)
+    else:
+        if not gpu_enabled and device == 'gpu':
+    	    raise ValueError ('GPU is not available')
+        raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
+                         .format(device))
+def NDF_MASK(inputData, diffuswindow, regularisation_parameter, edge_parameter, iterations,
+                     time_marching_parameter, penalty_type, tolerance_param, device='cpu'):
+    if device == 'cpu':
+        return NDF_MASK_CPU(inputData,
+                     diffuswindow,
+                     regularisation_parameter,
+                     edge_parameter,
+                     iterations,
+                     time_marching_parameter,
+                     penalty_type,
+                     tolerance_param)
+    elif device == 'gpu' and gpu_enabled:
+        return NDF_MASK_CPU(inputData,
+                     diffuswindow,
                      regularisation_parameter,
                      edge_parameter,
                      iterations,
