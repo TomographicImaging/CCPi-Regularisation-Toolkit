@@ -24,7 +24,7 @@ cdef extern float SB_TV_CPU_main(float *Input, float *Output, float *infovector,
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TGV_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
-cdef extern float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, float *Output, float *infovector, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
+cdef extern float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, float *Output, float *infovector, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float Diffus4th_CPU_main(float *Input, float *Output,  float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxIter, float tol, int dimX, int dimY, int dimZ);
@@ -403,18 +403,22 @@ def NDF_MASK_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
 
+
+    cdef np.ndarray[np.uint8_t, ndim=2, mode="c"] mask_upd = \
+            np.zeros([dims[0],dims[1]], dtype='uint8')
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
             np.zeros([dims[0],dims[1]], dtype='float32')
     cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
                 np.zeros([2], dtype='float32')
 
+
     # Run constrained nonlinear diffusion iterations for 2D data
-    DiffusionMASK_CPU_main(&inputData[0,0], &maskData[0,0], &outputData[0,0], &infovec[0],
+    DiffusionMASK_CPU_main(&inputData[0,0], &maskData[0,0], &mask_upd[0,0], &outputData[0,0], &infovec[0],
     diffuswindow, regularisation_parameter, edge_parameter, iterationsNumb,
     time_marching_parameter, penalty_type,
     tolerance_param,
     dims[1], dims[0], 1)
-    return (outputData,infovec)
+    return (mask_upd,outputData,infovec)
 
 #****************************************************************#
 #*************Anisotropic Fourth-Order diffusion*****************#

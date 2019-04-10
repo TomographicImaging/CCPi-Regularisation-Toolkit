@@ -33,7 +33,7 @@ limitations under the License.
  * Input Parameters:
  * 1. Noisy image/volume
  * 2. MASK (in unsigned short format)
- * 3. Diffusivity window (half-size of the searching window, e.g. 3) 	 
+ * 3. Diffusivity window (half-size of the searching window, e.g. 3)
  * 4. lambda - regularization parameter
  * 5. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
  * 6. Number of iterations, for explicit scheme >= 150 is recommended
@@ -54,9 +54,12 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, float *Output, float *infovector, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, float *Output, float *infovector, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
 CCPI_EXPORT float LinearDiff_MASK2D(float *Input, unsigned char *MASK, float *Output,  float *Eucl_Vec, int DiffusWindow, float lambdaPar, float tau, long dimX, long dimY);
 CCPI_EXPORT float NonLinearDiff_MASK2D(float *Input, unsigned char *MASK, float *Output, float *Eucl_Vec, int DiffusWindow, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY);
+CCPI_EXPORT float OutiersRemoval2D(unsigned char *MASK, unsigned char *MASK_upd, long i, long j, long dimX, long dimY);
+CCPI_EXPORT float Mask_update2D(unsigned char *MASK_temp, unsigned char *MASK_upd, long i, long j, int DiffusWindow, long dimX, long dimY);
+CCPI_EXPORT int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char *MASK_upd, long dimX, long dimY);
 #ifdef __cplusplus
 }
 #endif

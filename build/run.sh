@@ -21,7 +21,7 @@ make install
 cp install/lib/libcilreg.so install/python/ccpi/filters
 cd install/python
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:../lib
-# spyder
+spyder
 ############### Matlab(linux)###############
 # export LD_PRELOAD=/home/algol/anaconda3/lib/libstdc++.so.6  # if there is libstdc error in matlab
 # PATH="/path/to/mex/:$PATH" LD_LIBRARY_PATH="/path/to/library:$LD_LIBRARY_PATH" matlab
