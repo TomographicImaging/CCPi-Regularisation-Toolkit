@@ -53,17 +53,17 @@ int signNDF_m(float x) {
  * [2] Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.
  */
 
-void swapVAL(unsigned char *xp, unsigned char *yp) 
-{ 
-    unsigned char temp = *xp; 
-    *xp = *yp; 
-    *yp = temp; 
-} 
+void swapVAL(unsigned char *xp, unsigned char *yp)
+{
+    unsigned char temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
 
 float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, unsigned char *SelClassesList, int SelClassesList_length, float *Output, float *infovector, int classesNumb, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ)
 {
     long i,j,k;
-    int counterG;
+    int counterG, switcher;
     float sigmaPar2, *Output_prev=NULL, *Eucl_Vec;
     int DiffusWindow_tot;
     sigmaPar2 = sigmaPar/sqrt(2.0f);
@@ -76,38 +76,38 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
 
     /* defines the list for all classes in the mask */
     ClassesList = (unsigned char*) calloc (classesNumb,sizeof(unsigned char));
-    /* indentify all classes in the MASK */
-    /* find the smaller class value first */
-    /*
-    unsigned char smallestClass;
-    smallestClass = MASK[0];
-    for(i=0; i<DimTotal; i++) {
-	if (MASK[i] < smallestClass) smallestClass = MASK[i];
-    }
-    */
-    MASK_temp = (unsigned char*) calloc (DimTotal,sizeof(unsigned char));   
-    copyIm_unchar(MASK, MASK_temp, (long)(dimX), (long)(dimY), (long)(dimZ));        
-     
-    int x, y;
-    for(x=0; x<classesNumb; x++)	{
-                for(y=0; y<classesNumb-1; y++) {
-                    if(MASK_temp[y] > MASK_temp[y+1]) {
-                        temp = MASK_temp[y+1];
-                        MASK_temp[y+1] = MASK_temp[y];
-                        MASK_temp[y] = temp;
-                    }}} 
-     
-     //printf("[%u]\n", MASK_temp[0]);
-    
-     CurrClass =  MASK_temp[0]; ClassesList[0]= MASK_temp[0]; counterG = 0;
-     for(i=0; i<DimTotal; i++) {
-        if (MASK_temp[i] > CurrClass) {
-        CurrClass = MASK_temp[i];
-        ClassesList[counterG] = MASK_temp[i];
-        printf("[%u]\n", ClassesList[counterG]);
-        counterG++; }    
-     }
 
+     /* find which classes (values) are present in the segmented data */
+     CurrClass =  MASK[0]; ClassesList[0]= MASK[0]; counterG = 1;
+     for(i=0; i<DimTotal; i++) {
+       if (MASK[i] != CurrClass) {
+          switcher = 1;
+          for(j=0; j<counterG; j++) {
+            if (ClassesList[j] == MASK[i]) {
+              switcher = 0;
+              break;
+            }}
+            if (switcher == 1) {
+                CurrClass = MASK[i];
+                ClassesList[counterG] = MASK[i];
+                /*printf("[%u]\n", ClassesList[counterG]);*/
+                counterG++;
+              }
+        }
+        if (counterG == classesNumb) break;
+      }
+      /* sort the obtained values (classes) */
+      for(i=0; i<classesNumb; i++)	{
+                  for(j=0; j<classesNumb-1; j++) {
+                      if(ClassesList[j] > ClassesList[j+1]) {
+                          temp = ClassesList[j+1];
+                          ClassesList[j+1] = ClassesList[j];
+                          ClassesList[j] = temp;
+                      }}}
+
+    for(i=0; i<classesNumb; i++)	printf("[%u]\n", ClassesList[i]);
+
+    /*Euclidian weight for diffisuvuty window*/
     if (dimZ == 1) {
 	DiffusWindow_tot = (2*DiffusWindow + 1)*(2*DiffusWindow + 1);
         /* generate a 2D Gaussian kernel for NLM procedure */
@@ -133,11 +133,11 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
 
     if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
 
-    
+    MASK_temp = (unsigned char*) calloc (DimTotal,sizeof(unsigned char));
 
     /* copy input into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
-    /* copy given MASK  */
+    /* copy given MASK to MASK_upd*/
     copyIm_unchar(MASK, MASK_upd, (long)(dimX), (long)(dimY), (long)(dimZ));
 
     /********************** PERFORM MASK PROCESSING ************************/
@@ -155,7 +155,7 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
       if (MASK_temp[j*dimX+i] == MASK[j*dimX+i]) {
-	/* !One needs to work with a specific class to avoid overlaps! 
+	/* !One needs to work with a specific class to avoid overlaps!
 	 hence it is crucial to establish relevant classes */
        if (MASK_temp[j*dimX+i] == 149) {
         /* The class of the central pixel has not changed, i.e. the central pixel is not an outlier -> continue */
@@ -343,8 +343,8 @@ float NonLinearDiff_MASK2D(float *Input, unsigned char *MASK, float *Output, flo
 /********************************************************************/
 
 
-int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char *MASK_upd, long dimX, long dimY) 
-{               
+int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char *MASK_upd, long dimX, long dimY)
+{
                    int n;
                    int x[] = {i, i1};
                    int y[] = {j, j1};
@@ -398,7 +398,7 @@ int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char
                         Y_new[n] = y_n;
                         */
                         /*printf("[%i][%i][%u]\n", x_n, y_n, MASK[y_n*dimX+x_n]);*/
-                        // MASK_upd[x_n*dimX+y_n] = 10;                        
+                        // MASK_upd[x_n*dimX+y_n] = 10;
                         if (MASK[j*dimX+i] != MASK[x_n*dimX+y_n]) MASK_upd[x_n*dimX+y_n] = MASK[j*dimX+i];
                        }
                        else {
