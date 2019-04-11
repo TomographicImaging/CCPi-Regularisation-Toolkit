@@ -54,7 +54,7 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, float *Output, float *infovector, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, unsigned char *SelClassesList, int SelClassesList_length, float *Output, float *infovector, int classesNumb, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
 CCPI_EXPORT float LinearDiff_MASK2D(float *Input, unsigned char *MASK, float *Output,  float *Eucl_Vec, int DiffusWindow, float lambdaPar, float tau, long dimX, long dimY);
 CCPI_EXPORT float NonLinearDiff_MASK2D(float *Input, unsigned char *MASK, float *Output, float *Eucl_Vec, int DiffusWindow, float lambdaPar, float sigmaPar, float tau, int penaltytype, long dimX, long dimY);
 CCPI_EXPORT float OutiersRemoval2D(unsigned char *MASK, unsigned char *MASK_upd, long i, long j, long dimX, long dimY);

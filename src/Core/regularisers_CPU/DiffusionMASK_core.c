@@ -53,7 +53,14 @@ int signNDF_m(float x) {
  * [2] Black, M.J., Sapiro, G., Marimont, D.H. and Heeger, D., 1998. Robust anisotropic diffusion. IEEE Transactions on image processing, 7(3), pp.421-432.
  */
 
-float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, float *Output, float *infovector, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ)
+void swapVAL(unsigned char *xp, unsigned char *yp) 
+{ 
+    unsigned char temp = *xp; 
+    *xp = *yp; 
+    *yp = temp; 
+} 
+
+float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, unsigned char *SelClassesList, int SelClassesList_length, float *Output, float *infovector, int classesNumb, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ)
 {
     long i,j,k;
     int counterG;
@@ -64,8 +71,42 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
     float re, re1;
     re = 0.0f; re1 = 0.0f;
     int count = 0;
-    unsigned char *MASK_temp;
+    unsigned char *MASK_temp, *ClassesList, CurrClass, temp;
     DimTotal = (long)(dimX*dimY*dimZ);
+
+    /* defines the list for all classes in the mask */
+    ClassesList = (unsigned char*) calloc (classesNumb,sizeof(unsigned char));
+    /* indentify all classes in the MASK */
+    /* find the smaller class value first */
+    /*
+    unsigned char smallestClass;
+    smallestClass = MASK[0];
+    for(i=0; i<DimTotal; i++) {
+	if (MASK[i] < smallestClass) smallestClass = MASK[i];
+    }
+    */
+    MASK_temp = (unsigned char*) calloc (DimTotal,sizeof(unsigned char));   
+    copyIm_unchar(MASK, MASK_temp, (long)(dimX), (long)(dimY), (long)(dimZ));        
+     
+    int x, y;
+    for(x=0; x<classesNumb; x++)	{
+                for(y=0; y<classesNumb-1; y++) {
+                    if(MASK_temp[y] > MASK_temp[y+1]) {
+                        temp = MASK_temp[y+1];
+                        MASK_temp[y+1] = MASK_temp[y];
+                        MASK_temp[y] = temp;
+                    }}} 
+     
+     //printf("[%u]\n", MASK_temp[0]);
+    
+     CurrClass =  MASK_temp[0]; ClassesList[0]= MASK_temp[0]; counterG = 0;
+     for(i=0; i<DimTotal; i++) {
+        if (MASK_temp[i] > CurrClass) {
+        CurrClass = MASK_temp[i];
+        ClassesList[counterG] = MASK_temp[i];
+        printf("[%u]\n", ClassesList[counterG]);
+        counterG++; }    
+     }
 
     if (dimZ == 1) {
 	DiffusWindow_tot = (2*DiffusWindow + 1)*(2*DiffusWindow + 1);
@@ -92,7 +133,7 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
 
     if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
 
-    MASK_temp = (unsigned char*) calloc (DimTotal,sizeof(unsigned char));
+    
 
     /* copy input into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
@@ -110,25 +151,27 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
     /* copy the updated MASK (clean of outliers) */
     copyIm_unchar(MASK_upd, MASK_temp, (long)(dimX), (long)(dimY), (long)(dimZ));
 
-//    #pragma omp parallel for shared(MASK_temp,MASK_upd) private(i,j)
-//  for(i=0; i<dimX; i++) {
-//        for(j=0; j<dimY; j++) {
-//      if (MASK_temp[j*dimX+i] == MASK[j*dimX+i]) {
-        /*the class of the central pixel has not changed, i.e. the central pixel is not an outlier -> continue */
-        i = 162; j = 258;
+    #pragma omp parallel for shared(MASK_temp,MASK_upd) private(i,j)
+    for(i=0; i<dimX; i++) {
+        for(j=0; j<dimY; j++) {
+      if (MASK_temp[j*dimX+i] == MASK[j*dimX+i]) {
+	/* !One needs to work with a specific class to avoid overlaps! 
+	 hence it is crucial to establish relevant classes */
+       if (MASK_temp[j*dimX+i] == 149) {
+        /* The class of the central pixel has not changed, i.e. the central pixel is not an outlier -> continue */
+        /* i = 258; j = 165; */
         Mask_update2D(MASK_temp, MASK_upd, i, j, DiffusWindow, (long)(dimX), (long)(dimY));
-//       }
-      //}}
+       }}
+     }}
     }
 
-    /* start diffusivity iterations */
+    /* The mask has been processed, start diffusivity iterations */
     for(i=0; i < iterationsNumb; i++) {
-
       if ((epsil != 0.0f)  && (i % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
       if (dimZ == 1) {
-	          /* running 2D diffusion iterations */
-            //if (sigmaPar == 0.0f) LinearDiff_MASK2D(Input, MASK, Output, Eucl_Vec, DiffusWindow, lambdaPar, tau, (long)(dimX), (long)(dimY)); /* constrained linear diffusion */
-            //else NonLinearDiff_MASK2D(Input, MASK, Output, Eucl_Vec, DiffusWindow, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY)); /* constrained nonlinear diffusion */
+             /* running 2D diffusion iterations */
+            if (sigmaPar == 0.0f) LinearDiff_MASK2D(Input, MASK_upd, Output, Eucl_Vec, DiffusWindow, lambdaPar, tau, (long)(dimX), (long)(dimY)); /* constrained linear diffusion */
+            else NonLinearDiff_MASK2D(Input, MASK_upd, Output, Eucl_Vec, DiffusWindow, lambdaPar, sigmaPar2, tau, penaltytype, (long)(dimX), (long)(dimY)); /* constrained nonlinear diffusion */
           }
       else {
        	/* running 3D diffusion iterations */
@@ -207,11 +250,10 @@ float Mask_update2D(unsigned char *MASK_temp, unsigned char *MASK_upd, long i, l
             j1 = j+j_m;
             if (((i1 >= 0) && (i1 < dimX)) && ((j1 >= 0) && (j1 < dimY))) {
               if (MASK_temp[j*dimX+i] == MASK_temp[j1*dimX+i1]) {
-                /*A and B points belong to the same class, do STEP 4*/
+                /* A and B points belong to the same class, do STEP 4*/
                 /* STEP 4: Run Bresenham line algorithm between A and B points
-                and convert all points on the way to the class of A/B.
-                */
-                bresenham2D(i, j, i1, j1, MASK_temp, MASK_upd, (long)(dimX), (long)(dimY));
+                and convert all points on the way to the class of A/B.  */
+               bresenham2D(i, j, i1, j1, MASK_temp, MASK_upd, (long)(dimX), (long)(dimY));
               }
             }
           }}
@@ -301,20 +343,20 @@ float NonLinearDiff_MASK2D(float *Input, unsigned char *MASK, float *Output, flo
 /********************************************************************/
 
 
-int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char *MASK_upd, long dimX, long dimY) {
-
+int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char *MASK_upd, long dimX, long dimY) 
+{               
+                   int n;
                    int x[] = {i, i1};
                    int y[] = {j, j1};
                    int steep = (fabs(y[1]-y[0]) > fabs(x[1]-x[0]));
                    int ystep = 0;
 
                    //printf("[%i][%i][%i][%i]\n", x[1], y[1], steep, kk) ;
-
                    //if (steep == 1) {swap(x[0],y[0]); swap(x[1],y[1]);}
 
                    if (steep == 1) {
 
-                    ///swaping
+                   // swaping
                    int a, b;
 
                    a = x[0];
@@ -349,18 +391,15 @@ int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char
                   if (y[0] < y[1]) {ystep = 1;}
                   else {ystep = -1;}
 
-                  for(int n = 0; n<delx+1; n++) {
+                  for(n = 0; n<delx+1; n++) {
                        if (steep == 1) {
                         /*
                         X_new[n] = x_n;
                         Y_new[n] = y_n;
                         */
                         /*printf("[%i][%i][%u]\n", x_n, y_n, MASK[y_n*dimX+x_n]);*/
-
-                        MASK_upd[y_n*dimX+x_n] = 10;
-                        //if (MASK[j*dimX+i] != MASK[y_n*dimX+x_n]) {
-                        //  MASK_upd[y_n*dimX+x_n] = MASK[j*dimX+i];
-                        //}
+                        // MASK_upd[x_n*dimX+y_n] = 10;                        
+                        if (MASK[j*dimX+i] != MASK[x_n*dimX+y_n]) MASK_upd[x_n*dimX+y_n] = MASK[j*dimX+i];
                        }
                        else {
                          /*
@@ -368,11 +407,8 @@ int bresenham2D(int i, int j, int i1, int j1, unsigned char *MASK, unsigned char
                         Y_new[n] = x_n;
                         */
                         // printf("[%i][%i][%u]\n", y_n, x_n, MASK[x_n*dimX+y_n]);
-                        // MASK_upd[x_n*dimX+y_n] = 1;
-                        //if (MASK[j*dimX+i] != MASK[x_n*dimX+y_n]) {
-                        //  MASK_upd[x_n*dimX+y_n] = MASK[j*dimX+i];
-                        //}
-                        MASK_upd[x_n*dimX+y_n] = 20;
+                        // MASK_upd[y_n*dimX+x_n] = 20;
+                        if (MASK[j*dimX+i] != MASK[y_n*dimX+x_n]) MASK_upd[y_n*dimX+x_n] = MASK[j*dimX+i];
                        }
                        x_n = x_n + 1;
                        error = error + dely;

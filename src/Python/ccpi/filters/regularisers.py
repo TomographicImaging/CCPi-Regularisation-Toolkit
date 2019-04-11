@@ -127,11 +127,13 @@ def NDF(inputData, regularisation_parameter, edge_parameter, iterations,
     	    raise ValueError ('GPU is not available')
         raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
                          .format(device))
-def NDF_MASK(inputData, maskdata, diffuswindow, regularisation_parameter, edge_parameter, iterations,
+def NDF_MASK(inputData, maskdata, select_classes, total_classesNum, diffuswindow, regularisation_parameter, edge_parameter, iterations,
                      time_marching_parameter, penalty_type, tolerance_param, device='cpu'):
     if device == 'cpu':
         return NDF_MASK_CPU(inputData,
                      maskdata,
+                     select_classes,
+                     total_classesNum,
                      diffuswindow,
                      regularisation_parameter,
                      edge_parameter,
@@ -142,6 +144,8 @@ def NDF_MASK(inputData, maskdata, diffuswindow, regularisation_parameter, edge_p
     elif device == 'gpu' and gpu_enabled:
         return NDF_MASK_CPU(inputData,
                      maskdata,
+                     select_classes,
+                     total_classesNum,
                      diffuswindow,
                      regularisation_parameter,
                      edge_parameter,
