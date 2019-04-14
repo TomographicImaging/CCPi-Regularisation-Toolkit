@@ -62,7 +62,7 @@ void swapVAL(unsigned char *xp, unsigned char *yp)
 
 float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, unsigned char *SelClassesList, int SelClassesList_length, float *Output, float *infovector, int classesNumb, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ)
 {
-    long i,j,k;
+    long i,j,k,l;
     int counterG, switcher;
     float sigmaPar2, *Output_prev=NULL, *Eucl_Vec;
     int DiffusWindow_tot;
@@ -96,7 +96,7 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
         }
         if (counterG == classesNumb) break;
       }
-      /* sort the obtained values (classes) */
+      /* sort from LOW->HIGH the obtained values (classes) */
       for(i=0; i<classesNumb; i++)	{
                   for(j=0; j<classesNumb-1; j++) {
                       if(ClassesList[j] > ClassesList[j+1]) {
@@ -104,8 +104,6 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
                           ClassesList[j+1] = ClassesList[j];
                           ClassesList[j] = temp;
                       }}}
-
-    for(i=0; i<classesNumb; i++)	printf("[%u]\n", ClassesList[i]);
 
     /*Euclidian weight for diffisuvuty window*/
     if (dimZ == 1) {
@@ -151,18 +149,23 @@ float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *M
     /* copy the updated MASK (clean of outliers) */
     copyIm_unchar(MASK_upd, MASK_temp, (long)(dimX), (long)(dimY), (long)(dimZ));
 
-    #pragma omp parallel for shared(MASK_temp,MASK_upd) private(i,j)
+    for(l=0; l<SelClassesList_length; l++) {
+    /*printf("[%u]\n", ClassesList[SelClassesList[l]]);*/
+    #pragma omp parallel for shared(MASK_temp,MASK_upd,l) private(i,j)
     for(i=0; i<dimX; i++) {
         for(j=0; j<dimY; j++) {
+      /* The class of the central pixel has not changed, i.e. the central pixel is not an outlier -> continue */
       if (MASK_temp[j*dimX+i] == MASK[j*dimX+i]) {
-	/* !One needs to work with a specific class to avoid overlaps!
-	 hence it is crucial to establish relevant classes */
-       if (MASK_temp[j*dimX+i] == 149) {
-        /* The class of the central pixel has not changed, i.e. the central pixel is not an outlier -> continue */
+	    /* !One needs to work with a specific class to avoid overlaps! It is
+        crucial to establish relevant classes first (given as an input in SelClassesList) */
+       if (MASK_temp[j*dimX+i] == ClassesList[SelClassesList[l]]) {
         /* i = 258; j = 165; */
         Mask_update2D(MASK_temp, MASK_upd, i, j, DiffusWindow, (long)(dimX), (long)(dimY));
-       }}
-     }}
+        }}
+      }}
+      /* copy the updated mask */
+      copyIm_unchar(MASK_upd, MASK_temp, (long)(dimX), (long)(dimY), (long)(dimZ));
+      }
     }
 
     /* The mask has been processed, start diffusivity iterations */
