@@ -24,7 +24,7 @@ cdef extern float SB_TV_CPU_main(float *Input, float *Output, float *infovector,
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TGV_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
-cdef extern float DiffusionMASK_CPU_main(float *Input, unsigned char *MASK, unsigned char *MASK_upd, unsigned char *SelClassesList, int SelClassesList_length, float *Output, float *infovector, int classesNumb, int DiffusWindow, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int dimX, int dimY, int dimZ);
+cdef extern float Mask_merge_main(unsigned char *MASK, unsigned char *MASK_upd, unsigned char *CORRECTEDRegions, unsigned char *SelClassesList, int SelClassesList_length, int classesNumb, int CorrectionWindow, int dimX, int dimY, int dimZ);
 cdef extern float Diffus4th_CPU_main(float *Input, float *Output,  float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxIter, float tol, int dimX, int dimY, int dimZ);
@@ -382,48 +382,6 @@ def NDF_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     return (outputData,infovec)
 
 #****************************************************************#
-#********Constrained Nonlinear(Isotropic) Diffusion**************#
-#****************************************************************#
-def NDF_MASK_CPU(inputData, maskData, select_classes, total_classesNum, diffuswindow, regularisation_parameter, edge_parameter, iterationsNumb,time_marching_parameter, penalty_type, tolerance_param):
-    if inputData.ndim == 2:
-        return NDF_MASK_2D(inputData, maskData, select_classes, total_classesNum, diffuswindow, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter, penalty_type, tolerance_param)
-    elif inputData.ndim == 3:
-        return 0
-
-def NDF_MASK_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
-                    np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,
-                    np.ndarray[np.uint8_t, ndim=1, mode="c"] select_classes,
-                     int total_classesNum,
-                     int diffuswindow,
-                     float regularisation_parameter,
-                     float edge_parameter,
-                     int iterationsNumb,
-                     float time_marching_parameter,
-                     int penalty_type,
-                     float tolerance_param):
-    cdef long dims[2]
-    dims[0] = inputData.shape[0]
-    dims[1] = inputData.shape[1]
-
-    select_classes_length = select_classes.shape[0]
-    
-    cdef np.ndarray[np.uint8_t, ndim=2, mode="c"] mask_upd = \
-            np.zeros([dims[0],dims[1]], dtype='uint8')
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
-            np.zeros([dims[0],dims[1]], dtype='float32')
-    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
-                np.zeros([2], dtype='float32')
-
-
-    # Run constrained nonlinear diffusion iterations for 2D data
-    DiffusionMASK_CPU_main(&inputData[0,0], &maskData[0,0], &mask_upd[0,0], &select_classes[0], select_classes_length, &outputData[0,0], &infovec[0],
-    total_classesNum, diffuswindow, regularisation_parameter, edge_parameter, iterationsNumb,
-    time_marching_parameter, penalty_type,
-    tolerance_param,
-    dims[1], dims[0], 1)
-    return (mask_upd,outputData,infovec)
-
-#****************************************************************#
 #*************Anisotropic Fourth-Order diffusion*****************#
 #****************************************************************#
 def Diff4th_CPU(inputData, regularisation_parameter, edge_parameter, iterationsNumb, time_marching_parameter,tolerance_param):
@@ -736,6 +694,38 @@ def NVM_INP_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
 
     return (outputData, maskData_upd)
 
+##############################################################################
+#****************************************************************#
+#********Mask (segmented image) correction module **************#
+#****************************************************************#
+def MASK_CORR_CPU(maskData, select_classes, total_classesNum, CorrectionWindow):
+    if maskData.ndim == 2:
+        return MASK_CORR_CPU_2D(maskData, select_classes, total_classesNum, CorrectionWindow)
+    elif maskData.ndim == 3:
+        return 0
+
+def MASK_CORR_CPU_2D(np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,
+                    np.ndarray[np.uint8_t, ndim=1, mode="c"] select_classes,
+                     int total_classesNum,
+                     int CorrectionWindow):
+    
+    cdef long dims[2]
+    dims[0] = maskData.shape[0]
+    dims[1] = maskData.shape[1]
+
+    select_classes_length = select_classes.shape[0]
+    
+    cdef np.ndarray[np.uint8_t, ndim=2, mode="c"] mask_upd = \
+            np.zeros([dims[0],dims[1]], dtype='uint8')
+    cdef np.ndarray[np.uint8_t, ndim=2, mode="c"] corr_regions = \
+            np.zeros([dims[0],dims[1]], dtype='uint8')
+
+    # Run the function to process given MASK
+    Mask_merge_main(&maskData[0,0], &mask_upd[0,0], &corr_regions[0,0], &select_classes[0], select_classes_length, 
+    total_classesNum, CorrectionWindow, dims[1], dims[0], 1)
+    return (mask_upd,corr_regions)
+
+##############################################################################
 
 #****************************************************************#
 #***************Calculation of TV-energy functional**************#
