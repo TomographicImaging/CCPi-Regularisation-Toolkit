@@ -48,9 +48,9 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 
-CCPI_EXPORT float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambda, float tau, long dimX, long dimY, long dimZ);
+CCPI_EXPORT float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float *lambda, int lambda_is_arr, float tau, long dimX, long dimY, long dimZ);
 CCPI_EXPORT float D1_func(float *A, float *D1, long dimX, long dimY, long dimZ);
 CCPI_EXPORT float D2_func(float *A, float *D2, long dimX, long dimY, long dimZ);
 CCPI_EXPORT float D3_func(float *A, float *D3, long dimX, long dimY, long dimZ);
