@@ -18,7 +18,7 @@ import cython
 import numpy as np
 cimport numpy as np
 
-cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float *lambdaPar, int arrayscal, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
+cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int dimX, int dimY, int dimZ);
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
@@ -721,20 +721,20 @@ def MASK_CORR_CPU_2D(np.ndarray[np.uint8_t, ndim=2, mode="c"] maskData,
                     np.ndarray[np.uint8_t, ndim=1, mode="c"] select_classes,
                      int total_classesNum,
                      int CorrectionWindow):
-    
+
     cdef long dims[2]
     dims[0] = maskData.shape[0]
     dims[1] = maskData.shape[1]
 
     select_classes_length = select_classes.shape[0]
-    
+
     cdef np.ndarray[np.uint8_t, ndim=2, mode="c"] mask_upd = \
             np.zeros([dims[0],dims[1]], dtype='uint8')
     cdef np.ndarray[np.uint8_t, ndim=2, mode="c"] corr_regions = \
             np.zeros([dims[0],dims[1]], dtype='uint8')
 
     # Run the function to process given MASK
-    Mask_merge_main(&maskData[0,0], &mask_upd[0,0], &corr_regions[0,0], &select_classes[0], select_classes_length, 
+    Mask_merge_main(&maskData[0,0], &mask_upd[0,0], &corr_regions[0,0], &select_classes[0], select_classes_length,
     total_classesNum, CorrectionWindow, dims[1], dims[0], 1)
     return (mask_upd,corr_regions)
 
