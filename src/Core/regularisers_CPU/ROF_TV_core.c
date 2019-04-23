@@ -33,7 +33,7 @@ int sign(float x) {
  *
  * Input Parameters:
  * 1. Noisy image/volume [REQUIRED]
- * 2. lambda - regularization parameter (a constant or the same size as input (1))
+ * 2. lambda - regularisation parameter (a constant or the same size as the input (1))
  * 3. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
  * 4. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
  * 5. eplsilon: tolerance constant
