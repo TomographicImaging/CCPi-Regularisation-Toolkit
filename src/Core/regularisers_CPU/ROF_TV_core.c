@@ -31,16 +31,15 @@ int sign(float x) {
 
 /* C-OMP implementation of ROF-TV denoising/regularization model [1] (2D/3D case)
  *
- *
  * Input Parameters:
  * 1. Noisy image/volume [REQUIRED]
- * 2. lambda - regularization parameter [REQUIRED]
+ * 2. lambda - regularisation parameter (a constant or the same size as the input (1))
  * 3. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
  * 4. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
  * 5. eplsilon: tolerance constant
  *
  * Output:
- * [1] Regularized image/volume
+ * [1] Regularised image/volume
  * [2] Information vector which contains [iteration no., reached tolerance]
  *
  * This function is based on the paper by
@@ -48,7 +47,7 @@ int sign(float x) {
  */
 
 /* Running iterations of TV-ROF function */
-float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ)
+float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ)
 {
     float *D1=NULL, *D2=NULL, *D3=NULL, *Output_prev=NULL;
     float re, re1;
@@ -74,7 +73,7 @@ float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float lamb
             D1_func(Output, D1, (long)(dimX), (long)(dimY), (long)(dimZ));
             D2_func(Output, D2, (long)(dimX), (long)(dimY), (long)(dimZ));
             if (dimZ > 1) D3_func(Output, D3, (long)(dimX), (long)(dimY), (long)(dimZ));
-            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
+            TV_kernel(D1, D2, D3, Output, Input, lambdaPar, lambda_is_arr, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
 
             /* check early stopping criteria */
             if ((epsil != 0.0f) && (i % 5 == 0)) {
@@ -267,17 +266,18 @@ float D3_func(float *A, float *D3, long dimX, long dimY, long dimZ)
 }
 
 /* calculate divergence */
-float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambda, float tau, long dimX, long dimY, long dimZ)
+float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float *lambda, int lambda_is_arr, float tau, long dimX, long dimY, long dimZ)
 {
-    float dv1, dv2, dv3;
+    float dv1, dv2, dv3, lambda_val;
     long index,i,j,k,i1,i2,k1,j1,j2,k2;
 
     if (dimZ > 1) {
-#pragma omp parallel for shared (D1, D2, D3, B, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2, dv1,dv2,dv3)
+#pragma omp parallel for shared (D1, D2, D3, B, dimX, dimY, dimZ) private(index, i, j, k, i1, j1, k1, i2, j2, k2, dv1,dv2,dv3,lambda_val)
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
                 for(k=0; k<dimZ; k++) {
                     index = (dimX*dimY)*k + j*dimX+i;
+                    lambda_val = *(lambda + index* lambda_is_arr);
                     /* symmetric boundary conditions (Neuman) */
                     i1 = i + 1; if (i1 >= dimX) i1 = i-1;
                     i2 = i - 1; if (i2 < 0) i2 = i+1;
@@ -291,14 +291,15 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
 
-                    B[index] += tau*(lambda*(dv1 + dv2 + dv3) - (B[index] - A[index]));
+                    B[index] += tau*(lambda_val*(dv1 + dv2 + dv3) - (B[index] - A[index]));
                 }}}
     }
     else {
-#pragma omp parallel for shared (D1, D2, B, dimX, dimY) private(index, i, j, i1, j1, i2, j2,dv1,dv2)
+#pragma omp parallel for shared (D1, D2, B, dimX, dimY) private(index, i, j, i1, j1, i2, j2,dv1,dv2,lambda_val)
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
                 index = j*dimX+i;
+                lambda_val = *(lambda + index* lambda_is_arr);
                 /* symmetric boundary conditions (Neuman) */
                 i1 = i + 1; if (i1 >= dimX) i1 = i-1;
                 i2 = i - 1; if (i2 < 0) i2 = i+1;
@@ -309,7 +310,7 @@ float TV_kernel(float *D1, float *D2, float *D3, float *B, float *A, float lambd
                 dv1 = D1[index] - D1[j2*dimX + i];
                 dv2 = D2[index] - D2[j*dimX + i2];
 
-                B[index] += tau*(lambda*(dv1 + dv2) - (B[index] - A[index]));
+                B[index] += tau*(lambda_val*(dv1 + dv2) - (B[index] - A[index]));
             }}
     }
     return *B;

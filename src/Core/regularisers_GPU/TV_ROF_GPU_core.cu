@@ -27,17 +27,16 @@ limitations under the License.
 *
 * Input Parameters:
 * 1. Noisy image/volume [REQUIRED]
-* 2. lambda - regularization parameter [REQUIRED]
-* 3. tau - marching step for explicit scheme, ~0.1 is recommended [REQUIRED]
-* 4. Number of iterations, for explicit scheme >= 150 is recommended [REQUIRED]
+* 2. lambda - regularization parameter (a constant or the same size as input (1))
+* 3. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
+* 4. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
 * 5. eplsilon: tolerance constant
-
- * Output:
- * [1] Filtered/regularized image/volume
- * [2] Information vector which contains [iteration no., reached tolerance]
-
-
- * This function is based on the paper by
+*
+* Output:
+* [1] Regularised image/volume
+* [2] Information vector which contains [iteration no., reached tolerance]
+*
+* This function is based on the paper by
 * [1] Rudin, Osher, Fatemi, "Nonlinear Total Variation based noise removal algorithms"
 */
 
@@ -121,27 +120,25 @@ __host__ __device__ int sign (float x)
 		}
 	}
 
-    __global__ void TV_kernel2D(float *D1, float *D2, float *Update, float *Input, float lambda, float tau, int N, int M)
+    __global__ void TV_kernel2D(float *D1, float *D2, float *Update, float *Input, float *lambdaPar_d, int lambda_is_arr, float tau, int N, int M)
     {
 		int i2, j2;
-		float dv1,dv2;
+		float dv1,dv2,lambda_val;
 		int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
 
-        int index = i + N*j;
+    int index = i + N*j;
+    lambda_val = *(lambdaPar_d + index* lambda_is_arr);
 
         if ((i >= 0) && (i < (N)) && (j >= 0) && (j < (M))) {
-
 				/* boundary conditions (Neumann reflections) */
                 i2 = i - 1; if (i2 < 0) i2 = i+1;
                 j2 = j - 1; if (j2 < 0) j2 = j+1;
-
 				/* divergence components  */
                 dv1 = D1[index] - D1[j2*N + i];
                 dv2 = D2[index] - D2[j*N + i2];
 
-                Update[index] += tau*(lambda*(dv1 + dv2) - (Update[index] - Input[index]));
-
+                Update[index] += tau*(lambda_val*(dv1 + dv2) - (Update[index] - Input[index]));
 		}
 	}
 /*********************3D case****************************/
@@ -265,19 +262,20 @@ __host__ __device__ int sign (float x)
 		}
 	}
 
-    __global__ void TV_kernel3D(float *D1, float *D2, float *D3, float *Update, float *Input, float lambda, float tau, int dimX, int dimY, int dimZ)
+    __global__ void TV_kernel3D(float *D1, float *D2, float *D3, float *Update, float *Input, float *lambda, int lambda_is_arr, float tau, int dimX, int dimY, int dimZ)
     {
-		float dv1, dv2, dv3;
+		float dv1, dv2, dv3, lambda_val;
 		int i1,i2,k1,j1,j2,k2;
 		int i = blockDim.x * blockIdx.x + threadIdx.x;
-        int j = blockDim.y * blockIdx.y + threadIdx.y;
-        int k = blockDim.z * blockIdx.z + threadIdx.z;
+    int j = blockDim.y * blockIdx.y + threadIdx.y;
+    int k = blockDim.z * blockIdx.z + threadIdx.z;
 
-        int index = (dimX*dimY)*k + j*dimX+i;
+    int index = (dimX*dimY)*k + j*dimX+i;
+    lambda_val = *(lambda + index* lambda_is_arr);
 
-        if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {
+    if ((i >= 0) && (i < dimX) && (j >= 0) && (j < dimY) && (k >= 0) && (k < dimZ)) {
 
-					/* symmetric boundary conditions (Neuman) */
+		/* symmetric boundary conditions (Neuman) */
                     i1 = i + 1; if (i1 >= dimX) i1 = i-1;
                     i2 = i - 1; if (i2 < 0) i2 = i+1;
                     j1 = j + 1; if (j1 >= dimY) j1 = j-1;
@@ -290,7 +288,7 @@ __host__ __device__ int sign (float x)
                     dv2 = D2[index] - D2[(dimX*dimY)*k + j*dimX+i2];
                     dv3 = D3[index] - D3[(dimX*dimY)*k2 + j*dimX+i];
 
-                    Update[index] += tau*(lambda*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
+                    Update[index] += tau*(lambda_val*(dv1 + dv2 + dv3) - (Update[index] - Input[index]));
 
 		}
 	}
@@ -348,7 +346,7 @@ __global__ void ROFResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 
 /////////////////////////////////////////////////
 ///////////////// HOST FUNCTION /////////////////
-extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float lambdaPar, int iter, float tau, float epsil, int N, int M, int Z)
+extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int N, int M, int Z)
 {
      int deviceCount = -1; // number of devices
      cudaGetDeviceCount(&deviceCount);
@@ -360,10 +358,10 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
         re = 0.0f;
 	int ImSize, count, n;
 	count = 0; n = 0;
-        float *d_input, *d_update, *d_D1, *d_D2, *d_update_prev=NULL;
+  float *d_input, *d_update, *d_D1, *d_D2, *d_update_prev=NULL, *lambdaPar_d=NULL;
 
 	if (Z == 0) Z = 1;
-	ImSize = N*M*Z;
+	      ImSize = N*M*Z;
         CHECK(cudaMalloc((void**)&d_input,ImSize*sizeof(float)));
         CHECK(cudaMalloc((void**)&d_update,ImSize*sizeof(float)));
         CHECK(cudaMalloc((void**)&d_D1,ImSize*sizeof(float)));
@@ -372,6 +370,16 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
 
         CHECK(cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
         CHECK(cudaMemcpy(d_update,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+
+        /*dealing with spatially variant reglariser */
+        if (lambda_is_arr == 1) {
+          CHECK(cudaMalloc((void**)&lambdaPar_d,ImSize*sizeof(float)));
+          CHECK(cudaMemcpy(lambdaPar_d,lambdaPar,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+        }
+        else {
+          CHECK(cudaMalloc((void**)&lambdaPar_d,1*sizeof(float)));
+          CHECK(cudaMemcpy(lambdaPar_d,lambdaPar,1*sizeof(float),cudaMemcpyHostToDevice));
+        }
 
         if (Z == 1) {
              // TV - 2D case
@@ -391,7 +399,7 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
 		            D2_func2D<<<dimGrid,dimBlock>>>(d_update, d_D2, N, M);
                 CHECK(cudaDeviceSynchronize());
                 /*running main kernel*/
-                TV_kernel2D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_update, d_input, lambdaPar, tau, N, M);
+                TV_kernel2D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_update, d_input, lambdaPar_d, lambda_is_arr, tau, N, M);
                 CHECK(cudaDeviceSynchronize());
 
                 if ((epsil != 0.0f) && (n % 5 == 0)) {
@@ -417,7 +425,7 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
             }
         }
 	 else {
-	    // TV - 3D case
+	           // TV - 3D case
             dim3 dimBlock(BLKXSIZE,BLKYSIZE,BLKZSIZE);
             dim3 dimGrid(idivup(N,BLKXSIZE), idivup(M,BLKYSIZE),idivup(Z,BLKXSIZE));
 
@@ -431,7 +439,6 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
               checkCudaErrors( cudaDeviceSynchronize() );
               checkCudaErrors(cudaPeekAtLastError() );
               }
-
                 /* calculate differences */
                 D1_func3D<<<dimGrid,dimBlock>>>(d_update, d_D1, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
@@ -440,7 +447,7 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
                 D3_func3D<<<dimGrid,dimBlock>>>(d_update, d_D3, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
                 /*running main kernel*/
-                TV_kernel3D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_D3, d_update, d_input, lambdaPar, tau, N, M, Z);
+                TV_kernel3D<<<dimGrid,dimBlock>>>(d_D1, d_D2, d_D3, d_update, d_input, lambdaPar_d, lambda_is_arr, tau, N, M, Z);
                 CHECK(cudaDeviceSynchronize());
 
                 if ((epsil != 0.0f) && (n % 5 == 0)) {
@@ -461,12 +468,8 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
                 re = (reduction/reduction2);
                 if (re < epsil)  count++;
                 if (count > 3) break;
-
+              }
             }
-
-
-            }
-
             CHECK(cudaFree(d_D3));
         }
         CHECK(cudaMemcpy(Output,d_update,N*M*Z*sizeof(float),cudaMemcpyDeviceToHost));
@@ -475,9 +478,9 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
         CHECK(cudaFree(d_update));
         CHECK(cudaFree(d_D1));
         CHECK(cudaFree(d_D2));
+        CHECK(cudaFree(lambdaPar_d));
 
 	      infovector[0] = (float)(n);  /*iterations number (if stopped earlier based on tolerance)*/
         infovector[1] = re;  /* reached tolerance */
-
         return 0;
 }
