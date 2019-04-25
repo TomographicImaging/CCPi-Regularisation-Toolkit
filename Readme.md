@@ -1,10 +1,10 @@
-# CCPi-Regularisation Toolkit (CCPi-RGL)
+# CCPi-Regularisation Toolkit ([Software X paper](https://www.sciencedirect.com/science/article/pii/S2352711018301912))
 
 | Master | Development | Anaconda binaries |
 |--------|-------------|-------------------|
 | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/) | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit-dev)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit-dev/) | ![conda version](https://anaconda.org/ccpi/ccpi-regulariser/badges/version.svg) ![conda last release](https://anaconda.org/ccpi/ccpi-regulariser/badges/latest_release_date.svg) [![conda platforms](https://anaconda.org/ccpi/ccpi-regulariser/badges/platforms.svg) ![conda dowloads](https://anaconda.org/ccpi/ccpi-regulariser/badges/downloads.svg)](https://anaconda.org/ccpi/ccpi-regulariser) |
 
-**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-RGL toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising and inpaiting problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
+**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-Regularisation Toolkit (CCPi-RGL) toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising and inpaiting problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.** 
 
 
 <div align="center">
@@ -169,8 +169,8 @@ addpath(/path/to/library);
 
 12. [Abderrahim E., Lezoray O. and Bougleux S. 2008. Nonlocal discrete regularization on weighted graphs: a framework for image and manifold processing." IEEE Trans. Image Processing 17(7), pp. 1047-1060.](https://ieeexplore.ieee.org/document/4526700)
 
-### References to Software:
-* If software is used, please refer to [11], however, the supporting publication is in progress.
+### References to software (please cite if used):
+* [Kazantsev, D., Pasca, E., Turner, M.J. and Withers, P.J., 2019. CCPi-Regularisation toolkit for computed tomographic image reconstruction with proximal splitting algorithms. SoftwareX, 9, pp.317-323.](https://www.sciencedirect.com/science/article/pii/S2352711018301912)
 
 ### Applications:
 
