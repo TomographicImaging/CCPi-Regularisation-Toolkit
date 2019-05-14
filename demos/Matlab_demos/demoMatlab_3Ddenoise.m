@@ -1,8 +1,11 @@
 % Volume (3D) denoising demo using CCPi-RGL
 clear; close all
-Path1 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'mex_compile' filesep 'installed'], 1i);
-Path2 = sprintf(['data' filesep], 1i);
-Path3 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'supp'], 1i);
+fsep = '/';
+
+
+Path1 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
+Path2 = sprintf(['..' fsep 'data' fsep], 1i);
+Path3 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'supp'], 1i);
 addpath(Path1);
 addpath(Path2);
 addpath(Path3);
@@ -18,7 +21,6 @@ Ideal3D(:,:,i) = Im;
 end
 vol3D(vol3D < 0) = 0;
 figure; imshow(vol3D(:,:,7), [0 1]); title('Noisy image');
-
 %%
 fprintf('Denoise a volume using the ROF-TV model (CPU) \n');
 lambda_reg = 0.03; % regularsation parameter for all methods

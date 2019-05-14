@@ -66,10 +66,14 @@ fprintf('%s \n', 'Compiling ROF-LLT...');
 mex -g -I/usr/local/cuda-10.0/include -L/usr/local/cuda-10.0/lib64 -lcudart -lcufft -lmwgpu LLT_ROF_GPU.cpp LLT_ROF_GPU_core.o
 movefile('LLT_ROF_GPU.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling PatchSelect...');
+!/usr/local/cuda/bin/nvcc -O0 -c PatchSelect_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
+mex -g -I/usr/local/cuda-10.0/include -L/usr/local/cuda-10.0/lib64 -lcudart -lcufft -lmwgpu PatchSelect_GPU.cpp PatchSelect_GPU_core.o
+movefile('PatchSelect_GPU.mex*',Pathmove);
 
 delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* TGV_GPU_core* LLT_ROF_GPU_core* CCPiDefines.h
-delete PatchSelect_core* Nonlocal_TV_core* shared.h
+delete PatchSelect_GPU_core* Nonlocal_TV_core* shared.h
 fprintf('%s \n', 'All successfully compiled!');
 
-pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos'], 1i);
+pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos' fsep 'Matlab_demos'], 1i);
 cd(pathA2);

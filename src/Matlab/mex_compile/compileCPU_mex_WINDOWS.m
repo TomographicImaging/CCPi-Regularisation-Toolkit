@@ -7,7 +7,11 @@
 % Here I present two ways how software can be compiled, if you have some
 % other suggestions/remarks please contact me at dkazanc@hotmail.com 
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
+% cuda related messgaes can be  solved in Linux:
+%export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
+%export CUDA_HOME=/usr/local/cuda
+%export LD_PRELOAD=/home/algol/anaconda3/lib/libstdc++.so.6.0.24
+% >>
 fsep = '/';
 
 pathcopyFrom = sprintf(['..' fsep '..' fsep 'Core' fsep 'regularisers_CPU'], 1i);
