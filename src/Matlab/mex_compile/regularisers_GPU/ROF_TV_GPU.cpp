@@ -25,7 +25,7 @@
  * 
  * Input Parameters:
  * 1. Noisy image/volume [REQUIRED]
- * 2. lambda - regularization parameter [REQUIRED]
+ * 2. lambda - regularization parameter [REQUIRED], scalar or the same size as 1
  * 3. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
  * 4. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
  * 5. eplsilon: tolerance constant [REQUIRED]
@@ -37,7 +37,7 @@
  * This function is based on the paper by
  * [1] Rudin, Osher, Fatemi, "Nonlinear Total Variation based noise removal algorithms"
  *
- * D. Kazantsev, 2016-18
+ * D. Kazantsev, 2016-19
  */
 void mexFunction(
         int nlhs, mxArray *plhs[],
@@ -47,15 +47,26 @@ void mexFunction(
      int number_of_dims, iter_numb;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array_i;
-    float *Input, *Output=NULL, lambda, tau, epsil;    
+    float *Input, *Output=NULL, lambda_scalar, tau, epsil;    
     float *infovec=NULL;
-    
+    float *lambda;  
+        
     dim_array_i = mxGetDimensions(prhs[0]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
     
     /*Handling Matlab input data*/
     Input  = (float *) mxGetData(prhs[0]);
-    lambda =  (float) mxGetScalar(prhs[1]); /* regularization parameter */
+    /*special check to find the input scalar or an array*/
+    int mrows = mxGetM(prhs[1]);
+    int ncols = mxGetN(prhs[1]); 
+    if (mrows==1 && ncols==1) {        
+        lambda = (float*) calloc (1 ,sizeof(float));
+        lambda_scalar =  (float) mxGetScalar(prhs[1]); /* regularization parameter */        
+        lambda[0] = lambda_scalar;
+    }
+    else {
+        lambda =  (float *) mxGetData(prhs[1]); /* regularization parameter */    
+    }
     iter_numb =  (int) mxGetScalar(prhs[2]); /* iterations number */
     tau =  (float) mxGetScalar(prhs[3]); /* marching step parameter */  
     epsil = (float) mxGetScalar(prhs[4]); /* tolerance */  
@@ -79,5 +90,9 @@ void mexFunction(
     vecdim[0] = 2;
     infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));
     
-    TV_ROF_GPU_main(Input, Output, infovec, lambda, iter_numb, tau, epsil, dimX, dimY, dimZ);    
+    if (mrows==1 && ncols==1) {
+    TV_ROF_GPU_main(Input, Output, infovec, lambda, 0, iter_numb, tau, epsil, dimX, dimY, dimZ);    
+    free(lambda);
+    }
+    else TV_ROF_GPU_main(Input, Output, infovec, lambda, 1, iter_numb, tau, epsil, dimX, dimY, dimZ);       
 }

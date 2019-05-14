@@ -1,9 +1,14 @@
 % Image (2D) inpainting demo using CCPi-RGL
 clear; close all
-Path1 = sprintf(['..' filesep 'src' filesep 'Matlab' filesep 'mex_compile' filesep 'installed'], 1i);
-Path2 = sprintf(['data' filesep], 1i);
+
+fsep = '/';
+
+Path1 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
+Path2 = sprintf(['..' fsep 'data' fsep], 1i);
+Path3 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'supp'], 1i);
 addpath(Path1);
 addpath(Path2);
+addpath(Path3);
 
 load('SinoInpaint.mat');
 Sinogram = Sinogram./max(Sinogram(:));

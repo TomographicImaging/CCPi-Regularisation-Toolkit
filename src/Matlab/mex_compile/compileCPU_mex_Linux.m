@@ -77,5 +77,5 @@ delete PatchSelect_core* Nonlocal_TV_core*
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 fprintf('%s \n', '<<<<<<< Regularisers successfully compiled! >>>>>>>');
 
-pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos'], 1i);
+pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos' fsep 'Matlab_demos'], 1i);
 cd(pathA2);

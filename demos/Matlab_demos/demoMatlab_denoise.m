@@ -2,9 +2,9 @@
 clear; close all
 fsep = '/';
 
-Path1 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
-Path2 = sprintf(['data' fsep], 1i);
-Path3 = sprintf(['..' fsep 'src' fsep 'Matlab' fsep 'supp'], 1i);
+Path1 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
+Path2 = sprintf(['..' fsep 'data' fsep], 1i);
+Path3 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'supp'], 1i);
 addpath(Path1);
 addpath(Path2);
 addpath(Path3);
@@ -15,8 +15,8 @@ figure; imshow(u0, [0 1]); title('Noisy image');
 %%
 fprintf('Denoise using the ROF-TV model (CPU) \n');
 lambda_reg = 0.03; % regularsation parameter for all methods
-iter_rof = 2000; % number of ROF iterations
-tau_rof = 0.01; % time-marching constant 
+iter_rof = 1500; % number of ROF iterations
+tau_rof = 0.003; % time-marching constant 
 epsil_tol =  0.0; % tolerance / 1.0e-06
 tic; [u_rof,infovec] = ROF_TV(single(u0), lambda_reg, iter_rof, tau_rof, epsil_tol); toc; 
 energyfunc_val_rof = TV_energy(single(u_rof),single(u0),lambda_reg, 1);  % get energy function value
