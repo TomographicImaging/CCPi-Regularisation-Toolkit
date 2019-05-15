@@ -2,9 +2,9 @@
 clear; close all
 fsep = '/';
 
-Path1 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
 Path2 = sprintf(['..' fsep 'data' fsep], 1i);
 Path3 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'supp'], 1i);
+Path1 = sprintf(['..' fsep '..' fsep 'src' fsep 'Matlab' fsep 'mex_compile' fsep 'installed'], 1i);
 addpath(Path1);
 addpath(Path2);
 addpath(Path3);

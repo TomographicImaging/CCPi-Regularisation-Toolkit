@@ -68,7 +68,6 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c
-    	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/MASK_merge_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffus4th_order_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/LLT_ROF_core.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
