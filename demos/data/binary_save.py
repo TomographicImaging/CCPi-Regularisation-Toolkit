@@ -1,9 +1,9 @@
 import numpy as np
-outfile = open('my_file.bin', 'wb')  # Open a file for binary write
-outfile.write(im)  # Write it
+outfile = open('test_imageLena.bin', 'wb')  # Open a file for binary write
+outfile.write(Im)  # Write it
 outfile.flush()  # Optional but a good idea
 outfile.close()
-
+#%%
 # Define width and height
 w, h = 256, 256
 # Read file using numpy "fromfile()"

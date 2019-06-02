@@ -11,9 +11,9 @@ build:
 test:
   source_files:
     - ./test/
-  requires:
-    - pillow
-    - pillow=4.1.1 # [win]
+#  requires:
+#    - pillow
+#    - pillow=4.1.1 # [win]
   commands:
     - python -c "import os; print (os.getcwd())"
     - python -m unittest discover -s test

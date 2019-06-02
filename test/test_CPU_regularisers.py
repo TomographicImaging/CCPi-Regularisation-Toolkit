@@ -1,18 +1,19 @@
 import unittest
-import math
+#import math
 import os
-import timeit
+#import timeit
 import numpy as np
 from ccpi.filters.regularisers import FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th, ROF_TV
-from testroutines import *
-
+from testroutines import BinReader, rmse 
 ###############################################################################
 
 class TestRegularisers(unittest.TestCase):
 
     def getPars(self):
-        filename = os.path.join("test","lena_gray_512.tif")
-        plt = TiffReader()
+        #filename = os.path.join("test","lena_gray_512.tif")
+        #plt = TiffReader()
+        filename = os.path.join("test","test_imageLena.bin")
+        plt = BinReader()
         # read image
         Im = plt.imread(filename)
         Im = np.asarray(Im, dtype='float32')
