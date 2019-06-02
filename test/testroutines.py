@@ -1,10 +1,17 @@
 import numpy as np
-from PIL import Image
+#from PIL import Image
 
+"""
 class TiffReader(object):
     def imread(self, filename):
         return np.asarray(Image.open(filename))
+"""
 
+class BinReader(object):
+	def imread(self, filename):
+		w, h = 512, 512
+		with open(filename, mode='rb') as f:
+			return np.fromfile(f,dtype=np.uint8,count=w*h).reshape(h,w)
 
 ###############################################################################
 def printParametersToString(pars):
