@@ -191,30 +191,15 @@ float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float la
     long i,j,index;
     multip = (1.0f/(8.0f*lambda));
 #pragma omp parallel for shared(P1,P2,D,R1,R2,multip) private(index,i,j,val1,val2)
-    for(j=0; j<dimY-1; j++) {
-        for(i=0; i<dimX-1; i++) {
-            index = j*dimX+i;
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
+			index = j*dimX+i;
             /* boundary conditions */
-            if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[index+1];
-            if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[index + dimX];
+            if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[j*dimX + (i+1)];
+            if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(j+1)*dimX + i];
             P1[index] = R1[index] + multip*val1;
             P2[index] = R2[index] + multip*val2;
-        }
-    }
-
-    /* boundary conditions */
-    i = dimX - 1 ;
-    for(j=0; j<dimY; j++) {
-        index = j*dimX+i;
-        P1[index] = R1[index];
-    }
-    j = dimY - 1;
-    for (i=0;i<dimX; i++)
-    {
-        index = j*dimX+i;
-        P2[index] = R2[index];
-
-    }
+        }}
     return 1;
 }
 float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
