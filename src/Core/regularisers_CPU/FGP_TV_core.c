@@ -175,8 +175,8 @@ float Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long di
     float val1, val2;
     long i,j,index;
 #pragma omp parallel for shared(A,D,R1,R2) private(index,i,j,val1,val2)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
 			index = j*dimX+i;
             /* boundary conditions  */
             if (i == 0) {val1 = 0.0f;} else {val1 = R1[j*dimX + (i-1)];}
@@ -191,8 +191,8 @@ float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float la
     long i,j,index;
     multip = (1.0f/(8.0f*lambda));
 #pragma omp parallel for shared(P1,P2,D,R1,R2,multip) private(index,i,j,val1,val2)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
 			index = j*dimX+i;
             /* boundary conditions */
             if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[j*dimX + (i+1)];
@@ -252,10 +252,10 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
     float val1, val2, val3;
     long i,j,k,index;
 #pragma omp parallel for shared(A,D,R1,R2,R3) private(index,i,j,k,val1,val2,val3)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
-				index = (dimX*dimY)*k + j*dimX+i;
+            for(i=0; i<dimX; i++) {
+		index = (dimX*dimY)*k + j*dimX+i;
                 /* boundary conditions */
                 if (i == 0) {val1 = 0.0f;} else {val1 = R1[(dimX*dimY)*k + j*dimX + (i-1)];}
                 if (j == 0) {val2 = 0.0f;} else {val2 = R2[(dimX*dimY)*k + (j-1)*dimX + i];}
@@ -270,10 +270,10 @@ float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R
     long i,j,k, index;
     multip = (1.0f/(26.0f*lambda));
 #pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
-				index = (dimX*dimY)*k + j*dimX+i;
+            for(i=0; i<dimX; i++) {
+		index = (dimX*dimY)*k + j*dimX+i;
                 /* boundary conditions */
                 if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[(dimX*dimY)*k + j*dimX + (i+1)];
                 if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(dimX*dimY)*k + (j+1)*dimX + i];
