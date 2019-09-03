@@ -6,9 +6,9 @@ rm -r ../build_proj
 mkdir ../build_proj
 cd ../build_proj/
 #make clean
-export CIL_VERSION=19.06
+export CIL_VERSION=19.09
 # install Python modules without CUDA
-# cmake ../ -DBUILD_PYTHON_WRAPPER=ON -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_CUDA=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
+#cmake ../ -DBUILD_PYTHON_WRAPPER=ON -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_CUDA=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
 # install Python modules with CUDA
 cmake ../ -DBUILD_PYTHON_WRAPPER=ON -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
 # install Matlab modules without CUDA
@@ -21,7 +21,7 @@ make install
 cp install/lib/libcilreg.so install/python/ccpi/filters
 cd install/python
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:../lib
-spyder
+spyder --new-instance
 ############### Matlab(linux)###############
 # export LD_PRELOAD=/home/algol/anaconda3/lib/libstdc++.so.6  # if there is libstdc error in matlab
 # PATH="/path/to/mex/:$PATH" LD_LIBRARY_PATH="/path/to/library:$LD_LIBRARY_PATH" matlab

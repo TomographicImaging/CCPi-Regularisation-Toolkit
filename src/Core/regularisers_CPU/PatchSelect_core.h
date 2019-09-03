@@ -1,11 +1,11 @@
 /*
  * This work is part of the Core Imaging Library developed by
  * Visual Analytics and Imaging System Group of the Science Technology
- * Facilities Council, STFC and Diamond Light Source Ltd. 
+ * Facilities Council, STFC and Diamond Light Source Ltd.
  *
  * Copyright 2017 Daniil Kazantsev
  * Copyright 2017 Srikanth Nagella, Edoardo Pasca
- * Copyright 2018 Diamond Light Source Ltd. 
+ * Copyright 2018 Diamond Light Source Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h, int switchM);
+CCPI_EXPORT float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h);
 CCPI_EXPORT float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
-CCPI_EXPORT float Indeces2D_p(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *Weights, long i, long j, long dimX, long dimY, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
 CCPI_EXPORT float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimY, long dimX, long dimZ, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2);
 #ifdef __cplusplus
 }
