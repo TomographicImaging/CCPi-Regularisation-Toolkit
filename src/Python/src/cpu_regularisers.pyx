@@ -27,8 +27,8 @@ cdef extern float Diffusion_CPU_main(float *Input, float *Output, float *infovec
 cdef extern float Diffus4th_CPU_main(float *Input, float *Output,  float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float eta, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern float TNV_CPU_main(float *Input, float *u, float lambdaPar, int maxIter, float tol, int dimX, int dimY, int dimZ);
-cdef extern float PatchSelect_CPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h, int switchM);
-cdef extern float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambdaReg, int IterNumb);
+cdef extern float PatchSelect_CPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h);
+cdef extern float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambdaReg, int IterNumb, int switchM);
 
 cdef extern float Diffusion_Inpaint_CPU_main(float *Input, unsigned char *Mask, float *Output, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, int dimX, int dimY, int dimZ);
 cdef extern float NonlocalMarching_Inpaint_main(float *Input, unsigned char *M, float *Output, unsigned char *M_upd, int SW_increment, int iterationsNumb, int trigger, int dimX, int dimY, int dimZ);
@@ -570,7 +570,7 @@ def PatchSel_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0], dims[1],dims[2]], dtype='uint16')
 
     # Run patch-based weight selection function
-    PatchSelect_CPU_main(&inputData[0,0], &H_j[0,0,0], &H_i[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[2], dims[1], 0, searchwindow, patchwindow,  neighbours,  edge_parameter, 1)
+    PatchSelect_CPU_main(&inputData[0,0], &H_j[0,0,0], &H_i[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[2], dims[1], 0, searchwindow, patchwindow,  neighbours,  edge_parameter)
     return H_i, H_j, Weights
 """
 def PatchSel_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
@@ -625,7 +625,7 @@ def NLTV_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
             np.zeros([dims[0],dims[1]], dtype='float32')
 
     # Run nonlocal TV regularisation
-    Nonlocal_TV_CPU_main(&inputData[0,0], &outputData[0,0], &H_i[0,0,0], &H_j[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[1], dims[0], 0, neighbours, regularisation_parameter, iterations)
+    Nonlocal_TV_CPU_main(&inputData[0,0], &outputData[0,0], &H_i[0,0,0], &H_j[0,0,0], &H_i[0,0,0], &Weights[0,0,0], dims[1], dims[0], 0, neighbours, regularisation_parameter, iterations, 1)
     return outputData
 
 #*********************Inpainting WITH****************************#
