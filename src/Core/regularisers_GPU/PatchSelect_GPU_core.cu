@@ -40,8 +40,8 @@
  */
 
 
-#define BLKXSIZE 16
-#define BLKYSIZE 16
+#define BLKXSIZE 8
+#define BLKYSIZE 4
 #define idivup(a, b) ( ((a)%(b) != 0) ? (a)/(b)+1 : (a)/(b) )
 #define M_PI 3.14159265358979323846
 #define EPS 1.0e-8
@@ -68,46 +68,56 @@ __device__ void swapUS(unsigned short *xp, unsigned short *yp)
 __global__ void IndexSelect2D_5_kernel(float *Ad, unsigned short *H_i_d, unsigned short *H_j_d, float *Weights_d, float *Eucl_Vec_d, int N, int M, int SearchWindow, int SearchW_full, int SimilarWin, int NumNeighb, float h2)
 {
 
-    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2;
+    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2, ind;
     float normsum;
 
     float Weight_Vec[CONSTVECSIZE5];
     unsigned short ind_i[CONSTVECSIZE5];
     unsigned short ind_j[CONSTVECSIZE5];
 
+    for(ind=0; ind<CONSTVECSIZE5; ind++) {
+      Weight_Vec[ind] = 0.0;
+      ind_i[ind] = 0;
+      ind_j[ind] = 0; }
+
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
 
-    long index = i*M+j;
+    long index = i + N*j;
 
     counter = 0;
     for(i_m=-SearchWindow; i_m<=SearchWindow; i_m++) {
+      i1 = i+i_m;
+      if ((i1 >= 0) && (i1 < N)) {
         for(j_m=-SearchWindow; j_m<=SearchWindow; j_m++) {
-            i1 = i+i_m;
             j1 = j+j_m;
-              if (((i1 >= 0) && (i1 < N)) && ((j1 >= 0) && (j1 < M))) {
+            if ((j1 >= 0) && (j1 < M)) {
                 normsum = 0.0f; counterG = 0;
                 for(i_c=-SimilarWin; i_c<=SimilarWin; i_c++) {
+                  i2 = i1 + i_c;
+                  i3 = i + i_c;
+                  if ((i2 >= 0) && (i2 < N) && (i3 >= 0) && (i3 < N)) {
                     for(j_c=-SimilarWin; j_c<=SimilarWin; j_c++) {
-                        i2 = i1 + i_c;
                         j2 = j1 + j_c;
-                        i3 = i + i_c;
                         j3 = j + j_c;
-                        if (((i2 >= 0) && (i2 < N)) && ((j2 >= 0) && (j2 < M))) {
-                            if (((i3 >= 0) && (i3 < N)) && ((j3 >= 0) && (j3 < M))) {
-                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3*M + j3] - Ad[i2*M + j2], 2);
+                        if ((j2 >= 0) && (j2 < M) && (j3 >= 0) && (j3 < M)) {
+                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3 + N*j3] - Ad[i2 + N*j2], 2);
                                 counterG++;
-                            }}
-                     }}
+                              } /*if j2 j3*/
+                          }
+                    } /*if i2 i3*/
+                   }
                 /* writing temporarily into vectors */
                 if (normsum > EPS) {
-                    Weight_Vec[counter] = __expf(-normsum/h2);
+                    Weight_Vec[counter] = expf(-normsum/h2);
                     ind_i[counter] = i1;
                     ind_j[counter] = j1;
                     counter++;
                 }
-             }
-        }}
+              } /*if j1*/
+            }
+          } /*if i1*/
+        }
 
     /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
@@ -133,46 +143,56 @@ __global__ void IndexSelect2D_5_kernel(float *Ad, unsigned short *H_i_d, unsigne
 __global__ void IndexSelect2D_7_kernel(float *Ad, unsigned short *H_i_d, unsigned short *H_j_d, float *Weights_d, float *Eucl_Vec_d, int N, int M, int SearchWindow, int SearchW_full, int SimilarWin, int NumNeighb, float h2)
 {
 
-    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2;
+    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2, ind;
     float normsum;
 
     float Weight_Vec[CONSTVECSIZE7];
     unsigned short ind_i[CONSTVECSIZE7];
     unsigned short ind_j[CONSTVECSIZE7];
 
+    for(ind=0; ind<CONSTVECSIZE7; ind++) {
+      Weight_Vec[ind] = 0.0;
+      ind_i[ind] = 0;
+      ind_j[ind] = 0; }
+
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
 
-    long index = i*M+j;
+    long index = i + N*j;
 
     counter = 0;
     for(i_m=-SearchWindow; i_m<=SearchWindow; i_m++) {
+      i1 = i+i_m;
+      if ((i1 >= 0) && (i1 < N)) {
         for(j_m=-SearchWindow; j_m<=SearchWindow; j_m++) {
-            i1 = i+i_m;
             j1 = j+j_m;
-             if (((i1 >= 0) && (i1 < N)) && ((j1 >= 0) && (j1 < M))) {
+            if ((j1 >= 0) && (j1 < M)) {
                 normsum = 0.0f; counterG = 0;
                 for(i_c=-SimilarWin; i_c<=SimilarWin; i_c++) {
+                  i2 = i1 + i_c;
+                  i3 = i + i_c;
+                  if ((i2 >= 0) && (i2 < N) && (i3 >= 0) && (i3 < N)) {
                     for(j_c=-SimilarWin; j_c<=SimilarWin; j_c++) {
-                        i2 = i1 + i_c;
                         j2 = j1 + j_c;
-                        i3 = i + i_c;
                         j3 = j + j_c;
-                        if (((i2 >= 0) && (i2 < N)) && ((j2 >= 0) && (j2 < M))) {
-                            if (((i3 >= 0) && (i3 < N)) && ((j3 >= 0) && (j3 < M))) {
-                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3*M + j3] - Ad[i2*M + j2], 2);
+                        if ((j2 >= 0) && (j2 < M) && (j3 >= 0) && (j3 < M)) {
+                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3 + N*j3] - Ad[i2 + N*j2], 2);
                                 counterG++;
-                            }}
-                     }}
+                              } /*if j2 j3*/
+                          }
+                     } /*if i2 i3*/
+                   }
                 /* writing temporarily into vectors */
                 if (normsum > EPS) {
-                    Weight_Vec[counter] = __expf(-normsum/h2);
+                    Weight_Vec[counter] = expf(-normsum/h2);
                     ind_i[counter] = i1;
                     ind_j[counter] = j1;
                     counter++;
                 }
-             }
-        }}
+              } /*if j1*/
+            }
+          } /*if i1*/
+        }
 
     /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
@@ -225,16 +245,16 @@ __global__ void IndexSelect2D_9_kernel(float *Ad, unsigned short *H_i_d, unsigne
                 for(i_c=-SimilarWin; i_c<=SimilarWin; i_c++) {
                   i2 = i1 + i_c;
                   i3 = i + i_c;
-                  //if ((i2 >= 0) && (i2 < N) && (i3 >= 0) && (i3 < N)) {
+                  if ((i2 >= 0) && (i2 < N) && (i3 >= 0) && (i3 < N)) {
                     for(j_c=-SimilarWin; j_c<=SimilarWin; j_c++) {
                         j2 = j1 + j_c;
                         j3 = j + j_c;
-                        //if ((j2 >= 0) && (j2 < M) && (j3 >= 0) && (j3 < M)) {
+                        if ((j2 >= 0) && (j2 < M) && (j3 >= 0) && (j3 < M)) {
                                 normsum += Eucl_Vec_d[counterG]*powf(Ad[i3 + N*j3] - Ad[i2 + N*j2], 2);
                                 counterG++;
-                          //    } /*if j2 j3*/
+                              } /*if j2 j3*/
                           }
-                    // } /*if i2 i3*/
+                    } /*if i2 i3*/
                    }
                 /* writing temporarily into vectors */
                 if (normsum > EPS) {
@@ -271,46 +291,56 @@ __global__ void IndexSelect2D_9_kernel(float *Ad, unsigned short *H_i_d, unsigne
 __global__ void IndexSelect2D_11_kernel(float *Ad, unsigned short *H_i_d, unsigned short *H_j_d, float *Weights_d, float *Eucl_Vec_d, int N, int M, int SearchWindow, int SearchW_full, int SimilarWin, int NumNeighb, float h2)
 {
 
-    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2;
+    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2, ind;
     float normsum;
 
     float Weight_Vec[CONSTVECSIZE11];
     unsigned short ind_i[CONSTVECSIZE11];
     unsigned short ind_j[CONSTVECSIZE11];
 
+    for(ind=0; ind<CONSTVECSIZE11; ind++) {
+      Weight_Vec[ind] = 0.0;
+      ind_i[ind] = 0;
+      ind_j[ind] = 0; }
+
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
 
-    long index = i*M+j;
+    long index = i + N*j;
 
     counter = 0;
     for(i_m=-SearchWindow; i_m<=SearchWindow; i_m++) {
+      i1 = i+i_m;
+      if ((i1 >= 0) && (i1 < N)) {
         for(j_m=-SearchWindow; j_m<=SearchWindow; j_m++) {
-            i1 = i+i_m;
             j1 = j+j_m;
-            if (((i1 >= 0) && (i1 < N)) && ((j1 >= 0) && (j1 < M))) {
+            if ((j1 >= 0) && (j1 < M)) {
                 normsum = 0.0f; counterG = 0;
                 for(i_c=-SimilarWin; i_c<=SimilarWin; i_c++) {
+                  i2 = i1 + i_c;
+                  i3 = i + i_c;
+                  if ((i2 >= 0) && (i2 < N) && (i3 >= 0) && (i3 < N)) {
                     for(j_c=-SimilarWin; j_c<=SimilarWin; j_c++) {
-                        i2 = i1 + i_c;
                         j2 = j1 + j_c;
-                        i3 = i + i_c;
                         j3 = j + j_c;
-                        if (((i2 >= 0) && (i2 < N)) && ((j2 >= 0) && (j2 < M))) {
-                            if (((i3 >= 0) && (i3 < N)) && ((j3 >= 0) && (j3 < M))) {
-                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3*M + j3] - Ad[i2*M + j2], 2);
+                        if ((j2 >= 0) && (j2 < M) && (j3 >= 0) && (j3 < M)) {
+                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3 + N*j3] - Ad[i2 + N*j2], 2);
                                 counterG++;
-                            }}
-                     }}
+                              } /*if j2 j3*/
+                          }
+                     } /*if i2 i3*/
+                   }
                 /* writing temporarily into vectors */
                 if (normsum > EPS) {
-                    Weight_Vec[counter] = __expf(-normsum/h2);
+                    Weight_Vec[counter] = expf(-normsum/h2);
                     ind_i[counter] = i1;
                     ind_j[counter] = j1;
                     counter++;
                 }
-           }
-        }}
+              } /*if j1*/
+            }
+          } /*if i1*/
+        }
 
     /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
@@ -335,46 +365,56 @@ __global__ void IndexSelect2D_11_kernel(float *Ad, unsigned short *H_i_d, unsign
 __global__ void IndexSelect2D_13_kernel(float *Ad, unsigned short *H_i_d, unsigned short *H_j_d, float *Weights_d, float *Eucl_Vec_d, int N, int M, int SearchWindow, int SearchW_full, int SimilarWin, int NumNeighb, float h2)
 {
 
-    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2;
+    long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, counterG, index2, ind;
     float normsum;
 
     float Weight_Vec[CONSTVECSIZE13];
     unsigned short ind_i[CONSTVECSIZE13];
     unsigned short ind_j[CONSTVECSIZE13];
 
+    for(ind=0; ind<CONSTVECSIZE13; ind++) {
+      Weight_Vec[ind] = 0.0;
+      ind_i[ind] = 0;
+      ind_j[ind] = 0; }
+
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
 
-    long index = i*M+j;
+    long index = i + N*j;
 
     counter = 0;
     for(i_m=-SearchWindow; i_m<=SearchWindow; i_m++) {
+      i1 = i+i_m;
+      if ((i1 >= 0) && (i1 < N)) {
         for(j_m=-SearchWindow; j_m<=SearchWindow; j_m++) {
-            i1 = i+i_m;
             j1 = j+j_m;
-            if (((i1 >= 0) && (i1 < N)) && ((j1 >= 0) && (j1 < M))) {
+            if ((j1 >= 0) && (j1 < M)) {
                 normsum = 0.0f; counterG = 0;
                 for(i_c=-SimilarWin; i_c<=SimilarWin; i_c++) {
+                  i2 = i1 + i_c;
+                  i3 = i + i_c;
+                  if ((i2 >= 0) && (i2 < N) && (i3 >= 0) && (i3 < N)) {
                     for(j_c=-SimilarWin; j_c<=SimilarWin; j_c++) {
-                        i2 = i1 + i_c;
                         j2 = j1 + j_c;
-                        i3 = i + i_c;
                         j3 = j + j_c;
-                        if (((i2 >= 0) && (i2 < N)) && ((j2 >= 0) && (j2 < M))) {
-                            if (((i3 >= 0) && (i3 < N)) && ((j3 >= 0) && (j3 < M))) {
-                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3*M + j3] - Ad[i2*M + j2], 2);
+                        if ((j2 >= 0) && (j2 < M) && (j3 >= 0) && (j3 < M)) {
+                                normsum += Eucl_Vec_d[counterG]*powf(Ad[i3 + N*j3] - Ad[i2 + N*j2], 2);
                                 counterG++;
-                            }}
-                     }}
+                              } /*if j2 j3*/
+                          }
+                     } /*if i2 i3*/
+                   }
                 /* writing temporarily into vectors */
                 if (normsum > EPS) {
-                    Weight_Vec[counter] = __expf(-normsum/h2);
+                    Weight_Vec[counter] = expf(-normsum/h2);
                     ind_i[counter] = i1;
                     ind_j[counter] = j1;
                     counter++;
                 }
-             }
-        }}
+              } /*if j1*/
+            }
+          } /*if i1*/
+        }
 
     /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
