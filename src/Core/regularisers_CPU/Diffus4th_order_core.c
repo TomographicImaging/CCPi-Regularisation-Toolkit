@@ -50,35 +50,35 @@ float Diffus4th_CPU_main(float *Input, float *Output, float *infovector, float l
     float *W_Lapl=NULL, *Output_prev=NULL;
     sigmaPar2 = sigmaPar*sigmaPar;
     DimTotal =  dimX*dimY*dimZ;
-
+    
     W_Lapl = calloc(DimTotal, sizeof(float));
-
+    
     if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
-
+    
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
-
+    
     for(i=0; i < iterationsNumb; i++) {
-      if ((epsil != 0.0f) && (i % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
-
-      if (dimZ == 1) {
+        if ((epsil != 0.0f) && (i % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
+        
+        if (dimZ == 1) {
             /* running 2D diffusion iterations */
             /* Calculating weighted Laplacian */
             Weighted_Laplc2D(W_Lapl, Output, sigmaPar2, dimX, dimY);
             /* Perform iteration step */
             Diffusion_update_step2D(Output, Input, W_Lapl, lambdaPar, sigmaPar2, tau, (long)(dimX), (long)(dimY));
-		        }
-      else {
+        }
+        else {
             /* running 3D diffusion iterations */
             /* Calculating weighted Laplacian */
             Weighted_Laplc3D(W_Lapl, Output, sigmaPar2, dimX, dimY, dimZ);
             /* Perform iteration step */
             Diffusion_update_step3D(Output, Input, W_Lapl, lambdaPar, sigmaPar2, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
-          }
-
-          /* check early stopping criteria */
-          if ((epsil != 0.0f) && (i % 5 == 0)) {
-          re = 0.0f; re1 = 0.0f;
+        }
+        
+        /* check early stopping criteria */
+        if ((epsil != 0.0f) && (i % 5 == 0)) {
+            re = 0.0f; re1 = 0.0f;
             for(j=0; j<DimTotal; j++)
             {
                 re += powf(Output[j] - Output_prev[j],2);
@@ -87,10 +87,10 @@ float Diffus4th_CPU_main(float *Input, float *Output, float *infovector, float l
             re = sqrtf(re)/sqrtf(re1);
             if (re < epsil)  count++;
             if (count > 3) break;
-          }
-	   }
-	  free(W_Lapl);
-
+        }
+    }
+    free(W_Lapl);
+    
     if (epsil != 0.0f) free(Output_prev);
     /*adding info into info_vector */
     infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
@@ -104,74 +104,71 @@ float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, long dimX, long di
 {
     long i,j,i1,i2,j1,j2,index;
     float gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq;
-
-        #pragma omp parallel for shared(W_Lapl) private(i,j,i1,i2,j1,j2,index,gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq)
+    
+#pragma omp parallel for shared(W_Lapl) private(i,j,i1,i2,j1,j2,index,gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq)
+    for(j=0; j<dimY; j++) {
+        /* symmetric boundary conditions */
+        j1 = j+1; if (j1 == dimY) j1 = j-1;
+        j2 = j-1; if (j2 < 0) j2 = j+1;
         for(i=0; i<dimX; i++) {
-			 /* symmetric boundary conditions */
-			i1 = i+1; if (i1 == dimX) i1 = i-1;
-			i2 = i-1; if (i2 < 0) i2 = i+1;
-            for(j=0; j<dimY; j++) {
-				 /* symmetric boundary conditions */
-				j1 = j+1; if (j1 == dimY) j1 = j-1;
-				j2 = j-1; if (j2 < 0) j2 = j+1;
-
-				index = j*dimX+i;
-
-				gradX = 0.5f*(U0[j*dimX+i2] - U0[j*dimX+i1]);
-				gradX_sq = pow(gradX,2);
-
-				gradY = 0.5f*(U0[j2*dimX+i] - U0[j1*dimX+i]);
-                gradY_sq = pow(gradY,2);
-
-                gradXX = U0[j*dimX+i2] + U0[j*dimX+i1] - 2*U0[index];
-                gradYY = U0[j2*dimX+i] + U0[j1*dimX+i] - 2*U0[index];
-
-                gradXY = 0.25f*(U0[j2*dimX+i2] + U0[j1*dimX+i1] - U0[j1*dimX+i2] - U0[j2*dimX+i1]);
-                xy_2 = 2.0f*gradX*gradY*gradXY;
-
-                denom =  gradX_sq + gradY_sq;
-
-                if (denom <= EPS) {
-                    V_norm = (gradXX*gradX_sq + xy_2 + gradYY*gradY_sq)/EPS;
-                    V_orth = (gradXX*gradY_sq - xy_2 + gradYY*gradX_sq)/EPS;
-                    }
-                else  {
-                    V_norm = (gradXX*gradX_sq + xy_2 + gradYY*gradY_sq)/denom;
-                    V_orth = (gradXX*gradY_sq - xy_2 + gradYY*gradX_sq)/denom;
-                    }
-
-                c = 1.0f/(1.0f + denom/sigma);
-                c_sq = c*c;
-
-                W_Lapl[index] = c_sq*V_norm + c*V_orth;
+            /* symmetric boundary conditions */
+            i1 = i+1; if (i1 == dimX) i1 = i-1;
+            i2 = i-1; if (i2 < 0) i2 = i+1;
+            index = j*dimX+i;
+            
+            gradX = 0.5f*(U0[j*dimX+i2] - U0[j*dimX+i1]);
+            gradX_sq = pow(gradX,2);
+            
+            gradY = 0.5f*(U0[j2*dimX+i] - U0[j1*dimX+i]);
+            gradY_sq = pow(gradY,2);
+            
+            gradXX = U0[j*dimX+i2] + U0[j*dimX+i1] - 2*U0[index];
+            gradYY = U0[j2*dimX+i] + U0[j1*dimX+i] - 2*U0[index];
+            
+            gradXY = 0.25f*(U0[j2*dimX+i2] + U0[j1*dimX+i1] - U0[j1*dimX+i2] - U0[j2*dimX+i1]);
+            xy_2 = 2.0f*gradX*gradY*gradXY;
+            
+            denom =  gradX_sq + gradY_sq;
+            
+            if (denom <= EPS) {
+                V_norm = (gradXX*gradX_sq + xy_2 + gradYY*gradY_sq)/EPS;
+                V_orth = (gradXX*gradY_sq - xy_2 + gradYY*gradX_sq)/EPS;
             }
-        }
-        return *W_Lapl;
+            else  {
+                V_norm = (gradXX*gradX_sq + xy_2 + gradYY*gradY_sq)/denom;
+                V_orth = (gradXX*gradY_sq - xy_2 + gradYY*gradX_sq)/denom;
+            }
+            
+            c = 1.0f/(1.0f + denom/sigma);
+            c_sq = c*c;
+            
+            W_Lapl[index] = c_sq*V_norm + c*V_orth;
+        }}
+    return *W_Lapl;
 }
 
 float Diffusion_update_step2D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY)
 {
-	long i,j,i1,i2,j1,j2,index;
+    long i,j,i1,i2,j1,j2,index;
     float gradXXc, gradYYc;
-
-            #pragma omp parallel for shared(Output, Input, W_Lapl) private(i,j,i1,i2,j1,j2,index,gradXXc,gradYYc)
+    
+#pragma omp parallel for shared(Output, Input, W_Lapl) private(i,j,i1,i2,j1,j2,index,gradXXc,gradYYc)
+    for(j=0; j<dimY; j++) {
+        /* symmetric boundary conditions */
+        j1 = j+1; if (j1 == dimY) j1 = j-1;
+        j2 = j-1; if (j2 < 0) j2 = j+1;
         for(i=0; i<dimX; i++) {
-			 /* symmetric boundary conditions */
-			i1 = i+1; if (i1 == dimX) i1 = i-1;
-			i2 = i-1; if (i2 < 0) i2 = i+1;
-            for(j=0; j<dimY; j++) {
-				 /* symmetric boundary conditions */
-				j1 = j+1; if (j1 == dimY) j1 = j-1;
-				j2 = j-1; if (j2 < 0) j2 = j+1;
-					index = j*dimX+i;
-
-                    gradXXc = W_Lapl[j*dimX+i2] + W_Lapl[j*dimX+i1] - 2*W_Lapl[index];
-                    gradYYc = W_Lapl[j2*dimX+i] + W_Lapl[j1*dimX+i] - 2*W_Lapl[index];
-
-                    Output[index] += tau*(-lambdaPar*(gradXXc + gradYYc) - (Output[index] - Input[index]));
-                }
-            }
-	return *Output;
+            /* symmetric boundary conditions */
+            i1 = i+1; if (i1 == dimX) i1 = i-1;
+            i2 = i-1; if (i2 < 0) i2 = i+1;
+            index = j*dimX+i;
+            
+            gradXXc = W_Lapl[j*dimX+i2] + W_Lapl[j*dimX+i1] - 2*W_Lapl[index];
+            gradYYc = W_Lapl[j2*dimX+i] + W_Lapl[j1*dimX+i] - 2*W_Lapl[index];
+            
+            Output[index] += tau*(-lambdaPar*(gradXXc + gradYYc) - (Output[index] - Input[index]));
+        }}
+    return *Output;
 }
 /********************************************************************/
 /***************************3D Functions*****************************/
@@ -180,95 +177,89 @@ float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, long dimX, long di
 {
     long i,j,k,i1,i2,j1,j2,k1,k2,index;
     float gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq, gradZ, gradZ_sq, gradZZ, gradXZ, gradYZ, xyz_1, xyz_2;
-
-        #pragma omp parallel for shared(W_Lapl) private(i,j,k,i1,i2,j1,j2,k1,k2,index,gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq, gradZ, gradZ_sq, gradZZ, gradXZ, gradYZ, xyz_1, xyz_2)
-        for(i=0; i<dimX; i++) {
-			 /* symmetric boundary conditions */
-			i1 = i+1; if (i1 == dimX) i1 = i-1;
-			i2 = i-1; if (i2 < 0) i2 = i+1;
-            for(j=0; j<dimY; j++) {
-				/* symmetric boundary conditions */
-				j1 = j+1; if (j1 == dimY) j1 = j-1;
-				j2 = j-1; if (j2 < 0) j2 = j+1;
-
-				for(k=0; k<dimZ; k++) {
-				/* symmetric boundary conditions */
-				k1 = k+1; if (k1 == dimZ) k1 = k-1;
-				k2 = k-1; if (k2 < 0) k2 = k+1;
-
-				index = (dimX*dimY)*k + j*dimX+i;
-
-				gradX = 0.5f*(U0[(dimX*dimY)*k + j*dimX+i2] - U0[(dimX*dimY)*k + j*dimX+i1]);
-				gradX_sq = pow(gradX,2);
-
-				gradY = 0.5f*(U0[(dimX*dimY)*k + j2*dimX+i] - U0[(dimX*dimY)*k + j1*dimX+i]);
+    
+#pragma omp parallel for shared(W_Lapl) private(i,j,k,i1,i2,j1,j2,k1,k2,index,gradX, gradX_sq, gradY, gradY_sq, gradXX, gradYY, gradXY, xy_2, denom, V_norm, V_orth, c, c_sq, gradZ, gradZ_sq, gradZZ, gradXZ, gradYZ, xyz_1, xyz_2)
+    for(k=0; k<dimZ; k++) {
+        /* symmetric boundary conditions */
+        k1 = k+1; if (k1 == dimZ) k1 = k-1;
+        k2 = k-1; if (k2 < 0) k2 = k+1;
+        for(j=0; j<dimY; j++) {
+            /* symmetric boundary conditions */
+            j1 = j+1; if (j1 == dimY) j1 = j-1;
+            j2 = j-1; if (j2 < 0) j2 = j+1;
+            for(i=0; i<dimX; i++) {
+                /* symmetric boundary conditions */
+                i1 = i+1; if (i1 == dimX) i1 = i-1;
+                i2 = i-1; if (i2 < 0) i2 = i+1;
+                
+                index = (dimX*dimY)*k + j*dimX+i;
+                
+                gradX = 0.5f*(U0[(dimX*dimY)*k + j*dimX+i2] - U0[(dimX*dimY)*k + j*dimX+i1]);
+                gradX_sq = pow(gradX,2);
+                
+                gradY = 0.5f*(U0[(dimX*dimY)*k + j2*dimX+i] - U0[(dimX*dimY)*k + j1*dimX+i]);
                 gradY_sq = pow(gradY,2);
-
+                
                 gradZ = 0.5f*(U0[(dimX*dimY)*k2 + j*dimX+i] - U0[(dimX*dimY)*k1 + j*dimX+i]);
                 gradZ_sq = pow(gradZ,2);
-
+                
                 gradXX = U0[(dimX*dimY)*k + j*dimX+i2] + U0[(dimX*dimY)*k + j*dimX+i1] - 2*U0[index];
                 gradYY = U0[(dimX*dimY)*k + j2*dimX+i] + U0[(dimX*dimY)*k + j1*dimX+i] - 2*U0[index];
                 gradZZ = U0[(dimX*dimY)*k2 + j*dimX+i] + U0[(dimX*dimY)*k1 + j*dimX+i] - 2*U0[index];
-
+                
                 gradXY = 0.25f*(U0[(dimX*dimY)*k + j2*dimX+i2] + U0[(dimX*dimY)*k + j1*dimX+i1] - U0[(dimX*dimY)*k + j1*dimX+i2] - U0[(dimX*dimY)*k + j2*dimX+i1]);
                 gradXZ = 0.25f*(U0[(dimX*dimY)*k2 + j*dimX+i2] - U0[(dimX*dimY)*k2+j*dimX+i1] - U0[(dimX*dimY)*k1+j*dimX+i2] + U0[(dimX*dimY)*k1+j*dimX+i1]);
                 gradYZ = 0.25f*(U0[(dimX*dimY)*k2 +j2*dimX+i] - U0[(dimX*dimY)*k2+j1*dimX+i] - U0[(dimX*dimY)*k1+j2*dimX+i] + U0[(dimX*dimY)*k1+j1*dimX+i]);
-
+                
                 xy_2  = 2.0f*gradX*gradY*gradXY;
                 xyz_1 = 2.0f*gradX*gradZ*gradXZ;
                 xyz_2 = 2.0f*gradY*gradZ*gradYZ;
-
+                
                 denom =  gradX_sq + gradY_sq + gradZ_sq;
-
-					if (denom <= EPS) {
-					V_norm = (gradXX*gradX_sq + gradYY*gradY_sq + gradZZ*gradZ_sq + xy_2 + xyz_1 + xyz_2)/EPS;
+                
+                if (denom <= EPS) {
+                    V_norm = (gradXX*gradX_sq + gradYY*gradY_sq + gradZZ*gradZ_sq + xy_2 + xyz_1 + xyz_2)/EPS;
                     V_orth = ((gradY_sq + gradZ_sq)*gradXX + (gradX_sq + gradZ_sq)*gradYY + (gradX_sq + gradY_sq)*gradZZ - xy_2 - xyz_1 - xyz_2)/EPS;
-					}
-					else  {
-					V_norm = (gradXX*gradX_sq + gradYY*gradY_sq + gradZZ*gradZ_sq + xy_2 + xyz_1 + xyz_2)/denom;
+                }
+                else  {
+                    V_norm = (gradXX*gradX_sq + gradYY*gradY_sq + gradZZ*gradZ_sq + xy_2 + xyz_1 + xyz_2)/denom;
                     V_orth = ((gradY_sq + gradZ_sq)*gradXX + (gradX_sq + gradZ_sq)*gradYY + (gradX_sq + gradY_sq)*gradZZ - xy_2 - xyz_1 - xyz_2)/denom;
-					}
-
+                }
+                
                 c = 1.0f/(1.0f + denom/sigma);
                 c_sq = c*c;
-
+                
                 W_Lapl[index] = c_sq*V_norm + c*V_orth;
-				}
-            }
-        }
-        return *W_Lapl;
+            }}}
+    return *W_Lapl;
 }
 
 float Diffusion_update_step3D(float *Output, float *Input, float *W_Lapl, float lambdaPar, float sigmaPar2, float tau, long dimX, long dimY, long dimZ)
 {
-	long i,j,i1,i2,j1,j2,index,k,k1,k2;
+    long i,j,i1,i2,j1,j2,index,k,k1,k2;
     float gradXXc, gradYYc, gradZZc;
-
-        #pragma omp parallel for shared(Output, Input, W_Lapl) private(i,j,i1,i2,j1,j2,k,k1,k2,index,gradXXc,gradYYc,gradZZc)
-        for(i=0; i<dimX; i++) {
-			 /* symmetric boundary conditions */
-			i1 = i+1; if (i1 == dimX) i1 = i-1;
-			i2 = i-1; if (i2 < 0) i2 = i+1;
-            for(j=0; j<dimY; j++) {
-				/* symmetric boundary conditions */
-				j1 = j+1; if (j1 == dimY) j1 = j-1;
-				j2 = j-1; if (j2 < 0) j2 = j+1;
-
-				for(k=0; k<dimZ; k++) {
-				/* symmetric boundary conditions */
-				k1 = k+1; if (k1 == dimZ) k1 = k-1;
-				k2 = k-1; if (k2 < 0) k2 = k+1;
-
-				index = (dimX*dimY)*k + j*dimX+i;
-
-                    gradXXc = W_Lapl[(dimX*dimY)*k + j*dimX+i2] + W_Lapl[(dimX*dimY)*k + j*dimX+i1] - 2*W_Lapl[index];
-                    gradYYc = W_Lapl[(dimX*dimY)*k + j2*dimX+i] + W_Lapl[(dimX*dimY)*k + j1*dimX+i] - 2*W_Lapl[index];
-                    gradZZc = W_Lapl[(dimX*dimY)*k2 + j*dimX+i] + W_Lapl[(dimX*dimY)*k1 + j*dimX+i] - 2*W_Lapl[index];
-
-                    Output[index] += tau*(-lambdaPar*(gradXXc + gradYYc + gradZZc) - (Output[index] - Input[index]));
-                }
-            }
-		}
-	return *Output;
+    
+#pragma omp parallel for shared(Output, Input, W_Lapl) private(i,j,i1,i2,j1,j2,k,k1,k2,index,gradXXc,gradYYc,gradZZc)
+    for(k=0; k<dimZ; k++) {
+        /* symmetric boundary conditions */
+        k1 = k+1; if (k1 == dimZ) k1 = k-1;
+        k2 = k-1; if (k2 < 0) k2 = k+1;
+        for(j=0; j<dimY; j++) {
+            /* symmetric boundary conditions */
+            j1 = j+1; if (j1 == dimY) j1 = j-1;
+            j2 = j-1; if (j2 < 0) j2 = j+1;
+            for(i=0; i<dimX; i++) {
+                /* symmetric boundary conditions */
+                i1 = i+1; if (i1 == dimX) i1 = i-1;
+                i2 = i-1; if (i2 < 0) i2 = i+1;
+                
+                index = (dimX*dimY)*k + j*dimX+i;
+                
+                gradXXc = W_Lapl[(dimX*dimY)*k + j*dimX+i2] + W_Lapl[(dimX*dimY)*k + j*dimX+i1] - 2*W_Lapl[index];
+                gradYYc = W_Lapl[(dimX*dimY)*k + j2*dimX+i] + W_Lapl[(dimX*dimY)*k + j1*dimX+i] - 2*W_Lapl[index];
+                gradZZc = W_Lapl[(dimX*dimY)*k2 + j*dimX+i] + W_Lapl[(dimX*dimY)*k1 + j*dimX+i] - 2*W_Lapl[index];
+                
+                Output[index] += tau*(-lambdaPar*(gradXXc + gradYYc + gradZZc) - (Output[index] - Input[index]));
+            }}}
+    return *Output;
 }

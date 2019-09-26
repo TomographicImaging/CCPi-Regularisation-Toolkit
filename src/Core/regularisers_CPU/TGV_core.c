@@ -48,148 +48,148 @@ float TGV_main(float *U0, float *U, float *infovector, float lambda, float alpha
     re = 0.0f; re1 = 0.0f;
     int count = 0;
     float *U_old, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, tau, sigma;
-
+    
     DimTotal = (long)(dimX*dimY*dimZ);
     copyIm(U0, U, (long)(dimX), (long)(dimY), (long)(dimZ)); /* initialize */
     tau = pow(L2,-0.5);
     sigma = pow(L2,-0.5);
-
+    
     /* dual variables */
     P1 = calloc(DimTotal, sizeof(float));
     P2 = calloc(DimTotal, sizeof(float));
-
+    
     Q1 = calloc(DimTotal, sizeof(float));
     Q2 = calloc(DimTotal, sizeof(float));
     Q3 = calloc(DimTotal, sizeof(float));
-
+    
     U_old = calloc(DimTotal, sizeof(float));
-
+    
     V1 = calloc(DimTotal, sizeof(float));
     V1_old = calloc(DimTotal, sizeof(float));
     V2 = calloc(DimTotal, sizeof(float));
     V2_old = calloc(DimTotal, sizeof(float));
-
+    
     if (dimZ == 1) {
         /*2D case*/
-
+        
         /* Primal-dual iterations begin here */
         for(ll = 0; ll < iter; ll++) {
-
+            
             /* Calculate Dual Variable P */
             DualP_2D(U, V1, V2, P1, P2, (long)(dimX), (long)(dimY), sigma);
-
+            
             /*Projection onto convex set for P*/
             ProjP_2D(P1, P2, (long)(dimX), (long)(dimY), alpha1);
-
+            
             /* Calculate Dual Variable Q */
             DualQ_2D(V1, V2, Q1, Q2, Q3, (long)(dimX), (long)(dimY), sigma);
-
+            
             /*Projection onto convex set for Q*/
             ProjQ_2D(Q1, Q2, Q3, (long)(dimX), (long)(dimY), alpha0);
-
+            
             /*saving U into U_old*/
             copyIm(U, U_old, (long)(dimX), (long)(dimY), 1l);
-
+            
             /*adjoint operation  -> divergence and projection of P*/
             DivProjP_2D(U, U0, P1, P2, (long)(dimX), (long)(dimY), lambda, tau);
-
+            
             /*get updated solution U*/
             newU(U, U_old, (long)(dimX), (long)(dimY));
-
+            
             /*saving V into V_old*/
             copyIm(V1, V1_old, (long)(dimX), (long)(dimY), 1l);
             copyIm(V2, V2_old, (long)(dimX), (long)(dimY), 1l);
-
+            
             /* upd V*/
             UpdV_2D(V1, V2, P1, P2, Q1, Q2, Q3, (long)(dimX), (long)(dimY), tau);
-
+            
             /*get new V*/
             newU(V1, V1_old, (long)(dimX), (long)(dimY));
             newU(V2, V2_old, (long)(dimX), (long)(dimY));
-
+            
             /* check early stopping criteria */
             if ((epsil != 0.0f)  && (ll % 5 == 0)) {
-            re = 0.0f; re1 = 0.0f;
-	            for(j=0; j<DimTotal; j++)
-        	    {
-        	        re += powf(U[j] - U_old[j],2);
-        	        re1 += powf(U[j],2);
-        	    }
-           re = sqrtf(re)/sqrtf(re1);
-           if (re < epsil)  count++;
-           if (count > 3) break;
-           }
+                re = 0.0f; re1 = 0.0f;
+                for(j=0; j<DimTotal; j++)
+                {
+                    re += powf(U[j] - U_old[j],2);
+                    re1 += powf(U[j],2);
+                }
+                re = sqrtf(re)/sqrtf(re1);
+                if (re < epsil)  count++;
+                if (count > 3) break;
+            }
         } /*end of iterations*/
     }
     else {
         /*3D case*/
         float *P3, *Q4, *Q5, *Q6, *V3, *V3_old;
-
+        
         P3 = calloc(DimTotal, sizeof(float));
         Q4 = calloc(DimTotal, sizeof(float));
         Q5 = calloc(DimTotal, sizeof(float));
         Q6 = calloc(DimTotal, sizeof(float));
         V3 = calloc(DimTotal, sizeof(float));
         V3_old = calloc(DimTotal, sizeof(float));
-
+        
         /* Primal-dual iterations begin here */
         for(ll = 0; ll < iter; ll++) {
-
+            
             /* Calculate Dual Variable P */
             DualP_3D(U, V1, V2, V3, P1, P2, P3, (long)(dimX), (long)(dimY), (long)(dimZ), sigma);
-
+            
             /*Projection onto convex set for P*/
             ProjP_3D(P1, P2, P3, (long)(dimX), (long)(dimY), (long)(dimZ), alpha1);
-
+            
             /* Calculate Dual Variable Q */
             DualQ_3D(V1, V2, V3, Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), sigma);
-
+            
             /*Projection onto convex set for Q*/
             ProjQ_3D(Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), alpha0);
-
+            
             /*saving U into U_old*/
             copyIm(U, U_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-
+            
             /*adjoint operation  -> divergence and projection of P*/
             DivProjP_3D(U, U0, P1, P2, P3, (long)(dimX), (long)(dimY), (long)(dimZ), lambda, tau);
-
+            
             /*get updated solution U*/
             newU3D(U, U_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-
+            
             /*saving V into V_old*/
             copyIm_3Ar(V1, V2, V3, V1_old, V2_old, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-
+            
             /* upd V*/
             UpdV_3D(V1, V2, V3, P1, P2, P3, Q1, Q2, Q3, Q4, Q5, Q6, (long)(dimX), (long)(dimY), (long)(dimZ), tau);
-
+            
             /*get new V*/
             newU3D_3Ar(V1, V2, V3, V1_old, V2_old, V3_old, (long)(dimX), (long)(dimY), (long)(dimZ));
-
+            
             /* check early stopping criteria */
             if ((epsil != 0.0f)  && (ll % 5 == 0)) {
-            re = 0.0f; re1 = 0.0f;
-	            for(j=0; j<DimTotal; j++)
-        	    {
-        	        re += powf(U[j] - U_old[j],2);
-        	        re1 += powf(U[j],2);
-        	    }
-           re = sqrtf(re)/sqrtf(re1);
-           if (re < epsil)  count++;
-           if (count > 3) break;
-           }
-
+                re = 0.0f; re1 = 0.0f;
+                for(j=0; j<DimTotal; j++)
+                {
+                    re += powf(U[j] - U_old[j],2);
+                    re1 += powf(U[j],2);
+                }
+                re = sqrtf(re)/sqrtf(re1);
+                if (re < epsil)  count++;
+                if (count > 3) break;
+            }
+            
         } /*end of iterations*/
         free(P3);free(Q4);free(Q5);free(Q6);free(V3);free(V3_old);
     }
-
+    
     /*freeing*/
     free(P1);free(P2);free(Q1);free(Q2);free(Q3);free(U_old);
     free(V1);free(V2);free(V1_old);free(V2_old);
-
+    
     /*adding info into info_vector */
     infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
-
+    
     return 0;
 }
 
@@ -201,15 +201,15 @@ float DualP_2D(float *U, float *V1, float *V2, float *P1, float *P2, long dimX, 
 {
     long i,j, index;
 #pragma omp parallel for shared(U,V1,V2,P1,P2) private(i,j,index)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
             index = j*dimX+i;
             /* symmetric boundary conditions (Neuman) */
             if (i == dimX-1) P1[index] += sigma*(-V1[index]);
             else P1[index] += sigma*((U[j*dimX+(i+1)] - U[index])  - V1[index]);
             if (j == dimY-1) P2[index] += sigma*(-V2[index]);
             else  P2[index] += sigma*((U[(j+1)*dimX+i] - U[index])  - V2[index]);
-
+            
         }}
     return 1;
 }
@@ -219,8 +219,8 @@ float ProjP_2D(float *P1, float *P2, long dimX, long dimY, float alpha1)
     float grad_magn;
     long i,j,index;
 #pragma omp parallel for shared(P1,P2) private(i,j,index,grad_magn)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
             index = j*dimX+i;
             grad_magn = (sqrtf(pow(P1[index],2) + pow(P2[index],2)))/alpha1;
             if (grad_magn > 1.0f) {
@@ -236,8 +236,8 @@ float DualQ_2D(float *V1, float *V2, float *Q1, float *Q2, float *Q3, long dimX,
     long i,j,index;
     float q1, q2, q11, q22;
 #pragma omp parallel for shared(Q1,Q2,Q3,V1,V2) private(i,j,index,q1,q2,q11,q22)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
             index = j*dimX+i;
             q1 = 0.0f; q11 = 0.0f; q2 = 0.0f; q22 = 0.0f;
             /* boundary conditions (Neuman) */
@@ -260,8 +260,8 @@ float ProjQ_2D(float *Q1, float *Q2, float *Q3, long dimX, long dimY, float alph
     float grad_magn;
     long i,j,index;
 #pragma omp parallel for shared(Q1,Q2,Q3) private(i,j,index,grad_magn)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
             index = j*dimX+i;
             grad_magn = sqrtf(pow(Q1[index],2) + pow(Q2[index],2) + 2*pow(Q3[index],2));
             grad_magn = grad_magn/alpha0;
@@ -279,18 +279,18 @@ float DivProjP_2D(float *U, float *U0, float *P1, float *P2, long dimX, long dim
     long i,j,index;
     float P_v1, P_v2, div;
 #pragma omp parallel for shared(U,U0,P1,P2) private(i,j,index,P_v1,P_v2,div)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
             index = j*dimX+i;
-
+            
             if (i == 0) P_v1 = P1[index];
             else if (i == dimX-1) P_v1 = -P1[j*dimX+(i-1)];
             else P_v1 = P1[index] - P1[j*dimX+(i-1)];
-
+            
             if (j == 0) P_v2 = P2[index];
             else if (j == dimY-1) P_v2 = -P2[(j-1)*dimX+i];
             else P_v2 = P2[index] - P2[(j-1)*dimX+i];
-
+            
             div = P_v1 + P_v2;
             U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);
         }}
@@ -310,10 +310,10 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
     long i, j, index;
     float q1, q3_x, q3_y, q2, div1, div2;
 #pragma omp parallel for shared(V1,V2,P1,P2,Q1,Q2,Q3) private(i, j, index, q1, q3_x, q3_y, q2, div1, div2)
-    for(i=0; i<dimX; i++) {
-        for(j=0; j<dimY; j++) {
+    for(j=0; j<dimY; j++) {
+        for(i=0; i<dimX; i++) {
             index = j*dimX+i;
-
+            
             /* boundary conditions (Neuman) */
             if (i == 0) {
                 q1 = Q1[index];
@@ -324,7 +324,7 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
             else {
                 q1 = Q1[index] - Q1[j*dimX+(i-1)];
                 q3_x = Q3[index] - Q3[j*dimX+(i-1)];  }
-
+            
             if (j == 0) {
                 q2 = Q2[index];
                 q3_y = Q3[index]; }
@@ -334,8 +334,8 @@ float UpdV_2D(float *V1, float *V2, float *P1, float *P2, float *Q1, float *Q2, 
             else {
                 q2 = Q2[index] - Q2[(j-1)*dimX+i];
                 q3_y = Q3[index] - Q3[(j-1)*dimX+i]; }
-
-
+            
+            
             div1 = q1 + q3_y;
             div2 = q3_x + q2;
             V1[index] += tau*(P1[index] + div1);
@@ -352,9 +352,9 @@ float DualP_3D(float *U, float *V1, float *V2, float *V3, float *P1, float *P2, 
 {
     long i,j,k, index;
 #pragma omp parallel for shared(U,V1,V2,V3,P1,P2,P3) private(i,j,k,index)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
+            for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
                 /* symmetric boundary conditions (Neuman) */
                 if (i == dimX-1) P1[index] += sigma*(-V1[index]);
@@ -372,9 +372,9 @@ float ProjP_3D(float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ,
     float grad_magn;
     long i,j,k,index;
 #pragma omp parallel for shared(P1,P2,P3) private(i,j,k,index,grad_magn)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
+            for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
                 grad_magn = (sqrtf(pow(P1[index],2) + pow(P2[index],2) + pow(P3[index],2)))/alpha1;
                 if (grad_magn > 1.0f) {
@@ -391,9 +391,9 @@ float DualQ_3D(float *V1, float *V2, float *V3, float *Q1, float *Q2, float *Q3,
     long i,j,k,index;
     float q1, q2, q3, q11, q22, q33, q44, q55, q66;
 #pragma omp parallel for shared(Q1,Q2,Q3,Q4,Q5,Q6,V1,V2,V3) private(i,j,k,index,q1,q2,q3,q11,q22,q33,q44,q55,q66)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
+            for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
                 q1 = 0.0f; q11 = 0.0f; q33 = 0.0f; q2 = 0.0f; q22 = 0.0f; q55 = 0.0f; q3 = 0.0f; q44 = 0.0f; q66 = 0.0f;
                 /* symmetric boundary conditions (Neuman) */
@@ -412,7 +412,7 @@ float DualQ_3D(float *V1, float *V2, float *V3, float *Q1, float *Q2, float *Q3,
                     q44 = V1[(dimX*dimY)*(k+1) + j*dimX+i] - V1[index];
                     q66 = V2[(dimX*dimY)*(k+1) + j*dimX+i] - V2[index];
                 }
-
+                
                 Q1[index] += sigma*(q1); /*Q11*/
                 Q2[index] += sigma*(q2); /*Q22*/
                 Q3[index] += sigma*(q3); /*Q33*/
@@ -427,9 +427,9 @@ float ProjQ_3D(float *Q1, float *Q2, float *Q3, float *Q4, float *Q5, float *Q6,
     float grad_magn;
     long i,j,k,index;
 #pragma omp parallel for shared(Q1,Q2,Q3,Q4,Q5,Q6) private(i,j,k,index,grad_magn)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
+            for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
                 grad_magn = sqrtf(pow(Q1[index],2) + pow(Q2[index],2) + pow(Q3[index],2) + 2.0f*pow(Q4[index],2) + 2.0f*pow(Q5[index],2) + 2.0f*pow(Q6[index],2));
                 grad_magn = grad_magn/alpha0;
@@ -450,11 +450,11 @@ float DivProjP_3D(float *U, float *U0, float *P1, float *P2, float *P3, long dim
     long i,j,k,index;
     float P_v1, P_v2, P_v3, div;
 #pragma omp parallel for shared(U,U0,P1,P2,P3) private(i,j,k,index,P_v1,P_v2,P_v3,div)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
+            for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
-
+                
                 if (i == 0) P_v1 = P1[index];
                 else if (i == dimX-1)  P_v1 = -P1[(dimX*dimY)*k + j*dimX+(i-1)];
                 else P_v1 = P1[index] - P1[(dimX*dimY)*k + j*dimX+(i-1)];
@@ -464,7 +464,7 @@ float DivProjP_3D(float *U, float *U0, float *P1, float *P2, float *P3, long dim
                 if (k == 0) P_v3 = P3[index];
                 else if (k == dimZ-1) P_v3 = -P3[(dimX*dimY)*(k-1) + (j)*dimX+i];
                 else P_v3 = P3[index] - P3[(dimX*dimY)*(k-1) + (j)*dimX+i];
-
+                
                 div = P_v1 + P_v2 + P_v3;
                 U[index] = (lambda*(U[index] + tau*div) + tau*U0[index])/(lambda + tau);
             }}}
@@ -476,14 +476,14 @@ float UpdV_3D(float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, 
     long i,j,k,index;
     float q1, q4x, q5x, q2, q4y, q6y, q6z, q5z, q3, div1, div2, div3;
 #pragma omp parallel for shared(V1,V2,V3,P1,P2,P3,Q1,Q2,Q3,Q4,Q5,Q6) private(i,j,k,index,q1,q4x,q5x,q2,q4y,q6y,q6z,q5z,q3,div1,div2,div3)
-    for(i=0; i<dimX; i++) {
+    for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
-            for(k=0; k<dimZ; k++) {
+            for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
                 q1 = 0.0f; q4x= 0.0f; q5x= 0.0f; q2= 0.0f; q4y= 0.0f; q6y= 0.0f; q6z= 0.0f; q5z= 0.0f; q3= 0.0f;
                 /* Q1 - Q11, Q2 - Q22, Q3 -  Q33, Q4 - Q21/Q12, Q5 - Q31/Q13, Q6 - Q32/Q23*/
                 /* symmetric boundary conditions (Neuman) */
-
+                
                 if (i == 0) {
                     q1 = Q1[index];
                     q4x = Q4[index];
@@ -520,11 +520,11 @@ float UpdV_3D(float *V1, float *V2, float *V3, float *P1, float *P2, float *P3, 
                     q6z = Q6[index] - Q6[(dimX*dimY)*(k-1) + (j)*dimX+i];
                     q5z = Q5[index] - Q5[(dimX*dimY)*(k-1) + (j)*dimX+i];
                     q3 = Q3[index] - Q3[(dimX*dimY)*(k-1) + (j)*dimX+i]; }
-
+                
                 div1 = q1 + q4y + q5z;
                 div2 = q4x + q2 + q6z;
                 div3 = q5x + q6y + q3;
-
+                
                 V1[index] += tau*(P1[index] + div1);
                 V2[index] += tau*(P2[index] + div2);
                 V3[index] += tau*(P3[index] + div3);
