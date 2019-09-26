@@ -77,13 +77,13 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
             }} /*main neighb loop */
         /* for each pixel store indeces of the most similar neighbours (patches) */
 #pragma omp parallel for shared (A, Weights, H_i, H_j) private(i,j)
-    for(i=0; i<(long)(dimX); i++) {
-          for(j=0; j<(long)(dimY); j++) {
+        for(j=0; j<(long)(dimY); j++) {
+            for(i=0; i<(long)(dimX); i++) {
                 Indeces2D(A, H_i, H_j, Weights, i, j, (long)(dimX), (long)(dimY), Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
             }}
     }
     else {
-    /****************3D INPUT ***************/
+        /****************3D INPUT ***************/
         /* generate a 3D Gaussian kernel for NLM procedure */
         Eucl_Vec = (float*) calloc ((2*SimilarWin+1)*(2*SimilarWin+1)*(2*SimilarWin+1),sizeof(float));
         counterG = 0;
@@ -93,12 +93,12 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
                     Eucl_Vec[counterG] = (float)exp(-(pow(((float) i), 2) + pow(((float) j), 2) + pow(((float) k), 2))/(2*SimilarWin*SimilarWin*SimilarWin));
                     counterG++;
                 }}} /*main neighb loop */
-
+        
         /* for each voxel store indeces of the most similar neighbours (patches) */
 #pragma omp parallel for shared (A, Weights, H_i, H_j, H_k) private(i,j,k)
-        for(i=0; i<dimX; i++) {
+        for(k=0; k<dimZ; k++) {
             for(j=0; j<dimY; j++) {
-                for(k=0; k<dimZ; k++) {
+                for(i=0; i<dimX; i++) {
                     Indeces3D(A, H_i, H_j, H_k, Weights, i, j, k, (long)(dimX), (long)(dimY), (long)(dimZ), Eucl_Vec, NumNeighb, SearchWindow, SimilarWin, h2);
                 }}}
     }
@@ -111,13 +111,13 @@ float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *W
     long i1, j1, i_m, j_m, i_c, j_c, i2, j2, i3, j3, counter, x, y, index, sizeWin_tot, counterG;
     float *Weight_Vec, normsum;
     unsigned short *ind_i, *ind_j;
-
+    
     sizeWin_tot = (2*SearchWindow + 1)*(2*SearchWindow + 1);
-
+    
     Weight_Vec = (float*) calloc(sizeWin_tot, sizeof(float));
     ind_i = (unsigned short*) calloc(sizeWin_tot, sizeof(unsigned short));
     ind_j = (unsigned short*) calloc(sizeWin_tot, sizeof(unsigned short));
-
+    
     counter = 0;
     for(i_m=-SearchWindow; i_m<=SearchWindow; i_m++) {
         for(j_m=-SearchWindow; j_m<=SearchWindow; j_m++) {
@@ -149,15 +149,15 @@ float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *W
     /* do sorting to choose the most prominent weights [HIGH to LOW] */
     /* and re-arrange indeces accordingly */
     for (x = 0; x < counter-1; x++)  {
-       for (y = 0; y < counter-x-1; y++)  {
-           if (Weight_Vec[y] < Weight_Vec[y+1]) {
-            swap(&Weight_Vec[y], &Weight_Vec[y+1]);
-            swapUS(&ind_i[y], &ind_i[y+1]);
-            swapUS(&ind_j[y], &ind_j[y+1]);
+        for (y = 0; y < counter-x-1; y++)  {
+            if (Weight_Vec[y] < Weight_Vec[y+1]) {
+                swap(&Weight_Vec[y], &Weight_Vec[y+1]);
+                swapUS(&ind_i[y], &ind_i[y+1]);
+                swapUS(&ind_j[y], &ind_j[y+1]);
             }
-    	}
+        }
     }
-     /*sorting loop finished*/
+    /*sorting loop finished*/
     /*now select the NumNeighb more prominent weights and store into pre-allocated arrays */
     for(x=0; x < NumNeighb; x++) {
         index = (dimX*dimY*x) + j*dimX+i;
@@ -176,14 +176,14 @@ float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned
     long i1, j1, k1, i_m, j_m, k_m, i_c, j_c, k_c, i2, j2, k2, i3, j3, k3, counter, x, y, index, sizeWin_tot, counterG;
     float *Weight_Vec, normsum, temp;
     unsigned short *ind_i, *ind_j, *ind_k, temp_i, temp_j, temp_k;
-
+    
     sizeWin_tot = (2*SearchWindow + 1)*(2*SearchWindow + 1)*(2*SearchWindow + 1);
-
+    
     Weight_Vec = (float*) calloc(sizeWin_tot, sizeof(float));
     ind_i = (unsigned short*) calloc(sizeWin_tot, sizeof(unsigned short));
     ind_j = (unsigned short*) calloc(sizeWin_tot, sizeof(unsigned short));
     ind_k = (unsigned short*) calloc(sizeWin_tot, sizeof(unsigned short));
-
+    
     counter = 0l;
     for(i_m=-SearchWindow; i_m<=SearchWindow; i_m++) {
         for(j_m=-SearchWindow; j_m<=SearchWindow; j_m++) {
@@ -237,18 +237,18 @@ float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned
                 ind_k[y] = temp_k;
             }}}
     /*sorting loop finished*/
-
+    
     /*now select the NumNeighb more prominent weights and store into arrays */
     for(x=0; x < NumNeighb; x++) {
         index = dimX*dimY*dimZ*x + (dimX*dimY*k) + j*dimX+i;
-
+        
         H_i[index] = ind_i[x];
         H_j[index] = ind_j[x];
         H_k[index] = ind_k[x];
-
+        
         Weights[index] = Weight_Vec[x];
     }
-
+    
     free(ind_i);
     free(ind_j);
     free(ind_k);

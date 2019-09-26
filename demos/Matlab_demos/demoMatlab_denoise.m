@@ -149,7 +149,6 @@ fprintf('%s %f \n', 'MSSIM error for NLTV is:', ssimval);
 figure; imagesc(u_nltv, [0 1]); colormap(gray); daspect([1 1 1]); title('Non-local Total Variation denoised image (CPU)');
 %%
 %>>>>>>>>>>>>>> MULTI-CHANNEL priors <<<<<<<<<<<<<<< %
-
 fprintf('Denoise using the FGP-dTV model (CPU) \n');
 % create another image (reference) with slightly less amount of noise
 u_ref = Im + .01*randn(size(Im)); u_ref(u_ref < 0) = 0;

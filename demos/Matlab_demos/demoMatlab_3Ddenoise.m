@@ -182,19 +182,18 @@ eta =  0.2; % Reference image gradient smoothing constant
 tic; u_fgp_dtv = FGP_dTV(single(vol3D), single(vol3D_ref), lambda_reg, iter_fgp, epsil_tol, eta); toc; 
 figure; imshow(u_fgp_dtv(:,:,7), [0 1]); title('FGP-dTV denoised volume (CPU)');
 %%
-fprintf('Denoise a volume using the FGP-dTV model (GPU) \n');
-
-% create another volume (reference) with slightly less amount of noise
-vol3D_ref = zeros(N,N,slices, 'single');
-for i = 1:slices
-vol3D_ref(:,:,i) = Im + .01*randn(size(Im)); 
-end
-vol3D_ref(vol3D_ref < 0) = 0;
-% vol3D_ref = zeros(size(Im),'single'); % pass zero reference (dTV -> TV)
-
-iter_fgp = 300; % number of FGP iterations
-epsil_tol =  0.0; % tolerance
-eta =  0.2; % Reference image gradient smoothing constant
-tic; u_fgp_dtv_g = FGP_dTV_GPU(single(vol3D), single(vol3D_ref), lambda_reg, iter_fgp, epsil_tol, eta); toc; 
-figure; imshow(u_fgp_dtv_g(:,:,7), [0 1]); title('FGP-dTV denoised volume (GPU)');
+% fprintf('Denoise a volume using the FGP-dTV model (GPU) \n');
+% % create another volume (reference) with slightly less amount of noise
+% vol3D_ref = zeros(N,N,slices, 'single');
+% for i = 1:slices
+% vol3D_ref(:,:,i) = Im + .01*randn(size(Im)); 
+% end
+% vol3D_ref(vol3D_ref < 0) = 0;
+% % vol3D_ref = zeros(size(Im),'single'); % pass zero reference (dTV -> TV)
+% 
+% iter_fgp = 300; % number of FGP iterations
+% epsil_tol =  0.0; % tolerance
+% eta =  0.2; % Reference image gradient smoothing constant
+% tic; u_fgp_dtv_g = FGP_dTV_GPU(single(vol3D), single(vol3D_ref), lambda_reg, iter_fgp, epsil_tol, eta); toc; 
+% figure; imshow(u_fgp_dtv_g(:,:,7), [0 1]); title('FGP-dTV denoised volume (GPU)');
 %%
