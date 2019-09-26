@@ -1,11 +1,11 @@
 /*
  * This work is part of the Core Imaging Library developed by
  * Visual Analytics and Imaging System Group of the Science Technology
- * Facilities Council, STFC and Diamond Light Source Ltd. 
+ * Facilities Council, STFC and Diamond Light Source Ltd.
  *
  * Copyright 2017 Daniil Kazantsev
  * Copyright 2017 Srikanth Nagella, Edoardo Pasca
- * Copyright 2018 Diamond Light Source Ltd. 
+ * Copyright 2018 Diamond Light Source Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,14 +53,14 @@ void mexFunction(
     int number_of_dims,  SearchWindow, SimilarWin, NumNeighb;
     mwSize dimX, dimY, dimZ;
     const mwSize *dim_array;
-    unsigned short *H_i=NULL, *H_j=NULL, *H_k=NULL;    
+    unsigned short *H_i=NULL, *H_j=NULL, *H_k=NULL;
     float *A, *Weights = NULL, h;
     mwSize dim_array2[3]; /* for 2D data */
     mwSize dim_array3[4]; /* for 3D data */
-    
+
     dim_array = mxGetDimensions(prhs[0]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
-    
+
     /*Handling Matlab input data*/
     A  = (float *) mxGetData(prhs[0]); /* a 2D or 3D image/volume */
     SearchWindow = (int) mxGetScalar(prhs[1]);    /* Large Searching window */
@@ -71,22 +71,22 @@ void mexFunction(
     dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
     dim_array2[0] = dimX; dim_array2[1] = dimY; dim_array2[2] = NumNeighb;  /* 2D case */
     dim_array3[0] = dimX; dim_array3[1] = dimY; dim_array3[2] = dimZ; dim_array3[3] = NumNeighb;  /* 3D case */
-    
+
     /****************2D INPUT ***************/
     if (number_of_dims == 2) {
-        dimZ = 0;               
+        dimZ = 0;
         H_i = (unsigned short*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array2, mxUINT16_CLASS, mxREAL));
         H_j = (unsigned short*)mxGetPr(plhs[1] = mxCreateNumericArray(3, dim_array2, mxUINT16_CLASS, mxREAL));
         Weights = (float*)mxGetPr(plhs[2] = mxCreateNumericArray(3, dim_array2, mxSINGLE_CLASS, mxREAL));
         }
     /****************3D INPUT ***************/
-    if (number_of_dims == 3) {        
+    if (number_of_dims == 3) {
         H_i = (unsigned short*)mxGetPr(plhs[0] = mxCreateNumericArray(4, dim_array3, mxUINT16_CLASS, mxREAL));
         H_j = (unsigned short*)mxGetPr(plhs[1] = mxCreateNumericArray(4, dim_array3, mxUINT16_CLASS, mxREAL));
         H_k = (unsigned short*)mxGetPr(plhs[2] = mxCreateNumericArray(4, dim_array3, mxUINT16_CLASS, mxREAL));
-        Weights = (float*)mxGetPr(plhs[3] = mxCreateNumericArray(4, dim_array3, mxSINGLE_CLASS, mxREAL));        
+        Weights = (float*)mxGetPr(plhs[3] = mxCreateNumericArray(4, dim_array3, mxSINGLE_CLASS, mxREAL));
     }
-    
-    PatchSelect_CPU_main(A, H_i, H_j, H_k, Weights, (long)(dimX), (long)(dimY), (long)(dimZ), SearchWindow, SimilarWin, NumNeighb, h, 0); 
-    
+
+    PatchSelect_CPU_main(A, H_i, H_j, H_k, Weights, (long)(dimX), (long)(dimY), (long)(dimZ), SearchWindow, SimilarWin, NumNeighb, h); 
+
  }

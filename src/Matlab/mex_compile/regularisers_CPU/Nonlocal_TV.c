@@ -1,11 +1,11 @@
 /*
  * This work is part of the Core Imaging Library developed by
  * Visual Analytics and Imaging System Group of the Science Technology
- * Facilities Council, STFC and Diamond Light Source Ltd. 
+ * Facilities Council, STFC and Diamond Light Source Ltd.
  *
  * Copyright 2017 Daniil Kazantsev
  * Copyright 2017 Srikanth Nagella, Edoardo Pasca
- * Copyright 2018 Diamond Light Source Ltd. 
+ * Copyright 2018 Diamond Light Source Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,12 @@
  * 2. AR_i - indeces of i neighbours
  * 3. AR_j - indeces of j neighbours
  * 4. AR_k - indeces of k neighbours (0 - for 2D case)
- * 5. Weights_ij(k) - associated weights 
+ * 5. Weights_ij(k) - associated weights
  * 6. regularisation parameter
- * 7. iterations number 
- 
+ * 7. iterations number
+
  * Output:
- * 1. denoised image/volume 	
+ * 1. denoised image/volume
  * Elmoataz, Abderrahim, Olivier Lezoray, and Sébastien Bougleux. "Nonlocal discrete regularization on weighted graphs: a framework for image and manifold processing." IEEE Trans. Image Processing 17, no. 7 (2008): 1047-1060.
  */
 
@@ -54,11 +54,11 @@ void mexFunction(
     const mwSize  *dim_array;
     const mwSize *dim_array2;
     float *A_orig, *Output=NULL, *Weights, lambda;
-    
+
     dim_array = mxGetDimensions(prhs[0]);
     dim_array2 = mxGetDimensions(prhs[1]);
     number_of_dims = mxGetNumberOfDimensions(prhs[0]);
-    
+
     /*Handling Matlab input data*/
     A_orig  = (float *) mxGetData(prhs[0]); /* a 2D image or a set of 2D images (3D stack) */
     H_i  = (unsigned short *) mxGetData(prhs[1]); /* indeces of i neighbours */
@@ -67,14 +67,14 @@ void mexFunction(
     Weights = (float *) mxGetData(prhs[4]); /* weights for patches */
     lambda = (float) mxGetScalar(prhs[5]); /* regularisation parameter */
     IterNumb = (int) mxGetScalar(prhs[6]); /* the number of iterations */
- 
-    dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];   
-         
+
+    dimX = dim_array[0]; dimY = dim_array[1]; dimZ = dim_array[2];
+
     /*****2D INPUT *****/
     if (number_of_dims == 2) {
-        dimZ = 0;   
+        dimZ = 0;
         NumNeighb = dim_array2[2];
-        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));  
+        Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(2, dim_array, mxSINGLE_CLASS, mxREAL));
         }
     /*****3D INPUT *****/
     /****************************************************/
@@ -82,7 +82,7 @@ void mexFunction(
         NumNeighb = dim_array2[3];
         Output = (float*)mxGetPr(plhs[0] = mxCreateNumericArray(3, dim_array, mxSINGLE_CLASS, mxREAL));
     }
-    
+
     /* run the main function here */
-    Nonlocal_TV_CPU_main(A_orig, Output, H_i, H_j, H_k, Weights, dimX, dimY, dimZ, NumNeighb, lambda, IterNumb);
+    Nonlocal_TV_CPU_main(A_orig, Output, H_i, H_j, H_k, Weights, dimX, dimY, dimZ, NumNeighb, lambda, IterNumb, 0);
 }
