@@ -119,13 +119,13 @@ float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int
 /* Down-Up scaling of 2D images using bilinear interpolation */
 float Im_scale2D(float *Input, float *Scaled, int w, int h, int w2, int h2)
 {
-    int x, y, index;
+    int x, y, index, i, j;
     float x_ratio = ((float)(w-1))/w2;
     float y_ratio = ((float)(h-1))/h2;
     float A, B, C, D, x_diff, y_diff, gray;
     #pragma omp parallel for shared (Input, Scaled) private(x, y, index, A, B, C, D, x_diff, y_diff, gray)
-    for (int j=0;j<w2;j++) {
-        for (int i=0;i<h2;i++) {
+    for (j=0;j<w2;j++) {
+        for (i=0;i<h2;i++) {
             x = (int)(x_ratio * j);
             y = (int)(y_ratio * i);
             x_diff = (x_ratio * j) - x;
