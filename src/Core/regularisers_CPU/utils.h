@@ -29,6 +29,8 @@ CCPI_EXPORT unsigned char copyIm_unchar(unsigned char *A, unsigned char *U, int 
 CCPI_EXPORT float copyIm_roll(float *A, float *U, int dimX, int dimY, int roll_value, int switcher);
 CCPI_EXPORT float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY);
 CCPI_EXPORT float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float Im_scale2D(float *Input, float *Scaled, int w, int h, int w2, int h2);
 #ifdef __cplusplus
 }
 #endif
