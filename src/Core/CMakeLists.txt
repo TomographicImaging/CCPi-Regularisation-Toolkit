@@ -20,7 +20,7 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
    set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_STATIC_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-   
+
 endif()
 
 ## Build the regularisers package as a library
@@ -39,21 +39,21 @@ if(WIN32)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
-  
+
   set (EXTRA_LIBRARIES)
-		
+
   message("library lib: ${LIBRARY_LIB}")
-  
+
 elseif(UNIX)
-   set (FLAGS "-O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS ")  
+   set (FLAGS "-O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS ")
    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
    set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-  
-   set (EXTRA_LIBRARIES 
+
+   set (EXTRA_LIBRARIES
 		"gomp"
 		"m"
 		)
-   
+
 endif()
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
@@ -66,6 +66,7 @@ message("Adding regularisers as a shared library")
 add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PD_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffus4th_order_core.c
@@ -80,8 +81,8 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/NonlocalMarching_Inpaint_core.c
 	    )
 target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
-include_directories(cilreg PUBLIC 
-                      ${LIBRARY_INC}/include 
+include_directories(cilreg PUBLIC
+                      ${LIBRARY_INC}/include
 					  ${CMAKE_CURRENT_SOURCE_DIR}
 		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
 		              ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
@@ -92,14 +93,14 @@ if (UNIX)
 message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
 install(TARGETS cilreg
 	LIBRARY DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
 	)
 elseif(WIN32)
 message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
-  install(TARGETS cilreg 
+  install(TARGETS cilreg
 	RUNTIME DESTINATION bin
 	ARCHIVE DESTINATION lib
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
 	)
 endif()
 
@@ -126,14 +127,14 @@ if (BUILD_CUDA)
         message ("I'd install into ${CMAKE_INSTALL_PREFIX}/lib")
         install(TARGETS cilregcuda
         LIBRARY DESTINATION lib
-        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+        CONFIGURATIONS ${CMAKE_BUILD_TYPE}
         )
       elseif(WIN32)
         message ("I'd install into ${CMAKE_INSTALL_PREFIX} lib bin")
         install(TARGETS cilregcuda
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
-        CONFIGURATIONS ${CMAKE_BUILD_TYPE} 
+        CONFIGURATIONS ${CMAKE_BUILD_TYPE}
         )
       endif()
     else()

@@ -46,12 +46,12 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
     float tk = 1.0f;
     float tkp1 =1.0f;
     int count = 0;
-    
+
     if (dimZ <= 1) {
         /*2D case */
         float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL;
         DimTotal = (long)(dimX*dimY);
-        
+
         if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
         P2 = calloc(DimTotal, sizeof(float));
@@ -59,32 +59,32 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
         P2_prev = calloc(DimTotal, sizeof(float));
         R1 = calloc(DimTotal, sizeof(float));
         R2 = calloc(DimTotal, sizeof(float));
-        
+
         /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
-            
+
             if ((epsil != 0.0f)  && (ll % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             /* computing the gradient of the objective function */
             Obj_func2D(Input, Output, R1, R2, lambdaPar, (long)(dimX), (long)(dimY));
-            
+
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}
-            
+
             /*Taking a step towards minus of the gradient*/
             Grad_func2D(P1, P2, Output, R1, R2, lambdaPar, (long)(dimX), (long)(dimY));
-            
+
             /* projection step */
             Proj_func2D(P1, P2, methodTV, DimTotal);
-            
+
             /*updating R and t*/
             tkp1 = (1.0f + sqrtf(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_func2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
-            
+
             /*storing old values*/
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
             tk = tkp1;
-            
+
             /* check early stopping criteria */
             if ((epsil != 0.0f)  && (ll % 5 == 0)) {
                 re = 0.0f; re1 = 0.0f;
@@ -105,7 +105,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
         /*3D case*/
         float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P3=NULL, *P1_prev=NULL, *P2_prev=NULL, *P3_prev=NULL, *R1=NULL, *R2=NULL, *R3=NULL;
         DimTotal = (long)(dimX*dimY*dimZ);
-        
+
         if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
         P1 = calloc(DimTotal, sizeof(float));
         P2 = calloc(DimTotal, sizeof(float));
@@ -116,28 +116,28 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
         R1 = calloc(DimTotal, sizeof(float));
         R2 = calloc(DimTotal, sizeof(float));
         R3 = calloc(DimTotal, sizeof(float));
-        
+
         /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
-            
+
             if ((epsil != 0.0f)  && (ll % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /* computing the gradient of the objective function */
             Obj_func3D(Input, Output, R1, R2, R3, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}
-            
+
             /*Taking a step towards minus of the gradient*/
             Grad_func3D(P1, P2, P3, Output, R1, R2, R3, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /* projection step */
             Proj_func3D(P1, P2, P3, methodTV, DimTotal);
-            
+
             /*updating R and t*/
             tkp1 = (1.0f + sqrtf(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_func3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
-            
+
             /* calculate norm - stopping rules*/
             if ((epsil != 0.0f)  && (ll % 5 == 0)) {
                 re = 0.0f; re1 = 0.0f;
@@ -151,22 +151,22 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
                 if (re < epsil)  count++;
                 if (count > 3) break;
             }
-            
+
             /*storing old values*/
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             copyIm(P3, P3_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             tk = tkp1;
         }
-        
+
         if (epsil != 0.0f) free(Output_prev);
         free(P1); free(P2); free(P3); free(P1_prev); free(P2_prev); free(P3_prev); free(R1); free(R2); free(R3);
     }
-    
+
     /*adding info into info_vector */
     infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
-    
+
     return 0;
 }
 
@@ -200,36 +200,6 @@ float Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float la
             P1[index] = R1[index] + multip*val1;
             P2[index] = R2[index] + multip*val2;
         }}
-    return 1;
-}
-float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
-{
-    float val1, val2, denom, sq_denom;
-    long i;
-    if (methTV == 0) {
-        /* isotropic TV*/
-#pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
-        for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) +  powf(P2[i],2);
-            if (denom > 1.0f) {
-                sq_denom = 1.0f/sqrtf(denom);
-                P1[i] = P1[i]*sq_denom;
-                P2[i] = P2[i]*sq_denom;
-            }
-        }
-    }
-    else {
-        /* anisotropic TV*/
-#pragma omp parallel for shared(P1,P2) private(i,val1,val2)
-        for(i=0; i<DimTotal; i++) {
-            val1 = fabs(P1[i]);
-            val2 = fabs(P2[i]);
-            if (val1 < 1.0f) {val1 = 1.0f;}
-            if (val2 < 1.0f) {val2 = 1.0f;}
-            P1[i] = P1[i]/val1;
-            P2[i] = P2[i]/val2;
-        }
-    }
     return 1;
 }
 float Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal)

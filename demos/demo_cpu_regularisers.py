@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
-from ccpi.filters.regularisers import ROF_TV, FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, TNV, NDF, Diff4th
+from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, TNV, NDF, Diff4th
 from ccpi.filters.regularisers import PatchSelect, NLTV
 from ccpi.supp.qualitymetrics import QualityTools
 ###############################################################################
@@ -129,7 +129,7 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
-        'number_of_iterations' :400 ,\
+        'number_of_iterations' :1500 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0}
@@ -159,6 +159,53 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(fgp_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
+#%%
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print ("_______________PD-TV (2D)__________________")
+print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+## plot 
+fig = plt.figure()
+plt.suptitle('Performance of PD-TV regulariser using the CPU')
+a=fig.add_subplot(1,2,1)
+a.set_title('Noisy Image')
+imgplot = plt.imshow(u0,cmap="gray")
+
+# set parameters
+pars = {'algorithm' : PD_TV, \
+        'input' : u0,\
+        'regularisation_parameter':0.02, \
+        'number_of_iterations' :1500 ,\
+        'tolerance_constant':1e-06,\
+        'methodTV': 0 ,\
+        'nonneg': 1,
+        'lipschitz_const' : 12}
+        
+print ("#############PD TV CPU####################")
+start_time = timeit.default_timer()
+(pd_cpu,info_vec_cpu) = PD_TV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['lipschitz_const'], 'cpu')
+
+Qtools = QualityTools(Im, pd_cpu)
+pars['rmse'] = Qtools.rmse()
+
+txtstr = printParametersToString(pars)
+txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+print (txtstr)
+a=fig.add_subplot(1,2,2)
+
+# these are matplotlib.patch.Patch properties
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+# place a text box in upper left in axes coords
+a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
+         verticalalignment='top', bbox=props)
+imgplot = plt.imshow(pd_cpu, cmap="gray")
+plt.title('{}'.format('CPU results'))
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________SB-TV (2D)__________________")
