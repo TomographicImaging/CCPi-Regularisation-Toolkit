@@ -45,11 +45,15 @@ float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
     re = 0.0f; re1 = 0.0f;
     int count = 0;
 
-    tau = 1.0/powf(lipschitz_const,0.5);
-    sigma = 1.0/powf(lipschitz_const,0.5);
+    //tau = 1.0/powf(lipschitz_const,0.5);
+    //sigma = 1.0/powf(lipschitz_const,0.5);
+    tau = 0.02;
+    sigma = 1.0/(lipschitz_const*tau);
     theta = 1.0f;
     lt = tau/lambdaPar;
     ll = 0;
+
+
     DimTotal = (long)(dimX*dimY*dimZ);
 
     copyIm(Input, U, (long)(dimX), (long)(dimY), (long)(dimZ));
