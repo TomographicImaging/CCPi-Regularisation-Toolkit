@@ -179,7 +179,7 @@ pars = {'algorithm' : PD_TV, \
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 1,
-        'lipschitz_const' : 12}
+        'lipschitz_const' : 6}
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()

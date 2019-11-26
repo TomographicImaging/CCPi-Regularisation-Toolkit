@@ -52,11 +52,11 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
     float tk = 1.0f;
     float tkp1=1.0f;
     int count = 0;
-    
-    
+
+
     float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL, *InputRef_x=NULL, *InputRef_y=NULL;
     DimTotal = (long)(dimX*dimY*dimZ);
-    
+
     if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
     P1 = calloc(DimTotal, sizeof(float));
     P2 = calloc(DimTotal, sizeof(float));
@@ -66,39 +66,39 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
     R2 = calloc(DimTotal, sizeof(float));
     InputRef_x = calloc(DimTotal, sizeof(float));
     InputRef_y = calloc(DimTotal, sizeof(float));
-    
+
     if (dimZ <= 1) {
         /*2D case */
         /* calculate gradient field (smoothed) for the reference image */
         GradNorm_func2D(InputRef, InputRef_x, InputRef_y, eta, (long)(dimX), (long)(dimY));
-        
+
         /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
-            
+
             if ((epsil != 0.0f)  && (ll % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), 1l);
             /*projects a 2D vector field R-1,2 onto the orthogonal complement of another 2D vector field InputRef_xy*/
             ProjectVect_func2D(R1, R2, InputRef_x, InputRef_y, (long)(dimX), (long)(dimY));
-            
+
             /* computing the gradient of the objective function */
             Obj_dfunc2D(Input, Output, R1, R2, lambdaPar, (long)(dimX), (long)(dimY));
-            
+
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}
-            
+
             /*Taking a step towards minus of the gradient*/
             Grad_dfunc2D(P1, P2, Output, R1, R2, InputRef_x, InputRef_y, lambdaPar, (long)(dimX), (long)(dimY));
-            
+
             /* projection step */
-            Proj_dfunc2D(P1, P2, methodTV, DimTotal);
-            
+            Proj_func2D(P1, P2, methodTV, DimTotal);
+
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_dfunc2D(P1, P1_prev, P2, P2_prev, R1, R2, tkp1, tk, DimTotal);
-            
+
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), 1l);
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), 1l);
             tk = tkp1;
-            
+
             /* check early stopping criteria */
             if ((epsil != 0.0f)  && (ll % 5 == 0)) {
                 re = 0.0f; re1 = 0.0f;
@@ -116,45 +116,45 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
     else {
         /*3D case*/
         float *P3=NULL, *P3_prev=NULL, *R3=NULL, *InputRef_z=NULL;
-        
+
         P3 = calloc(DimTotal, sizeof(float));
         P3_prev = calloc(DimTotal, sizeof(float));
         R3 = calloc(DimTotal, sizeof(float));
         InputRef_z = calloc(DimTotal, sizeof(float));
-        
+
         /* calculate gradient field (smoothed) for the reference volume */
         GradNorm_func3D(InputRef, InputRef_x, InputRef_y, InputRef_z, eta, (long)(dimX), (long)(dimY), (long)(dimZ));
-        
+
         /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
-            
+
             if ((epsil != 0.0f)  && (ll % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /*projects a 3D vector field R-1,2,3 onto the orthogonal complement of another 3D vector field InputRef_xyz*/
             ProjectVect_func3D(R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /* computing the gradient of the objective function */
             Obj_dfunc3D(Input, Output, R1, R2, R3, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /* apply nonnegativity */
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (Output[j] < 0.0f) Output[j] = 0.0f;}
-            
+
             /*Taking a step towards minus of the gradient*/
             Grad_dfunc3D(P1, P2, P3, Output, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
-            
+
             /* projection step */
-            Proj_dfunc3D(P1, P2, P3, methodTV, DimTotal);
-            
+            Proj_func3D(P1, P2, P3, methodTV, DimTotal);
+
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
             Rupd_dfunc3D(P1, P1_prev, P2, P2_prev, P3, P3_prev, R1, R2, R3, tkp1, tk, DimTotal);
-            
+
             /*storing old values*/
             copyIm(P1, P1_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             copyIm(P2, P2_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             copyIm(P3, P3_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
             tk = tkp1;
-            
+
             /* check early stopping criteria */
             if ((epsil != 0.0f)  && (ll % 5 == 0)) {
                 re = 0.0f; re1 = 0.0f;
@@ -168,16 +168,16 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
                 if (count > 3) break;
             }
         }
-        
+
         free(P3); free(P3_prev); free(R3); free(InputRef_z);
     }
     if (epsil != 0.0f) free(Output_prev);
     free(P1); free(P2); free(P1_prev); free(P2_prev); free(R1); free(R2); free(InputRef_x); free(InputRef_y);
-    
+
     /*adding info into info_vector */
     infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
-    
+
     return 0;
 }
 
@@ -185,7 +185,6 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
 /********************************************************************/
 /***************************2D Functions*****************************/
 /********************************************************************/
-
 float GradNorm_func2D(float *B, float *B_x, float *B_y, float eta, long dimX, long dimY)
 {
     long i,j,index;
@@ -249,45 +248,15 @@ float Grad_dfunc2D(float *P1, float *P2, float *D, float *R1, float *R2, float *
             /* boundary conditions */
             if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[j*dimX + (i+1)];
             if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(j+1)*dimX + i];
-            
+
             in_prod = val1*B_x[index] + val2*B_y[index];   /* calculate inner product */
             val1 = val1 - in_prod*B_x[index];
             val2 = val2 - in_prod*B_y[index];
-            
+
             P1[index] = R1[index] + multip*val1;
             P2[index] = R2[index] + multip*val2;
-            
+
         }}
-    return 1;
-}
-float Proj_dfunc2D(float *P1, float *P2, int methTV, long DimTotal)
-{
-    float val1, val2, denom, sq_denom;
-    long i;
-    if (methTV == 0) {
-        /* isotropic TV*/
-#pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
-        for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) +  powf(P2[i],2);
-            if (denom > 1.0f) {
-                sq_denom = 1.0f/sqrtf(denom);
-                P1[i] = P1[i]*sq_denom;
-                P2[i] = P2[i]*sq_denom;
-            }
-        }
-    }
-    else {
-        /* anisotropic TV*/
-#pragma omp parallel for shared(P1,P2) private(i,val1,val2)
-        for(i=0; i<DimTotal; i++) {
-            val1 = fabs(P1[i]);
-            val2 = fabs(P2[i]);
-            if (val1 < 1.0f) {val1 = 1.0f;}
-            if (val2 < 1.0f) {val2 = 1.0f;}
-            P1[i] = P1[i]/val1;
-            P2[i] = P2[i]/val2;
-        }
-    }
     return 1;
 }
 float Rupd_dfunc2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal)
@@ -314,14 +283,14 @@ float GradNorm_func3D(float *B, float *B_x, float *B_y, float *B_z, float eta, l
     for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
-                
+
                 index = (dimX*dimY)*k + j*dimX+i;
-                
+
                 /* zero boundary conditions */
                 if (i == dimX-1) {val1 = 0.0f;} else {val1 = B[(dimX*dimY)*k + j*dimX+(i+1)];}
                 if (j == dimY-1) {val2 = 0.0f;} else {val2 = B[(dimX*dimY)*k + (j+1)*dimX+i];}
                 if (k == dimZ-1) {val3 = 0.0f;} else {val3 = B[(dimX*dimY)*(k+1) + (j)*dimX+i];}
-                
+
                 gradX = val1 - B[index];
                 gradY = val2 - B[index];
                 gradZ = val3 - B[index];
@@ -382,50 +351,16 @@ float Grad_dfunc3D(float *P1, float *P2, float *P3, float *D, float *R1, float *
                 if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[(dimX*dimY)*k + j*dimX + (i+1)];
                 if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(dimX*dimY)*k + (j+1)*dimX + i];
                 if (k == dimZ-1) val3 = 0.0f; else val3 = D[index] - D[(dimX*dimY)*(k+1) + j*dimX + i];
-                
+
                 in_prod = val1*B_x[index] + val2*B_y[index] + val3*B_z[index];   /* calculate inner product */
                 val1 = val1 - in_prod*B_x[index];
                 val2 = val2 - in_prod*B_y[index];
                 val3 = val3 - in_prod*B_z[index];
-                
+
                 P1[index] = R1[index] + multip*val1;
                 P2[index] = R2[index] + multip*val2;
                 P3[index] = R3[index] + multip*val3;
             }}}
-    return 1;
-}
-float Proj_dfunc3D(float *P1, float *P2, float *P3, int methTV, long DimTotal)
-{
-    float val1, val2, val3, denom, sq_denom;
-    long i;
-    if (methTV == 0) {
-        /* isotropic TV*/
-#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3,sq_denom)
-        for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) + powf(P2[i],2) + powf(P3[i],2);
-            if (denom > 1.0f) {
-                sq_denom = 1.0f/sqrtf(denom);
-                P1[i] = P1[i]*sq_denom;
-                P2[i] = P2[i]*sq_denom;
-                P3[i] = P3[i]*sq_denom;
-            }
-        }
-    }
-    else {
-        /* anisotropic TV*/
-#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3)
-        for(i=0; i<DimTotal; i++) {
-            val1 = fabs(P1[i]);
-            val2 = fabs(P2[i]);
-            val3 = fabs(P3[i]);
-            if (val1 < 1.0f) {val1 = 1.0f;}
-            if (val2 < 1.0f) {val2 = 1.0f;}
-            if (val3 < 1.0f) {val3 = 1.0f;}
-            P1[i] = P1[i]/val1;
-            P2[i] = P2[i]/val2;
-            P3[i] = P3[i]/val3;
-        }
-    }
     return 1;
 }
 float Rupd_dfunc3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)

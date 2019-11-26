@@ -254,40 +254,6 @@ float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R
             }}}
     return 1;
 }
-float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal)
-{
-    float val1, val2, val3, denom, sq_denom;
-    long i;
-    if (methTV == 0) {
-        /* isotropic TV*/
-#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3,sq_denom)
-        for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) + powf(P2[i],2) + powf(P3[i],2);
-            if (denom > 1.0f) {
-                sq_denom = 1.0f/sqrtf(denom);
-                P1[i] = P1[i]*sq_denom;
-                P2[i] = P2[i]*sq_denom;
-                P3[i] = P3[i]*sq_denom;
-            }
-        }
-    }
-    else {
-        /* anisotropic TV*/
-#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3)
-        for(i=0; i<DimTotal; i++) {
-            val1 = fabs(P1[i]);
-            val2 = fabs(P2[i]);
-            val3 = fabs(P3[i]);
-            if (val1 < 1.0f) {val1 = 1.0f;}
-            if (val2 < 1.0f) {val2 = 1.0f;}
-            if (val3 < 1.0f) {val3 = 1.0f;}
-            P1[i] = P1[i]/val1;
-            P2[i] = P2[i]/val2;
-            P3[i] = P3[i]/val3;
-        }
-    }
-    return 1;
-}
 float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
 {
     long i;

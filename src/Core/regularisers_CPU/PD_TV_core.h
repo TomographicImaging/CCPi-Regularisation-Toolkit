@@ -51,7 +51,10 @@ CCPI_EXPORT float PDTV_CPU_main(float *Input, float *U, float *infovector, float
 
 CCPI_EXPORT float DualP2D(float *U, float *P1, float *P2, long dimX, long dimY, float sigma);
 CCPI_EXPORT float DivProj2D(float *U, float *Input, float *P1, float *P2, long dimX, long dimY, float lt, float tau);
-CCPI_EXPORT float getX2D(float *U, float *U_old, float theta, long DimTotal);
+CCPI_EXPORT float getX(float *U, float *U_old, float theta, long DimTotal);
+
+CCPI_EXPORT float DualP3D(float *U, float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ, float sigma);
+CCPI_EXPORT float DivProj3D(float *U, float *Input, float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ, float lt, float tau);
 #ifdef __cplusplus
 }
 #endif

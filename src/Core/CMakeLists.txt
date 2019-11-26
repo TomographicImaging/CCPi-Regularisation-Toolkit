@@ -66,7 +66,7 @@ message("Adding regularisers as a shared library")
 add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PD_TV_core.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PD_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffus4th_order_core.c
