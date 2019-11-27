@@ -179,7 +179,8 @@ pars = {'algorithm' : PD_TV, \
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 1,
-        'lipschitz_const' : 6}
+        'lipschitz_const' : 8,
+        'tau' : 0.0025}
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()
@@ -189,7 +190,8 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'], 'cpu')
+              pars['lipschitz_const'],
+              pars['tau'],'cpu')
 
 Qtools = QualityTools(Im, pd_cpu)
 pars['rmse'] = Qtools.rmse()

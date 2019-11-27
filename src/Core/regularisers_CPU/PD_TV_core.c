@@ -29,6 +29,7 @@
  * 5. lipschitz_const: convergence related parameter
  * 6. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 7. nonneg: 'nonnegativity (0 is OFF by default, 1 is ON)
+ * 8. tau: time marching parameter
 
  * Output:
  * [1] TV - Filtered/regularized image/volume
@@ -37,17 +38,16 @@
  * [1] Antonin Chambolle, Thomas Pock. "A First-Order Primal-Dual Algorithm for Convex Problems with Applications to Imaging", 2010
  */
 
-float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
+float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, float tau, int dimX, int dimY, int dimZ)
 {
     int ll;
     long j, DimTotal;
-    float re, re1, tau, sigma, theta, lt;
+    float re, re1, sigma, theta, lt;
     re = 0.0f; re1 = 0.0f;
     int count = 0;
 
     //tau = 1.0/powf(lipschitz_const,0.5);
     //sigma = 1.0/powf(lipschitz_const,0.5);
-    tau = 0.02;
     sigma = 1.0/(lipschitz_const*tau);
     theta = 1.0f;
     lt = tau/lambdaPar;

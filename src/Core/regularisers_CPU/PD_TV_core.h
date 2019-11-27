@@ -47,7 +47,7 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
+float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, float tau, int dimX, int dimY, int dimZ);
 
 CCPI_EXPORT float DualP2D(float *U, float *P1, float *P2, long dimX, long dimY, float sigma);
 CCPI_EXPORT float DivProj2D(float *U, float *Input, float *P1, float *P2, long dimX, long dimY, float lt, float tau);

@@ -20,7 +20,7 @@ cimport numpy as np
 
 cdef extern float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
-cdef extern float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
+cdef extern float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, float tau, int dimX, int dimY, int dimZ);
 cdef extern float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int dimX, int dimY, int dimZ);
 cdef extern float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau, float epsil, int dimX, int dimY, int dimZ);
 cdef extern float TGV_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ);
@@ -159,11 +159,11 @@ def TV_FGP_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #****************************************************************#
 #****************** Total-variation Primal-dual *****************#
 #****************************************************************#
-def TV_PD_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const):
+def TV_PD_CPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau):
     if inputData.ndim == 2:
-        return TV_PD_2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const)
+        return TV_PD_2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau)
     elif inputData.ndim == 3:
-        return TV_PD_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const)
+        return TV_PD_3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau)
 
 def TV_PD_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
@@ -171,7 +171,8 @@ def TV_PD_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float tolerance_param,
                      int methodTV,
                      int nonneg,
-                     float lipschitz_const):
+                     float lipschitz_const,
+                     float tau):
 
     cdef long dims[2]
     dims[0] = inputData.shape[0]
@@ -190,6 +191,7 @@ def TV_PD_2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        lipschitz_const,
                        methodTV,
                        nonneg,
+                       tau,
                        dims[1],dims[0], 1)
     return (outputData,infovec)
 
@@ -198,8 +200,9 @@ def TV_PD_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      int iterationsNumb,
                      float tolerance_param,
                      int methodTV,
-                     int nonneg,
-                     float lipschitz_const):
+                     int nonneg,                     
+                     float lipschitz_const,
+                     float tau):
 
     cdef long dims[3]
     dims[0] = inputData.shape[0]
@@ -218,6 +221,7 @@ def TV_PD_3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        lipschitz_const,
                        methodTV,
                        nonneg,
+                       tau,
                        dims[2], dims[1], dims[0])
     return (outputData,infovec)
 
