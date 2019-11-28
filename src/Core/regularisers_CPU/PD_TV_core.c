@@ -81,6 +81,7 @@ float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
             /* copy U to U_old */
             copyIm(U, U_old, (long)(dimX), (long)(dimY), 1l);
 
+            /* calculate divergence */
             DivProj2D(U, Input, P1, P2,(long)(dimX), (long)(dimY), lt, tau);
 
             /* check early stopping criteria */

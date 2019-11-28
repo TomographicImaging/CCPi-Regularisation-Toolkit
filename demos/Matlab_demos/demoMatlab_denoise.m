@@ -46,6 +46,22 @@ figure; imshow(u_fgp, [0 1]); title('FGP-TV denoised image (CPU)');
 % tic; u_fgpG = FGP_TV_GPU(single(u0), lambda_reg, iter_fgp, epsil_tol); toc; 
 % figure; imshow(u_fgpG, [0 1]); title('FGP-TV denoised image (GPU)');
 %%
+fprintf('Denoise using the PD-TV model (CPU) \n');
+lambda_reg = 0.03;
+iter_pd = 500; % number of FGP iterations
+epsil_tol =  0.0; % tolerance
+tic; [u_pd,infovec] = PD_TV(single(u0), lambda_reg, iter_pd, epsil_tol); toc; 
+energyfunc_val_pd = TV_energy(single(u_pd),single(u0),lambda_reg, 1); % get energy function value
+rmsePD = (RMSE(u_pd(:),Im(:)));
+fprintf('%s %f \n', 'RMSE error for PD-TV is:', rmsePD);
+[ssimval] = ssim(u_pd*255,single(Im)*255);
+fprintf('%s %f \n', 'MSSIM error for PD-TV is:', ssimval);
+figure; imshow(u_pd, [0 1]); title('PD-TV denoised image (CPU)');
+%%
+% fprintf('Denoise using the PD-TV model (GPU) \n');
+% tic; u_pdG = PD_TV_GPU(single(u0), lambda_reg, iter_pd, epsil_tol); toc; 
+% figure; imshow(u_pdG, [0 1]); title('PD-TV denoised image (GPU)');
+%%
 fprintf('Denoise using the SB-TV model (CPU) \n');
 lambda_reg = 0.03;
 iter_sb = 200; % number of SB iterations

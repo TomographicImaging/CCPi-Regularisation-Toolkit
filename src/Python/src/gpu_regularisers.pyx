@@ -22,6 +22,7 @@ CUDAErrorMessage = 'CUDA error'
 
 cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int N, int M, int Z);
 cdef extern int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int N, int M, int Z);
+cdef extern int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, float tau, int dimX, int dimY, int dimZ);
 cdef extern int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int N, int M, int Z);
 cdef extern int LLT_ROF_GPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau,  float epsil, int N, int M, int Z);
 cdef extern int TGV_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ);
@@ -70,6 +71,75 @@ def TV_FGP_GPU(inputData,
                      tolerance_param,
                      methodTV,
                      nonneg)
+# Total-variation Primal-Dual (PD)
+def TV_PD_GPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau):
+    if inputData.ndim == 2:
+        return TVPD2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau)
+    elif inputData.ndim == 3:
+        return TVPD3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau)
+
+def TVPD2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
+                     float regularisation_parameter,
+                     int iterationsNumb,
+                     float tolerance_param,
+                     int methodTV,
+                     int nonneg,
+                     float lipschitz_const,
+                     float tau):
+
+    cdef long dims[2]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+
+    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
+            np.zeros([dims[0],dims[1]], dtype='float32')
+
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.ones([2], dtype='float32')
+
+    if (TV_PD_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0], regularisation_parameter,
+                       iterationsNumb,
+                       tolerance_param,
+                       lipschitz_const,
+                       methodTV,
+                       nonneg,
+                       tau,
+                       dims[1],dims[0], 1) ==0):
+        return (outputData,infovec)
+    else:
+        raise ValueError(CUDAErrorMessage);
+
+def TVPD3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
+                     float regularisation_parameter,
+                     int iterationsNumb,
+                     float tolerance_param,
+                     int methodTV,
+                     int nonneg,
+                     float lipschitz_const,
+                     float tau):
+
+    cdef long dims[3]
+    dims[0] = inputData.shape[0]
+    dims[1] = inputData.shape[1]
+    dims[2] = inputData.shape[2]
+
+    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
+            np.zeros([dims[0], dims[1], dims[2]], dtype='float32')
+    cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
+            np.zeros([2], dtype='float32')
+
+    if (TV_PD_GPU_main(&inputData[0,0,0], &outputData[0,0,0], &infovec[0], regularisation_parameter,
+                       iterationsNumb,
+                       tolerance_param,
+                       lipschitz_const,
+                       methodTV,
+                       nonneg,
+                       tau,
+                       dims[2], dims[1], dims[0]) ==0):
+        return (outputData,infovec)
+    else:
+        raise ValueError(CUDAErrorMessage);
+
 # Total-variation Split Bregman (SB)
 def TV_SB_GPU(inputData,
                      regularisation_parameter,
@@ -195,7 +265,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
     if isinstance (regularisation_parameter, np.ndarray):
         reg = regularisation_parameter.copy()
         # Running CUDA code here
-        if (TV_ROF_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0], 
+        if (TV_ROF_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0],
                        &reg[0,0], 1,
                        iterations,
                        time_marching_parameter,

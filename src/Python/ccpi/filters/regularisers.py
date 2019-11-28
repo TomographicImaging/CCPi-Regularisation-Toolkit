@@ -4,7 +4,7 @@ script which assigns a proper device core function based on a flag ('cpu' or 'gp
 
 from ccpi.filters.cpu_regularisers import TV_ROF_CPU, TV_FGP_CPU, TV_PD_CPU, TV_SB_CPU, dTV_FGP_CPU, TNV_CPU, NDF_CPU, Diff4th_CPU, TGV_CPU, LLT_ROF_CPU, PATCHSEL_CPU, NLTV_CPU
 try:
-    from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU, TGV_GPU, LLT_ROF_GPU, PATCHSEL_GPU
+    from ccpi.filters.gpu_regularisers import TV_ROF_GPU, TV_FGP_GPU, TV_PD_GPU, TV_SB_GPU, dTV_FGP_GPU, NDF_GPU, Diff4th_GPU, TGV_GPU, LLT_ROF_GPU, PATCHSEL_GPU
     gpu_enabled = True
 except ImportError:
     gpu_enabled = False
@@ -64,7 +64,7 @@ def PD_TV(inputData, regularisation_parameter, iterations,
                      lipschitz_const,
                      tau)
     elif device == 'gpu' and gpu_enabled:
-        return TV_PD_CPU(inputData,
+        return TV_PD_GPU(inputData,
                      regularisation_parameter,
                      iterations,
                      tolerance_param,

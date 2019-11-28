@@ -18,9 +18,9 @@
  */
 #include "matrix.h"
 #include "mex.h"
-#include "PD_TV_core.h"
+#include "TV_PD_GPU_core.h"
 
-/* C-OMP implementation of Primal-Dual TV [1] by Chambolle Pock denoising/regularization model (2D/3D case)
+/* GPU implementation of Primal-Dual TV [1] by Chambolle Pock denoising/regularization model (2D/3D case)
  *
  * Input Parameters:
  * 1. Noisy image/volume
@@ -38,6 +38,7 @@
  *
  * [1] Antonin Chambolle, Thomas Pock. "A First-Order Primal-Dual Algorithm for Convex Problems with Applications to Imaging", 2010
  */
+
 void mexFunction(
         int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[])
@@ -96,5 +97,5 @@ void mexFunction(
     infovec = (float*)mxGetPr(plhs[1] = mxCreateNumericArray(1, vecdim, mxSINGLE_CLASS, mxREAL));
     
     /* running the function */    
-    PDTV_CPU_main(Input, Output, infovec, lambda, iter,  epsil, lipschitz_const, methTV, nonneg, tau, dimX, dimY, dimZ);
+    TV_PD_GPU_main(Input, Output, infovec, lambda, iter,  epsil, lipschitz_const, methTV, nonneg, tau, dimX, dimY, dimZ);
 }

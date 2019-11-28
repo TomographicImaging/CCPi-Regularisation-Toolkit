@@ -164,6 +164,94 @@ class TestRegularisers(unittest.TestCase):
 
         self.assertLessEqual(diff_im.sum() , 1)
 
+    def test_PD_TV_CPU_vs_GPU(self):
+        print(__name__)
+        #filename = os.path.join("test","lena_gray_512.tif")
+        #plt = TiffReader()
+        filename = os.path.join("test","test_imageLena.bin")
+        plt = BinReader()
+        # read image
+        Im = plt.imread(filename)
+        Im = np.asarray(Im, dtype='float32')
+
+        Im = Im/255
+        perc = 0.05
+        u0 = Im + np.random.normal(loc = 0 ,
+                                          scale = perc * Im ,
+                                          size = np.shape(Im))
+        u_ref = Im + np.random.normal(loc = 0 ,
+                                          scale = 0.01 * Im ,
+                                          size = np.shape(Im))
+
+        # map the u0 u0->u0>0
+        # f = np.frompyfunc(lambda x: 0 if x < 0 else x, 1,1)
+        u0 = u0.astype('float32')
+        u_ref = u_ref.astype('float32')
+
+        print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print ("____________PD-TV bench___________________")
+        print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+
+        pars = {'algorithm' : PD_TV, \
+                'input' : u0,\
+                'regularisation_parameter':0.02, \
+                'number_of_iterations' :1500 ,\
+                'tolerance_constant':0.0,\
+                'methodTV': 0 ,\
+                'nonneg': 0,
+                'lipschitz_const' : 8,
+                'tau' : 0.0025}
+                
+        print ("#############PD TV CPU####################")
+        start_time = timeit.default_timer()
+        (pd_cpu,info_vec_cpu) = PD_TV(pars['input'], 
+                      pars['regularisation_parameter'],
+                      pars['number_of_iterations'],
+                      pars['tolerance_constant'], 
+                      pars['methodTV'],
+                      pars['nonneg'],
+                      pars['lipschitz_const'],
+                      pars['tau'],'cpu')
+
+        rms = rmse(Im, pd_cpu)
+        pars['rmse'] = rms
+
+        txtstr = printParametersToString(pars)
+        txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+        print (txtstr)
+
+        print ("##############PD TV GPU##################")
+        start_time = timeit.default_timer()
+        try:
+            (pd_gpu,info_vec_gpu) = PD_TV(pars['input'], 
+              pars['regularisation_parameter'],
+              pars['number_of_iterations'],
+              pars['tolerance_constant'], 
+              pars['methodTV'],
+              pars['nonneg'],
+              pars['lipschitz_const'],
+              pars['tau'],'gpu')
+
+        except ValueError as ve:
+            self.skipTest("Results not comparable. GPU computing error.")
+
+        rms = rmse(Im, pd_gpu)
+        pars['rmse'] = rms
+        pars['algorithm'] = PD_TV
+        txtstr = printParametersToString(pars)
+        txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
+        print (txtstr)
+
+        print ("--------Compare the results--------")
+        tolerance = 1e-05
+        diff_im = np.zeros(np.shape(pd_cpu))
+        diff_im = abs(pd_cpu - pd_gpu)
+        diff_im[diff_im > tolerance] = 1
+
+        self.assertLessEqual(diff_im.sum() , 1)
+
+
     def test_SB_TV_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")

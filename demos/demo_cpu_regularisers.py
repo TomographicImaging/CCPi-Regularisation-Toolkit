@@ -130,7 +130,7 @@ pars = {'algorithm' : FGP_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
         'number_of_iterations' :1500 ,\
-        'tolerance_constant':1e-06,\
+        'tolerance_constant':1e-08,\
         'methodTV': 0 ,\
         'nonneg': 0}
         
@@ -176,7 +176,7 @@ pars = {'algorithm' : PD_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
         'number_of_iterations' :1500 ,\
-        'tolerance_constant':1e-06,\
+        'tolerance_constant':1e-08,\
         'methodTV': 0 ,\
         'nonneg': 1,
         'lipschitz_const' : 8,

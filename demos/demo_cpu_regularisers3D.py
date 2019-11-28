@@ -185,10 +185,11 @@ pars = {'algorithm' : PD_TV, \
         'input' : noisyVol,\
         'regularisation_parameter':0.02, \
         'number_of_iterations' :1000 ,\
-        'tolerance_constant': 1e-06,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
-        'lipschitz_const' : 12,\
-        'nonneg': 0}
+        'nonneg': 0,
+        'lipschitz_const' : 8,
+        'tau' : 0.0025}
 
 print ("#############FGP TV GPU####################")
 start_time = timeit.default_timer()
@@ -198,7 +199,8 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'], 'cpu')
+              pars['lipschitz_const'],
+              pars['tau'],'cpu')
              
 Qtools = QualityTools(idealVol, pd_cpu3D)
 pars['rmse'] = Qtools.rmse()
