@@ -41,6 +41,11 @@ fprintf('%s \n', 'Compiling SB-TV...');
 mex -g -I/usr/local/cuda-10.0/include -L/usr/local/cuda-10.0/lib64 -lcudart -lcufft -lmwgpu SB_TV_GPU.cpp TV_SB_GPU_core.o
 movefile('SB_TV_GPU.mex*',Pathmove);
 
+fprintf('%s \n', 'Compiling PD-TV...');
+!/usr/local/cuda/bin/nvcc -O0 -c TV_PD_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
+mex -g -I/usr/local/cuda-10.0/include -L/usr/local/cuda-10.0/lib64 -lcudart -lcufft -lmwgpu PD_TV_GPU.cpp TV_PD_GPU_core.o
+movefile('PD_TV_GPU.mex*',Pathmove);
+
 fprintf('%s \n', 'Compiling TGV...');
 !/usr/local/cuda/bin/nvcc -O0 -c TGV_GPU_core.cu -Xcompiler -fPIC -I~/SOFT/MATLAB9/extern/include/
 mex -g -I/usr/local/cuda-10.0/include -L/usr/local/cuda-10.0/lib64 -lcudart -lcufft -lmwgpu TGV_GPU.cpp TGV_GPU_core.o
@@ -72,6 +77,7 @@ mex -g -I/usr/local/cuda-10.0/include -L/usr/local/cuda-10.0/lib64 -lcudart -lcu
 movefile('PatchSelect_GPU.mex*',Pathmove);
 
 delete TV_ROF_GPU_core* TV_FGP_GPU_core* TV_SB_GPU_core* dTV_FGP_GPU_core* NonlDiff_GPU_core* Diffus_4thO_GPU_core* TGV_GPU_core* LLT_ROF_GPU_core* CCPiDefines.h
+delete TV_PD_GPU_core*
 delete PatchSelect_GPU_core* Nonlocal_TV_core* shared.h
 fprintf('%s \n', 'All successfully compiled!');
 

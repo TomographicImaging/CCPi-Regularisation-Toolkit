@@ -62,6 +62,25 @@ fprintf('Denoise a volume using the FGP-TV model (GPU) \n');
 % fprintf('%s %f \n', 'RMSE error for FGP-TV is:', rmse_fgpG);
 % figure; imshow(u_fgpG(:,:,7), [0 1]); title('FGP-TV denoised volume (GPU)');
 %%
+fprintf('Denoise a volume using the PD-TV model (CPU) \n');
+lambda_reg = 0.03; % regularsation parameter for all methods
+iter_pd = 300; % number of FGP iterations
+epsil_tol =  0.0; % tolerance
+tic; [u_pd,infovec] = PD_TV(single(vol3D), lambda_reg, iter_pd, epsil_tol); toc; 
+energyfunc_val_fgp = TV_energy(single(u_pd),single(vol3D),lambda_reg, 1); % get energy function value
+rmse_pd = (RMSE(Ideal3D(:),u_pd(:)));
+fprintf('%s %f \n', 'RMSE error for PD-TV is:', rmse_pd);
+figure; imshow(u_pd(:,:,7), [0 1]); title('PD-TV denoised volume (CPU)');
+%%
+% fprintf('Denoise a volume using the PD-TV model (GPU) \n');
+% lambda_reg = 0.03; % regularsation parameter for all methods
+% iter_pd = 300; % number of FGP iterations
+% epsil_tol =  0.0; % tolerance
+% tic; u_pdG = PD_TV_GPU(single(vol3D), lambda_reg, iter_pd, epsil_tol); toc; 
+% rmse_pdG = (RMSE(Ideal3D(:),u_pdG(:)));
+% fprintf('%s %f \n', 'RMSE error for PD-TV is:', rmse_pdG);
+% figure; imshow(u_pdG(:,:,7), [0 1]); title('PD-TV denoised volume (GPU)');
+%%
 fprintf('Denoise a volume using the SB-TV model (CPU) \n');
 iter_sb = 150; % number of SB iterations
 epsil_tol =  0.0; % tolerance

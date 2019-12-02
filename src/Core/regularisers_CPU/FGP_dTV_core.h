@@ -59,14 +59,12 @@ CCPI_EXPORT float GradNorm_func2D(float *B, float *B_x, float *B_y, float eta, l
 CCPI_EXPORT float ProjectVect_func2D(float *R1, float *R2, float *B_x, float *B_y, long dimX, long dimY);
 CCPI_EXPORT float Obj_dfunc2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
 CCPI_EXPORT float Grad_dfunc2D(float *P1, float *P2, float *D, float *R1, float *R2, float *B_x, float *B_y, float lambda, long dimX, long dimY);
-CCPI_EXPORT float Proj_dfunc2D(float *P1, float *P2, int methTV, long DimTotal);
 CCPI_EXPORT float Rupd_dfunc2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal);
 
 CCPI_EXPORT float GradNorm_func3D(float *B, float *B_x, float *B_y, float *B_z, float eta, long dimX, long dimY, long dimZ);
 CCPI_EXPORT float ProjectVect_func3D(float *R1, float *R2, float *R3, float *B_x, float *B_y, float *B_z, long dimX, long dimY, long dimZ);
 CCPI_EXPORT float Obj_dfunc3D(float *A, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ);
 CCPI_EXPORT float Grad_dfunc3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float *B_x, float *B_y, float *B_z, float lambda, long dimX, long dimY, long dimZ);
-CCPI_EXPORT float Proj_dfunc3D(float *P1, float *P2, float *P3, int methTV, long DimTotal);
 CCPI_EXPORT float Rupd_dfunc3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal);
 #ifdef __cplusplus
 }

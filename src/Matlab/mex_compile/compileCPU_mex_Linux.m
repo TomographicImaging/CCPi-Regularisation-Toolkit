@@ -28,6 +28,10 @@ movefile('FGP_TV.mex*',Pathmove);
 fprintf('%s \n', 'Compiling SB-TV...');
 mex SB_TV.c SB_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('SB_TV.mex*',Pathmove);
+
+fprintf('%s \n', 'Compiling PD-TV...');
+mex PD_TV.c PD_TV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
+movefile('PD_TV.mex*',Pathmove);
  
 fprintf('%s \n', 'Compiling dFGP-TV...');
 mex FGP_dTV.c FGP_dTV_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
@@ -75,7 +79,8 @@ movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
 delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* LLT_ROF_core* CCPiDefines.h
 delete PatchSelect_core* Nonlocal_TV_core*
 delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
-fprintf('%s \n', '<<<<<<< Regularisers successfully compiled! >>>>>>>');
+delete PD_TV_core*
+fprintf('%s \n', '<<<<<<< CPU regularisers were successfully compiled! >>>>>>>');
 
 pathA2 = sprintf(['..' fsep '..' fsep '..' fsep '..' fsep 'demos' fsep 'Matlab_demos'], 1i);
 cd(pathA2);

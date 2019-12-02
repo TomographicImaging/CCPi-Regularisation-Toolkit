@@ -65,7 +65,7 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int type, int
 {
     int i, j, i1, j1, index;
     float NOMx_2, NOMy_2, E_Grad=0.0f, E_Data=0.0f;
-    
+
     /* first calculate \grad U_xy*/
     for(j=0; j<dimY; j++) {
         for(i=0; i<dimX; i++) {
@@ -73,7 +73,7 @@ float TV_energy2D(float *U, float *U0, float *E_val, float lambda, int type, int
             /* boundary conditions */
             i1 = i + 1; if (i == dimX-1) i1 = i;
             j1 = j + 1; if (j == dimY-1) j1 = j;
-            
+
             /* Forward differences */
             NOMx_2 = powf((float)(U[j1*dimX + i] - U[index]),2); /* x+ */
             NOMy_2 = powf((float)(U[j*dimX + i1] - U[index]),2); /* y+ */
@@ -90,7 +90,7 @@ float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int
 {
     long i, j, k, i1, j1, k1, index;
     float NOMx_2, NOMy_2, NOMz_2, E_Grad=0.0f, E_Data=0.0f;
-    
+
     /* first calculate \grad U_xy*/
     for(j=0; j<(long)(dimY); j++) {
         for(i=0; i<(long)(dimX); i++) {
@@ -100,12 +100,12 @@ float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int
                 i1 = i + 1; if (i == (long)(dimX-1)) i1 = i;
                 j1 = j + 1; if (j == (long)(dimY-1)) j1 = j;
                 k1 = k + 1; if (k == (long)(dimZ-1)) k1 = k;
-                
+
                 /* Forward differences */
                 NOMx_2 = powf((float)(U[(dimX*dimY)*k + j1*dimX+i] - U[index]),2); /* x+ */
                 NOMy_2 = powf((float)(U[(dimX*dimY)*k + j*dimX+i1] - U[index]),2); /* y+ */
                 NOMz_2 = powf((float)(U[(dimX*dimY)*k1 + j*dimX+i] - U[index]),2); /* z+ */
-                
+
                 E_Grad += 2.0f*lambda*sqrtf((float)(NOMx_2) + (float)(NOMy_2) + (float)(NOMz_2)); /* gradient term energy */
                 E_Data += (powf((float)(U[index]-U0[index]),2)); /* fidelity term energy */
             }
@@ -131,16 +131,83 @@ float Im_scale2D(float *Input, float *Scaled, int w, int h, int w2, int h2)
             x_diff = (x_ratio * j) - x;
             y_diff = (y_ratio * i) - y;
             index = y*w+x ;
-            
+
             A = Input[index];
             B = Input[index+1];
             C = Input[index+w];
             D = Input[index+w+1];
-            
+
             gray = (float)(A*(1.0 - x_diff)*(1.0 - y_diff) +  B*(x_diff)*(1.0 - y_diff) +
                     C*(y_diff)*(1.0 - x_diff) +  D*(x_diff*y_diff));
 
             Scaled[i*w2+j] = gray;
         }}
     return *Scaled;
+}
+
+/*2D Projection onto convex set for P (called in PD_TV, FGP_dTV and FGP_TV methods)*/
+float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
+{
+    float val1, val2, denom, sq_denom;
+    long i;
+    if (methTV == 0) {
+        /* isotropic TV*/
+#pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
+        for(i=0; i<DimTotal; i++) {
+            denom = powf(P1[i],2) +  powf(P2[i],2);
+            if (denom > 1.0f) {
+                sq_denom = 1.0f/sqrtf(denom);
+                P1[i] = P1[i]*sq_denom;
+                P2[i] = P2[i]*sq_denom;
+            }
+        }
+    }
+    else {
+        /* anisotropic TV*/
+#pragma omp parallel for shared(P1,P2) private(i,val1,val2)
+        for(i=0; i<DimTotal; i++) {
+            val1 = fabs(P1[i]);
+            val2 = fabs(P2[i]);
+            if (val1 < 1.0f) {val1 = 1.0f;}
+            if (val2 < 1.0f) {val2 = 1.0f;}
+            P1[i] = P1[i]/val1;
+            P2[i] = P2[i]/val2;
+        }
+    }
+    return 1;
+}
+/*3D Projection onto convex set for P (called in PD_TV, FGP_TV, FGP_dTV methods)*/
+float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal)
+{
+    float val1, val2, val3, denom, sq_denom;
+    long i;
+    if (methTV == 0) {
+        /* isotropic TV*/
+#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3,sq_denom)
+        for(i=0; i<DimTotal; i++) {
+            denom = powf(P1[i],2) + powf(P2[i],2) + powf(P3[i],2);
+            if (denom > 1.0f) {
+                sq_denom = 1.0f/sqrtf(denom);
+                P1[i] = P1[i]*sq_denom;
+                P2[i] = P2[i]*sq_denom;
+                P3[i] = P3[i]*sq_denom;
+            }
+        }
+    }
+    else {
+        /* anisotropic TV*/
+#pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3)
+        for(i=0; i<DimTotal; i++) {
+            val1 = fabs(P1[i]);
+            val2 = fabs(P2[i]);
+            val3 = fabs(P3[i]);
+            if (val1 < 1.0f) {val1 = 1.0f;}
+            if (val2 < 1.0f) {val2 = 1.0f;}
+            if (val3 < 1.0f) {val3 = 1.0f;}
+            P1[i] = P1[i]/val1;
+            P2[i] = P2[i]/val2;
+            P3[i] = P3[i]/val3;
+        }
+    }
+    return 1;
 }

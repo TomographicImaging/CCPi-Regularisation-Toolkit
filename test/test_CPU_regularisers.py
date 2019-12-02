@@ -3,7 +3,7 @@ import unittest
 import os
 #import timeit
 import numpy as np
-from ccpi.filters.regularisers import FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th, ROF_TV
+from ccpi.filters.regularisers import FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th, ROF_TV, PD_TV
 from testroutines import BinReader, rmse 
 ###############################################################################
 
@@ -37,6 +37,15 @@ class TestRegularisers(unittest.TestCase):
 
         rms = rmse(Im, fgp_cpu)
 
+        self.assertAlmostEqual(rms,0.02,delta=0.01)
+
+    def test_PD_TV_CPU(self):
+        Im,input,ref = self.getPars()
+
+        pd_cpu,info = PD_TV(input, 0.02, 300, 0.0, 0, 0, 8, 0.0025, 'cpu');
+
+        rms = rmse(Im, pd_cpu)
+        
         self.assertAlmostEqual(rms,0.02,delta=0.01)
 
     def test_TV_ROF_CPU(self):
