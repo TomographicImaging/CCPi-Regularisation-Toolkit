@@ -42,8 +42,8 @@ limitations under the License.
  * [1] Antonin Chambolle, Thomas Pock. "A First-Order Primal-Dual Algorithm for Convex Problems with Applications to Imaging", 2010
  */
 
-#define BLKXSIZE2D 16
-#define BLKYSIZE2D 16
+#define BLKXSIZE2D 8
+#define BLKYSIZE2D 8
 
 #define BLKXSIZE 8
 #define BLKYSIZE 8
