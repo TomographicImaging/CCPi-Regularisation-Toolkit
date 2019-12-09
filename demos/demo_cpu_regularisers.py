@@ -176,11 +176,10 @@ pars = {'algorithm' : PD_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
         'number_of_iterations' :1500 ,\
-        'tolerance_constant':1e-08,\
+        'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 1,
-        'lipschitz_const' : 8,
-        'tau' : 0.0025}
+        'lipschitz_const' : 8}
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()
@@ -190,8 +189,7 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],
-              pars['tau'],'cpu')
+              pars['lipschitz_const'],'cpu')
 
 Qtools = QualityTools(Im, pd_cpu)
 pars['rmse'] = Qtools.rmse()

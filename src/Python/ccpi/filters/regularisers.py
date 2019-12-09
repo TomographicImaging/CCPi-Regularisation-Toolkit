@@ -53,7 +53,7 @@ def FGP_TV(inputData, regularisation_parameter,iterations,
                          .format(device))
 
 def PD_TV(inputData, regularisation_parameter, iterations,
-                     tolerance_param, methodTV, nonneg, lipschitz_const, tau, device='cpu'):
+                     tolerance_param, methodTV, nonneg, lipschitz_const, device='cpu'):
     if device == 'cpu':
         return TV_PD_CPU(inputData,
                      regularisation_parameter,
@@ -61,8 +61,7 @@ def PD_TV(inputData, regularisation_parameter, iterations,
                      tolerance_param,
                      methodTV,
                      nonneg,
-                     lipschitz_const,
-                     tau)
+                     lipschitz_const)
     elif device == 'gpu' and gpu_enabled:
         return TV_PD_GPU(inputData,
                      regularisation_parameter,
@@ -70,8 +69,7 @@ def PD_TV(inputData, regularisation_parameter, iterations,
                      tolerance_param,
                      methodTV,
                      nonneg,
-                     lipschitz_const,
-                     tau)
+                     lipschitz_const)
     else:
         if not gpu_enabled and device == 'gpu':
             raise ValueError ('GPU is not available')

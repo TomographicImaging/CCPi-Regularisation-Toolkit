@@ -241,8 +241,7 @@ pars = {'algorithm' : PD_TV, \
         'tolerance_constant':0.0,\
         'methodTV': 0 ,\
         'nonneg': 0,
-        'lipschitz_const' : 8,
-        'tau' : 0.0025}
+        'lipschitz_const' : 8}
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()
@@ -252,8 +251,7 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],
-              pars['tau'],'cpu')
+              pars['lipschitz_const'],'cpu')
 
 Qtools = QualityTools(Im, pd_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -279,8 +277,7 @@ pars = {'algorithm' : PD_TV, \
         'tolerance_constant':0.0,\
         'methodTV': 0 ,\
         'nonneg': 0,
-        'lipschitz_const' : 8,
-        'tau' : 0.0025}
+        'lipschitz_const' : 8}
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()
@@ -290,8 +287,7 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],
-              pars['tau'],'gpu')
+              pars['lipschitz_const'],'gpu')
 
 Qtools = QualityTools(Im, pd_gpu)
 pars['rmse'] = Qtools.rmse()

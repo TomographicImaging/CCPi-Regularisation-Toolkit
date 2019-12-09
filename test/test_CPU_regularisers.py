@@ -42,7 +42,7 @@ class TestRegularisers(unittest.TestCase):
     def test_PD_TV_CPU(self):
         Im,input,ref = self.getPars()
 
-        pd_cpu,info = PD_TV(input, 0.02, 300, 0.0, 0, 0, 8, 0.0025, 'cpu');
+        pd_cpu,info = PD_TV(input, 0.02, 300, 0.0, 0, 0, 8, 'cpu');
 
         rms = rmse(Im, pd_cpu)
         
