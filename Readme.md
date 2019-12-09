@@ -103,7 +103,8 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 ```
 	export CIL_VERSION=19.10 (Unix) / set CIL_VERSION=19.10 (Windows)
 	conda build recipe/ --numpy 1.15 --python 3.7  
-	conda install ccpi-regulariser=${CIL_VERSION} --use-local --force-reinstall
+	conda install ccpi-regulariser=${CIL_VERSION} --use-local --force-reinstall # if this don't work (probably you're on Python 3*)
+  conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser=${CIL_VERSION} --force-reinstall # try this one
 	cd demos/
 	python demo_cpu_regularisers.py # to run CPU demo
 	python demo_gpu_regularisers.py # to run GPU demo
