@@ -22,7 +22,7 @@ CUDAErrorMessage = 'CUDA error'
 
 cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int N, int M, int Z);
 cdef extern int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int N, int M, int Z);
-cdef extern int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, float tau, int dimX, int dimY, int dimZ);
+cdef extern int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 cdef extern int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int N, int M, int Z);
 cdef extern int LLT_ROF_GPU_main(float *Input, float *Output, float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau,  float epsil, int N, int M, int Z);
 cdef extern int TGV_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ);
@@ -72,11 +72,11 @@ def TV_FGP_GPU(inputData,
                      methodTV,
                      nonneg)
 # Total-variation Primal-Dual (PD)
-def TV_PD_GPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau):
+def TV_PD_GPU(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const):
     if inputData.ndim == 2:
-        return TVPD2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau)
+        return TVPD2D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const)
     elif inputData.ndim == 3:
-        return TVPD3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const, tau)
+        return TVPD3D(inputData, regularisation_parameter, iterationsNumb, tolerance_param, methodTV, nonneg, lipschitz_const)
 
 def TVPD2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float regularisation_parameter,
@@ -84,8 +84,7 @@ def TVPD2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      float tolerance_param,
                      int methodTV,
                      int nonneg,
-                     float lipschitz_const,
-                     float tau):
+                     float lipschitz_const):
 
     cdef long dims[2]
     dims[0] = inputData.shape[0]
@@ -103,7 +102,6 @@ def TVPD2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        lipschitz_const,
                        methodTV,
                        nonneg,
-                       tau,
                        dims[1],dims[0], 1) ==0):
         return (outputData,infovec)
     else:
@@ -115,8 +113,7 @@ def TVPD3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      float tolerance_param,
                      int methodTV,
                      int nonneg,
-                     float lipschitz_const,
-                     float tau):
+                     float lipschitz_const):
 
     cdef long dims[3]
     dims[0] = inputData.shape[0]
@@ -134,7 +131,6 @@ def TVPD3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        lipschitz_const,
                        methodTV,
                        nonneg,
-                       tau,
                        dims[2], dims[1], dims[0]) ==0):
         return (outputData,infovec)
     else:

@@ -33,7 +33,6 @@ limitations under the License.
  * 5. lipschitz_const: convergence related parameter
  * 6. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 7. nonneg: 'nonnegativity (0 is OFF by default, 1 is ON)
- * 8. tau: time marching parameter
 
  * Output:
  * [1] TV - Filtered/regularized image/volume
@@ -42,8 +41,8 @@ limitations under the License.
  * [1] Antonin Chambolle, Thomas Pock. "A First-Order Primal-Dual Algorithm for Convex Problems with Applications to Imaging", 2010
  */
 
-#define BLKXSIZE2D 8
-#define BLKYSIZE2D 8
+#define BLKXSIZE2D 16
+#define BLKYSIZE2D 16
 
 #define BLKXSIZE 8
 #define BLKYSIZE 8
@@ -322,12 +321,9 @@ __global__ void PDResidCalc3D_kernel(float *Input1, float *Input2, float* Output
         Output[index] = Input1[index] - Input2[index];
     }
 }
-
-
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, float tau, int dimX, int dimY, int dimZ)
+extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
 {
    int deviceCount = -1; // number of devices
    cudaGetDeviceCount(&deviceCount);
@@ -336,9 +332,10 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
        return -1;
    }
    int count = 0, i;
-   float re, sigma, theta, lt;
+   float re, sigma, theta, lt, tau;
    re = 0.0f;
 
+   tau = lambdaPar*0.1f;
    sigma = 1.0/(lipschitz_const*tau);
    theta = 1.0f;
    lt = tau/lambdaPar;

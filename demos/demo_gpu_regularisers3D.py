@@ -192,8 +192,7 @@ pars = {'algorithm' : PD_TV, \
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0,
-        'lipschitz_const' : 8,
-        'tau' : 0.0025}
+        'lipschitz_const' : 8}
 
 print ("#############PD TV GPU####################")
 start_time = timeit.default_timer()
@@ -203,8 +202,7 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],
-              pars['tau'],'gpu')
+              pars['lipschitz_const'],'gpu')
 
 Qtools = QualityTools(idealVol, pd_gpu3D)
 pars['rmse'] = Qtools.rmse()

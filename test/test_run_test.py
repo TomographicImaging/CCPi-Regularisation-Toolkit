@@ -200,8 +200,7 @@ class TestRegularisers(unittest.TestCase):
                 'tolerance_constant':0.0,\
                 'methodTV': 0 ,\
                 'nonneg': 0,
-                'lipschitz_const' : 8,
-                'tau' : 0.0025}
+                'lipschitz_const' : 8}
                 
         print ("#############PD TV CPU####################")
         start_time = timeit.default_timer()
@@ -211,8 +210,7 @@ class TestRegularisers(unittest.TestCase):
                       pars['tolerance_constant'], 
                       pars['methodTV'],
                       pars['nonneg'],
-                      pars['lipschitz_const'],
-                      pars['tau'],'cpu')
+                      pars['lipschitz_const'],'cpu')
 
         rms = rmse(Im, pd_cpu)
         pars['rmse'] = rms
@@ -230,8 +228,7 @@ class TestRegularisers(unittest.TestCase):
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],
-              pars['tau'],'gpu')
+              pars['lipschitz_const'],'gpu')
 
         except ValueError as ve:
             self.skipTest("Results not comparable. GPU computing error.")
