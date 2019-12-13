@@ -38,7 +38,7 @@ int signNDFc(float x) {
  * 3. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
  * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
- * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight
+ * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight, 4 - Threshold-constrained Linear
  * 7. eplsilon - tolerance constant
  *
  * Output:
@@ -60,14 +60,14 @@ float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float l
     re = 0.0f; re1 = 0.0f;
     int count = 0;
     DimTotal = (long)(dimX*dimY*dimZ);
-    
+
     if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
-    
+
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
-    
+
     for(i=0; i < iterationsNumb; i++) {
-        
+
         if ((epsil != 0.0f)  && (i % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));
         if (dimZ == 1) {
             /* running 2D diffusion iterations */
@@ -93,7 +93,7 @@ float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float l
             if (count > 3) break;
         }
     }
-    
+
     free(Output_prev);
     /*adding info into info_vector */
     infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
@@ -109,7 +109,7 @@ float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, long
 {
     long i,j,i1,i2,j1,j2,index;
     float e,w,n,s,e1,w1,n1,s1;
-    
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1)
     for(j=0; j<dimY; j++) {
         /* symmetric boundary conditions (Neuman) */
@@ -120,17 +120,17 @@ float LinearDiff2D(float *Input, float *Output, float lambdaPar, float tau, long
             i1 = i+1; if (i1 == dimX) i1 = i-1;
             i2 = i-1; if (i2 < 0) i2 = i+1;
             index = j*dimX+i;
-            
+
             e = Output[j*dimX+i1];
             w = Output[j*dimX+i2];
             n = Output[j1*dimX+i];
             s = Output[j2*dimX+i];
-            
+
             e1 = e - Output[index];
             w1 = w - Output[index];
             n1 = n - Output[index];
             s1 = s - Output[index];
-            
+
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
         }}
     return *Output;
@@ -141,7 +141,7 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
 {
     long i,j,i1,i2,j1,j2,index;
     float e,w,n,s,e1,w1,n1,s1;
-    
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1)
     for(j=0; j<dimY; j++) {
         /* symmetric boundary conditions (Neuman) */
@@ -152,28 +152,28 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
             i1 = i+1; if (i1 == dimX) i1 = i-1;
             i2 = i-1; if (i2 < 0) i2 = i+1;
             index = j*dimX+i;
-            
+
             e = Output[j*dimX+i1];
             w = Output[j*dimX+i2];
             n = Output[j1*dimX+i];
             s = Output[j2*dimX+i];
-            
+
             e1 = e - Output[index];
             w1 = w - Output[index];
             n1 = n - Output[index];
             s1 = s - Output[index];
-            
+
             if (penaltytype == 1){
                 /* Huber penalty */
                 if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
                 else e1 = e1/sigmaPar;
-                
+
                 if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
                 else w1 = w1/sigmaPar;
-                
+
                 if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
                 else n1 = n1/sigmaPar;
-                
+
                 if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
                 else s1 = s1/sigmaPar;
             }
@@ -195,8 +195,18 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
                 if (fabs(s1) <= sigmaPar) s1 =  s1*powf((1.0f - powf((s1/sigmaPar),2)), 2);
                 else s1 = 0.0f;
             }
+            else if (penaltytype == 4) {
+                /* Threshold-constrained linear diffusion
+                This means that the linear diffusion will be performed on pixels with
+                absolute difference less than the threshold.
+                */
+                if (fabs(e1) > sigmaPar) e1 = 0.0f;
+                if (fabs(w1) > sigmaPar) w1 = 0.0f;
+                if (fabs(n1) > sigmaPar) n1 = 0.0f;
+                if (fabs(s1) > sigmaPar) s1 = 0.0f;
+            }
             else {
-                printf("%s \n", "No penalty function selected! Use 1,2 or 3.");
+                printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
                 break;
             }
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
@@ -211,7 +221,7 @@ float LinearDiff3D(float *Input, float *Output, float lambdaPar, float tau, long
 {
     long i,j,k,i1,i2,j1,j2,k1,k2,index;
     float e,w,n,s,u,d,e1,w1,n1,s1,u1,d1;
-    
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1,k,k1,k2,u1,d1,u,d)
     for(k=0; k<dimZ; k++) {
         k1 = k+1; if (k1 == dimZ) k1 = k-1;
@@ -225,21 +235,21 @@ float LinearDiff3D(float *Input, float *Output, float lambdaPar, float tau, long
                 i1 = i+1; if (i1 == dimX) i1 = i-1;
                 i2 = i-1; if (i2 < 0) i2 = i+1;
                 index = (dimX*dimY)*k + j*dimX+i;
-                
+
                 e = Output[(dimX*dimY)*k + j*dimX+i1];
                 w = Output[(dimX*dimY)*k + j*dimX+i2];
                 n = Output[(dimX*dimY)*k + j1*dimX+i];
                 s = Output[(dimX*dimY)*k + j2*dimX+i];
                 u = Output[(dimX*dimY)*k1 + j*dimX+i];
                 d = Output[(dimX*dimY)*k2 + j*dimX+i];
-                
+
                 e1 = e - Output[index];
                 w1 = w - Output[index];
                 n1 = n - Output[index];
                 s1 = s - Output[index];
                 u1 = u - Output[index];
                 d1 = d - Output[index];
-                
+
                 Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));
             }}}
     return *Output;
@@ -249,7 +259,7 @@ float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaP
 {
     long i,j,k,i1,i2,j1,j2,k1,k2,index;
     float e,w,n,s,u,d,e1,w1,n1,s1,u1,d1;
-    
+
 #pragma omp parallel for shared(Input) private(index,i,j,i1,i2,j1,j2,e,w,n,s,e1,w1,n1,s1,k,k1,k2,u1,d1,u,d)
     for(k=0; k<dimZ; k++) {
         k1 = k+1; if (k1 == dimZ) k1 = k-1;
@@ -263,38 +273,38 @@ float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaP
                 i1 = i+1; if (i1 == dimX) i1 = i-1;
                 i2 = i-1; if (i2 < 0) i2 = i+1;
                 index = (dimX*dimY)*k + j*dimX+i;
-                
+
                 e = Output[(dimX*dimY)*k + j*dimX+i1];
                 w = Output[(dimX*dimY)*k + j*dimX+i2];
                 n = Output[(dimX*dimY)*k + j1*dimX+i];
                 s = Output[(dimX*dimY)*k + j2*dimX+i];
                 u = Output[(dimX*dimY)*k1 + j*dimX+i];
                 d = Output[(dimX*dimY)*k2 + j*dimX+i];
-                
+
                 e1 = e - Output[index];
                 w1 = w - Output[index];
                 n1 = n - Output[index];
                 s1 = s - Output[index];
                 u1 = u - Output[index];
                 d1 = d - Output[index];
-                
+
                 if (penaltytype == 1){
                     /* Huber penalty */
                     if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
                     else e1 = e1/sigmaPar;
-                    
+
                     if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
                     else w1 = w1/sigmaPar;
-                    
+
                     if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
                     else n1 = n1/sigmaPar;
-                    
+
                     if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
                     else s1 = s1/sigmaPar;
-                    
+
                     if (fabs(u1) > sigmaPar) u1 =  signNDFc(u1);
                     else u1 = u1/sigmaPar;
-                    
+
                     if (fabs(d1) > sigmaPar) d1 =  signNDFc(d1);
                     else d1 = d1/sigmaPar;
                 }
@@ -322,11 +332,23 @@ float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaP
                     if (fabs(d1) <= sigmaPar) d1 =  d1*powf((1.0f - powf((d1/sigmaPar),2)), 2);
                     else d1 = 0.0f;
                 }
+                else if (penaltytype == 4) {
+                    /* Threshold-constrained linear diffusion
+                    This means that the linear diffusion will be performed on pixels with
+                    absolute difference less than the threshold.
+                    */
+                    if (fabs(e1) > sigmaPar) e1 = 0.0f;
+                    if (fabs(w1) > sigmaPar) w1 = 0.0f;
+                    if (fabs(n1) > sigmaPar) n1 = 0.0f;
+                    if (fabs(s1) > sigmaPar) s1 = 0.0f;
+                    if (fabs(u1) > sigmaPar) u1 = 0.0f;
+                    if (fabs(d1) > sigmaPar) d1 = 0.0f;
+                }
                 else {
-                    printf("%s \n", "No penalty function selected! Use 1,2 or 3.");
+                    printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
                     break;
                 }
-                
+
                 Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));
             }}}
     return *Output;

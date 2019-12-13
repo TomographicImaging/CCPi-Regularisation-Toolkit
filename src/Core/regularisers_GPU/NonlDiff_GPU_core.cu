@@ -32,7 +32,7 @@ limitations under the License.
  * 3. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
  * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
- * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight
+ * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight, 4 - Threshold-constrained Linear
  * 7. eplsilon: tolerance constant
 
   * Output:
@@ -108,8 +108,8 @@ __global__ void LinearDiff2D_kernel(float *Input, float *Output, float lambdaPar
         if ((i >= 0) && (i < N) && (j >= 0) && (j < M)) {
 
             /* boundary conditions (Neumann reflections) */
-			i1 = i+1; if (i1 == N) i1 = i-1;
-			i2 = i-1; if (i2 < 0) i2 = i+1;
+			      i1 = i+1; if (i1 == N) i1 = i-1;
+			      i2 = i-1; if (i2 < 0) i2 = i+1;
             j1 = j+1; if (j1 == M) j1 = j-1;
             j2 = j-1; if (j2 < 0) j2 = j+1;
 
@@ -155,7 +155,32 @@ __global__ void LinearDiff2D_kernel(float *Input, float *Output, float lambdaPar
             if (abs(s1) <= sigmaPar) s1 =  s1*pow((1.0f - pow((s1/sigmaPar),2)), 2);
             else s1 = 0.0f;
             }
-            else printf("%s \n", "No penalty function selected! Use 1,2 or 3.");
+            else if (penaltytype == 4) {
+                /* Threshold-constrained linear diffusion
+                This means that the linear diffusion will be performed on pixels with
+                absolute difference less than the threshold.
+                */
+                if (abs(e1) <= 1.5f*sigmaPar) {
+                if (abs(e1) > sigmaPar) e1 =  signNDF(e1);
+                else e1 = e1/sigmaPar;}
+                else e1 = 0.0f;
+
+                if (abs(w1) <= 1.5f*sigmaPar) {
+                if (abs(w1) > sigmaPar) w1 =  signNDF(w1);
+                else w1 = w1/sigmaPar;}
+                else w1 = 0.0f;
+
+                if (abs(n1) <= 1.5f*sigmaPar) {
+                if (abs(n1) > sigmaPar) n1 =  signNDF(n1);
+                else n1 = n1/sigmaPar; }
+                else n1 = 0.0f;
+
+                if (abs(s1) <= 1.5f*sigmaPar) {
+                if (abs(s1) > sigmaPar) s1 =  signNDF(s1);
+                else s1 = s1/sigmaPar; }
+                else s1 = 0.0f;
+            }
+            else printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
 
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
 		}
@@ -281,8 +306,19 @@ __global__ void NonLinearDiff3D_kernel(float *Input, float *Output, float lambda
             if (abs(d1) <= sigmaPar) d1 =  d1*pow((1.0f - pow((d1/sigmaPar),2)), 2);
             else d1 = 0.0f;
             }
-            else printf("%s \n", "No penalty function selected! Use 1,2 or 3.");
-
+            else if (penaltytype == 4) {
+                /* Threshold-constrained linear diffusion
+                This means that the linear diffusion will be performed on pixels with
+                absolute difference less than the threshold.
+                */
+                if (abs(e1) > sigmaPar) e1 = 0.0f;
+                if (abs(w1) > sigmaPar) w1 = 0.0f;
+                if (abs(n1) > sigmaPar) n1 = 0.0f;
+                if (abs(s1) > sigmaPar) s1 = 0.0f;
+                if (abs(u1) > sigmaPar) u1 = 0.0f;
+                if (abs(d1) > sigmaPar) d1 = 0.0f;
+            }
+            else printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));
 		}
 	}
