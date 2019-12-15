@@ -32,7 +32,7 @@ limitations under the License.
  * 3. Edge-preserving parameter (sigma), when sigma equals to zero nonlinear diffusion -> linear diffusion
  * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
- * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight, 4 - Threshold-constrained Linear
+ * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight, 4 - Threshold-constrained Linear, 5 - modified Huber with a dead stop on edge
  * 7. eplsilon: tolerance constant
 
   * Output:
