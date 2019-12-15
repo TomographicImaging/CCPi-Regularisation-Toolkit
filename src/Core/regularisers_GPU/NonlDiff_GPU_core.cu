@@ -160,27 +160,37 @@ __global__ void LinearDiff2D_kernel(float *Input, float *Output, float lambdaPar
                 This means that the linear diffusion will be performed on pixels with
                 absolute difference less than the threshold.
                 */
-                if (abs(e1) <= 1.5f*sigmaPar) {
+                if (abs(e1) > sigmaPar) e1 = 0.0f;
+                if (abs(w1) > sigmaPar) w1 = 0.0f;
+                if (abs(n1) > sigmaPar) n1 = 0.0f;
+                if (abs(s1) > sigmaPar) s1 = 0.0f;
+            }
+            else if (penaltytype == 5) {
+                /* Threshold-constrained Huber nonlinear diffusion
+                This means that the linear diffusion will be performed on pixels with
+                absolute difference less than the threshold.
+                */
+                if (abs(e1) <= 2.0f*sigmaPar) {
                 if (abs(e1) > sigmaPar) e1 =  signNDF(e1);
                 else e1 = e1/sigmaPar;}
                 else e1 = 0.0f;
 
-                if (abs(w1) <= 1.5f*sigmaPar) {
+                if (abs(w1) <= 2.0f*sigmaPar) {
                 if (abs(w1) > sigmaPar) w1 =  signNDF(w1);
                 else w1 = w1/sigmaPar;}
                 else w1 = 0.0f;
 
-                if (abs(n1) <= 1.5f*sigmaPar) {
+                if (abs(n1) <= 2.0f*sigmaPar) {
                 if (abs(n1) > sigmaPar) n1 =  signNDF(n1);
                 else n1 = n1/sigmaPar; }
                 else n1 = 0.0f;
 
-                if (abs(s1) <= 1.5f*sigmaPar) {
+                if (abs(s1) <= 2.0f*sigmaPar) {
                 if (abs(s1) > sigmaPar) s1 =  signNDF(s1);
                 else s1 = s1/sigmaPar; }
                 else s1 = 0.0f;
             }
-            else printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
+            else printf("%s \n", "No penalty function selected! Use 1,2,3, 4 or 5.");
 
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
 		}
@@ -318,7 +328,42 @@ __global__ void NonLinearDiff3D_kernel(float *Input, float *Output, float lambda
                 if (abs(u1) > sigmaPar) u1 = 0.0f;
                 if (abs(d1) > sigmaPar) d1 = 0.0f;
             }
-            else printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
+            else if (penaltytype == 5) {
+                /* Threshold-constrained Huber nonlinear diffusion
+                This means that the linear diffusion will be performed on pixels with
+                absolute difference less than the threshold.
+                */
+                if (abs(e1) <= 2.0f*sigmaPar) {
+                if (abs(e1) > sigmaPar) e1 =  signNDF(e1);
+                else e1 = e1/sigmaPar;}
+                else e1 = 0.0f;
+
+                if (abs(w1) <= 2.0f*sigmaPar) {
+                if (abs(w1) > sigmaPar) w1 =  signNDF(w1);
+                else w1 = w1/sigmaPar;}
+                else w1 = 0.0f;
+
+                if (abs(n1) <= 2.0f*sigmaPar) {
+                if (abs(n1) > sigmaPar) n1 =  signNDF(n1);
+                else n1 = n1/sigmaPar; }
+                else n1 = 0.0f;
+
+                if (abs(s1) <= 2.0f*sigmaPar) {
+                if (abs(s1) > sigmaPar) s1 =  signNDF(s1);
+                else s1 = s1/sigmaPar; }
+                else s1 = 0.0f;
+
+                if (abs(u1) <= 2.0f*sigmaPar) {
+                if (abs(u1) > sigmaPar) u1 =  signNDF(u1);
+                else u1 = u1/sigmaPar; }
+                else u1 = 0.0f;
+
+                if (abs(d1) <= 2.0f*sigmaPar) {
+                if (abs(d1) > sigmaPar) d1 =  signNDF(d1);
+                else d1 = d1/sigmaPar; }
+                else d1 = 0.0f;
+            }
+            else printf("%s \n", "No penalty function selected! Use 1,2,3,4, or 5.");
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1 + u1 + d1) - (Output[index] - Input[index]));
 		}
 	}

@@ -179,10 +179,10 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
             }
             else if (penaltytype == 2) {
                 /* Perona-Malik */
-                e1 = (e1)/(1.0f + powf((e1/sigmaPar),2));
-                w1 = (w1)/(1.0f + powf((w1/sigmaPar),2));
-                n1 = (n1)/(1.0f + powf((n1/sigmaPar),2));
-                s1 = (s1)/(1.0f + powf((s1/sigmaPar),2));
+                e1 /= (1.0f + powf((e1/sigmaPar),2));
+                w1 /= (1.0f + powf((w1/sigmaPar),2));
+                n1 /= (1.0f + powf((n1/sigmaPar),2));
+                s1 /= (1.0f + powf((s1/sigmaPar),2));
             }
             else if (penaltytype == 3) {
                 /* Tukey Biweight */
@@ -205,8 +205,32 @@ float NonLinearDiff2D(float *Input, float *Output, float lambdaPar, float sigmaP
                 if (fabs(n1) > sigmaPar) n1 = 0.0f;
                 if (fabs(s1) > sigmaPar) s1 = 0.0f;
             }
+            else if (penaltytype == 5) {
+                /*
+                Threshold constrained Huber diffusion
+                */
+                if (fabs(e1) <= 2.0f*sigmaPar) {
+                if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
+                else e1 = e1/sigmaPar; }
+                else e1 = 0.0f;
+
+                if (fabs(w1) <= 2.0f*sigmaPar) {
+                if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
+                else w1 = w1/sigmaPar; }
+                else w1 = 0.0f;
+
+                if (fabs(n1) <= 2.0f*sigmaPar) {
+                if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
+                else n1 = n1/sigmaPar; }
+                else n1 = 0.0f;
+
+                if (fabs(s1) <= 2.0f*sigmaPar) {
+                if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
+                else s1 = s1/sigmaPar; }
+                else s1 = 0.0f;
+            }
             else {
-                printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
+                printf("%s \n", "No penalty function selected! Use 1,2,3,4 or 5.");
                 break;
             }
             Output[index] += tau*(lambdaPar*(e1 + w1 + n1 + s1) - (Output[index] - Input[index]));
@@ -344,8 +368,42 @@ float NonLinearDiff3D(float *Input, float *Output, float lambdaPar, float sigmaP
                     if (fabs(u1) > sigmaPar) u1 = 0.0f;
                     if (fabs(d1) > sigmaPar) d1 = 0.0f;
                 }
+                else if (penaltytype == 5) {
+                    /*
+                    Threshold constrained Huber diffusion
+                    */
+                    if (fabs(e1) <= 2.0f*sigmaPar) {
+                    if (fabs(e1) > sigmaPar) e1 =  signNDFc(e1);
+                    else e1 = e1/sigmaPar; }
+                    else e1 = 0.0f;
+
+                    if (fabs(w1) <= 2.0f*sigmaPar) {
+                    if (fabs(w1) > sigmaPar) w1 =  signNDFc(w1);
+                    else w1 = w1/sigmaPar; }
+                    else w1 = 0.0f;
+
+                    if (fabs(n1) <= 2.0f*sigmaPar) {
+                    if (fabs(n1) > sigmaPar) n1 =  signNDFc(n1);
+                    else n1 = n1/sigmaPar; }
+                    else n1 = 0.0f;
+
+                    if (fabs(s1) <= 2.0f*sigmaPar) {
+                    if (fabs(s1) > sigmaPar) s1 =  signNDFc(s1);
+                    else s1 = s1/sigmaPar; }
+                    else s1 = 0.0f;
+
+                    if (fabs(u1) <= 2.0f*sigmaPar) {
+                    if (fabs(u1) > sigmaPar) u1 =  signNDFc(u1);
+                    else u1 = u1/sigmaPar; }
+                    else u1 = 0.0f;
+
+                    if (fabs(d1) <= 2.0f*sigmaPar) {
+                    if (fabs(d1) > sigmaPar) d1 =  signNDFc(d1);
+                    else d1 = d1/sigmaPar; }
+                    else d1 = 0.0f;
+                }
                 else {
-                    printf("%s \n", "No penalty function selected! Use 1,2,3 or 4.");
+                    printf("%s \n", "No penalty function selected! Use 1,2,3,4 or 5.");
                     break;
                 }
 
