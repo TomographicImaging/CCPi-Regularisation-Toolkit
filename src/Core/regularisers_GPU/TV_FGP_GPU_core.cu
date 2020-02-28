@@ -593,9 +593,9 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
             cudaFree(R2);
             cudaFree(R3);
     }
-    //cudaDeviceReset();
     /*adding info into info_vector */
     infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
+    cudaDeviceReset();
     return 0;
 }
