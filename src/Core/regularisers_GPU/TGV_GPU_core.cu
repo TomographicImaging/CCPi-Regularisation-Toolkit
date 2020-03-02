@@ -816,6 +816,6 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float *infovector, float lambda
         /*adding info into info_vector */
         infovector[0] = (float)(n);  /*iterations number (if stopped earlier based on tolerance)*/
         infovector[1] = re;  /* reached tolerance */
-
+        cudaDeviceSynchronize();
         return 0;
 }

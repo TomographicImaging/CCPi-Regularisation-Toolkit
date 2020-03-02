@@ -528,6 +528,6 @@ extern "C" int TV_SB_GPU_main(float *Input, float *Output, float *infovector, fl
     /*adding info into info_vector */
     infovector[0] = (float)(ll);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
-
+    cudaDeviceSynchronize();
     return 0;
 }

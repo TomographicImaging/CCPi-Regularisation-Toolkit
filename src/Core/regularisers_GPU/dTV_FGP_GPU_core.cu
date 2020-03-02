@@ -753,5 +753,6 @@ extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, fl
     /*adding info into info_vector */
     infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
+    cudaDeviceSynchronize();
     return 0;
 }
