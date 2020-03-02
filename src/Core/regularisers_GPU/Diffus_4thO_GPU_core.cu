@@ -363,5 +363,6 @@ extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float *infovector
         /*adding info into info_vector */
         infovector[0] = (float)(n);  /*iterations number (if stopped earlier based on tolerance)*/
         infovector[1] = re;  /* reached tolerance */
+        cudaDeviceSynchronize();
         return 0;
 }

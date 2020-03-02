@@ -505,6 +505,6 @@ extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned shor
     cudaFree(H_j_d);
     cudaFree(Weights_d);
     cudaFree(Eucl_Vec_d);
-    cudaDeviceReset();
+    cudaDeviceSynchronize();
     return 0;
 }
