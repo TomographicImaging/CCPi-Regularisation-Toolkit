@@ -27,6 +27,7 @@ requirements:
     - vc 14 # [win and py35]
     - vc 9  # [win and py27]
     - cmake
+    - ripgrep
 
   run:
     - {{ pin_compatible('numpy', max_pin='x.x') }}
