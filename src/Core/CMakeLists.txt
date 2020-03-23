@@ -15,44 +15,21 @@ message("CIL_VERSION ${CIL_VERSION}")
 ## Build the regularisers package as a library
 message("Creating Regularisers as a shared library")
 
-find_package(OpenMP REQUIRED)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-   set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-   set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_STATIC_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-
-message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
-message("CMAKE_C_FLAGS ${CMAKE_C_FLAGS}")
-message("CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}")
-message("CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS}")
-message("CMAKE_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS}")
-
 set(CMAKE_BUILD_TYPE "Release")
 
+set (EXTRA_LIBRARIES "")
 if(WIN32)
   set (FLAGS "/DWIN32 /EHsc /DCCPiCore_EXPORTS /openmp")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-  set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib")
-
-  set (EXTRA_LIBRARIES)
-
   message("library lib: ${LIBRARY_LIB}")
-
+elseif(APPLE)
+  set (FLAGS "-DCCPiReconstructionIterative_EXPORTS ")
 elseif(UNIX)
    set (FLAGS "-O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS ")
-   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-   set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-
-   set (EXTRA_LIBRARIES
-		"gomp"
-		"m"
-		)
-
+   set(EXTRA_LIBRARIES "m")
 endif()
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+  set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 
 ## Build the regularisers package as a library
@@ -78,7 +55,7 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/Diffusion_Inpaint_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/NonlocalMarching_Inpaint_core.c
 	    )
-target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
+target_link_libraries(cilreg ${OpenMP_EXE_LINKER_FLAGS} ${EXTRA_LIBRARIES})
 include_directories(cilreg PUBLIC
                       ${LIBRARY_INC}/include
 					  ${CMAKE_CURRENT_SOURCE_DIR}

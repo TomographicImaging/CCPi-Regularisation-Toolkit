@@ -29,7 +29,10 @@ extra_include_dirs = [numpy.get_include(), library_include_path]
 extra_compile_args = []
 extra_library_dirs = [library_lib_path]
 extra_compile_args = []
-extra_link_args = []
+if platform.system() == 'Darwin':
+  extra_link_args = ['-rpath','@CMAKE_INSTALL_PREFIX@/lib']
+else:
+  extra_link_args = []
 extra_libraries = ['cilreg']
 
 print ("extra_library_dirs " , extra_library_dirs)
@@ -51,23 +54,26 @@ extra_include_dirs += [os.path.join(".." , "Core"),
 
 if platform.system() == 'Windows':
     extra_compile_args[0:] = ['/DWIN32','/EHsc','/DBOOST_ALL_NO_LIB' , '/openmp' ]
+elif platform.system() == 'Darwin':
+    extra_compile_args = ['-O2', '-funsigned-char', '-Wall', '-rpath']
 else:
     extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x']
     extra_libraries += [@EXTRA_OMP_LIB@]
 
 setup(
-    name='ccpi',
+  name='ccpi',
 	description='CCPi Core Imaging Library - Image regularisers',
 	version=cil_version,
-    cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ccpi.filters.cpu_regularisers",
-                             sources=[os.path.join("." , "src", "cpu_regularisers.pyx" ) ],
-                             include_dirs=extra_include_dirs,
-							 library_dirs=extra_library_dirs,
-							 extra_compile_args=extra_compile_args,
-							 libraries=extra_libraries ),
-
-    ],
+  cmdclass = {'build_ext': build_ext},
+  ext_modules = [Extension("ccpi.filters.cpu_regularisers",
+    sources=[os.path.join("." , "src", "cpu_regularisers.pyx" ) ],
+    include_dirs=extra_include_dirs,
+    library_dirs=extra_library_dirs,
+    extra_compile_args=extra_compile_args,
+    libraries=extra_libraries,
+    extra_link_args=extra_link_args
+    ),
+  ],
 	zip_safe = False,
 	packages = {'ccpi', 'ccpi.filters', 'ccpi.supp'},
 )

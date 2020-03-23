@@ -32,12 +32,6 @@ if(WIN32)
   set (EXTRA_LIBRARIES)
 		
   message("library lib: ${LIBRARY_LIB}")
-  
-elseif(UNIX)
-   set (FLAGS "-fopenmp -O2 -funsigned-char -Wall  -Wl,--no-undefined  -DCCPiReconstructionIterative_EXPORTS -std=c++0x")  
-   set (EXTRA_LIBRARIES 
-		"gomp"
-		)
 endif()
 
 # GPU regularisers
@@ -95,47 +89,31 @@ if (PYTHONINTERP_FOUND)
     message("Core binary dir " ${CMAKE_BINARY_DIR}/Core/${CMAKE_BUILD_TYPE})
     
     if (CONDA_BUILD)
-      add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
-                       COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
-                                                       PREFIX=${CMAKE_SOURCE_DIR}/src/Core
-                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/src/Core
-                                                       ${PYTHON_EXECUTABLE} ${SETUP_PY} install
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                       DEPENDS cilreg)
-
+      set (LIBRARY_LIB ${CMAKE_BINARY_DIR}/src/Core)
+      set (PYTHON_ARGS install)
+    elseif (WIN32)
+      set (LIBRARY_LIB ${CMAKE_BINARY_DIR}/src/Core/${CMAKE_BUILD_TYPE})
+      set (PYTHON_ARGS build_ext --inplace)
     else()
-      if (WIN32)
-        add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
-                       COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
-                                                       PREFIX=${CMAKE_SOURCE_DIR}/src/Core
-                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/src/Core/${CMAKE_BUILD_TYPE}
-                                                       ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                       DEPENDS cilreg)
-      else()
-        add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
-                       COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
-                                                       PREFIX=${CMAKE_SOURCE_DIR}/src/Core
-                                                       LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
-                                                       LIBRARY_LIB=${CMAKE_BINARY_DIR}/src/Core
-                                                       ${PYTHON_EXECUTABLE} ${SETUP_PY} build_ext --inplace
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                       DEPENDS cilreg)
-      endif()
+      set (LIBRARY_LIB ${CMAKE_BINARY_DIR}/src/Core)
+      set (PYTHON_ARGS build_ext --inplace)
+    endif()
+
+    add_custom_command(OUTPUT ${OUTPUT}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
+      COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
+        PREFIX=${CMAKE_SOURCE_DIR}/src/Core
+        LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
+        LIBRARY_LIB=${LIBRARY_LIB}
+        ${PYTHON_EXECUTABLE} ${SETUP_PY} ${PYTHON_ARGS}
+      COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+      DEPENDS cilreg)
+
+    if (NOT CONDA_BUILD)
       install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi 
               DESTINATION ${PYTHON_DEST})
     endif()
     
-    
     add_custom_target(PythonWrapper ALL DEPENDS ${OUTPUT})
-
-    #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
 endif()
