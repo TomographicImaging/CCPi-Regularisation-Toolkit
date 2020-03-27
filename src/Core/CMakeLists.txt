@@ -15,6 +15,7 @@ message("CIL_VERSION ${CIL_VERSION}")
 ## Build the regularisers package as a library
 message("Creating Regularisers as a shared library")
 
+find_package(GLIB2 REQUIRED)
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -24,8 +25,8 @@ if (OPENMP_FOUND)
    set (CMAKE_STATIC_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_STATIC_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
-message("CMAKE_C_FLAGS ${CMAKE_C_FLAGS}")
+message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
+message("CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fno-omit-frame-pointer")
 message("CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS}")
 message("CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS}")
 message("CMAKE_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS}")
@@ -58,10 +59,17 @@ message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 ## Build the regularisers package as a library
 message("Adding regularisers as a shared library")
 
-#set(CMAKE_C_COMPILER /apps/pgi/linux86-64/17.4/bin/pgcc)
+#set(CMAKE_C_COMPILER /opt/intel/compilers_and_libraries/linux/bin/intel64/icc)
+#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -xSSE4.2 -qopt-report=2 -qopt-report-phase=vec -qopenmp")
+set(CMAKE_C_FLAGS "-march=nocona -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=128 -fopenmp")
+#set(CMAKE_C_FLAGS "-march=native -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx -mavx2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=512 -fopenmp")
+#set(CMAKE_C_FLAGS_RELEASE "-g -gdwarf-2 -g3 -fno-omit-frame-pointer")
+
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=tesla:cc20 -openmp")
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=multicore -openmp -fPIC")
 add_library(cilreg SHARED
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/hw_sched.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/hw_thread.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PD_TV_core.c
@@ -78,8 +86,9 @@ add_library(cilreg SHARED
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/Diffusion_Inpaint_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/NonlocalMarching_Inpaint_core.c
 	    )
-target_link_libraries(cilreg ${EXTRA_LIBRARIES} )
+target_link_libraries(cilreg ${EXTRA_LIBRARIES} ${GLIB2_LIBRARIES} ${GTHREAD2_LIBRARIES} )
 include_directories(cilreg PUBLIC
+                      ${GLIB2_INCLUDE_DIR}
                       ${LIBRARY_INC}/include
 					  ${CMAKE_CURRENT_SOURCE_DIR}
 		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
@@ -105,7 +114,7 @@ endif()
 
 
 # GPU Regularisers
-if (BUILD_CUDA)
+if (BUILD_CUDA1)
     find_package(CUDA)
     if (CUDA_FOUND)
       set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
