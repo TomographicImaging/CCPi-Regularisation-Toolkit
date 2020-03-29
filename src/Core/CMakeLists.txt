@@ -60,15 +60,17 @@ message("CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
 message("Adding regularisers as a shared library")
 
 #set(CMAKE_C_COMPILER /opt/intel/compilers_and_libraries/linux/bin/intel64/icc)
-#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -xSSE4.2 -qopt-report=5 -qopt-report-file=stdout -qopt-report-phase=vec -qopenmp -g")
-#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -axAVX2 -xAVX2 -qopt-report=5 -qopt-report-file=stdout -qopt-report-phase=vec -qopenmp -g")
-#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -mavx512f -mavx512dq -mavx512bw -mavx512vbmi -mavx512vbmi2 -mavx512vl -qopt-report=5 -qopt-report-file=stdout -qopt-report-phase=vec -qopenmp -g")
+#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -xSSE4.2 -qopt-report=5 -qopt-report-file=stdout -qopt-report-phase=vec -qopenmp")
+#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -axAVX2 -xAVX2 -qopt-report=5 -qopt-report-file=stdout -qopt-report-phase=vec -qopenmp")
+#set(CMAKE_C_FLAGS "-Ofast -mtune=sandybridge -mavx512f -mavx512dq -mavx512bw -mavx512vbmi -mavx512vbmi2 -mavx512vl -qopt-report=5 -qopt-report-file=stdout -qopt-report-phase=vec -qopenmp")
 
 #set(CMAKE_C_COMPILER clang)
 #set(CMAKE_C_FLAGS "-march=nocona -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -ftree-vectorize -fopenmp")
 
+#set(CMAKE_C_COMPILER gcc-9)
+set(CMAKE_C_FLAGS "-march=native -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -fopenmp")
 #set(CMAKE_C_FLAGS "-march=nocona -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=128 -fopenmp")
-set(CMAKE_C_FLAGS "-march=native -mavx2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=512 -fopenmp")
+#set(CMAKE_C_FLAGS "-march=native -mavx2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=512 -fopenmp")
 #set(CMAKE_C_FLAGS "-march=native -mavx512f -mavx512dq -mavx512bw -mavx512vbmi -mavx512vbmi2 -mavx512vl -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=512 -fopenmp")
 #set(CMAKE_C_FLAGS_RELEASE "-g -gdwarf-2 -g3 -fno-omit-frame-pointer")
 

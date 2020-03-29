@@ -460,9 +460,9 @@ static void TNV_CPU_init(float *InputT, float *uT, int dimX, int dimY, int dimZ)
     tnv_ctx.dimY = dimY;
     tnv_ctx.dimZ = dimZ;
         // Padding seems actually slower
-    tnv_ctx.padZ = dimZ;
+//    tnv_ctx.padZ = dimZ;
 //    tnv_ctx.padZ = 4 * ((dimZ / 4) + ((dimZ % 4)?1:0));
-//    tnv_ctx.padZ = 16 * ((dimZ / 16) + ((dimZ % 16)?1:0));
+    tnv_ctx.padZ = 16 * ((dimZ / 16) + ((dimZ % 16)?1:0));
     
     hw_sched_init();
 

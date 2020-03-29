@@ -17,7 +17,7 @@
 
 //  __assume(padZ%16==0);
 
-//#pragma vector aligned
+#pragma vector aligned
 #pragma GCC ivdep 
             for(k = 0; k < dimZ; k++) {
                 float u_upd = (u[l + k] + tau * div[l + k] + taulambda * Input[l + k]) / constant; // 3 reads
@@ -59,7 +59,7 @@
 
             coefF(t, M1, M2, M3, sigma, p, q, r);
             
-//#pragma vector aligned
+#pragma vector aligned
 #pragma GCC ivdep 
             for(k = 0; k < padZ; k++) {
                 float vx = ubarx[k] + divsigma * qx_current[k]; // cache 2r

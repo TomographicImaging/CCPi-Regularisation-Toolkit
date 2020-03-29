@@ -3,7 +3,7 @@
 
             l = (j * dimX  + i) * padZ;
         
-//#pragma vector aligned
+#pragma vector aligned
 #pragma GCC ivdep 
             for(k = 0; k < dimZ; k++) {
                 u_upd[l + k] = (u[l + k] + tau * div[l + k] + taulambda * Input[l + k]) / constant;
@@ -44,7 +44,7 @@
 
             coefF(t, M1, M2, M3, sigma, p, q, r);
             
-//#pragma vector aligned
+#pragma vector aligned
 #pragma GCC ivdep 
             for(k = 0; k < dimZ; k++) {
 #ifdef TNV_NEW_STYLE    
