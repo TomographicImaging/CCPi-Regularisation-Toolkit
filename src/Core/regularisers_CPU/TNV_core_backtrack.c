@@ -335,6 +335,7 @@ static int tnv_restore(HWThread thr, void *hwctx, int device_id, void *data) {
 
 static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
     long i, j, k, l;
+    long i1, i2, j1, j2;
 
     tnv_context_t *tnv_ctx = (tnv_context_t*)data;
     tnv_thread_t *ctx = tnv_ctx->thr_ctx + device_id;
@@ -376,11 +377,12 @@ static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
     float theta1 = 1.0f + theta;
     float constant = 1.0f + taulambda;
 
-    float resprimal = 0.0;
-    float resdual = 0.0;
-    float product = 0.0;
-    float unorm = 0.0;
-    float qnorm = 0.0;
+    float resprimal = 0.0f;
+    float resdual1 = 0.0f;
+    float resdual2 = 0.0f;
+    float product = 0.0f;
+    float unorm = 0.0f;
+    float qnorm = 0.0f;
 
     float udiff[dimZ] __attribute__((aligned(64)));
     float qxdiff __attribute__((aligned(64)));
@@ -389,104 +391,82 @@ static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
     float gradxdiff[dimZ] __attribute__((aligned(64)));
     float gradydiff[dimZ] __attribute__((aligned(64)));
 
-    for(int j1 = 0; j1 < stepY; j1 += BLOCK) {
-     for(int i1 = 0; i1 < dimX; i1 += BLOCK) {
-      for(int j2 = 0; j2 < BLOCK; j2++) {
-        j = j1 + j2;
-        for(int i2 = 0; i2 < BLOCK; i2++) {
-            float t[3];
-            float M1 = 0.0f, M2 = 0.0f, M3 = 0.0f;
 
-            i = i1 + i2;
-            if (i == dimX) break;
-            if (j == stepY) { j2 = BLOCK; break; }
-            l = (j * dimX  + i) * padZ;
-        
-//#pragma vector aligned
-#pragma GCC ivdep 
-            for(k = 0; k < dimZ; k++) {
-                u_upd[l + k] = (u[l + k] + tau * div[l + k] + taulambda * Input[l + k]) / constant;
-                udiff[k] = u[l + k] - u_upd[l + k];
-                unorm += (udiff[k] * udiff[k]);
+    j = 0; {
+#       define TNV_LOOP_FIRST_J
+        i = 0; {
+#           define TNV_LOOP_FIRST_I
+#           include "TNV_core_backtrack_loop.h"
+#           undef TNV_LOOP_FIRST_I
+        }
+        for(i = 1; i < (dimX - 1); i++) {
+#           include "TNV_core_backtrack_loop.h"
+        }
+        i = dimX - 1; {
+#           define TNV_LOOP_LAST_I
+#           include "TNV_core_backtrack_loop.h"
+#           undef TNV_LOOP_LAST_I
+        }
+#       undef TNV_LOOP_FIRST_J
+    }
 
-                gradx_upd[l + k] = (i == (dimX - 1))?0:((u[l + k + padZ] + tau * div[l + k + padZ] + taulambda * Input[l + k + padZ]) / constant - u_upd[l + k]);
-                grady_upd[l + k] = (j == (copY - 1))?0:((u[l + k + dimX*padZ] + tau * div[l + k + dimX*padZ] + taulambda * Input[l + k + dimX*padZ]) / constant - u_upd[l + k]);
-                gradxdiff[k] = gradx[l + k] - gradx_upd[l + k];
-                gradydiff[k] = grady[l + k] - grady_upd[l + k];
 
-                float ubarx = theta1 * gradx_upd[l + k] - theta * gradx[l + k];
-                float ubary = theta1 * grady_upd[l + k] - theta * grady[l + k];
-//#define TNV_NEW_STYLE                
-#ifdef TNV_NEW_STYLE                
-                qx_upd[l + k] = qx[l + k] + sigma * ubarx;
-                qy_upd[l + k] = qy[l + k] + sigma * ubary;
 
-                float vx = divsigma * qx_upd[l + k]; //+ ubarx
-                float vy = divsigma * qy_upd[l + k]; //+ ubary
-#else
-                float vx = ubarx + divsigma * qx[l + k];
-                float vy = ubary + divsigma * qy[l + k];
-#endif
+    for(int j = 1; j < (copY - 1); j++) {
+        i = 0; {
+#           define TNV_LOOP_FIRST_I
+#           include "TNV_core_backtrack_loop.h"
+#           undef TNV_LOOP_FIRST_I
+        }
+    }
 
-                M1 += (vx * vx); M2 += (vx * vy); M3 += (vy * vy);
+    for(int j1 = 1; j1 < (copY - 1); j1 += BLOCK) {
+        for(int i1 = 1; i1 < (dimX - 1); i1 += BLOCK) {
+            for(int j2 = 0; j2 < BLOCK; j2 ++) {
+                j = j1 + j2;
+                for(int i2 = 0; i2 < BLOCK; i2++) {
+                    i = i1 + i2;
+                    
+                    if (i == (dimX - 1)) break;
+                    if (j == (copY - 1)) { j2 = BLOCK; break; }
+#           include "TNV_core_backtrack_loop.h"
+                }   
             }
-
-            coefF(t, M1, M2, M3, sigma, p, q, r);
-            
-//#pragma vector aligned
-#pragma GCC ivdep 
-            for(k = 0; k < dimZ; k++) {
-#ifdef TNV_NEW_STYLE    
-                float vx = divsigma * qx_upd[l + k];
-                float vy = divsigma * qy_upd[l + k];
-
-                float gx_upd = vx * t[0] + vy * t[1];
-                float gy_upd = vx * t[1] + vy * t[2];
-
-                qx_upd[l + k] -= sigma * gx_upd;
-                qy_upd[l + k] -= sigma * gy_upd;
-#else
-                float ubarx = theta1 * gradx_upd[l + k] - theta * gradx[l + k];
-                float ubary = theta1 * grady_upd[l + k] - theta * grady[l + k];
-                float vx = ubarx + divsigma * qx[l + k];
-                float vy = ubary + divsigma * qy[l + k];
-
-                float gx_upd = vx * t[0] + vy * t[1];
-                float gy_upd = vx * t[1] + vy * t[2];
-
-                qx_upd[l + k] = qx[l + k] + sigma * (ubarx - gx_upd);
-                qy_upd[l + k] = qy[l + k] + sigma * (ubary - gy_upd);
-#endif
-
-                float div_upd_val = 0;
-                div_upd_val -= (i > 0)?qx_upd[l + k - padZ]:0;
-                div_upd_val -= (j > 0)?qy_upd[l + k - dimX * padZ]:0;
-                div_upd_val += (i < (dimX-1))?qx_upd[l + k]:0;
-                div_upd_val += (j < (copY-1))?qy_upd[l + k]:0;
-                div_upd[l + k] = div_upd_val;
-
-                qxdiff = qx[l + k] - qx_upd[l + k];
-                qydiff = qy[l + k] - qy_upd[l + k];
-                qnorm += (qxdiff * qxdiff + qydiff * qydiff);
-
-                resdual += fabs(divsigma * qxdiff - gradxdiff[k]);
-                resdual += fabs(divsigma * qydiff - gradydiff[k]);
-                product += (gradxdiff[k] * qxdiff + gradydiff[k] * qydiff);
-
-                if ((offY == 0)||(j > 0)) {
-                    divdiff = div[l + k] - div_upd[l + k];  // Multiple steps... How we compute without history?
-                    resprimal += fabs(divtau * udiff[k] + divdiff); 
-                }
-            }
-            
         } // i
-       } // j
-      } // i
-    } // j
-    
+
+    }
+
+    for(int j = 1; j < (copY - 1); j++) {
+        i = dimX - 1; {
+#           define TNV_LOOP_LAST_I
+#           include "TNV_core_backtrack_loop.h"
+#           undef TNV_LOOP_LAST_I
+        }
+    }
+
+
+
+    for (j = copY - 1; j < stepY; j++) {
+#       define TNV_LOOP_LAST_J
+        i = 0; {
+#           define TNV_LOOP_FIRST_I
+#           include "TNV_core_backtrack_loop.h"
+#           undef TNV_LOOP_FIRST_I
+        }
+        for(i = 1; i < (dimX - 1); i++) {
+#           include "TNV_core_backtrack_loop.h"
+        }
+        i = dimX - 1; {
+#           define TNV_LOOP_LAST_I
+#           include "TNV_core_backtrack_loop.h"
+#           undef TNV_LOOP_LAST_I
+        }
+#       undef TNV_LOOP_LAST_J
+    }
+
     
     ctx->resprimal = resprimal;
-    ctx->resdual = resdual;
+    ctx->resdual = resdual1 + resdual2;
     ctx->product = product;
     ctx->unorm = unorm;
     ctx->qnorm = qnorm;
@@ -622,6 +602,19 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
                     ctx->div_upd[l] -= ctx0->qy_upd[m - dimX * padZ + l];
                     ctx0->div_upd[m + l] = ctx->div_upd[l];
                     ctx0->u_upd[m + l] = ctx->u_upd[l];
+
+                    float divdiff = ctx->div[l] - ctx->div_upd[l];
+                    float udiff = ctx->u[l] - ctx->u_upd[l];
+                    resprimal += fabs(divtau * udiff + divdiff); 
+                }
+            }
+        }
+
+        {
+            tnv_thread_t *ctx = tnv_ctx.thr_ctx + 0;
+            for(i = 0; i < dimX; i++) {
+                for(k = 0; k < dimZ; k++) {
+                    int l = i * padZ + k;
 
                     float divdiff = ctx->div[l] - ctx->div_upd[l];
                     float udiff = ctx->u[l] - ctx->u_upd[l];
