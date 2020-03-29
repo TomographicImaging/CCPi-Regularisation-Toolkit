@@ -1,0 +1,25 @@
+TNV_core.c.v4.stdver: Fully equivalent (signle-threads). There is two potential breakage points. 
+    - If OpenMP is enabled, the acces to div_upd will not be serialized and results will breaj
+    - The results will slightly differ due to different order of summation if loop summing resprimal/resdual organized in a logical way
+TNV_core.c.v15: Multi-threads.  Works correctly only in the single-threaded mode (if TNV_NEW_STYLE is disabled). In multi-threaded there results slightly differ due to changed order of operation
+    - TNV_NEW_STYLE slightly disturbs results in both single- and multi-threaded modes
+    - Resprimal/resdual are summed in groups (not sequentially) if multiple threads. But his actually should improve precision. Use TNV_CHECK_RES to check conformance
+    - Afterwards, in multi-threaded moded there is a still minor descripancy which first occurs in resprimal (after a few iterations). This is because of changed order of operations while computing
+    div_upd (only on the first lines of each new sub-block). Normally, we first compute the vertical and, then, add horizontal. On the border rows, instead we first add horizontals...
+    To check, div/div_upd changed to double. There is no difference then.
+TNV_core.c.v17: Computationaly comptabile with v15.
+    - Padding actually harms performance
+    - Intel compiler gives about 10% speed-up
+TNV_core.c.v18: Blocking helps to boost performance further but only with Intel Compiler. Gcc/Clang is slightly slower here.
+    - Padding here doesn't harm performance, but is not helpful either
+    - Difference between icc and gcc is probably due to auto-vectorization.
+    - Results slightly changed due to different order of operations
+TNV_core.c.v19: Eliminate conditionals in the inner loops to help gcc-autovectorisation
+    - Last version implementing full algrotithm with backtrack in the middle of iterations.
+    - Again results slightly diverge from v18 due to different order of operations
+TNV_core.c.v27: v18 with backtracking only on first iterations (otherwise warning reported)
+TNV_core.c.v32: v19 with backtracking only on first iterations (otherwise warning reported)
+
+
+Repo:
+    - Padding seems to have effect on the newer AVX2 systems. Re-enabled.
