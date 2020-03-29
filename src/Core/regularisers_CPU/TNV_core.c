@@ -617,7 +617,7 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
         float b = (2.0f * tau * sigma * product) / (gamma * sigma * unorm + gamma * tau * qnorm);
         float dual_dot_delta = resdual * s * delta;
         float dual_div_delta = (resdual * s) / delta;
-        printf("resprimal: %f, resdual: %f, b: %f (product: %f, unorm: %f, qnorm: %f)\n", resprimal, resdual, b, product, unorm, qnorm);
+//        printf("resprimal: %f, resdual: %f, b: %f (product: %f, unorm: %f, qnorm: %f)\n", resprimal, resdual, b, product, unorm, qnorm);
 
 
         if(b > 1) {
@@ -658,7 +658,7 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
 
 
     printf("Iterations stopped at %i with the residual %f \n", iter, residual);
-    printf("Return: %f\n", *uT);
+//    printf("Return: %f\n", *uT);
 
     return *uT;
 }
