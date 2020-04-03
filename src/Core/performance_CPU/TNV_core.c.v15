@@ -17,13 +17,11 @@
  * limitations under the License.
  */
 
-#include <malloc.h>
 #include "TNV_core.h"
 
-#define BLOCK 32
 #define min(a,b) (((a)<(b))?(a):(b))
 
-inline void coefF(float *t, float M1, float M2, float M3, float sigma, int p, int q, int r) {
+/*inline*/ void coefF(float *t, float M1, float M2, float M3, float sigma, int p, int q, int r) {
     int ii, num;
     float divsigma = 1.0f / sigma;
     float sum, shrinkfactor;
@@ -135,10 +133,9 @@ inline void coefF(float *t, float M1, float M2, float M3, float sigma, int p, in
 
 #include "hw_sched.h"
 typedef struct {
-    int offY, stepY, copY;
-    float *Input, *u, *qx, *qy, *gradx, *grady, *div;
-    float *div0, *udiff0;
-    float *gradxdiff, *gradydiff, *ubarx, *ubary, *udiff;
+    int offY, stepY, realY, copY;
+    float *Input, *u, *u_upd, *qx, *qy, *qx_upd, *qy_upd, *gradx, *grady, *gradx_upd, *grady_upd;
+    double *div, *div_upd;
     float resprimal, resdual;
     float unorm, qnorm, product;
 } tnv_thread_t;
@@ -162,21 +159,18 @@ static int tnv_free(HWThread thr, void *hwctx, int device_id, void *data) {
 
     free(ctx->Input);
     free(ctx->u);
+    free(ctx->u_upd);
     free(ctx->qx);
     free(ctx->qy);
+    free(ctx->qx_upd);
+    free(ctx->qy_upd);
     free(ctx->gradx);
     free(ctx->grady);
+    free(ctx->gradx_upd);
+    free(ctx->grady_upd);
     free(ctx->div);
+    free(ctx->div_upd);
     
-    free(ctx->div0);
-    free(ctx->udiff0);
-
-    free(ctx->gradxdiff); 
-    free(ctx->gradydiff);
-    free(ctx->ubarx);
-    free(ctx->ubary);
-    free(ctx->udiff);
-
     return 0;
 }
 
@@ -187,36 +181,31 @@ static int tnv_init(HWThread thr, void *hwctx, int device_id, void *data) {
     int dimX = tnv_ctx->dimX;
     int dimY = tnv_ctx->dimY;
     int dimZ = tnv_ctx->dimZ;
-    int padZ = tnv_ctx->padZ;
     int offY = ctx->offY;
     int stepY = ctx->stepY;
+    int realY = ctx->realY;
     
 //    printf("%i %p - %i %i %i x %i %i\n", device_id, ctx, dimX, dimY, dimZ, offY, stepY);
 
-    long DimTotal = (long)(dimX*stepY*padZ);
-    long Dim1Total = (long)(dimX*(stepY+1)*padZ);
-    long DimRow = (long)(dimX * padZ);
-    long DimCell = (long)(padZ);
+    long DimTotal = (long)(dimX*realY*dimZ);
+    long Dim1Total = (long)(dimX*(stepY+1)*dimZ);
 
     // Auxiliar vectors
-    ctx->Input = memalign(64, Dim1Total * sizeof(float));
-    ctx->u = memalign(64, Dim1Total * sizeof(float));
-    ctx->qx = memalign(64, DimTotal * sizeof(float));
-    ctx->qy = memalign(64, DimTotal * sizeof(float));
-    ctx->gradx = memalign(64, DimTotal * sizeof(float));
-    ctx->grady = memalign(64, DimTotal * sizeof(float));
-    ctx->div = memalign(64, Dim1Total * sizeof(float));
+    ctx->Input = calloc(Dim1Total, sizeof(float));
+    ctx->u = calloc(Dim1Total, sizeof(float));
+    ctx->u_upd = calloc(Dim1Total, sizeof(float));
+    ctx->qx = calloc(DimTotal, sizeof(float));
+    ctx->qy = calloc(DimTotal, sizeof(float));
+    ctx->qx_upd = calloc(DimTotal, sizeof(float));
+    ctx->qy_upd = calloc(DimTotal, sizeof(float));
+    ctx->gradx = calloc(DimTotal, sizeof(float));
+    ctx->grady = calloc(DimTotal, sizeof(float));
+    ctx->gradx_upd = calloc(DimTotal, sizeof(float));
+    ctx->grady_upd = calloc(DimTotal, sizeof(float));
+    ctx->div = calloc(Dim1Total, sizeof(double));
+    ctx->div_upd = calloc(Dim1Total, sizeof(double));
 
-    ctx->div0 = memalign(64, DimRow * sizeof(float));
-    ctx->udiff0 = memalign(64, DimRow * sizeof(float));
-
-    ctx->gradxdiff = memalign(64, DimCell * sizeof(float));
-    ctx->gradydiff = memalign(64, DimCell * sizeof(float));
-    ctx->ubarx = memalign(64, DimCell * sizeof(float));
-    ctx->ubary = memalign(64, DimCell * sizeof(float));
-    ctx->udiff = memalign(64, DimCell * sizeof(float));
-    
-    if ((!ctx->Input)||(!ctx->u)||(!ctx->qx)||(!ctx->qy)||(!ctx->gradx)||(!ctx->grady)||(!ctx->div)||(!ctx->div0)||(!ctx->udiff)||(!ctx->udiff0)) {
+    if ((!ctx->Input)||(!ctx->u)||(!ctx->u_upd)||(!ctx->qx)||(!ctx->qy)||(!ctx->qx_upd)||(!ctx->qy_upd)||(!ctx->gradx)||(!ctx->grady)||(!ctx->gradx_upd)||(!ctx->grady_upd)||(!ctx->div)||(!ctx->div_upd)) {
         fprintf(stderr, "Error allocating memory\n");
         exit(-1);
     }
@@ -232,28 +221,34 @@ static int tnv_start(HWThread thr, void *hwctx, int device_id, void *data) {
     int dimX = tnv_ctx->dimX;
     int dimY = tnv_ctx->dimY;
     int dimZ = tnv_ctx->dimZ;
-    int padZ = tnv_ctx->padZ;
     int offY = ctx->offY;
     int stepY = ctx->stepY;
+    int realY = ctx->realY;
     int copY = ctx->copY;
     
-//    printf("%i %p - %i %i %i (%i) x %i %i\n", device_id, ctx, dimX, dimY, dimZ, padZ, offY, stepY);
+//    printf("%i %p - %i %i %i x %i %i\n", device_id, ctx, dimX, dimY, dimZ, offY, stepY);
 
-    long DimTotal = (long)(dimX*stepY*padZ);
-    long Dim1Total = (long)(dimX*copY*padZ);
+    long DimTotal = (long)(dimX*realY*dimZ);
+    long Dim1Total = (long)(dimX*(stepY+1)*dimZ);
 
     memset(ctx->u, 0, Dim1Total * sizeof(float));
     memset(ctx->qx, 0, DimTotal * sizeof(float));
     memset(ctx->qy, 0, DimTotal * sizeof(float));
     memset(ctx->gradx, 0, DimTotal * sizeof(float));
     memset(ctx->grady, 0, DimTotal * sizeof(float));
-    memset(ctx->div, 0, Dim1Total * sizeof(float));
-    
+    memset(ctx->div, 0, Dim1Total * sizeof(double));
+    memset(ctx->u_upd, 0, Dim1Total * sizeof(float));
+    memset(ctx->qx_upd, 0, DimTotal * sizeof(float));
+    memset(ctx->qy_upd, 0, DimTotal * sizeof(float));
+    memset(ctx->gradx_upd, 0, DimTotal * sizeof(float));
+    memset(ctx->grady_upd, 0, DimTotal * sizeof(float));
+    memset(ctx->div_upd, 0, Dim1Total * sizeof(double));
+
     for(k=0; k<dimZ; k++) {
         for(j=0; j<copY; j++) {
             for(i=0; i<dimX; i++) {
-                ctx->Input[j * dimX * padZ + i * padZ + k] =  tnv_ctx->InputT[k * dimX * dimY + (j + offY) * dimX + i];
-                ctx->u[j * dimX * padZ + i * padZ + k] =  tnv_ctx->uT[k * dimX * dimY + (j + offY) * dimX + i];
+                ctx->Input[j * dimX * dimZ + i * dimZ + k] =  tnv_ctx->InputT[k * dimX * dimY + (j + offY) * dimX + i];
+                ctx->u[j * dimX * dimZ + i * dimZ + k] =  tnv_ctx->uT[k * dimX * dimY + (j + offY) * dimX + i];
             }
         }
     }
@@ -269,15 +264,18 @@ static int tnv_finish(HWThread thr, void *hwctx, int device_id, void *data) {
     int dimX = tnv_ctx->dimX;
     int dimY = tnv_ctx->dimY;
     int dimZ = tnv_ctx->dimZ;
-    int padZ = tnv_ctx->padZ;
     int offY = ctx->offY;
     int stepY = ctx->stepY;
+    int realY = ctx->realY;
     int copY = ctx->copY;
 
+    long DimTotal = (long)(dimX*realY*dimZ);
+    long Dim1Total = (long)(dimX*(stepY+1)*dimZ);
+
     for(k=0; k<dimZ; k++) {
-        for(j=0; j<stepY; j++) {
+        for(j=0; j<copY; j++) {
             for(i=0; i<dimX; i++) {
-                tnv_ctx->uT[k * dimX * dimY + (j + offY) * dimX + i] = ctx->u[j * dimX * padZ + i * padZ + k];
+                tnv_ctx->uT[k * dimX * dimY + (j + offY) * dimX + i] = ctx->u[j * dimX * dimZ + i * dimZ + k];
             }
         }
     }
@@ -285,6 +283,30 @@ static int tnv_finish(HWThread thr, void *hwctx, int device_id, void *data) {
     return 0;
 }
 
+
+static int tnv_copy(HWThread thr, void *hwctx, int device_id, void *data) {
+    int i,j,k;
+    tnv_context_t *tnv_ctx = (tnv_context_t*)data;
+    tnv_thread_t *ctx = tnv_ctx->thr_ctx + device_id;
+    
+    int dimX = tnv_ctx->dimX;
+    int dimY = tnv_ctx->dimY;
+    int dimZ = tnv_ctx->dimZ;
+    int stepY = ctx->stepY;
+    int realY = ctx->realY;
+    long DimTotal = (long)(dimX*realY*dimZ);
+    long Dim1Total = (long)(dimX*(stepY+1)*dimZ);
+
+    // Auxiliar vectors
+    memcpy(ctx->u, ctx->u_upd, Dim1Total * sizeof(float));
+    memcpy(ctx->qx, ctx->qx_upd, DimTotal * sizeof(float));
+    memcpy(ctx->qy, ctx->qy_upd, DimTotal * sizeof(float));
+    memcpy(ctx->gradx, ctx->gradx_upd, DimTotal * sizeof(float));
+    memcpy(ctx->grady, ctx->grady_upd, DimTotal * sizeof(float));
+    memcpy(ctx->div, ctx->div_upd, Dim1Total * sizeof(double));
+
+    return 0;
+}
 
 static int tnv_restore(HWThread thr, void *hwctx, int device_id, void *data) {
     int i,j,k;
@@ -295,17 +317,17 @@ static int tnv_restore(HWThread thr, void *hwctx, int device_id, void *data) {
     int dimY = tnv_ctx->dimY;
     int dimZ = tnv_ctx->dimZ;
     int stepY = ctx->stepY;
-    int copY = ctx->copY;
-    int padZ = tnv_ctx->padZ;
-    long DimTotal = (long)(dimX*stepY*padZ);
-    long Dim1Total = (long)(dimX*copY*padZ);
+    int realY = ctx->realY;
+    long DimTotal = (long)(dimX*realY*dimZ);
+    long Dim1Total = (long)(dimX*(stepY+1)*dimZ);
 
-    memset(ctx->u, 0, Dim1Total * sizeof(float));
-    memset(ctx->qx, 0, DimTotal * sizeof(float));
-    memset(ctx->qy, 0, DimTotal * sizeof(float));
-    memset(ctx->gradx, 0, DimTotal * sizeof(float));
-    memset(ctx->grady, 0, DimTotal * sizeof(float));
-    memset(ctx->div, 0, Dim1Total * sizeof(float));
+    // Auxiliar vectors
+    memcpy(ctx->u_upd, ctx->u, Dim1Total * sizeof(float));
+    memcpy(ctx->qx_upd, ctx->qx, DimTotal * sizeof(float));
+    memcpy(ctx->qy_upd, ctx->qy, DimTotal * sizeof(float));
+    memcpy(ctx->gradx_upd, ctx->gradx, DimTotal * sizeof(float));
+    memcpy(ctx->grady_upd, ctx->grady, DimTotal * sizeof(float));
+    memcpy(ctx->div_upd, ctx->div, Dim1Total * sizeof(double));
 
     return 0;
 }
@@ -327,11 +349,17 @@ static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
 
     float *Input = ctx->Input;
     float *u = ctx->u;
+    float *u_upd = ctx->u_upd;
     float *qx = ctx->qx;
     float *qy = ctx->qy;
+    float *qx_upd = ctx->qx_upd;
+    float *qy_upd = ctx->qy_upd;
     float *gradx = ctx->gradx;
     float *grady = ctx->grady;
-    float *div = ctx->div;
+    float *gradx_upd = ctx->gradx_upd;
+    float *grady_upd = ctx->grady_upd;
+    double *div = ctx->div;
+    double *div_upd = ctx->div_upd;
 
     long p = 1l;
     long q = 1l;
@@ -349,101 +377,121 @@ static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
     float constant = 1.0f + taulambda;
 
     float resprimal = 0.0f;
-    float resdual1 = 0.0f;
-    float resdual2 = 0.0f;
+    float resdual = 0.0f;
     float product = 0.0f;
     float unorm = 0.0f;
     float qnorm = 0.0f;
 
+    float udiff[dimZ];
     float qxdiff;
     float qydiff;
     float divdiff;
-    float *gradxdiff = ctx->gradxdiff;
-    float *gradydiff = ctx->gradydiff;
-    float *ubarx = ctx->ubarx;
-    float *ubary = ctx->ubary;
-    float *udiff = ctx->udiff;
+    float gradxdiff[dimZ];
+    float gradydiff[dimZ];
 
-    float *udiff0 = ctx->udiff0;
-    float *div0 = ctx->div0;
-
-
-    j = 0; {
-#       define TNV_LOOP_FIRST_J
-        i = 0; {
-#           define TNV_LOOP_FIRST_I
-#           include "TNV_core_loop.h"
-#           undef TNV_LOOP_FIRST_I
-        }
-        for(i = 1; i < (dimX - 1); i++) {
-#           include "TNV_core_loop.h"
-        }
-        i = dimX - 1; {
-#           define TNV_LOOP_LAST_I
-#           include "TNV_core_loop.h"
-#           undef TNV_LOOP_LAST_I
-        }
-#       undef TNV_LOOP_FIRST_J
+    for(k=0; k < dimZ * dimX; k++) { 
+        u_upd[k] = (u[k] + tau * div[k] + taulambda * Input[k])/constant;
+        div_upd[k] = 0;
     }
 
+    for(j = 0; j < stepY; j++) {
+/*        m = j * dimX * dimZ + (dimX - 1) * dimZ;
+        for(k = 0; k < dimZ; k++) { 
+            u_upd[k + m] = (u[k + m] + tau * div[k + m] + taulambda * Input[k + m]) / constant; 
+        }*/
+        
+        for(i=0; i < (dimX /*- 1*/); i++) {
+            l = (j * dimX  + i) * dimZ;
+            float t[3];
+            float M1 = 0.0f, M2 = 0.0f, M3 = 0.0f;
+            m = dimX * dimZ;
+        
+//#pragma unroll 64
+            for(k = 0; k < dimZ; k++) {
+                u_upd[l + k + m] = (u[l + k + m] + tau * div[l + k + m] + taulambda * Input[l + k + m]) / constant;
 
+                gradx_upd[l + k] = (i == (dimX - 1))?0:(u_upd[l + k + dimZ] - u_upd[l + k]);
+                grady_upd[l + k] = (j == (copY - 1))?0:(u_upd[l + k + dimX * dimZ] - u_upd[l + k]);   // We need div from the next thread on last iter
 
-    for(int j = 1; j < (copY - 1); j++) {
-        i = 0; {
-#           define TNV_LOOP_FIRST_I
-#           include "TNV_core_loop.h"
-#           undef TNV_LOOP_FIRST_I
-        }
-    }
+                udiff[k] = u[l + k] - u_upd[l + k];
+                unorm += (udiff[k] * udiff[k]);
+//                if ((!k)&&(!i)) printf("%i = %f %f, %f %f\n", offY + j, u[l + k], u_upd[l + k], udiff[k], unorm);
 
-    for(int j1 = 1; j1 < (copY - 1); j1 += BLOCK) {
-        for(int i1 = 1; i1 < (dimX - 1); i1 += BLOCK) {
-            for(int j2 = 0; j2 < BLOCK; j2 ++) {
-                j = j1 + j2;
-                for(int i2 = 0; i2 < BLOCK; i2++) {
-                    i = i1 + i2;
-                    
-                    if (i == (dimX - 1)) break;
-                    if (j == (copY - 1)) { j2 = BLOCK; break; }
-#           include "TNV_core_loop.h"
-                }   
+                gradxdiff[k] = gradx[l + k] - gradx_upd[l + k];
+                gradydiff[k] = grady[l + k] - grady_upd[l + k];
+
+                float ubarx = theta1 * gradx_upd[l + k] - theta * gradx[l + k];
+                float ubary = theta1 * grady_upd[l + k] - theta * grady[l + k];
+//#define TNV_NEW_STYLE                
+#ifdef TNV_NEW_STYLE                
+                qx_upd[l + k] = qx[l + k] + sigma * ubarx;
+                qy_upd[l + k] = qy[l + k] + sigma * ubary;
+
+                float vx = divsigma * qx_upd[l + k]; //+ ubarx
+                float vy = divsigma * qy_upd[l + k]; //+ ubary
+#else
+                float vx = ubarx + divsigma * qx[l + k];
+                float vy = ubary + divsigma * qy[l + k];
+#endif
+
+                M1 += (vx * vx); M2 += (vx * vy); M3 += (vy * vy);
             }
+
+            coefF(t, M1, M2, M3, sigma, p, q, r);
+            
+//#pragma unroll 64
+            for(k = 0; k < dimZ; k++) {
+#ifdef TNV_NEW_STYLE    
+                float vx = divsigma * qx_upd[l + k];
+                float vy = divsigma * qy_upd[l + k];
+
+                float gx_upd = vx * t[0] + vy * t[1];
+                float gy_upd = vx * t[1] + vy * t[2];
+
+                qx_upd[l + k] -= sigma * gx_upd;
+                qy_upd[l + k] -= sigma * gy_upd;
+#else
+                float ubarx = theta1 * gradx_upd[l + k] - theta * gradx[l + k];
+                float ubary = theta1 * grady_upd[l + k] - theta * grady[l + k];
+                float vx = ubarx + divsigma * qx[l + k];
+                float vy = ubary + divsigma * qy[l + k];
+
+                float gx_upd = vx * t[0] + vy * t[1];
+                float gy_upd = vx * t[1] + vy * t[2];
+
+                qx_upd[l + k] = qx[l + k] + sigma * (ubarx - gx_upd);
+                qy_upd[l + k] = qy[l + k] + sigma * (ubary - gy_upd);
+#endif
+
+if(i != (dimX-1)) {
+                div_upd[l + k] += qx_upd[l + k];
+                div_upd[l + k + dimZ] -= qx_upd[l + k];
+}
+if(j != (copY-1)) {
+                div_upd[l + k] += qy_upd[l + k];
+                div_upd[l + k + dimX * dimZ] = -qy_upd[l + k];  // We need to update div in the next thread on last iter
+}
+
+                qxdiff = qx[l + k] - qx_upd[l + k];
+                qydiff = qy[l + k] - qy_upd[l + k];
+                qnorm += (qxdiff * qxdiff + qydiff * qydiff);
+
+                resdual += fabs(divsigma * qxdiff - gradxdiff[k]);
+                resdual += fabs(divsigma * qydiff - gradydiff[k]);
+                product += (gradxdiff[k] * qxdiff + gradydiff[k] * qydiff);
+
+                if ((offY == 0)||(j > 0)) {
+                    divdiff = div[l + k] - div_upd[l + k];  // Multiple steps... How we compute without history?
+                    resprimal += fabs(divtau * udiff[k] + divdiff); 
+                }
+            }
+            
         } // i
-
     }
-
-    for(int j = 1; j < (copY - 1); j++) {
-        i = dimX - 1; {
-#           define TNV_LOOP_LAST_I
-#           include "TNV_core_loop.h"
-#           undef TNV_LOOP_LAST_I
-        }
-    }
-
-
-
-    for (j = copY - 1; j < stepY; j++) {
-#       define TNV_LOOP_LAST_J
-        i = 0; {
-#           define TNV_LOOP_FIRST_I
-#           include "TNV_core_loop.h"
-#           undef TNV_LOOP_FIRST_I
-        }
-        for(i = 1; i < (dimX - 1); i++) {
-#           include "TNV_core_loop.h"
-        }
-        i = dimX - 1; {
-#           define TNV_LOOP_LAST_I
-#           include "TNV_core_loop.h"
-#           undef TNV_LOOP_LAST_I
-        }
-#       undef TNV_LOOP_LAST_J
-    }
-
-
-
+    
+    
     ctx->resprimal = resprimal;
-    ctx->resdual = resdual1 + resdual2;
+    ctx->resdual = resdual;
     ctx->product = product;
     ctx->unorm = unorm;
     ctx->qnorm = qnorm;
@@ -459,11 +507,8 @@ static void TNV_CPU_init(float *InputT, float *uT, int dimX, int dimY, int dimZ)
     tnv_ctx.dimX = dimX;
     tnv_ctx.dimY = dimY;
     tnv_ctx.dimZ = dimZ;
-        // Padding seems actually slower
-//    tnv_ctx.padZ = dimZ;
-//    tnv_ctx.padZ = 4 * ((dimZ / 4) + ((dimZ % 4)?1:0));
-    tnv_ctx.padZ = 16 * ((dimZ / 16) + ((dimZ % 16)?1:0));
-    
+    tnv_ctx.padZ = 64 * ((dimZ / 64) + ((dimZ % 64)?1:0));
+
     hw_sched_init();
 
     int threads = hw_sched_get_cpu_count();
@@ -480,6 +525,7 @@ static void TNV_CPU_init(float *InputT, float *uT, int dimX, int dimY, int dimZ)
 
         ctx->offY = off;
         ctx->stepY = size;
+        ctx->realY = ctx->stepY;
 
         if (i == (threads-1)) ctx->copY = ctx->stepY;
         else ctx->copY = ctx->stepY + 1;
@@ -517,7 +563,7 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
 {
     int err;
     int iter;
-    int i,j,k,l,m;
+    int i,j,k,l;
 
     lambda = 1.0f/(2.0f*lambda);
     tnv_ctx.lambda = lambda;
@@ -540,8 +586,6 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
 
     tnv_ctx.InputT = InputT;
     tnv_ctx.uT = uT;
-    
-    int padZ = tnv_ctx.padZ;
 
     err = hw_sched_schedule_thread_task(sched, (void*)&tnv_ctx, tnv_start);
     if (!err) err = hw_sched_wait_task(sched);
@@ -550,7 +594,6 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
 
     // Apply Primal-Dual Hybrid Gradient scheme
     float residual = fLarge;
-    int started = 0;
     for(iter = 0; iter < maxIter; iter++)   {
         float resprimal = 0.0f;
         float resdual = 0.0f;
@@ -569,73 +612,97 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
         if (err) { fprintf(stderr, "Error %i scheduling tnv threads", err); exit(-1); }
 
             // border regions
-        for (j = 1; j < tnv_ctx.threads; j++) {
-            tnv_thread_t *ctx0 = tnv_ctx.thr_ctx + (j - 1);
-            tnv_thread_t *ctx = tnv_ctx.thr_ctx + j;
+        for (i = 1; i < tnv_ctx.threads; i++) {
+            tnv_thread_t *ctx0 = tnv_ctx.thr_ctx + (i - 1);
+            tnv_thread_t *ctx = tnv_ctx.thr_ctx + i;
 
-            m = (ctx0->stepY - 1) * dimX * padZ;
-            for(i = 0; i < dimX; i++) {
-                for(k = 0; k < dimZ; k++) {
-                    int l = i * padZ + k;
-                        
-                    float divdiff = ctx->div0[l] - ctx->div[l];
-                    float udiff = ctx->udiff0[l];
+            l = ctx0->stepY * dimX * dimZ;
+            for(k=0; k < dimZ * (dimX /*- 1*/); k++) {
+                double div_upd_add = ctx0->div_upd[l + k];
+                ctx->div_upd[k] += div_upd_add;
+                ctx0->div_upd[l + k] = ctx->div_upd[k];
 
-                    ctx->div[l] -= ctx0->qy[l + m];
-                    ctx0->div[m + l + dimX*padZ] = ctx->div[l];
-                    ctx0->u[m + l + dimX*padZ] = ctx->u[l];
-                    
-                    divdiff += ctx0->qy[l + m];
-                    resprimal += fabs(divtau * udiff + divdiff); 
-                }
+//                ctx0->u_upd[l + k] = ctx->u_upd[k];
+
+                float divdiff = ctx->div[k] - ctx->div_upd[k];  // Multiple steps... How we compute without history?
+                float udiff = ctx->u[k] - ctx->u_upd[k];
+                resprimal += fabs(divtau * udiff + divdiff); 
             }
         }
 
-        {
-            tnv_thread_t *ctx = tnv_ctx.thr_ctx + 0;
-            for(i = 0; i < dimX; i++) {
-                for(k = 0; k < dimZ; k++) {
-                    int l = i * padZ + k;
-                        
-                    float divdiff = ctx->div0[l] - ctx->div[l];
-                    float udiff = ctx->udiff0[l];
-                    resprimal += fabs(divtau * udiff + divdiff); 
-                }
-            }
-        }
-
-        for (j = 0; j < tnv_ctx.threads; j++) {
-            tnv_thread_t *ctx = tnv_ctx.thr_ctx + j;
+#define TNV_CHECK_RES
+#ifndef TNV_CHECK_RES
+        for (i = 0; i < tnv_ctx.threads; i++) {
+            tnv_thread_t *ctx = tnv_ctx.thr_ctx + i;
             resprimal += ctx->resprimal;
             resdual += ctx->resdual;
             product += ctx->product;
             unorm += ctx->unorm;
             qnorm += ctx->qnorm;
         } 
+#else
+        resprimal = 0;
+        float divsigma = 1.0f / sigma;
+        for(j=0; j<dimY; j++)
+        for(i=0; i<dimX; i++)
+        for(int l=0; l<dimZ; l++)
+        {
+            int step = dimY / tnv_ctx.threads;
+            int extra = dimY % tnv_ctx.threads;
+
+            int thr, subj = j;
+            for (thr = 0; thr < tnv_ctx.threads; thr++) {
+                int size = step;
+                if (thr < extra) size++;
+                
+                if (subj >= size) subj-= size;
+                else break;
+            }
+
+            tnv_thread_t *ctx = tnv_ctx.thr_ctx + thr;
+           
+            int k = subj * dimX * dimZ + i * dimZ + l;
+        
+            float udiff = ctx->u[k] - ctx->u_upd[k];
+            float qxdiff = ctx->qx[k] - ctx->qx_upd[k];
+            float qydiff = ctx->qy[k] - ctx->qy_upd[k];
+            float divdiff = ctx->div[k] - ctx->div_upd[k];
+            float gradxdiff = ctx->gradx[k] - ctx->gradx_upd[k];
+            float gradydiff = ctx->grady[k] - ctx->grady_upd[k];
+
+            resprimal += fabs(divtau*udiff + divdiff);
+            resdual += fabs(divsigma*qxdiff - gradxdiff);
+            resdual += fabs(divsigma*qydiff - gradydiff);
+
+            unorm += (udiff * udiff);
+            qnorm += (qxdiff * qxdiff + qydiff * qydiff);
+            product += (gradxdiff * qxdiff + gradydiff * qydiff);
+        }
+#endif
+
+
 
         residual = (resprimal + resdual) / ((float) (dimX*dimY*dimZ));
         float b = (2.0f * tau * sigma * product) / (gamma * sigma * unorm + gamma * tau * qnorm);
         float dual_dot_delta = resdual * s * delta;
         float dual_div_delta = (resdual * s) / delta;
-//        printf("resprimal: %f, resdual: %f, b: %f (product: %f, unorm: %f, qnorm: %f)\n", resprimal, resdual, b, product, unorm, qnorm);
+        printf("resprimal: %f, resdual: %f, b: %f (product: %f, unorm: %f, qnorm: %f)\n", resprimal, resdual, b, product, unorm, qnorm);
 
 
         if(b > 1) {
-            
             // Decrease step-sizes to fit balancing principle
             tau = (beta * tau) / b;
             sigma = (beta * sigma) / b;
             alpha = alpha0;
 
-            if (started) {
-                fprintf(stderr, "\n\n\nWARNING: Back-tracking is required in the middle of iterative optimization! We CAN'T do it in the fast version. The standard TNV recommended\n\n\n");
-            } else {
-                err = hw_sched_schedule_thread_task(sched, (void*)&tnv_ctx, tnv_restore);
-                if (!err) err = hw_sched_wait_task(sched);
-                if (err) { fprintf(stderr, "Error %i scheduling restore threads", err); exit(-1); }
-            }
+            err = hw_sched_schedule_thread_task(sched, (void*)&tnv_ctx, tnv_restore);
+            if (!err) err = hw_sched_wait_task(sched);
+            if (err) { fprintf(stderr, "Error %i scheduling restore threads", err); exit(-1); }
         } else {
-            started = 1;
+            err = hw_sched_schedule_thread_task(sched, (void*)&tnv_ctx, tnv_copy);
+            if (!err) err = hw_sched_wait_task(sched);
+            if (err) { fprintf(stderr, "Error %i scheduling copy threads", err); exit(-1); }
+        
             if(resprimal > dual_dot_delta) {
                     // Increase primal step-size and decrease dual step-size
                 tau = tau / (1.0f - alpha);
@@ -658,7 +725,7 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
 
 
     printf("Iterations stopped at %i with the residual %f \n", iter, residual);
-//    printf("Return: %f\n", *uT);
+    printf("Return: %f\n", *uT);
 
     return *uT;
 }

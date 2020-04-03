@@ -20,7 +20,6 @@
 #include <malloc.h>
 #include "TNV_core.h"
 
-#define BLOCK 32
 #define min(a,b) (((a)<(b))?(a):(b))
 
 inline void coefF(float *t, float M1, float M2, float M3, float sigma, int p, int q, int r) {
@@ -367,6 +366,18 @@ static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
     float *udiff0 = ctx->udiff0;
     float *div0 = ctx->div0;
 
+/*
+    for(i=0; i < dimX; i++) {
+        for(k = 0; k < dimZ; k++) { 
+            int l = i * padZ + k;
+            float u_upd = (u[l] + tau * div[l] + taulambda * Input[l])/constant;
+            float udiff_val = u[l] - u_upd;
+            udiff0[l] = udiff_val;
+            div0[l] = div[l];
+        }
+    }
+*/
+
 
     j = 0; {
 #       define TNV_LOOP_FIRST_J
@@ -396,6 +407,7 @@ static int tnv_step(HWThread thr, void *hwctx, int device_id, void *data) {
         }
     }
 
+#define BLOCK 32
     for(int j1 = 1; j1 < (copY - 1); j1 += BLOCK) {
         for(int i1 = 1; i1 < (dimX - 1); i1 += BLOCK) {
             for(int j2 = 0; j2 < BLOCK; j2 ++) {
@@ -617,7 +629,7 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
         float b = (2.0f * tau * sigma * product) / (gamma * sigma * unorm + gamma * tau * qnorm);
         float dual_dot_delta = resdual * s * delta;
         float dual_div_delta = (resdual * s) / delta;
-//        printf("resprimal: %f, resdual: %f, b: %f (product: %f, unorm: %f, qnorm: %f)\n", resprimal, resdual, b, product, unorm, qnorm);
+        printf("resprimal: %f, resdual: %f, b: %f (product: %f, unorm: %f, qnorm: %f)\n", resprimal, resdual, b, product, unorm, qnorm);
 
 
         if(b > 1) {
@@ -658,7 +670,7 @@ float TNV_CPU_main(float *InputT, float *uT, float lambda, int maxIter, float to
 
 
     printf("Iterations stopped at %i with the residual %f \n", iter, residual);
-//    printf("Return: %f\n", *uT);
+    printf("Return: %f\n", *uT);
 
     return *uT;
 }
