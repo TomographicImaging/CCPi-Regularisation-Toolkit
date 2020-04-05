@@ -60,7 +60,7 @@ message("Adding regularisers as a shared library")
 #set(CMAKE_C_FLAGS "-march=nocona -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -ftree-vectorize -fopenmp")
 
 #set(CMAKE_C_COMPILER gcc-9)
-set(CMAKE_C_FLAGS "-march=native -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -fopenmp")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -fopenmp")
 #set(CMAKE_C_FLAGS "-march=nocona -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=128 -fopenmp")
 #set(CMAKE_C_FLAGS "-march=native -mavx2 -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=512 -fopenmp")
 #set(CMAKE_C_FLAGS "-march=native -mavx512f -mavx512dq -mavx512bw -mavx512vbmi -mavx512vbmi2 -mavx512vl -ftree-vectorize -fopt-info-vec-optimized -fopt-info-vec -mprefer-vector-width=512 -fopenmp")
@@ -81,6 +81,7 @@ add_library(cilreg SHARED
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_dTV_core.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core.c
+            #${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core_fast.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Nonlocal_TV_core.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchSelect_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.c
@@ -91,9 +92,9 @@ target_link_libraries(cilreg ${EXTRA_LIBRARIES} ${GLIB2_LIBRARIES} ${GTHREAD2_LI
 include_directories(cilreg PUBLIC
                       ${GLIB2_INCLUDE_DIR}
                       ${LIBRARY_INC}/include
-					  ${CMAKE_CURRENT_SOURCE_DIR}
-		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
-		              ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
+					            ${CMAKE_CURRENT_SOURCE_DIR}
+		                  ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
+		                  ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
 
 ## Install
 
