@@ -56,5 +56,24 @@ endif()
 message(STATUS "Python wrappers will be installed in " ${PYTHON_DEST})
 
 
+
+# include(ExternalProject)
+# ExternalProject_Add(
+#   GLIB2
+#   #URL http://download.dre.vanderbilt.edu/previous_versions/ACE-${ACE_VERSION}.zip
+#   GIT_REPOSITORY https://github.com/GNOME/glib.git
+#   GIT_TAG 2.62.6
+#   CONFIGURE_COMMAND meson _build
+#   BUILD_COMMAND ninja -C _build
+#   INSTALL_COMMAND ninja -C _build install
+#   LOG_INSTALL 1
+#   BINARY_DIR ${CMAKE_BINARY_DIR}/build/
+#   INSTALL_DIR ${LIBRARY_DIR}
+#   STAMP_DIR ${CMAKE_BINARY_DIR}/stamp
+#   TMP_DIR ${CMAKE_BINARY_DIR}/tmp
+#   DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/download
+#   SOURCE_DIR ${CMAKE_BINARY_DIR}/source
+# )
+
 #add_subdirectory(src/Core)
 add_subdirectory(src)

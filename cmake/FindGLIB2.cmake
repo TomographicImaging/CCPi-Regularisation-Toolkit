@@ -7,15 +7,18 @@
 #  GLIB2_LIBRARIES - glib2 library
 
 set(GLIB2_DIR GLIB2_DIR-NOTFOUND CACHE PATH "Location of GLIB2 package")
-
-if(GLIB2_INCLUDE_DIR AND GLIB2_LIBRARIES)
+message(STATUS "GLIB2_INCLUDE_DIR > ${GLIB2_INCLUDE_DIR} <")
+message(STATUS "GLIB2_LIBRARIES > ${GLIB2_LIBRARIES} <")
+if(GLIB2_INCLUDE_DIR AND GLIB2_LIBRARY_DIR)
     # Already in cache, be silent
+    message(STATUS "Should have variables set")
     set(GLIB2_FIND_QUIETLY TRUE)
-endif(GLIB2_INCLUDE_DIR AND GLIB2_LIBRARIES)
+    set (GLIB2_DIR ${GLIB2_LIBRARY_DIR})
+endif(GLIB2_INCLUDE_DIR AND GLIB2_LIBRARY_DIR)
 
 if (GLIB2_DIR)
     set(PKG_GLIB_LIBRARY_DIRS ${GLIB2_DIR}/lib${CMAKE_BUILD_ARCH} ${GLIB2_DIR}/lib)
-    set(PKG_GLIB_INCLUDE_DIRS ${GLIB2_DIR}/include/)
+    set(PKG_GLIB_INCLUDE_DIRS ${GLIB2_DIR}/include/ ${GLIB2_DIR}/lib/glib-2.0/include)
 else (GLIB2_DIR)
     if (NOT WIN32)
 	find_package(PkgConfig REQUIRED)
