@@ -8,7 +8,6 @@ try:
     gpu_enabled = True
 except ImportError:
     gpu_enabled = False
-from ccpi.filters.cpu_regularisers import NDF_INPAINT_CPU, NVM_INPAINT_CPU
 
 def ROF_TV(inputData, regularisation_parameter, iterations,
                      time_marching_parameter,tolerance_param,device='cpu'):
@@ -230,10 +229,3 @@ def NLTV(inputData, H_i, H_j, H_k, Weights, regularisation_parameter, iterations
                      Weights,
                      regularisation_parameter,
                      iterations)
-def NDF_INP(inputData, maskData, regularisation_parameter, edge_parameter, iterations,
-                     time_marching_parameter, penalty_type):
-        return NDF_INPAINT_CPU(inputData, maskData, regularisation_parameter,
-        edge_parameter, iterations, time_marching_parameter, penalty_type)
-
-def NVM_INP(inputData, maskData, SW_increment, iterations):
-        return NVM_INPAINT_CPU(inputData, maskData, SW_increment, iterations)

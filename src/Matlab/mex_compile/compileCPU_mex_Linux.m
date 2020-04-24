@@ -66,19 +66,9 @@ movefile('PatchSelect.mex*',Pathmove);
 fprintf('%s \n', 'Compiling additional tools...');
 mex TV_energy.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
 movefile('TV_energy.mex*',Pathmove);
-
-%############Inpainters##############%
-fprintf('%s \n', 'Compiling Nonlinear/Linear diffusion inpainting...');
-mex NonlDiff_Inp.c Diffusion_Inpaint_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
-movefile('NonlDiff_Inp.mex*',Pathmove);
- 
-fprintf('%s \n', 'Compiling Nonlocal marching method for inpainting...');
-mex NonlocalMarching_Inpaint.c NonlocalMarching_Inpaint_core.c utils.c CFLAGS="\$CFLAGS -fopenmp -Wall -std=c99" LDFLAGS="\$LDFLAGS -fopenmp"
-movefile('NonlocalMarching_Inpaint.mex*',Pathmove);
  
 delete SB_TV_core* ROF_TV_core* FGP_TV_core* FGP_dTV_core* TNV_core* utils* Diffusion_core* Diffus4th_order_core* TGV_core* LLT_ROF_core* CCPiDefines.h
 delete PatchSelect_core* Nonlocal_TV_core*
-delete Diffusion_Inpaint_core* NonlocalMarching_Inpaint_core*
 delete PD_TV_core*
 fprintf('%s \n', '<<<<<<< CPU regularisers were successfully compiled! >>>>>>>');
 
