@@ -52,15 +52,12 @@ add_library(cilreg SHARED
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Nonlocal_TV_core.c
             ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchSelect_core.c
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/Diffusion_Inpaint_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/NonlocalMarching_Inpaint_core.c
 	    )
 target_link_libraries(cilreg ${OpenMP_EXE_LINKER_FLAGS} ${EXTRA_LIBRARIES})
 include_directories(cilreg PUBLIC
                       ${LIBRARY_INC}/include
 					  ${CMAKE_CURRENT_SOURCE_DIR}
-		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/
-		              ${CMAKE_CURRENT_SOURCE_DIR}/inpainters_CPU/  )
+		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ )
 
 ## Install
 

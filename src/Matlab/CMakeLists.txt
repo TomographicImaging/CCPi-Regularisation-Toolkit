@@ -79,15 +79,12 @@ foreach(tgt RANGE 0 ${num})
             #${CMAKE_SOURCE_DIR}/Core/regularisers_CPU/FGP_dTV_core.c
             #${CMAKE_SOURCE_DIR}/Core/regularisers_CPU/TNV_core.c
             #${CMAKE_SOURCE_DIR}/Core/regularisers_CPU/utils.c
-	    #${CMAKE_SOURCE_DIR}/Core/inpainters_CPU/Diffusion_Inpaint_core.c
-	    #${CMAKE_SOURCE_DIR}/Core/inpainters_CPU/NonlocalMarching_Inpaint_core.c
     LINK_TO cilreg ${Matlab_LIBRARIES}
     )
     
 target_include_directories(${current_target}
    PUBLIC ${CMAKE_SOURCE_DIR}/src/Core/regularisers_CPU
-   ${CMAKE_SOURCE_DIR}/src/Core/regularisers_GPU
-   ${CMAKE_SOURCE_DIR}/src/Core/inpainters_CPU
+   ${CMAKE_SOURCE_DIR}/src/Core/regularisers_GPU 
    ${CMAKE_SOURCE_DIR}/src/Core/
    ${MATLAB_INCLUDE_DIR})
    set_property(TARGET ${current_target} PROPERTY C_STANDARD 99)
@@ -133,7 +130,6 @@ message("number of GPU files  " ${num})
         target_include_directories(${current_target}
         PUBLIC ${CMAKE_SOURCE_DIR}/src/Core/regularisers_CPU
                ${CMAKE_SOURCE_DIR}/src/Core/regularisers_GPU
-               ${CMAKE_SOURCE_DIR}/src/Core/inpainters_CPU
                ${CMAKE_SOURCE_DIR}/src/Core/
                ${MATLAB_INCLUDE_DIR})
        
