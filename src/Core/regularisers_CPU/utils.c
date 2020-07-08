@@ -57,6 +57,18 @@ float copyIm_roll(float *A, float *U, int dimX, int dimY, int roll_value, int sw
     return *U;
 }
 
+int apply_nonnegativity(float *A, long DimTotal)
+{
+	long i;
+#pragma omp parallel for shared(A) private(i)
+	for (i = 0; i < DimTotal; i++)
+	{
+		A[i] = max(A[i], 0.0f);
+	}
+
+	return 1;
+}
+
 /* function that calculates TV energy
  * type - 1:  2*lambda*min||\nabla u|| + ||u -u0||^2
  * type - 2:  2*lambda*min||\nabla u||
@@ -150,15 +162,18 @@ float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
 {
     float val1, val2, denom, sq_denom;
     long i;
-    if (methTV == 0) {
+    if (methTV == 0)
+	{
         /* isotropic TV*/
 #pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
-        for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) +  powf(P2[i],2);
-            if (denom > 1.0f) {
+        for(i=0; i<DimTotal; i++)
+		{
+            denom = P1[i] * P1[i] + P2[i] * P2[i];
+            if (denom > 1.0f)
+			{
                 sq_denom = 1.0f/sqrtf(denom);
-                P1[i] = P1[i]*sq_denom;
-                P2[i] = P2[i]*sq_denom;
+                P1[i] *= sq_denom;
+                P2[i] *= sq_denom;
             }
         }
     }
