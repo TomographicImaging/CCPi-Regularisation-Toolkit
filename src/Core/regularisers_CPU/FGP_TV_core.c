@@ -356,25 +356,112 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
     return *D;
 }
 
-float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
+int Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
 {
-    float val1, val2, val3, multip;
-    long i,j,k, index;
-    multip = (1.0f/(12.0f*lambda));
-#pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
-    for(k=0; k<dimZ; k++) {
-        for(j=0; j<dimY; j++) {
-            for(i=0; i<dimX; i++) {
-                index = (dimX*dimY)*k + j*dimX+i;
-                /* boundary conditions */
-                if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[index +1];
-                if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[index + dimX];
-                if (k == dimZ-1) val3 = 0.0f; else val3 = D[index] - D[index + dimX*dimY];
-                P1[index] = R1[index] + multip*val1;
-                P2[index] = R2[index] + multip*val2;
-                P3[index] = R3[index] + multip*val3;
-            }}}
-    return 1;
+	float multip = (1.0f / (12.0f*lambda));
+
+#pragma omp parallel 
+	{
+		float val1, val2, val3;
+		long i, j, k, index;
+
+#pragma omp parallel for
+		for (k = 0; k < dimY - 1; k++)
+		{
+			for (j = 0; j < dimY - 1; j++)
+			{
+				for (i = 0; i < dimX - 1; i++)
+				{
+					index = k * dimX * dimY + j * dimX + i;
+					val1 = D[index] - D[index + 1];
+					val2 = D[index] - D[index + dimX];
+					val3 = D[index] - D[index + dimX * dimY];
+					P1[index] = R1[index] + multip * val1;
+					P2[index] = R2[index] + multip * val2;
+					P3[index] = R2[index] + multip * val3;
+				}
+
+				//i == dimX - 1
+				index++;
+				val2 = D[index] - D[index + dimX];
+				val3 = D[index] - D[index + dimX * dimY];
+				P1[index] = R1[index];
+				P2[index] = R2[index] + multip * val2;
+				P3[index] = R3[index] + multip * val3;
+			}
+
+			//j == dimY-1
+			for (i = 0; i < dimX - 1; i++)
+			{
+				index++;
+				val1 = D[index] - D[index + 1];
+				val2 = D[index] - D[index + dimX];
+				val3 = D[index] - D[index + dimX * dimY];
+				P1[index] = R1[index] + multip * val1;
+				P2[index] = R2[index] + multip * val2;
+				P3[index] = R2[index] + multip * val3;
+			}
+
+			//i == dimX - 1
+			index++;
+			val2 = D[index] - D[index + dimX];
+			val3 = D[index] - D[index + dimX * dimY];
+			P1[index] = R1[index];
+			P2[index] = R2[index] + multip * val2;
+			P3[index] = R3[index] + multip * val3;
+
+		}
+
+		//k == dimZ - 1
+#pragma omp parallel for
+		for (j = 0; j < dimY - 1; j++)
+		{
+			for (i = 0; i < dimX - 1; i++)
+			{
+				index = (dimZ - 1) * dimX * dimY + j * dimX + i;
+				val1 = D[index] - D[index + 1];
+				val2 = D[index] - D[index + dimX];
+				val3 = D[index] - D[index + dimX * dimY];
+				P1[index] = R1[index] + multip * val1;
+				P2[index] = R2[index] + multip * val2;
+				P3[index] = R2[index] + multip * val3;
+			}
+
+			//i == dimX - 1
+			index++;
+			val2 = D[index] - D[index + dimX];
+			val3 = D[index] - D[index + dimX * dimY];
+			P1[index] = R1[index];
+			P2[index] = R2[index] + multip * val2;
+			P3[index] = R3[index] + multip * val3;
+		}
+
+		//j == dimY-1
+#pragma omp parallel for
+		for (i = 0; i < dimX - 1; i++)
+		{
+			index = dimZ* dimX * dimY - dimX + i;
+			val1 = D[index] - D[index + 1];
+			val2 = D[index] - D[index + dimX];
+			val3 = D[index] - D[index + dimX * dimY];
+			P1[index] = R1[index] + multip * val1;
+			P2[index] = R2[index] + multip * val2;
+			P3[index] = R2[index] + multip * val3;
+		}
+
+#pragma omp single
+		{
+			//i == dimX - 1
+			index = dimZ * dimX * dimY - 1;
+			val2 = D[index] - D[index + dimX];
+			val3 = D[index] - D[index + dimX * dimY];
+			P1[index] = R1[index];
+			P2[index] = R2[index] + multip * val2;
+			P3[index] = R3[index] + multip * val3;
+		}
+	}
+
+	return 1;
 }
 int Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
 {
