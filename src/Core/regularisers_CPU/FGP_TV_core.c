@@ -214,109 +214,146 @@ int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
 		*re = sqrtf(re_temp) / sqrtf(re1_temp);
 	
 }
+static inline float value2d(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_i0(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_i1(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_j0(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_j1(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_i0j0(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_i0j1(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_i1j0(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+static inline float value2d_i1j1(long index, float *R1, float *R2, long dimX)
+{
+	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+}
+
 int Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY)
 {
-#pragma omp parallel
+	long i, j, index;
+
+	//j = 0
 	{
-		long i, j, index;
+		//i = 0
+		index = 0;
+		D[index] = A[index] - lambda * value2d_i0j0(index, R1, R2, dimX);
 
-#pragma omp for
-		for (j = 1; j < dimY - 1; j++)
-		{
-			for (i = 1; i < dimX - 1; i++)
-			{
-				index = j * dimX + i;
-				D[index] = A[index] - lambda * (R1[index] + R2[index] - R1[index - 1] - R2[index - dimX]);
-			}
-
-			//i == 0
-			index = j * dimX;
-			D[index] = A[index] - lambda * (R1[index] + R2[index] - R2[index - dimX]);
-			//i == dimX-1
-			index += dimX - 1;
-			D[index] = A[index] - lambda * (R2[index] - R1[index - 1] - R2[index - dimX]);
-		}
-
-#pragma omp for
 		for (i = 1; i < dimX - 1; i++)
 		{
-			//j = 0
-			index = i;
-			D[index] = A[index] - lambda * (R1[index] + R2[index] - R1[index - 1]);
-
-			//j = dimY -1
-			index += (dimY - 1) * dimX;
-			D[index] = A[index] - lambda * (R1[index] - R1[index - 1] - R2[index - dimX]);
+			index++;
+			D[index] = A[index] - lambda * value2d_j0(index, R1, R2, dimX);
 		}
 
-#pragma omp single
-		{
-			//i = 0, j = 0
-			index = 0;
-			D[index] = A[index] - lambda * (R1[index] + R2[index]);
-			//i = dimX-1, j = 0
-			index += dimX - 1;
-			D[index] = A[index] - lambda * (R2[index] - R1[index - 1]);
-
-			//i = 0, j = dimY-1
-			index = (dimY - 1) * dimX;
-			D[index] = A[index] - lambda * (R1[index] - R2[index - dimX]);
-			//i = dimX-1, j = dimY-1
-			index += dimX - 1;
-			D[index] = A[index] - lambda * (- R1[index - 1] - R2[index - dimX]);
-
-		}
+		//i = dimX-1
+		index++;
+		D[index] = A[index] - lambda * value2d_i1j0(index, R1, R2, dimX);
 	}
+
+#pragma omp parallel for private(i, j, index)
+	for (j = 1; j < dimY - 1; j++)
+	{
+		//i = 0
+		index = j * dimX;
+		D[index] = A[index] - lambda * value2d_i0(index, R1, R2, dimX);
+
+		for (i = 1; i < dimX - 1; i++)
+		{
+			index++;
+			D[index] = A[index] - lambda * value2d(index, R1, R2, dimX);
+		}
+
+		//i = dimX-1
+		index++;
+		D[index] = A[index] - lambda * value2d_i1(index, R1, R2, dimX);
+	}
+
+	//j = dimY -1
+	{
+		//i = 0
+		index = (dimY - 1) * dimX;
+		D[index] = A[index] - lambda * value2d_i0j1(index, R1, R2, dimX);
+
+		for (i = 1; i < dimX - 1; i++)
+		{
+			index++;
+			D[index] = A[index] - lambda * value2d_j1(index, R1, R2, dimX);
+		}
+
+		//i = dimX-1
+		index++;
+		D[index] = A[index] - lambda * value2d_i1j1(index, R1, R2, dimX);
+	}
+
+
 	return 1;
 }
 int Grad_func2D(float *P1, float *P2, float *D, float *R1, float *R2, float lambda,  long dimX, long dimY)
 {
 	float multip = (1.0f / (8.0f*lambda));
 
-#pragma omp parallel 
+
+	float val1, val2;
+	long i, j, index;
+
+
+#pragma omp parallel for private(i, j, index, val1, val2)
+	for (j = 0; j < dimY - 1; j++)
 	{
-		float val1, val2;
-		long i, j, index;
-
-#pragma omp parallel for
-		for (j = 0; j < dimY - 1; j++)
+		for (i = 0; i < dimX - 1; i++)
 		{
-			for (i = 0; i < dimX - 1; i++)
-			{
-				index = j * dimX + i;
-				val1 = D[index] - D[index + 1];
-				val2 = D[index] - D[index + dimX];
-				P1[index] = R1[index] + multip * val1;
-				P2[index] = R2[index] + multip * val2;
-			}
-
-			//i = dimX - 1
-			index++;
+			index = j * dimX + i;
+			val1 = D[index] - D[index + 1];
 			val2 = D[index] - D[index + dimX];
-			P1[index] = R1[index];
+			P1[index] = R1[index] + multip * val1;
 			P2[index] = R2[index] + multip * val2;
 		}
 
-#pragma omp parallel for
-		for (i = 0; i < dimX - 1; i++)
-		{
-			//j = dimY-1
-			index = dimX * dimY - dimX + i;
-			val1 = D[index] - D[index + 1];
-			P1[index] = R1[index] + multip * val1;
-			P2[index] = R2[index];
-		}
-
-#pragma omp single
-		{
-			//i = dimX - 1, j = dimY-1
-			index = dimX * dimY - 1;
-			P1[index] = R1[index];
-			P2[index] = R2[index];
-		}
+		//i = dimX - 1
+		index++;
+		val2 = D[index] - D[index + dimX];
+		P1[index] = R1[index];
+		P2[index] = R2[index] + multip * val2;
 	}
 
-    return 1;
+#pragma omp parallel for private(i, index, val1)
+	for (i = 0; i < dimX - 1; i++)
+	{
+		//j = dimY-1
+		index = dimX * dimY - dimX + i;
+		val1 = D[index] - D[index + 1];
+		P1[index] = R1[index] + multip * val1;
+		P2[index] = R2[index];
+	}
+
+	//i = dimX - 1, j = dimY-1, k = dimZ - 1
+	index = dimX * dimY - 1;
+	P1[index] = R1[index];
+	P2[index] = R2[index];
+
+	return 1;
 }
 int Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal)
 {
@@ -335,7 +372,6 @@ int Rupd_func2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, f
 
     return 1;
 }
-
 
 
 static inline float value(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
@@ -406,7 +442,6 @@ static inline float value_j0k1(long index, float *R1, float *R2, float * R3, lon
 {
 	return (R1[index] - R1[index - 1] + R2[index] - R3[index - dimX * dimY]);
 }
-
 static inline float value_j1k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] - R2[index - dimX] + R3[index]);
@@ -474,7 +509,7 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
 			D[index] = A[index] - lambda * value_i1j0k0(index, R1, R2, R3, dimX, dimY);
 		}
 
-#pragma openmp parallel for private(i, j, index)
+#pragma omp parallel for private(i, j, index)
 		for (j = 1; j < dimY - 1; j++)
 		{
 			//i = 0
@@ -530,7 +565,7 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
 			D[index] = A[index] - lambda * value_i1j0(index, R1, R2, R3, dimX, dimY);
 		}
 
-#pragma openmp parallel for private(i, j, index)
+#pragma omp parallel for private(i, j, index)
 		for (j = 1; j < dimY - 1; j++)
 		{
 			//i = 0
@@ -586,7 +621,7 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
 			D[index] = A[index] - lambda * value_i1j0k1(index, R1, R2, R3, dimX, dimY);
 		}
 
-#pragma openmp parallel for private(i, j, index)
+#pragma omp parallel for private(i, j, index)
 		for (j = 1; j < dimY - 1; j++)
 		{
 			//i = 0
@@ -630,99 +665,95 @@ int Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2,
 {
 	float multip = (1.0f / (12.0f*lambda));
 
-#pragma omp parallel 
+
+	float val1, val2, val3;
+	long i, j, k, index;
+
+	for (k = 0; k < dimZ - 1; k++)
 	{
-		float val1, val2, val3;
-		long i, j, k, index;
 
-#pragma omp parallel for
-		for (k = 0; k < dimY - 1; k++)
-		{
-			for (j = 0; j < dimY - 1; j++)
-			{
-				for (i = 0; i < dimX - 1; i++)
-				{
-					index = k * dimX * dimY + j * dimX + i;
-					val1 = D[index] - D[index + 1];
-					val2 = D[index] - D[index + dimX];
-					val3 = D[index] - D[index + dimX * dimY];
-					P1[index] = R1[index] + multip * val1;
-					P2[index] = R2[index] + multip * val2;
-					P3[index] = R2[index] + multip * val3;
-				}
-
-				//i = dimX - 1
-				index++;
-				val2 = D[index] - D[index + dimX];
-				val3 = D[index] - D[index + dimX * dimY];
-				P1[index] = R1[index];
-				P2[index] = R2[index] + multip * val2;
-				P3[index] = R3[index] + multip * val3;
-			}
-
-			for (i = 0; i < dimX - 1; i++)
-			{
-				//j = dimY-1
-				index++;
-				val1 = D[index] - D[index + 1];
-				val3 = D[index] - D[index + dimX * dimY];
-				P1[index] = R1[index] + multip * val1;
-				P2[index] = R2[index];
-				P3[index] = R3[index] + multip * val3;
-			}
-
-			//i = dimX - 1, j = dimY-1
-			index++;
-			val3 = D[index] - D[index + dimX * dimY];
-			P1[index] = R1[index];
-			P2[index] = R2[index];
-			P3[index] = R3[index] + multip * val3;
-
-		}
-
-
-#pragma omp parallel for
+#pragma omp parallel for private(i, j, index, val1, val2, val3)
 		for (j = 0; j < dimY - 1; j++)
 		{
-			//k = dimZ - 1
 			for (i = 0; i < dimX - 1; i++)
 			{
-				index = (dimZ - 1) * dimX * dimY + j * dimX + i;
+				index = k * dimX * dimY + j * dimX + i;
 				val1 = D[index] - D[index + 1];
 				val2 = D[index] - D[index + dimX];
+				val3 = D[index] - D[index + dimX * dimY];
 				P1[index] = R1[index] + multip * val1;
 				P2[index] = R2[index] + multip * val2;
-				P3[index] = R3[index];
+				P3[index] = R2[index] + multip * val3;
 			}
 
-			//i = dimX - 1, k = dimZ - 1
+			//i = dimX - 1
 			index++;
 			val2 = D[index] - D[index + dimX];
+			val3 = D[index] - D[index + dimX * dimY];
 			P1[index] = R1[index];
+			P2[index] = R2[index] + multip * val2;
+			P3[index] = R3[index] + multip * val3;
+		}
+
+		for (i = 0; i < dimX - 1; i++)
+		{
+			//j = dimY-1
+			index++;
+			val1 = D[index] - D[index + 1];
+			val3 = D[index] - D[index + dimX * dimY];
+			P1[index] = R1[index] + multip * val1;
+			P2[index] = R2[index];
+			P3[index] = R3[index] + multip * val3;
+		}
+
+		//i = dimX - 1, j = dimY-1
+		index++;
+		val3 = D[index] - D[index + dimX * dimY];
+		P1[index] = R1[index];
+		P2[index] = R2[index];
+		P3[index] = R3[index] + multip * val3;
+
+	}
+
+#pragma omp parallel for private(i, j, index, val1, val2)
+	for (j = 0; j < dimY - 1; j++)
+	{
+		//k = dimZ - 1
+		for (i = 0; i < dimX - 1; i++)
+		{
+			index = (dimZ - 1) * dimX * dimY + j * dimX + i;
+			val1 = D[index] - D[index + 1];
+			val2 = D[index] - D[index + dimX];
+			P1[index] = R1[index] + multip * val1;
 			P2[index] = R2[index] + multip * val2;
 			P3[index] = R3[index];
 		}
 
-#pragma omp parallel for
-		for (i = 0; i < dimX - 1; i++)
-		{
-			//j = dimY-1, k = dimZ - 1
-			index = dimZ* dimX * dimY - dimX + i;
-			val1 = D[index] - D[index + 1];
-			P1[index] = R1[index] + multip * val1;
-			P2[index] = R2[index];
-			P3[index] = R3[index];
-		}
-
-#pragma omp single
-		{
-			//i = dimX - 1, j = dimY-1, k = dimZ - 1
-			index = dimZ * dimX * dimY - 1;
-			P1[index] = R1[index];
-			P2[index] = R2[index];
-			P3[index] = R3[index];
-		}
+		//i = dimX - 1, k = dimZ - 1
+		index++;
+		val2 = D[index] - D[index + dimX];
+		P1[index] = R1[index];
+		P2[index] = R2[index] + multip * val2;
+		P3[index] = R3[index];
 	}
+
+#pragma omp parallel for private(i, index, val1)
+	for (i = 0; i < dimX - 1; i++)
+	{
+		//j = dimY-1, k = dimZ - 1
+		index = dimZ * dimX * dimY - dimX + i;
+		val1 = D[index] - D[index + 1];
+		P1[index] = R1[index] + multip * val1;
+		P2[index] = R2[index];
+		P3[index] = R3[index];
+	}
+
+	//i = dimX - 1, j = dimY-1, k = dimZ - 1
+	index = dimZ * dimX * dimY - 1;
+	P1[index] = R1[index];
+	P2[index] = R2[index];
+	P3[index] = R3[index];
+
 
 	return 1;
 }
