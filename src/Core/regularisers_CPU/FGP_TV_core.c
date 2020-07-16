@@ -191,28 +191,29 @@ int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
 	float re1_temp = 0.0f;
 
 #pragma omp parallel
-		{
-			long i;
-			float re_local = 0.0f;
-			float re1_local = 0.0f;
+	{
+		long i;
+		float re_local = 0.0f;
+		float re1_local = 0.0f;
 
 #pragma omp for
-			for (i = 0; i < DimTotal; i++)
-			{
-				re_local += (A[i] - A_prev[i]) * (A[i] - A_prev[i]);
-				re1_local += A[i] * A[i];
-			}
-
-#pragma omp atomic
-			re_temp += re_local;
-
-#pragma omp atomic
-			re1_temp += re1_local;
-			
+		for (i = 0; i < DimTotal; i++)
+		{
+			re_local += (A[i] - A_prev[i]) * (A[i] - A_prev[i]);
+			re1_local += A[i] * A[i];
 		}
 
-		*re = sqrtf(re_temp) / sqrtf(re1_temp);
-	
+#pragma omp atomic
+		re_temp += re_local;
+
+#pragma omp atomic
+		re1_temp += re1_local;
+
+	}
+
+	*re = sqrtf(re_temp) / sqrtf(re1_temp);
+
+	return 1;
 }
 static inline float value2d(long index, float *R1, float *R2, long dimX)
 {

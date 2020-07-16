@@ -63,7 +63,7 @@ int apply_nonnegativity(float *A, long DimTotal)
 #pragma omp parallel for shared(A) private(i)
 	for (i = 0; i < DimTotal; i++)
 	{
-		A[i] = max(A[i], 0.0f);
+		A[i] = A[i] > 0.0f ? A[i] : 0;
 	}
 
 	return 1;
