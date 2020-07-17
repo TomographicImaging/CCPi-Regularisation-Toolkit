@@ -47,11 +47,11 @@ float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, i
     
     float *Output_prev=NULL, *Dx=NULL, *Dy=NULL, *Bx=NULL, *By=NULL;
     DimTotal = (long)(dimX*dimY*dimZ);
-    Output_prev = calloc(DimTotal, sizeof(float));
-    Dx = calloc(DimTotal, sizeof(float));
-    Dy = calloc(DimTotal, sizeof(float));
-    Bx = calloc(DimTotal, sizeof(float));
-    By = calloc(DimTotal, sizeof(float));
+    Output_prev = (float*)calloc(DimTotal, sizeof(float));
+    Dx = (float*)calloc(DimTotal, sizeof(float));
+    Dy = (float*)calloc(DimTotal, sizeof(float));
+    Bx = (float*)calloc(DimTotal, sizeof(float));
+    By = (float*)calloc(DimTotal, sizeof(float));
     
     if (dimZ == 1) {
         /* 2D case */
@@ -95,8 +95,8 @@ float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, i
         /* 3D case */
         float *Dz=NULL, *Bz=NULL;
         
-        Dz = calloc(DimTotal, sizeof(float));
-        Bz = calloc(DimTotal, sizeof(float));
+        Dz = (float*)calloc(DimTotal, sizeof(float));
+        Bz = (float*)calloc(DimTotal, sizeof(float));
         
         copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ)); /*initialize */
         

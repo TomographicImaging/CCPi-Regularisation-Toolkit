@@ -62,16 +62,16 @@ float LLT_ROF_CPU_main(float *Input, float *Output, float *infovector, float lam
     float *D1_LLT=NULL, *D2_LLT=NULL, *D3_LLT=NULL, *D1_ROF=NULL, *D2_ROF=NULL, *D3_ROF=NULL, *Output_prev=NULL;
     DimTotal = (long)(dimX*dimY*dimZ);
     
-    D1_ROF = calloc(DimTotal, sizeof(float));
-    D2_ROF = calloc(DimTotal, sizeof(float));
-    D3_ROF = calloc(DimTotal, sizeof(float));
+    D1_ROF = (float*)calloc(DimTotal, sizeof(float));
+    D2_ROF = (float*)calloc(DimTotal, sizeof(float));
+    D3_ROF = (float*)calloc(DimTotal, sizeof(float));
     
-    D1_LLT = calloc(DimTotal, sizeof(float));
-    D2_LLT = calloc(DimTotal, sizeof(float));
-    D3_LLT = calloc(DimTotal, sizeof(float));
+    D1_LLT = (float*)calloc(DimTotal, sizeof(float));
+    D2_LLT = (float*)calloc(DimTotal, sizeof(float));
+    D3_LLT = (float*)calloc(DimTotal, sizeof(float));
     
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ)); /* initialize  */
-    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
+    if (epsil != 0.0f) Output_prev = (float*)calloc(DimTotal, sizeof(float));
     
     for(ll = 0; ll < iterationsNumb; ll++) {
         if ((epsil != 0.0f) && (ll % 5 == 0)) copyIm(Output, Output_prev, (long)(dimX), (long)(dimY), (long)(dimZ));

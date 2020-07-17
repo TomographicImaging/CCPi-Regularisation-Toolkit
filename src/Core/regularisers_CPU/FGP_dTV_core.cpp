@@ -57,15 +57,15 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
     float *Output_prev=NULL, *P1=NULL, *P2=NULL, *P1_prev=NULL, *P2_prev=NULL, *R1=NULL, *R2=NULL, *InputRef_x=NULL, *InputRef_y=NULL;
     DimTotal = (long)(dimX*dimY*dimZ);
 
-    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
-    P1 = calloc(DimTotal, sizeof(float));
-    P2 = calloc(DimTotal, sizeof(float));
-    P1_prev = calloc(DimTotal, sizeof(float));
-    P2_prev = calloc(DimTotal, sizeof(float));
-    R1 = calloc(DimTotal, sizeof(float));
-    R2 = calloc(DimTotal, sizeof(float));
-    InputRef_x = calloc(DimTotal, sizeof(float));
-    InputRef_y = calloc(DimTotal, sizeof(float));
+    if (epsil != 0.0f) Output_prev = (float*)calloc(DimTotal, sizeof(float));
+    P1 = (float*)calloc(DimTotal, sizeof(float));
+    P2 = (float*)calloc(DimTotal, sizeof(float));
+    P1_prev = (float*)calloc(DimTotal, sizeof(float));
+    P2_prev = (float*)calloc(DimTotal, sizeof(float));
+    R1 = (float*)calloc(DimTotal, sizeof(float));
+    R2 = (float*)calloc(DimTotal, sizeof(float));
+    InputRef_x = (float*)calloc(DimTotal, sizeof(float));
+    InputRef_y = (float*)calloc(DimTotal, sizeof(float));
 
     if (dimZ <= 1) {
         /*2D case */
@@ -117,10 +117,10 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
         /*3D case*/
         float *P3=NULL, *P3_prev=NULL, *R3=NULL, *InputRef_z=NULL;
 
-        P3 = calloc(DimTotal, sizeof(float));
-        P3_prev = calloc(DimTotal, sizeof(float));
-        R3 = calloc(DimTotal, sizeof(float));
-        InputRef_z = calloc(DimTotal, sizeof(float));
+        P3 = (float*)calloc(DimTotal, sizeof(float));
+        P3_prev = (float*)calloc(DimTotal, sizeof(float));
+        R3 = (float*)calloc(DimTotal, sizeof(float));
+        InputRef_z = (float*)calloc(DimTotal, sizeof(float));
 
         /* calculate gradient field (smoothed) for the reference volume */
         GradNorm_func3D(InputRef, InputRef_x, InputRef_y, InputRef_z, eta, (long)(dimX), (long)(dimY), (long)(dimZ));

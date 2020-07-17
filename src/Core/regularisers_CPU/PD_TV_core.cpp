@@ -62,9 +62,9 @@ float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
         /*2D case */
         float *U_old=NULL, *P1=NULL, *P2=NULL;
 
-        U_old = calloc(DimTotal, sizeof(float));
-        P1 = calloc(DimTotal, sizeof(float));
-        P2 = calloc(DimTotal, sizeof(float));
+        U_old = (float*)calloc(DimTotal, sizeof(float));
+        P1 = (float*)calloc(DimTotal, sizeof(float));
+        P2 = (float*)calloc(DimTotal, sizeof(float));
 
         /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {
@@ -105,10 +105,10 @@ float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
     else {
           /*3D case*/
         float *U_old=NULL, *P1=NULL, *P2=NULL, *P3=NULL;
-        U_old = calloc(DimTotal, sizeof(float));
-        P1 = calloc(DimTotal, sizeof(float));
-        P2 = calloc(DimTotal, sizeof(float));
-        P3 = calloc(DimTotal, sizeof(float));
+        U_old = (float*)calloc(DimTotal, sizeof(float));
+        P1 = (float*)calloc(DimTotal, sizeof(float));
+        P2 = (float*)calloc(DimTotal, sizeof(float));
+        P3 = (float*)calloc(DimTotal, sizeof(float));
 
         /* begin iterations */
         for(ll=0; ll<iterationsNumb; ll++) {

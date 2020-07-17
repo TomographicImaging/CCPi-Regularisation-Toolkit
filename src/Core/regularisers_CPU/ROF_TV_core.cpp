@@ -57,13 +57,13 @@ float TV_ROF_CPU_main(float *Input, float *Output, float *infovector, float *lam
     long DimTotal,j;
     DimTotal = (long)(dimX*dimY*dimZ);
     
-    D1 = calloc(DimTotal, sizeof(float));
-    D2 = calloc(DimTotal, sizeof(float));
-    D3 = calloc(DimTotal, sizeof(float));
+    D1 = (float*)calloc(DimTotal, sizeof(float));
+    D2 = (float*)calloc(DimTotal, sizeof(float));
+    D3 = (float*)calloc(DimTotal, sizeof(float));
     
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));
-    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
+    if (epsil != 0.0f) Output_prev = (float*)calloc(DimTotal, sizeof(float));
     
     /* start TV iterations */
     for(i=0; i < iterationsNumb; i++) {

@@ -55,26 +55,26 @@ float TNV_CPU_main(float *Input, float *u, float lambda, int maxIter, float tol,
     float theta = 1.0f;
     
     // Auxiliar vectors
-    u_upd = calloc(DimTotal, sizeof(float));
-    gx = calloc(DimTotal, sizeof(float));
-    gy = calloc(DimTotal, sizeof(float));
-    gx_upd = calloc(DimTotal, sizeof(float));
-    gy_upd = calloc(DimTotal, sizeof(float));
-    qx = calloc(DimTotal, sizeof(float));
-    qy = calloc(DimTotal, sizeof(float));
-    qx_upd = calloc(DimTotal, sizeof(float));
-    qy_upd = calloc(DimTotal, sizeof(float));
-    v = calloc(DimTotal, sizeof(float));
-    vx = calloc(DimTotal, sizeof(float));
-    vy = calloc(DimTotal, sizeof(float));
-    gradx = calloc(DimTotal, sizeof(float));
-    grady = calloc(DimTotal, sizeof(float));
-    gradx_upd = calloc(DimTotal, sizeof(float));
-    grady_upd = calloc(DimTotal, sizeof(float));
-    gradx_ubar = calloc(DimTotal, sizeof(float));
-    grady_ubar = calloc(DimTotal, sizeof(float));
-    div = calloc(DimTotal, sizeof(float));
-    div_upd = calloc(DimTotal, sizeof(float));
+    u_upd = (float*)calloc(DimTotal, sizeof(float));
+    gx = (float*)calloc(DimTotal, sizeof(float));
+    gy = (float*)calloc(DimTotal, sizeof(float));
+    gx_upd = (float*)calloc(DimTotal, sizeof(float));
+    gy_upd = (float*)calloc(DimTotal, sizeof(float));
+    qx = (float*)calloc(DimTotal, sizeof(float));
+    qy = (float*)calloc(DimTotal, sizeof(float));
+    qx_upd = (float*)calloc(DimTotal, sizeof(float));
+    qy_upd = (float*)calloc(DimTotal, sizeof(float));
+    v = (float*)calloc(DimTotal, sizeof(float));
+    vx = (float*)calloc(DimTotal, sizeof(float));
+    vy = (float*)calloc(DimTotal, sizeof(float));
+    gradx = (float*)calloc(DimTotal, sizeof(float));
+    grady = (float*)calloc(DimTotal, sizeof(float));
+    gradx_upd = (float*)calloc(DimTotal, sizeof(float));
+    grady_upd = (float*)calloc(DimTotal, sizeof(float));
+    gradx_ubar = (float*)calloc(DimTotal, sizeof(float));
+    grady_ubar = (float*)calloc(DimTotal, sizeof(float));
+    div = (float*)calloc(DimTotal, sizeof(float));
+    div_upd = (float*)calloc(DimTotal, sizeof(float));
     
     // Backtracking parameters
     float s = 1.0f;
