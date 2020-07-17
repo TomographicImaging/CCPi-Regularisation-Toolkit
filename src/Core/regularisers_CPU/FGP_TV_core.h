@@ -45,7 +45,7 @@ limitations under the License.
  * [1] Amir Beck and Marc Teboulle, "Fast Gradient-Based Algorithms for Constrained Total Variation Image Denoising and Deblurring Problems"
  */
 
-
+int apply_nonnegativity(float *A, long DimTotal);
 int calculate_norm(float * A, float * A_prev, float * re, long DimTotal);
 int Grad_func(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
 int Grad_func(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ);

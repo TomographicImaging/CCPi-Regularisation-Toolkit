@@ -177,6 +177,17 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
 
     return 0;
 }
+int apply_nonnegativity(float *A, long DimTotal)
+{
+	long i;
+#pragma omp parallel for shared(A) private(i)
+	for (i = 0; i < DimTotal; i++)
+	{
+		A[i] = A[i] > 0.0f ? A[i] : 0;
+	}
+
+	return 1;
+}
 int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
 {
 
