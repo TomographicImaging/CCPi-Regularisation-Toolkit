@@ -15,7 +15,9 @@ message("CIL_VERSION ${CIL_VERSION}")
 ## Build the regularisers package as a library
 message("Creating Regularisers as a shared library")
 
-set(CMAKE_BUILD_TYPE "Release")
+set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_BUILD_TYPE "Release")
 
 set (EXTRA_LIBRARIES "")
 if(WIN32)
@@ -39,19 +41,19 @@ message("Adding regularisers as a shared library")
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=tesla:cc20 -openmp")
 #set(CMAKE_C_FLAGS "-acc -Minfo -ta=multicore -openmp -fPIC")
 add_library(cilreg SHARED
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PD_TV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffus4th_order_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/LLT_ROF_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_dTV_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Nonlocal_TV_core.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchSelect_core.c
-	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_TV_core.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/SB_TV_core.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PD_TV_core.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TGV_core.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffusion_core.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Diffus4th_order_core.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/LLT_ROF_core.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ROF_TV_core.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/FGP_dTV_core.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/TNV_core.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Nonlocal_TV_core.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchSelect_core.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.cpp
 	    )
 target_link_libraries(cilreg ${OpenMP_EXE_LINKER_FLAGS} ${EXTRA_LIBRARIES})
 include_directories(cilreg PUBLIC
