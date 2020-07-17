@@ -49,8 +49,8 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
 {
     int ll;
     long DimTotal;
-    float re, re1;
-    re = 0.0f; re1 = 0.0f;
+    float re;
+    re = 0.0f;
     float tk = 1.0f;
     float tkp1 =1.0f;
     int count = 0;
@@ -94,7 +94,6 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             /* check early stopping criteria */
             if ((epsil != 0.0f)  && (ll % 5 == 0))
 			{
-				float re;
 				calculate_norm(Output, Output_prev, &re, DimTotal);
 
                 if (re < epsil)  count++;
@@ -152,7 +151,6 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             /* calculate norm - stopping rules*/
             if ((epsil != 0.0f)  && (ll % 5 == 0)) 
 			{
-				float re;
 				calculate_norm(Output, Output_prev, &re, DimTotal);
 
 				/* stop if the norm residual is less than the tolerance EPS */
