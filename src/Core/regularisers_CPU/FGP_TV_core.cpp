@@ -38,9 +38,9 @@
  */
 
  /* pointer swap*/
-static inline void swap(float *m, float *n)
+static inline void swap(float*&m, float*&n)
 {
-	float *tmp = m;
+	float* tmp = m;
 	m = n;
 	n = tmp;
 }
@@ -100,7 +100,6 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
                 if (count > 3) break;
             }
 
-			/*storing old values*/
 			swap(P1, P1_prev);
 			swap(P2, P2_prev);
 
