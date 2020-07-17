@@ -54,12 +54,10 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
 
         if (epsil != 0.0f) Output_prev = malloc(DimTotal*sizeof(float));
 
-        P1 = malloc(DimTotal * sizeof(float));
-        P2 = malloc(DimTotal * sizeof(float));
-        P1_prev = malloc(DimTotal * sizeof(float));
-        P2_prev = malloc(DimTotal * sizeof(float));
-
-		//0 initilised
+        P1 = calloc(DimTotal, sizeof(float));
+        P2 = calloc(DimTotal, sizeof(float));
+        P1_prev = calloc(DimTotal, sizeof(float));
+        P2_prev = calloc(DimTotal, sizeof(float));
         R1 = calloc(DimTotal, sizeof(float));
         R2 = calloc(DimTotal, sizeof(float));
 
@@ -221,35 +219,35 @@ static inline float value2d(long index, float *R1, float *R2, long dimX)
 }
 static inline float value2d_i0(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (R1[index] + R2[index] - R2[index - dimX]);
 }
 static inline float value2d_i1(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (- R1[index - 1] + R2[index] - R2[index - dimX]);
 }
 static inline float value2d_j0(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (R1[index] - R1[index - 1] + R2[index]);
 }
 static inline float value2d_j1(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (R1[index] - R1[index - 1] - R2[index - dimX]);
 }
 static inline float value2d_i0j0(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (R1[index] + R2[index]);
 }
 static inline float value2d_i0j1(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (R1[index] - R2[index - dimX]);
 }
 static inline float value2d_i1j0(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (- R1[index - 1] + R2[index]);
 }
 static inline float value2d_i1j1(long index, float *R1, float *R2, long dimX)
 {
-	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
+	return (- R1[index - 1] - R2[index - dimX]);
 }
 
 int Obj_func2D(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY)
