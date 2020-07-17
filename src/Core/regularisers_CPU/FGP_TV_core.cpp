@@ -40,9 +40,9 @@
  /* pointer swap*/
 static inline void swap(float *m, float *n)
 {
-	float tmp = *m;
-	*m = *n;
-	*n = tmp;
+	float *tmp = m;
+	m = n;
+	n = tmp;
 }
 
 float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
