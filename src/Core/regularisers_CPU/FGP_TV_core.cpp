@@ -45,7 +45,7 @@ static inline void swap(float*&m, float*&n)
 	n = tmp;
 }
 
-float TV_FGP_CPU(const float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
+float TV_FGP_CPU_main(const float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
 {
     int ll;
     long DimTotal;

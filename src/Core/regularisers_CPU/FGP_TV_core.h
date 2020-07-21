@@ -58,7 +58,7 @@ int Obj_func(const float *A, float *D, const float *R1, const float *R2, const f
 extern "C" {
 #endif
 
-CCPI_EXPORT float TV_FGP_CPU(const float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
+CCPI_EXPORT float TV_FGP_CPU_main(const float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 
 #ifdef __cplusplus
 }
