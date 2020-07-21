@@ -344,14 +344,13 @@ int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float
 {
 
 	float multip = ((tk - 1.0f) / tkp1);
-	float mulip_inv = 1 - multip;
 	long i;
 
 #pragma omp parallel for private(i)
 	for (i = 0; i < DimTotal; i++)
 	{
-		R1[i] = P1[i] + multip * P1[i] + mulip_inv * P1_old[i];
-		R2[i] = P2[i] + multip * P2[i] + mulip_inv * P2_old[i];
+		R1[i] = P1[i] + multip * (P1[i] + P1_old[i]);
+		R2[i] = P2[i] + multip * (P2[i] + P2_old[i]);
 	}
 
 
@@ -360,15 +359,15 @@ int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float
 int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float *P2_old, const float *P3, const float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
 {
 	float multip = ((tk - 1.0f) / tkp1);
-	float mulip_inv = 1 - multip;
+
 	long i;
 
 #pragma omp parallel for private(i)
 	for (i = 0; i < DimTotal; i++)
 	{
-		R1[i] = P1[i] + multip * P1[i] + mulip_inv * P1_old[i];
-		R2[i] = P2[i] + multip * P2[i] + mulip_inv * P2_old[i];
-		R3[i] = P3[i] + multip * P3[i] + mulip_inv * P3_old[i];
+		R1[i] = P1[i] + multip * (P1[i] - P1_old[i]);
+		R2[i] = P2[i] + multip * (P2[i] - P2_old[i]);
+		R3[i] = P3[i] + multip * (P3[i] - P3_old[i]);
 	}
 
 	return 1;
