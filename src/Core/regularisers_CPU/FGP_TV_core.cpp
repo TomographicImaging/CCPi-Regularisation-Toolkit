@@ -349,8 +349,8 @@ int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float
 #pragma omp parallel for private(i)
 	for (i = 0; i < DimTotal; i++)
 	{
-		R1[i] = P1[i] + multip * (P1[i] + P1_old[i]);
-		R2[i] = P2[i] + multip * (P2[i] + P2_old[i]);
+		R1[i] = P1[i] + multip * (P1[i] - P1_old[i]);
+		R2[i] = P2[i] + multip * (P2[i] - P2_old[i]);
 	}
 
 
