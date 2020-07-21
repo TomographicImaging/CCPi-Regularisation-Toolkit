@@ -21,10 +21,14 @@ limitations under the License.
 #include <memory.h>
 #include "CCPiDefines.h"
 #include "omp.h"
+
+float Proj_func(float *P1, float *P2, float *P3, int methTV, long DimTotal);
+float Proj_func(float *P1, float *P2, int methTV, long DimTotal);
+int apply_nonnegativity(float *A, long DimTotal);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-	int apply_nonnegativity(float *A, long DimTotal);
 	CCPI_EXPORT float copyIm(float *A, float *U, long dimX, long dimY, long dimZ);
 	CCPI_EXPORT unsigned char copyIm_unchar(unsigned char *A, unsigned char *U, int dimX, int dimY, int dimZ);
 	CCPI_EXPORT float copyIm_roll(float *A, float *U, int dimX, int dimY, int roll_value, int switcher);
@@ -32,8 +36,8 @@ extern "C" {
 	CCPI_EXPORT float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ);
 	CCPI_EXPORT float TV_energy3D(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ);
 	CCPI_EXPORT float Im_scale2D(float *Input, float *Scaled, int w, int h, int w2, int h2);
-	CCPI_EXPORT float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal);
-	CCPI_EXPORT float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal);
+
+
 #ifdef __cplusplus
 }
 #endif

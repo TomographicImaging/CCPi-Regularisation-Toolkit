@@ -45,7 +45,7 @@ static inline void swap(float*&m, float*&n)
 	n = tmp;
 }
 
-float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
+float TV_FGP_CPU(const float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
 {
     int ll;
     long DimTotal;
@@ -85,7 +85,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             Grad_func(P1, P2, Output, R1, R2, lambdaPar, (long)(dimX), (long)(dimY));
 
             /* projection step */
-            Proj_func2D(P1, P2, methodTV, DimTotal);
+            Proj_func(P1, P2, methodTV, DimTotal);
 
             /*updating R and t*/
             tkp1 = (1.0f + sqrtf(1.0f + 4.0f*tk*tk))*0.5f;
@@ -141,7 +141,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
             Grad_func(P1, P2, P3, Output, R1, R2, R3, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
 
             /* projection step */
-            Proj_func3D(P1, P2, P3, methodTV, DimTotal);
+            Proj_func(P1, P2, P3, methodTV, DimTotal);
 
             /*updating R and t*/
             tkp1 = (1.0f + sqrtf(1.0f + 4.0f*tk*tk))*0.5f;
@@ -177,7 +177,7 @@ float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lamb
 int apply_nonnegativity(float *A, long DimTotal)
 {
 	long i;
-#pragma omp parallel for shared(A) private(i)
+#pragma omp parallel for private(i)
 	for (i = 0; i < DimTotal; i++)
 	{
 		A[i] = A[i] > 0.0f ? A[i] : 0;
@@ -185,7 +185,7 @@ int apply_nonnegativity(float *A, long DimTotal)
 
 	return 1;
 }
-int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
+int calculate_norm(const float * A, const float * A_prev, float * re, long DimTotal)
 {
 
 	float re_temp = 0.0f;
@@ -196,11 +196,13 @@ int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
 		long i;
 		float re_local = 0.0f;
 		float re1_local = 0.0f;
+		float diff;
 
 #pragma omp for
 		for (i = 0; i < DimTotal; i++)
 		{
-			re_local += (A[i] - A_prev[i]) * (A[i] - A_prev[i]);
+			diff = A[i] - A_prev[i];
+			re_local += diff * diff;
 			re1_local += A[i] * A[i];
 		}
 
@@ -209,7 +211,6 @@ int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
 
 #pragma omp atomic
 		re1_temp += re1_local;
-
 	}
 
 	*re = sqrtf(re_temp) / sqrtf(re1_temp);
@@ -217,11 +218,11 @@ int calculate_norm(float * A, float * A_prev, float * re, long DimTotal)
 	return 1;
 }
 
-static inline float FD(long index, float *D, long stride)
+static inline float FD(long index, const float *D, long stride)
 {
 	return D[index] - D[index + stride];
 }
-int Grad_func(float *P1, float *P2, float *D, float *R1, float *R2, float lambda,  long dimX, long dimY)
+int Grad_func(float *P1, float *P2, const float *D, const float *R1, const float *R2, float lambda,  long dimX, long dimY)
 {
 	float multip = (1.0f / (8.0f*lambda));
 
@@ -258,11 +259,7 @@ int Grad_func(float *P1, float *P2, float *D, float *R1, float *R2, float lambda
 
 	return 1;
 }
-
-
-
-
-int Grad_func(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
+int Grad_func(float *P1, float *P2, float *P3, const float *D, const float *R1, const float *R2, const float *R3, float lambda, long dimX, long dimY, long dimZ)
 {
 	float multip = (1.0f / (12.0f*lambda));
 
@@ -343,79 +340,78 @@ int Grad_func(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, f
 
 	return 1;
 }
-int Rupd_func(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal)
+int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal)
 {
-	float multip = ((tk - 1.0f) / tkp1);
 
-#pragma omp parallel
+	float multip = ((tk - 1.0f) / tkp1);
+	float mulip_inv = 1 - multip;
+	long i;
+
+#pragma omp parallel for private(i)
+	for (i = 0; i < DimTotal; i++)
 	{
-		long i;
-#pragma omp parallel for
-		for (i = 0; i < DimTotal; i++)
-		{
-			R1[i] = P1[i] + multip * (P1[i] - P1_old[i]);
-			R2[i] = P2[i] + multip * (P2[i] - P2_old[i]);
-		}
+		R1[i] = P1[i] + multip * P1[i] + mulip_inv * P1_old[i];
+		R2[i] = P2[i] + multip * P2[i] + mulip_inv * P2_old[i];
 	}
+
 
 	return 1;
 }
-int Rupd_func(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
+int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float *P2_old, const float *P3, const float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
 {
 	float multip = ((tk - 1.0f) / tkp1);
+	float mulip_inv = 1 - multip;
+	long i;
 
-#pragma omp parallel
+#pragma omp parallel for private(i)
+	for (i = 0; i < DimTotal; i++)
 	{
-		long i;
-#pragma omp parallel for
-		for (i = 0; i < DimTotal; i++)
-		{
-			R1[i] = P1[i] + multip * (P1[i] - P1_old[i]);
-			R2[i] = P2[i] + multip * (P2[i] - P2_old[i]);
-			R3[i] = P3[i] + multip * (P3[i] - P3_old[i]);
-		}
+		R1[i] = P1[i] + multip * P1[i] + mulip_inv * P1_old[i];
+		R2[i] = P2[i] + multip * P2[i] + mulip_inv * P2_old[i];
+		R3[i] = P3[i] + multip * P3[i] + mulip_inv * P3_old[i];
 	}
+
 	return 1;
 }
 //inline functions for 2D boundary conditions
-static inline float value(long index, float *R1, float *R2, long dimX)
+static inline float value(long index, const float *R1, const float *R2, long dimX)
 {
 	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX]);
 }
-static inline float value_i0(long index, float *R1, float *R2, long dimX)
+static inline float value_i0(long index, const float *R1, const float *R2, long dimX)
 {
 	return (R1[index] + R2[index] - R2[index - dimX]);
 }
-static inline float value_i1(long index, float *R1, float *R2, long dimX)
+static inline float value_i1(long index, const float *R1, const float *R2, long dimX)
 {
 	return (-R1[index - 1] + R2[index] - R2[index - dimX]);
 }
-static inline float value_j0(long index, float *R1, float *R2, long dimX)
+static inline float value_j0(long index, const float *R1, const float *R2, long dimX)
 {
 	return (R1[index] - R1[index - 1] + R2[index]);
 }
-static inline float value_j1(long index, float *R1, float *R2, long dimX)
+static inline float value_j1(long index, const float *R1, const float *R2, long dimX)
 {
 	return (R1[index] - R1[index - 1] - R2[index - dimX]);
 }
-static inline float value_i0j0(long index, float *R1, float *R2, long dimX)
+static inline float value_i0j0(long index, const float *R1, const float *R2, long dimX)
 {
 	return (R1[index] + R2[index]);
 }
-static inline float value_i0j1(long index, float *R1, float *R2, long dimX)
+static inline float value_i0j1(long index, const float *R1, const float *R2, long dimX)
 {
 	return (R1[index] - R2[index - dimX]);
 }
-static inline float value_i1j0(long index, float *R1, float *R2, long dimX)
+static inline float value_i1j0(long index, const float *R1, const float *R2, long dimX)
 {
 	return (-R1[index - 1] + R2[index]);
 }
-static inline float value_i1j1(long index, float *R1, float *R2, long dimX)
+static inline float value_i1j1(long index, const float *R1, const float *R2, long dimX)
 {
 	return (-R1[index - 1] - R2[index - dimX]);
 }
 
-int Obj_func(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY)
+int Obj_func(const float *A, float *D, const float *R1, const float *R2, float lambda, long dimX, long dimY)
 {
 	long i, j, index;
 
@@ -470,117 +466,117 @@ int Obj_func(float *A, float *D, float *R1, float *R2, float lambda, long dimX, 
 }
 
 //inline functions for 3D bounday conditions
-static inline float value(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] + R2[index] - R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] + R2[index] - R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_j0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_j0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] + R2[index] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_j1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_j1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] - R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX] + R3[index]);
 }
-static inline float value_k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] + R2[index] - R2[index - dimX] - R3[index - dimX * dimY]);
 }
-static inline float value_i0j0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0j0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] + R2[index] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i0j1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0j1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i0k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] + R2[index] - R2[index - dimX] + R3[index]);
 }
-static inline float value_i0k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] + R2[index] - R2[index - dimX] - R3[index - dimX * dimY]);
 }
-static inline float value_i1j0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1j0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] + R2[index] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i1j1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1j1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] - R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i1k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] + R2[index] - R2[index - dimX] + R3[index]);
 }
-static inline float value_i1k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] + R2[index] - R2[index - dimX] + R3[index - dimX * dimY]);
 }
-static inline float value_j0k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_j0k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] + R2[index] + R3[index]);
 }
-static inline float value_j0k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_j0k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] + R2[index] - R3[index - dimX * dimY]);
 }
-static inline float value_j1k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_j1k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] - R2[index - dimX] + R3[index]);
 }
-static inline float value_j1k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_j1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R1[index - 1] - R2[index - dimX] + R3[index - dimX * dimY]);
 }
-static inline float value_i0j0k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0j0k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] + R2[index] - R3[index]);
 }
-static inline float value_i0j0k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0j0k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] + R2[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i0j1k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0j1k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R2[index - dimX] + R3[index]);
 }
-static inline float value_i0j1k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i0j1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (R1[index] - R2[index - dimX] - R3[index - dimX * dimY]);
 }
-static inline float value_i1j0k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1j0k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] + R2[index] + R3[index]);
 }
-static inline float value_i1j0k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1j0k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] + R2[index] - R3[index - dimX * dimY]);
 }
-static inline float value_i1j1k0(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1j1k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R1[index - 1] - R2[index - dimX] + R3[index]);
 }
-static inline float value_i1j1k1(long index, float *R1, float *R2, float * R3, long dimX, long dimY)
+static inline float value_i1j1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
 	return (-R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
 }
 
 
-int Obj_func(float *A, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
+int Obj_func(const float *A, float *D, const float *R1, const float *R2, const float *R3, float lambda, long dimX, long dimY, long dimZ)
 {
 
 	long i, j, k, index;

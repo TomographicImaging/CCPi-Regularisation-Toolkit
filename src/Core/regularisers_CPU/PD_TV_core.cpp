@@ -76,7 +76,7 @@ float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (U[j] < 0.0f) U[j] = 0.0f;}
 
             /* projection step */
-            Proj_func2D(P1, P2, methodTV, DimTotal);
+            Proj_func(P1, P2, methodTV, DimTotal);
 
             /* copy U to U_old */
             copyIm(U, U_old, (long)(dimX), (long)(dimY), 1l);
@@ -120,7 +120,7 @@ float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
             if (nonneg == 1) for(j=0; j<DimTotal; j++) {if (U[j] < 0.0f) U[j] = 0.0f;}
 
             /* projection step */
-            Proj_func3D(P1, P2, P3, methodTV, DimTotal);
+            Proj_func(P1, P2, P3, methodTV, DimTotal);
 
             /* copy U to U_old */
             copyIm(U, U_old, (long)(dimX), (long)(dimY), (long)(dimZ));

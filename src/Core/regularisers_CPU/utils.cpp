@@ -146,7 +146,7 @@ float Im_scale2D(float *Input, float *Scaled, int w, int h, int w2, int h2)
 }
 
 /*2D Projection onto convex set for P (called in PD_TV, FGP_dTV and FGP_TV methods)*/
-float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
+float Proj_func(float *P1, float *P2, int methTV, long DimTotal)
 {
     float val1, val2, denom, sq_denom;
     long i;
@@ -154,7 +154,7 @@ float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
         /* isotropic TV*/
 #pragma omp parallel for shared(P1,P2) private(i,denom,sq_denom)
         for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) +  powf(P2[i],2);
+            denom = P1[i] * P1[i] + P2[i] * P2[i];
             if (denom > 1.0f) {
                 sq_denom = 1.0f/sqrtf(denom);
                 P1[i] = P1[i]*sq_denom;
@@ -177,7 +177,7 @@ float Proj_func2D(float *P1, float *P2, int methTV, long DimTotal)
     return 1;
 }
 /*3D Projection onto convex set for P (called in PD_TV, FGP_TV, FGP_dTV methods)*/
-float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal)
+float Proj_func(float *P1, float *P2, float *P3, int methTV, long DimTotal)
 {
     float val1, val2, val3, denom, sq_denom;
     long i;
@@ -185,7 +185,7 @@ float Proj_func3D(float *P1, float *P2, float *P3, int methTV, long DimTotal)
         /* isotropic TV*/
 #pragma omp parallel for shared(P1,P2,P3) private(i,val1,val2,val3,sq_denom)
         for(i=0; i<DimTotal; i++) {
-            denom = powf(P1[i],2) + powf(P2[i],2) + powf(P3[i],2);
+			denom = P1[i] * P1[i] + P2[i] * P2[i] + P3[i] * P3[i];
             if (denom > 1.0f) {
                 sq_denom = 1.0f/sqrtf(denom);
                 P1[i] = P1[i]*sq_denom;

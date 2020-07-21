@@ -27,6 +27,7 @@ find_package(OpenMP REQUIRED)
 # add_definitions(${OpenMP_C_FLAGS})
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0") 
   set (OpenMP_EXE_LINKER_FLAGS OpenMP::OpenMP_C)
+  set (OpenMP_EXE_LINKER_FLAGS OpenMP::OpenMP_CXX)
 else()
   message(WARNING "Your CMake version is old. OpenMP linking flags  might be incorrect.")
   # need to explicitly set this. Definitely for gcc, hopefully also for other systems.

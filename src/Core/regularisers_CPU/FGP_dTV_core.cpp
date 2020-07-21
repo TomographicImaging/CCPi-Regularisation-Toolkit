@@ -89,7 +89,7 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
             Grad_dfunc2D(P1, P2, Output, R1, R2, InputRef_x, InputRef_y, lambdaPar, (long)(dimX), (long)(dimY));
 
             /* projection step */
-            Proj_func2D(P1, P2, methodTV, DimTotal);
+            Proj_func(P1, P2, methodTV, DimTotal);
 
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;
@@ -143,7 +143,7 @@ float dTV_FGP_CPU_main(float *Input, float *InputRef, float *Output, float *info
             Grad_dfunc3D(P1, P2, P3, Output, R1, R2, R3, InputRef_x, InputRef_y, InputRef_z, lambdaPar, (long)(dimX), (long)(dimY), (long)(dimZ));
 
             /* projection step */
-            Proj_func3D(P1, P2, P3, methodTV, DimTotal);
+            Proj_func(P1, P2, P3, methodTV, DimTotal);
 
             /*updating R and t*/
             tkp1 = (1.0f + sqrt(1.0f + 4.0f*tk*tk))*0.5f;

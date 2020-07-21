@@ -46,18 +46,19 @@ limitations under the License.
  */
 
 int apply_nonnegativity(float *A, long DimTotal);
-int calculate_norm(float * A, float * A_prev, float * re, long DimTotal);
-int Grad_func(float *P1, float *P2, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
-int Grad_func(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ);
-int Rupd_func(float *P1, float *P1_old, float *P2, float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal);
-int Rupd_func(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal);
-int Obj_func(float *A, float *D, float *R1, float *R2, float lambda, long dimX, long dimY);
-int Obj_func(float *A, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ);
+int calculate_norm(const float * A, const float * A_prev, float * re, long DimTotal);
+int Grad_func(float *P1, float *P2, const float *D, const float *R1, const float *R2, float lambda, long dimX, long dimY);
+int Grad_func(float *P1, float *P2, float *P3, const float *D, const float *R1, const float *R2, const float *R3, float lambda, long dimX, long dimY, long dimZ);
+int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float *P2_old, float *R1, float *R2, float tkp1, float tk, long DimTotal);
+int Rupd_func(const float *P1, const float *P1_old, const float *P2, const float *P2_old, const float *P3, const float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal);
+int Obj_func(const float *A, float *D, const float *R1, const float *R2, float lambda, long dimX, long dimY);
+int Obj_func(const float *A, float *D, const float *R1, const float *R2, const float *R3, float lambda, long dimX, long dimY, long dimZ);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-CCPI_EXPORT float TV_FGP_CPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
+
+CCPI_EXPORT float TV_FGP_CPU(const float *Input, float *Output, float *infovector, float lambdaPar, int iterationsNumb, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ);
 
 #ifdef __cplusplus
 }
