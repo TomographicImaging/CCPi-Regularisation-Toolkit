@@ -276,7 +276,7 @@ int Grad_func(float *P1, float *P2, float *P3, const float *D, const float *R1, 
 			{
 				P1[index] = R1[index] + multip * FD(index, D, 1);
 				P2[index] = R2[index] + multip * FD(index, D, dimX);
-				P3[index] = R2[index] + multip * FD(index, D, dimX*dimY);
+				P3[index] = R3[index] + multip * FD(index, D, dimX*dimY);
 				index++;
 			}
 
@@ -523,7 +523,7 @@ static inline float value_i1k0(long index, const float *R1, const float *R2, con
 }
 static inline float value_i1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
-	return (-R1[index - 1] + R2[index] - R2[index - dimX] + R3[index - dimX * dimY]);
+	return (-R1[index - 1] + R2[index] - R2[index - dimX] - R3[index - dimX * dimY]);
 }
 static inline float value_j0k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
@@ -539,11 +539,11 @@ static inline float value_j1k0(long index, const float *R1, const float *R2, con
 }
 static inline float value_j1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
-	return (R1[index] - R1[index - 1] - R2[index - dimX] + R3[index - dimX * dimY]);
+	return (R1[index] - R1[index - 1] - R2[index - dimX] - R3[index - dimX * dimY]);
 }
 static inline float value_i0j0k0(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
-	return (R1[index] + R2[index] - R3[index]);
+	return (R1[index] + R2[index] + R3[index]);
 }
 static inline float value_i0j0k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
@@ -571,7 +571,7 @@ static inline float value_i1j1k0(long index, const float *R1, const float *R2, c
 }
 static inline float value_i1j1k1(long index, const float *R1, const float *R2, const float * R3, long dimX, long dimY)
 {
-	return (-R2[index - dimX] + R3[index] - R3[index - dimX * dimY]);
+	return (-R1[index - 1] - R2[index - dimX]- R3[index - dimX * dimY]);
 }
 
 
