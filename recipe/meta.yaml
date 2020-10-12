@@ -3,6 +3,7 @@ package:
   version: {{CIL_VERSION}}
 
 build:
+  skip: True # [py==38 and np==115]
   preserve_egg_dir: False
   number: 0
   script_env:
@@ -11,9 +12,6 @@ build:
 test:
   source_files:
     - ./test/
-#  requires:
-#    - pillow
-#    - pillow=4.1.1 # [win]
   commands:
     - python -c "import os; print (os.getcwd())"
     - python -m unittest discover -s test
@@ -23,19 +21,14 @@ requirements:
     - numpy {{ numpy }}
     - setuptools
     - cython
-    - vc 14 # [win and py36]
-    - vc 14 # [win and py35]
-    - vc 9  # [win and py27]
+    - vc 14 # [win]
     - cmake
     - ripgrep
 
   run:
-    - {{ pin_compatible('numpy', max_pin='x.x') }}
+    - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
     - python
-    - numpy
-    - vc 14 # [win and py36]
-    - vc 14 # [win and py35]
-    - vc 9  # [win and py27]
+    - vc 14 # [win]
     - libgcc-ng # [unix]
 
 about:
