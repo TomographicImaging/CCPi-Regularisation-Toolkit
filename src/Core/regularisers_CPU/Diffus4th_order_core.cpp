@@ -51,9 +51,9 @@ float Diffus4th_CPU_main(float *Input, float *Output, float *infovector, float l
     sigmaPar2 = sigmaPar*sigmaPar;
     DimTotal =  dimX*dimY*dimZ;
     
-    W_Lapl = calloc(DimTotal, sizeof(float));
+    W_Lapl = (float*)calloc(DimTotal, sizeof(float));
     
-    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
+    if (epsil != 0.0f) Output_prev = (float*)calloc(DimTotal, sizeof(float));
     
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));

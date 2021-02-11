@@ -61,7 +61,7 @@ float Diffusion_CPU_main(float *Input, float *Output, float *infovector, float l
     int count = 0;
     DimTotal = (long)(dimX*dimY*dimZ);
 
-    if (epsil != 0.0f) Output_prev = calloc(DimTotal, sizeof(float));
+    if (epsil != 0.0f) Output_prev = (float*)calloc(DimTotal, sizeof(float));
 
     /* copy into output */
     copyIm(Input, Output, (long)(dimX), (long)(dimY), (long)(dimZ));

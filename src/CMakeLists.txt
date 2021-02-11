@@ -32,6 +32,7 @@ else()
   # need to explicitly set this. Definitely for gcc, hopefully also for other systems.
   # See https://gitlab.kitware.com/cmake/cmake/issues/15392
   set (OpenMP_EXE_LINKER_FLAGS ${OpenMP_C_FLAGS})
+  set (OpenMP_EXE_LINKER_FLAGS OpenMP::OpenMP_CXX)
 endif()
 
 add_subdirectory(Core)

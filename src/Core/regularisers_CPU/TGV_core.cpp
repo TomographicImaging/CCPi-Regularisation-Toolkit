@@ -55,19 +55,19 @@ float TGV_main(float *U0, float *U, float *infovector, float lambda, float alpha
     sigma = pow(L2,-0.5);
     
     /* dual variables */
-    P1 = calloc(DimTotal, sizeof(float));
-    P2 = calloc(DimTotal, sizeof(float));
+    P1 = (float*)calloc(DimTotal, sizeof(float));
+    P2 = (float*)calloc(DimTotal, sizeof(float));
     
-    Q1 = calloc(DimTotal, sizeof(float));
-    Q2 = calloc(DimTotal, sizeof(float));
-    Q3 = calloc(DimTotal, sizeof(float));
+    Q1 = (float*)calloc(DimTotal, sizeof(float));
+    Q2 = (float*)calloc(DimTotal, sizeof(float));
+    Q3 = (float*)calloc(DimTotal, sizeof(float));
     
-    U_old = calloc(DimTotal, sizeof(float));
+    U_old = (float*)calloc(DimTotal, sizeof(float));
     
-    V1 = calloc(DimTotal, sizeof(float));
-    V1_old = calloc(DimTotal, sizeof(float));
-    V2 = calloc(DimTotal, sizeof(float));
-    V2_old = calloc(DimTotal, sizeof(float));
+    V1 = (float*)calloc(DimTotal, sizeof(float));
+    V1_old = (float*)calloc(DimTotal, sizeof(float));
+    V2 = (float*)calloc(DimTotal, sizeof(float));
+    V2_old = (float*)calloc(DimTotal, sizeof(float));
     
     if (dimZ == 1) {
         /*2D case*/
@@ -125,12 +125,12 @@ float TGV_main(float *U0, float *U, float *infovector, float lambda, float alpha
         /*3D case*/
         float *P3, *Q4, *Q5, *Q6, *V3, *V3_old;
         
-        P3 = calloc(DimTotal, sizeof(float));
-        Q4 = calloc(DimTotal, sizeof(float));
-        Q5 = calloc(DimTotal, sizeof(float));
-        Q6 = calloc(DimTotal, sizeof(float));
-        V3 = calloc(DimTotal, sizeof(float));
-        V3_old = calloc(DimTotal, sizeof(float));
+        P3 = (float*)calloc(DimTotal, sizeof(float));
+        Q4 = (float*)calloc(DimTotal, sizeof(float));
+        Q5 = (float*)calloc(DimTotal, sizeof(float));
+        Q6 = (float*)calloc(DimTotal, sizeof(float));
+        V3 = (float*)calloc(DimTotal, sizeof(float));
+        V3_old = (float*)calloc(DimTotal, sizeof(float));
         
         /* Primal-dual iterations begin here */
         for(ll = 0; ll < iter; ll++) {
