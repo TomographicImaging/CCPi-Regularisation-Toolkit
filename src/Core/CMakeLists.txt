@@ -54,6 +54,7 @@ add_library(cilreg SHARED
       ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Nonlocal_TV_core.cpp
       ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/PatchSelect_core.cpp
 	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/utils.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/Gradient_calculations.cpp
 	    )
 target_link_libraries(cilreg ${OpenMP_EXE_LINKER_FLAGS} ${EXTRA_LIBRARIES})
 include_directories(cilreg PUBLIC

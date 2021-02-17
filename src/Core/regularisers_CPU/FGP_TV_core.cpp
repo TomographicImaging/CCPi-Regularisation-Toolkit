@@ -18,7 +18,7 @@
  */
 
 #include "FGP_TV_core.h"
-
+#include <Gradient_calculations.h>
 /* C-OMP implementation of FGP-TV [1] denoising/regularization model (2D/3D case)
  *
  * Input Parameters:
@@ -236,24 +236,31 @@ float Obj_func3D(float *A, float *D, float *R1, float *R2, float *R3, float lamb
 }
 float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
 {
-    float val1, val2, val3, multip;
-    long i,j,k, index;
-    multip = (1.0f/(26.0f*lambda));
-#pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
-    for(k=0; k<dimZ; k++) {
-        for(j=0; j<dimY; j++) {
-            for(i=0; i<dimX; i++) {
-                index = (dimX*dimY)*k + j*dimX+i;
-                /* boundary conditions */
-                if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[(dimX*dimY)*k + j*dimX + (i+1)];
-                if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(dimX*dimY)*k + (j+1)*dimX + i];
-                if (k == dimZ-1) val3 = 0.0f; else val3 = D[index] - D[(dimX*dimY)*(k+1) + j*dimX + i];
-                P1[index] = R1[index] + multip*val1;
-                P2[index] = R2[index] + multip*val2;
-                P3[index] = R3[index] + multip*val3;
-            }}}
-    return 1;
+	func_3D grad = func_3D(P1, P2, P3, D, R1, R2, R3, lambda, dimX, dimY, dimZ);
+	gradient_foward<func_3D>(&grad);
+
+	return 1;
 }
+//float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R2, float *R3, float lambda, long dimX, long dimY, long dimZ)
+//{
+//    float val1, val2, val3, multip;
+//    long i,j,k, index;
+//    multip = (1.0f/(26.0f*lambda));
+//#pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
+//    for(k=0; k<dimZ; k++) {
+//        for(j=0; j<dimY; j++) {
+//            for(i=0; i<dimX; i++) {
+//                index = (dimX*dimY)*k + j*dimX+i;
+//                /* boundary conditions */
+//                if (i == dimX-1) val1 = 0.0f; else val1 = D[index] - D[(dimX*dimY)*k + j*dimX + (i+1)];
+//                if (j == dimY-1) val2 = 0.0f; else val2 = D[index] - D[(dimX*dimY)*k + (j+1)*dimX + i];
+//                if (k == dimZ-1) val3 = 0.0f; else val3 = D[index] - D[(dimX*dimY)*(k+1) + j*dimX + i];
+//                P1[index] = R1[index] + multip*val1;
+//                P2[index] = R2[index] + multip*val2;
+//                P3[index] = R3[index] + multip*val3;
+//            }}}
+//    return 1;
+//}
 float Rupd_func3D(float *P1, float *P1_old, float *P2, float *P2_old, float *P3, float *P3_old, float *R1, float *R2, float *R3, float tkp1, float tk, long DimTotal)
 {
     long i;
