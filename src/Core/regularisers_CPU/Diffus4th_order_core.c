@@ -117,10 +117,10 @@ float Weighted_Laplc2D(float *W_Lapl, float *U0, float sigma, long dimX, long di
             index = j*dimX+i;
             
             gradX = 0.5f*(U0[j*dimX+i2] - U0[j*dimX+i1]);
-            gradX_sq = pow(gradX,2);
+            gradX_sq = gradX*gradX;
             
             gradY = 0.5f*(U0[j2*dimX+i] - U0[j1*dimX+i]);
-            gradY_sq = pow(gradY,2);
+            gradY_sq = gradY*gradY;
             
             gradXX = U0[j*dimX+i2] + U0[j*dimX+i1] - 2*U0[index];
             gradYY = U0[j2*dimX+i] + U0[j1*dimX+i] - 2*U0[index];
@@ -195,13 +195,13 @@ float Weighted_Laplc3D(float *W_Lapl, float *U0, float sigma, long dimX, long di
                 index = (dimX*dimY)*k + j*dimX+i;
                 
                 gradX = 0.5f*(U0[(dimX*dimY)*k + j*dimX+i2] - U0[(dimX*dimY)*k + j*dimX+i1]);
-                gradX_sq = pow(gradX,2);
+                gradX_sq = gradX*gradX;
                 
                 gradY = 0.5f*(U0[(dimX*dimY)*k + j2*dimX+i] - U0[(dimX*dimY)*k + j1*dimX+i]);
-                gradY_sq = pow(gradY,2);
+                gradY_sq = gradY*gradY;
                 
                 gradZ = 0.5f*(U0[(dimX*dimY)*k2 + j*dimX+i] - U0[(dimX*dimY)*k1 + j*dimX+i]);
-                gradZ_sq = pow(gradZ,2);
+                gradZ_sq = gradZ*gradZ;
                 
                 gradXX = U0[(dimX*dimY)*k + j*dimX+i2] + U0[(dimX*dimY)*k + j*dimX+i1] - 2*U0[index];
                 gradYY = U0[(dimX*dimY)*k + j2*dimX+i] + U0[(dimX*dimY)*k + j1*dimX+i] - 2*U0[index];

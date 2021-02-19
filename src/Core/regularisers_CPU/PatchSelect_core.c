@@ -72,7 +72,7 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
         counterG = 0;
         for(i=-SimilarWin; i<=SimilarWin; i++) {
             for(j=-SimilarWin; j<=SimilarWin; j++) {
-                Eucl_Vec[counterG] = (float)exp(-(pow(((float) i), 2) + pow(((float) j), 2))/(2*SimilarWin*SimilarWin));
+                Eucl_Vec[counterG] = expf(-(i*i+j*j)/(2.0f*SimilarWin*SimilarWin));
                 counterG++;
             }} /*main neighb loop */
         /* for each pixel store indeces of the most similar neighbours (patches) */
@@ -90,7 +90,7 @@ float PatchSelect_CPU_main(float *A, unsigned short *H_i, unsigned short *H_j, u
         for(i=-SimilarWin; i<=SimilarWin; i++) {
             for(j=-SimilarWin; j<=SimilarWin; j++) {
                 for(k=-SimilarWin; k<=SimilarWin; k++) {
-                    Eucl_Vec[counterG] = (float)exp(-(pow(((float) i), 2) + pow(((float) j), 2) + pow(((float) k), 2))/(2*SimilarWin*SimilarWin*SimilarWin));
+                    Eucl_Vec[counterG] = expf(-(i*i+j*j+k*k)/(2.0f*SimilarWin*SimilarWin*SimilarWin));
                     counterG++;
                 }}} /*main neighb loop */
         
@@ -174,7 +174,7 @@ float Indeces2D(float *Aorig, unsigned short *H_i, unsigned short *H_j, float *W
 float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, float *Weights, long i, long j, long k, long dimY, long dimX, long dimZ, float *Eucl_Vec, int NumNeighb, int SearchWindow, int SimilarWin, float h2)
 {
     long i1, j1, k1, i_m, j_m, k_m, i_c, j_c, k_c, i2, j2, k2, i3, j3, k3, counter, x, y, index, sizeWin_tot, counterG;
-    float *Weight_Vec, normsum, temp;
+    float *Weight_Vec, normsum, temp, val;
     unsigned short *ind_i, *ind_j, *ind_k, temp_i, temp_j, temp_k;
     
     sizeWin_tot = (2*SearchWindow + 1)*(2*SearchWindow + 1)*(2*SearchWindow + 1);
@@ -204,7 +204,8 @@ float Indeces3D(float *Aorig, unsigned short *H_i, unsigned short *H_j, unsigned
                                 k3 = k + k_c;
                                 if (((i2 >= 0) && (i2 < dimX)) && ((j2 >= 0) && (j2 < dimY)) && ((k2 >= 0) && (k2 < dimZ))) {
                                     if (((i3 >= 0) && (i3 < dimX)) && ((j3 >= 0) && (j3 < dimY)) && ((k3 >= 0) && (k3 < dimZ))) {
-                                        normsum += Eucl_Vec[counterG]*pow(Aorig[(dimX*dimY*k3) + j3*dimX + (i3)] - Aorig[(dimX*dimY*k2) + j2*dimX + (i2)], 2);
+                                        val = Aorig[(dimX*dimY*k3) + j3*dimX + (i3)] - Aorig[(dimX*dimY*k2) + j2*dimX + (i2)];
+                                        normsum += Eucl_Vec[counterG]*val*val;
                                         counterG++;
                                     }}
                             }}}

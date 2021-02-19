@@ -222,7 +222,7 @@ float ProjP_2D(float *P1, float *P2, long dimX, long dimY, float alpha1)
     for(j=0; j<dimY; j++) {
         for(i=0; i<dimX; i++) {
             index = j*dimX+i;
-            grad_magn = (sqrtf(pow(P1[index],2) + pow(P2[index],2)))/alpha1;
+            grad_magn = (sqrtf(P1[index]*P1[index] + P2[index]*P2[index]))/alpha1;
             if (grad_magn > 1.0f) {
                 P1[index] /= grad_magn;
                 P2[index] /= grad_magn;
@@ -263,7 +263,7 @@ float ProjQ_2D(float *Q1, float *Q2, float *Q3, long dimX, long dimY, float alph
     for(j=0; j<dimY; j++) {
         for(i=0; i<dimX; i++) {
             index = j*dimX+i;
-            grad_magn = sqrtf(pow(Q1[index],2) + pow(Q2[index],2) + 2*pow(Q3[index],2));
+            grad_magn = sqrtf(Q1[index]*Q1[index] + Q2[index]*Q2[index] + 2*Q3[index]*Q3[index]);
             grad_magn = grad_magn/alpha0;
             if (grad_magn > 1.0f) {
                 Q1[index] /= grad_magn;
@@ -376,7 +376,7 @@ float ProjP_3D(float *P1, float *P2, float *P3, long dimX, long dimY, long dimZ,
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
-                grad_magn = (sqrtf(pow(P1[index],2) + pow(P2[index],2) + pow(P3[index],2)))/alpha1;
+                grad_magn = (sqrtf(P1[index]*P1[index] + P2[index]*P2[index]+ P3[index]*P3[index]))/alpha1;
                 if (grad_magn > 1.0f) {
                     P1[index] /= grad_magn;
                     P2[index] /= grad_magn;
@@ -431,7 +431,7 @@ float ProjQ_3D(float *Q1, float *Q2, float *Q3, float *Q4, float *Q5, float *Q6,
         for(j=0; j<dimY; j++) {
             for(i=0; i<dimX; i++) {
                 index = (dimX*dimY)*k + j*dimX+i;
-                grad_magn = sqrtf(pow(Q1[index],2) + pow(Q2[index],2) + pow(Q3[index],2) + 2.0f*pow(Q4[index],2) + 2.0f*pow(Q5[index],2) + 2.0f*pow(Q6[index],2));
+                grad_magn = sqrtf(Q1[index]*Q1[index] + Q2[index]*Q2[index] + Q3[index]*Q3[index] + 2.0f*Q4[index]*Q4[index] + 2.0f*Q5[index]*Q5[index] + 2.0f*Q6[index]*Q6[index]);
                 grad_magn = grad_magn/alpha0;
                 if (grad_magn > 1.0f) {
                     Q1[index] /= grad_magn;

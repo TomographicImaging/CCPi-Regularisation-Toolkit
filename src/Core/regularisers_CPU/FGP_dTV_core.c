@@ -189,6 +189,7 @@ float GradNorm_func2D(float *B, float *B_x, float *B_y, float eta, long dimX, lo
 {
     long i,j,index;
     float val1, val2, gradX, gradY, magn;
+    float eta_sq = eta*eta;
 #pragma omp parallel for shared(B, B_x, B_y) private(i,j,index,val1,val2,gradX,gradY,magn)
     for(j=0; j<dimY; j++) {
         for(i=0; i<dimX; i++) {
@@ -198,8 +199,8 @@ float GradNorm_func2D(float *B, float *B_x, float *B_y, float eta, long dimX, lo
             if (j == dimY-1) {val2 = 0.0f;} else {val2 = B[(j+1)*dimX + i];}
             gradX = val1 - B[index];
             gradY = val2 - B[index];
-            magn = pow(gradX,2) + pow(gradY,2);
-            magn = sqrt(magn + pow(eta,2)); /* the eta-smoothed gradients magnitude */
+            magn = gradX*gradX + gradY*gradY;
+            magn = sqrt(magn + eta_sq); /* the eta-smoothed gradients magnitude */
             B_x[index] = gradX/magn;
             B_y[index] = gradY/magn;
         }}
@@ -279,6 +280,7 @@ float GradNorm_func3D(float *B, float *B_x, float *B_y, float *B_z, float eta, l
 {
     long i, j, k, index;
     float val1, val2, val3, gradX, gradY, gradZ, magn;
+    float eta_sq = eta*eta;
 #pragma omp parallel for shared(B, B_x, B_y, B_z) private(i,j,k,index,val1,val2,val3,gradX,gradY,gradZ,magn)
     for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
@@ -294,8 +296,8 @@ float GradNorm_func3D(float *B, float *B_x, float *B_y, float *B_z, float eta, l
                 gradX = val1 - B[index];
                 gradY = val2 - B[index];
                 gradZ = val3 - B[index];
-                magn = pow(gradX,2) + pow(gradY,2) + pow(gradZ,2);
-                magn = sqrt(magn + pow(eta,2)); /* the eta-smoothed gradients magnitude */
+                magn = gradX*gradX + gradY*gradY + gradZ*gradZ;
+                magn = sqrt(magn + eta_sq); /* the eta-smoothed gradients magnitude */
                 B_x[index] = gradX/magn;
                 B_y[index] = gradY/magn;
                 B_z[index] = gradZ/magn;
