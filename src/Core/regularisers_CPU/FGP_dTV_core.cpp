@@ -18,7 +18,6 @@
  */
 
 #include "FGP_dTV_core.h"
-#include <Gradient_calculations.h>
 
 /* C-OMP implementation of FGP-dTV [1,2] denoising/regularization model (2D/3D case)
  * which employs structural similarity of the level sets of two images/volumes, see [1,2]
@@ -278,39 +277,31 @@ float Rupd_dfunc2D(float *P1, float *P1_old, float *P2, float *P2_old, float *R1
 /********************************************************************/
 float GradNorm_func3D(float *B, float *B_x, float *B_y, float *B_z, float eta, long dimX, long dimY, long dimZ)
 {
-	GradNorm_3D grad = GradNorm_3D(B, B_x, B_y, B_z, eta, dimX, dimY, dimZ);
-	gradient_foward<GradNorm_3D>(&grad);
+    long i, j, k, index;
+    float val1, val2, val3, gradX, gradY, gradZ, magn;
+#pragma omp parallel for shared(B, B_x, B_y, B_z) private(i,j,k,index,val1,val2,val3,gradX,gradY,gradZ,magn)
+    for(k=0; k<dimZ; k++) {
+        for(j=0; j<dimY; j++) {
+            for(i=0; i<dimX; i++) {
 
-	return 1;
+                index = (dimX*dimY)*k + j*dimX+i;
+
+                /* zero boundary conditions */
+                if (i == dimX-1) {val1 = 0.0f;} else {val1 = B[(dimX*dimY)*k + j*dimX+(i+1)];}
+                if (j == dimY-1) {val2 = 0.0f;} else {val2 = B[(dimX*dimY)*k + (j+1)*dimX+i];}
+                if (k == dimZ-1) {val3 = 0.0f;} else {val3 = B[(dimX*dimY)*(k+1) + (j)*dimX+i];}
+
+                gradX = val1 - B[index];
+                gradY = val2 - B[index];
+                gradZ = val3 - B[index];
+                magn = pow(gradX,2) + pow(gradY,2) + pow(gradZ,2);
+                magn = sqrt(magn + pow(eta,2)); /* the eta-smoothed gradients magnitude */
+                B_x[index] = gradX/magn;
+                B_y[index] = gradY/magn;
+                B_z[index] = gradZ/magn;
+            }}}
+    return 1;
 }
-
-//float GradNorm_func3D(float *B, float *B_x, float *B_y, float *B_z, float eta, long dimX, long dimY, long dimZ)
-//{
-//    long i, j, k, index;
-//    float val1, val2, val3, gradX, gradY, gradZ, magn;
-//#pragma omp parallel for shared(B, B_x, B_y, B_z) private(i,j,k,index,val1,val2,val3,gradX,gradY,gradZ,magn)
-//    for(k=0; k<dimZ; k++) {
-//        for(j=0; j<dimY; j++) {
-//            for(i=0; i<dimX; i++) {
-//
-//                index = (dimX*dimY)*k + j*dimX+i;
-//
-//                /* zero boundary conditions */
-//                if (i == dimX-1) {val1 = 0.0f;} else {val1 = B[(dimX*dimY)*k + j*dimX+(i+1)];}
-//                if (j == dimY-1) {val2 = 0.0f;} else {val2 = B[(dimX*dimY)*k + (j+1)*dimX+i];}
-//                if (k == dimZ-1) {val3 = 0.0f;} else {val3 = B[(dimX*dimY)*(k+1) + (j)*dimX+i];}
-//
-//                gradX = val1 - B[index];
-//                gradY = val2 - B[index];
-//                gradZ = val3 - B[index];
-//                magn = pow(gradX,2) + pow(gradY,2) + pow(gradZ,2);
-//                magn = sqrt(magn + pow(eta,2)); /* the eta-smoothed gradients magnitude */
-//                B_x[index] = gradX/magn;
-//                B_y[index] = gradY/magn;
-//                B_z[index] = gradZ/magn;
-//            }}}
-//    return 1;
-//}
 
 float ProjectVect_func3D(float *R1, float *R2, float *R3, float *B_x, float *B_y, float *B_z, long dimX, long dimY, long dimZ)
 {

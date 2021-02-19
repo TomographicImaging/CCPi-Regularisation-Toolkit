@@ -25,14 +25,30 @@ limitations under the License.
 /* C-OMP templated Gradient functions
  */
 
-//Templated function for foward gradient type loop set_outputulations
+#ifdef __cplusplus
+extern "C" {
+#endif
+	CCPI_EXPORT void Grad_func3D_v2(float *P1, float *P2, float *P3, const float *D, const float *R1, const float *R2, const float *R3, float lambda, long dimX, long dimY, long dimZ);
+	CCPI_EXPORT void GradNorm_func3D_v2(const float *B, float *B_x, float *B_y, float *B_z, float eta, long dimX, long dimY, long dimZ);
+	CCPI_EXPORT void Grad_func2D_v2(float *P1, float *P2, const float *D, const float *R1, const float *R2, float lambda, long dimX, long dimY);
+	CCPI_EXPORT void GradNorm_func2D_v2(const float *B, float *B_x, float *B_y, float eta, long dimX, long dimY);
+	CCPI_EXPORT void TV_energy3D_v2(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY, int dimZ);
+	CCPI_EXPORT void TV_energy2D_v2(float *U, float *U0, float *E_val, float lambda, int type, int dimX, int dimY);
+
+#ifdef __cplusplus
+}
+#endif
+
+//Templated function for looping over a volume with boundary conditions at N
 //inline functions must be difined in unique class
 template <class T>
-void gradient_foward(T *grad)
+void gradient_direct_foward_3D(T *grad)
 {
 	long dimX = grad->get_dimX();
 	long dimY = grad->get_dimY();
 	long dimZ = grad->get_dimZ();
+	long slice = dimX * dimY;
+	long vol = slice * dimZ;
 
 	long i, j, k, index;
 	float val_x, val_y, val_z;
@@ -42,13 +58,13 @@ void gradient_foward(T *grad)
 #pragma omp parallel for private(i, j, index, val_x, val_y, val_z)
 		for (j = 0; j < dimY - 1; j++)
 		{
-			index = k * dimX * dimY + j * dimX;
+			index = k * slice + j * dimX;
 			for (i = 0; i < dimX - 1; i++)
 			{
 				val_x = grad->get_val_x(index);
 				val_y = grad->get_val_y(index);
 				val_z = grad->get_val_z(index);
-				grad->set_output(index, val_x, val_y, val_z);
+				grad->set_output_3D(index, val_x, val_y, val_z);
 
 				index++;
 			}
@@ -56,61 +72,102 @@ void gradient_foward(T *grad)
 			val_x = grad->get_val_x_bc(index);
 			val_y = grad->get_val_y(index);
 			val_z = grad->get_val_z(index);
-			grad->set_output(index, val_x, val_y, val_z);
+			grad->set_output_3D(index, val_x, val_y, val_z);
 		}
 
-		j = dimY - 1;
-		index = k * dimX * dimY + j * dimX;
+		index = k * slice + (dimY-1)*dimX;
 		for (i = 0; i < dimX - 1; i++)
 		{
 			val_x = grad->get_val_x(index);
 			val_y = grad->get_val_y_bc(index);
 			val_z = grad->get_val_z(index);
-			grad->set_output(index, val_x, val_y, val_z);
+			grad->set_output_3D(index, val_x, val_y, val_z);
 			index++;
 		}
 
 		val_x = grad->get_val_x_bc(index);
 		val_y = grad->get_val_y_bc(index);
 		val_z = grad->get_val_z(index);
-		grad->set_output(index, val_x, val_y, val_z);
+		grad->set_output_3D(index, val_x, val_y, val_z);
 	}
 
 	k = dimZ - 1;
 #pragma omp parallel for private(i, j, index)
 	for (j = 0; j < dimY - 1; j++)
 	{
-		index = k * dimX * dimY + j * dimX;
+		index = k * slice + j * dimX;
 		for (i = 0; i < dimX - 1; i++)
 		{
 			val_x = grad->get_val_x(index);
 			val_y = grad->get_val_y(index);
-			val_z = grad->get_val_z(index);
-			grad->set_output(index, val_x, val_y, val_z);
+			val_z = grad->get_val_z_bc(index);
+			grad->set_output_3D(index, val_x, val_y, val_z);
 			index++;
 		}
 
 		val_x = grad->get_val_x_bc(index);
 		val_y = grad->get_val_y(index);
 		val_z = grad->get_val_z_bc(index);
-		grad->set_output(index, val_x, val_y, val_z);
+		grad->set_output_3D(index, val_x, val_y, val_z);
 	}
 
-	j = dimY - 1;
-	index = k * dimX * dimY + j * dimX;
+	index = vol - dimX;
 	for (i = 0; i < dimX - 1; i++)
 	{
 		val_x = grad->get_val_x(index);
 		val_y = grad->get_val_y_bc(index);
 		val_z = grad->get_val_z_bc(index);
-		grad->set_output(index, val_x, val_y, val_z);
+		grad->set_output_3D(index, val_x, val_y, val_z);
 		index++;
 	}
 
 	val_x = grad->get_val_x_bc(index);
 	val_y = grad->get_val_y_bc(index);
 	val_z = grad->get_val_z_bc(index);
-	grad->set_output(index, val_x, val_y, val_z);
+	grad->set_output_3D(index, val_x, val_y, val_z);
+}
+//Templated function for looping over a volume with boundary conditions at N
+//inline functions must be difined in unique class
+template <class T>
+void gradient_direct_foward_2D(T *grad)
+{
+	long dimX = grad->get_dimX();
+	long dimY = grad->get_dimY();
+	long slice = dimX * dimY;
+
+	long i, j, index;
+	float val_x, val_y;
+
+#pragma omp parallel for private(i, j, index, val_x, val_y)
+	for (j = 0; j < dimY - 1; j++)
+	{
+		index = j * dimX;
+		for (i = 0; i < dimX - 1; i++)
+		{
+			val_x = grad->get_val_x(index);
+			val_y = grad->get_val_y(index);
+			grad->set_output_2D(index, val_x, val_y);
+
+			index++;
+		}
+
+		val_x = grad->get_val_x_bc(index);
+		val_y = grad->get_val_y(index);
+		grad->set_output_2D(index, val_x, val_y);
+	}
+
+	index = slice - dimX;
+	for (i = 0; i < dimX - 1; i++)
+	{
+		val_x = grad->get_val_x(index);
+		val_y = grad->get_val_y_bc(index);
+		grad->set_output_2D(index, val_x, val_y);
+		index++;
+	}
+
+	val_x = grad->get_val_x_bc(index);
+	val_y = grad->get_val_y_bc(index);
+	grad->set_output_2D(index, val_x, val_y);
 }
 
 class base_gradient
@@ -141,7 +198,7 @@ public:
 	}
 };
 
-class func_3D : public base_gradient
+class func : public base_gradient
 {
 private:
 	float * m_P1;
@@ -155,7 +212,12 @@ private:
 
 
 public:
-	inline void set_output(long index, float val_x, float val_y, float val_z)
+	inline void set_output_2D(long index, float val_x, float val_y)
+	{
+		m_P1[index] = val_x;
+		m_P2[index] = val_y;
+	}
+	inline void set_output_3D(long index, float val_x, float val_y, float val_z)
 	{
 		m_P1[index] = val_x;
 		m_P2[index] = val_y;
@@ -185,13 +247,12 @@ public:
 	{
 		return m_R3[index];
 	}
-
-
-	func_3D::func_3D(float * P1, float * P2, float * P3, const float * D, const float * R1, const float * R2, const float * R3, float lambda, long dimX, long dimY, long dimZ)
+	func::func(float * P1, float * P2, float * P3, const float * D, const float * R1, const float * R2, const float * R3, float lambda, long dimX, long dimY, long dimZ)
 	{
 		m_dimX = dimX;
 		m_dimY = dimY;
 		m_dimZ = dimZ;
+		m_slice = dimX * dimY;
 
 		m_P1 = P1;
 		m_P2 = P2;
@@ -200,13 +261,25 @@ public:
 		m_R1 = R1;
 		m_R2 = R2;
 		m_R3 = R3;
-		m_multip = (1.0f / (12.0f*lambda));
+		m_multip = (1.0f / (26.0f*lambda)); //wrong for consistency
+		//m_multip = (1.0f / (12.0f*lambda)); //different to FGP_TV::Grad_func3D
 	}
+	func::func(float * P1, float * P2, const float * D, const float * R1, const float * R2, float lambda, long dimX, long dimY)
+	{
+		m_dimX = dimX;
+		m_dimY = dimY;
+		m_slice = dimX * dimY;
 
-	func_3D::~func_3D() {};
+		m_P1 = P1;
+		m_P2 = P2;
+		m_D = D;
+		m_R1 = R1;
+		m_R2 = R2;
+		m_multip = (1.0f / (8.0f*lambda));
+	}
 };
 
-class GradNorm_3D : public base_gradient
+class GradNorm : public base_gradient
 {
 private:
 	const float * m_B;
@@ -216,7 +289,15 @@ private:
 	float m_eta_sq;
 
 public:
-	inline void set_output(long index, float val_x, float val_y, float val_z)
+	inline void set_output_2D(long index, float val_x, float val_y)
+	{
+		float magn = val_x * val_x + val_y * val_y;
+		float magn_inv = 1.0f / sqrtf(magn + m_eta_sq);
+
+		m_Bx[index] = val_x * magn_inv;
+		m_By[index] = val_y * magn_inv;
+	}
+	inline void set_output_3D(long index, float val_x, float val_y, float val_z)
 	{
 		float magn = val_x * val_x + val_y * val_y + val_z * val_z;
 		float magn_inv = 1.0f / sqrtf(magn + m_eta_sq);
@@ -225,7 +306,6 @@ public:
 		m_By[index] = val_y * magn_inv;
 		m_Bz[index] = val_z * magn_inv;
 	}
-
 	inline float get_val_x(long index)
 	{
 		return -FowardDifference(m_B, index, 1);
@@ -251,7 +331,7 @@ public:
 		return -m_B[index];
 	}
 
-	GradNorm_3D::GradNorm_3D(const float *B, float *Bx, float *By, float *Bz, float eta, long dimX, long dimY, long dimZ)
+	GradNorm::GradNorm(const float *B, float *Bx, float *By, float *Bz, float eta, long dimX, long dimY, long dimZ)
 	{
 		m_dimX = dimX;
 		m_dimY = dimY;
@@ -264,8 +344,160 @@ public:
 		m_Bz = Bz;
 		m_eta_sq = eta * eta;
 	}
+	GradNorm::GradNorm(const float *B, float *Bx, float *By, float eta, long dimX, long dimY)
+	{
+		m_dimX = dimX;
+		m_dimY = dimY;
+		m_slice = dimX * dimY;
 
-	GradNorm_3D::~GradNorm_3D() {};
+		m_B = B;
+		m_Bx = Bx;
+		m_By = By;
+		m_eta_sq = eta * eta;
+	}
+};
+class TVenergy : public base_gradient
+{
+private:
+	const float *m_U;
+	const float *m_U0;
+	float *m_E_grad_arr;
+	float *m_E_data_arr;
+	float m_lambda_2;
+
+
+public:
+	inline void set_output_2D(long index, float val_x, float val_y)
+	{
+		float fid = m_U[index] - m_U0[index];
+		m_E_grad_arr[omp_get_thread_num()] += m_lambda_2*sqrtf(val_x * val_x + val_y * val_y);
+		m_E_data_arr[omp_get_thread_num()] += fid * fid;
+	}
+	inline void set_output_3D(long index, float val_x, float val_y, float val_z)
+	{
+		float fid = m_U[index] - m_U0[index];
+		m_E_grad_arr[omp_get_thread_num()] += m_lambda_2*sqrtf(val_x * val_x + val_y * val_y + val_z * val_z);
+		m_E_data_arr[omp_get_thread_num()] += fid * fid;
+	}
+	inline float get_val_x(long index)
+	{
+		return FowardDifference(m_U, index, 1);
+	}
+	inline float get_val_y(long index)
+	{
+		return FowardDifference(m_U, index, m_dimX);
+	}
+	inline float get_val_z(long index)
+	{
+		return FowardDifference(m_U, index, m_slice);
+	}
+	inline float get_val_x_bc(long index)
+	{
+		return 0.f;
+	}
+	inline float get_val_y_bc(long index)
+	{
+		return 0.f;
+	}
+	inline float get_val_z_bc(long index)
+	{
+		return 0.f;
+	}
+
+	TVenergy::TVenergy(const float *U, const float *U0, float *E_grad_arr, float *E_data_arr, float lambda, int dimX, int dimY, int dimZ)
+	{
+		m_U = U;
+		m_U0 = U0;
+		m_E_grad_arr = E_grad_arr;
+		m_E_data_arr = E_data_arr;
+		m_lambda_2 = lambda * 2.f;
+		m_dimX = dimX;
+		m_dimY = dimX;
+		m_dimZ = dimZ;
+
+	}
+	TVenergy::TVenergy(const float *U, const float *U0, float *E_grad_arr, float *E_data_arr, float lambda, int dimX, int dimY)
+	{
+		m_U = U;
+		m_U0 = U0;
+		m_E_grad_arr = E_grad_arr;
+		m_E_data_arr = E_data_arr;
+		m_lambda_2 = lambda * 2.f;
+		m_dimX = dimX;
+		m_dimY = dimX;
+	}
 };
 
+class dTVenergy : public base_gradient
+{
+private:
+	const float *m_U;
+	const float *m_U0;
+	float *m_E_grad_arr;
+	float *m_E_data_arr;
+	float m_lambda_2;
 
+public:
+	inline void set_output_2D(long index, float val_x, float val_y)
+	{
+		float fid = m_U[index] - m_U0[index];
+		m_E_grad_arr[omp_get_thread_num()] += m_lambda_2*sqrtf(val_x * val_x + val_y * val_y);
+		m_E_data_arr[omp_get_thread_num()] += fid * fid;
+	}
+	inline void set_output_3D(long index, float val_x, float val_y, float val_z)
+	{
+		float fid = m_U[index] - m_U0[index];
+		m_E_grad_arr[omp_get_thread_num()] += m_lambda_2*sqrtf(val_x * val_x + val_y * val_y + val_z * val_z);
+		m_E_data_arr[omp_get_thread_num()] += fid * fid;
+	}
+	inline float get_val_x(long index)
+	{
+		return FowardDifference(m_U, index, 1);
+	}
+	inline float get_val_y(long index)
+	{
+		return FowardDifference(m_U, index, m_dimX);
+	}
+	inline float get_val_z(long index)
+
+	{
+		return FowardDifference(m_U, index, m_slice);
+	}
+	inline float get_val_x_bc(long index)
+	{
+		return 0.f;
+	}
+	inline float get_val_y_bc(long index)
+	{
+		return 0.f;
+	}
+	inline float get_val_z_bc(long index)
+	{
+		return 0.f;
+	}
+
+	dTVenergy::dTVenergy(const float *U, const float *U0, float *E_grad_arr, float *E_data_arr, float lambda, int dimX, int dimY, int dimZ)
+	{
+		m_U = U;
+		m_U0 = U0;
+		m_E_grad_arr = E_grad_arr;
+		m_E_data_arr = E_data_arr;
+		m_lambda_2 = lambda * 2.f;
+		m_dimX = dimX;
+		m_dimY = dimX;
+		m_dimZ = dimZ;
+		m_slice = dimX * dimY;
+	}
+	dTVenergy::dTVenergy(const float *U, const float *U0, float *E_grad_arr, float *E_data_arr, float lambda, int dimX, int dimY)
+	{
+		m_U = U;
+		m_U0 = U0;
+		m_E_grad_arr = E_grad_arr;
+		m_E_data_arr = E_data_arr;
+		m_lambda_2 = lambda * 2.f;
+		m_dimX = dimX;
+		m_dimY = dimX;
+		m_slice = dimX * dimY;
+	}
+
+};
