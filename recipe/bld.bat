@@ -1,3 +1,8 @@
+IF NOT DEFINED CIL_VERSION (
+ECHO CIL_VERSION Not Defined.
+exit 1
+)
+
 mkdir "%SRC_DIR%\test"
 ROBOCOPY /E "%RECIPE_DIR%\..\test" "%SRC_DIR%\test"
 cd %SRC_DIR%
