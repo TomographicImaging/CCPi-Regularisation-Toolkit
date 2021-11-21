@@ -4,7 +4,7 @@ package:
 
 build:
   preserve_egg_dir: False
-  number: {{ GIT_DESCRIBE_NUMBER }}
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 test:
   source_files:
