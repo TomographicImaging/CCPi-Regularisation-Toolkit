@@ -4,7 +4,7 @@ package:
 
 build:
   preserve_egg_dir: False
-  number: 0
+  number: {{ GIT_DESCRIBE_NUMBER }}
   script_env:
     - CIL_VERSION
 
