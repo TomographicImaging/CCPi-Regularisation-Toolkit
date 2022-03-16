@@ -344,7 +344,7 @@ __global__ void FGPResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
+extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int gpu_device, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -359,6 +359,7 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
     float tk = 1.0f;
     float tkp1=1.0f;
 
+
     if (dimZ <= 1) {
 		/*2D verson*/
       int ImSize = dimX*dimY;
@@ -367,16 +368,17 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
       dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
       dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
 
+
 		/*allocate space for images on device*/
-       checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
-       checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
-		   if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P1_prev,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P2_prev,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&R2,ImSize*sizeof(float)) );
+         checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
+         checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
+  		   if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
+  		   checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
+  		    checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&P1_prev,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&P2_prev,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&R2,ImSize*sizeof(float)) );
 
         checkCudaErrors( cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
         cudaMemset(P1, 0, ImSize*sizeof(float));
