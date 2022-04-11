@@ -11,9 +11,7 @@ import os
 import tomophantom
 from tomophantom.supp.artifacts import _Artifacts_
 #from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
-import sys
-sys.path.append("..")
-from build_proj.install.python.ccpi.filters.regularisers import PD_TV
+from ccpi.filters.regularisers import PD_TV
 #import matplotlib.pyplot as plt
 
 
@@ -53,10 +51,10 @@ pars = {'algorithm' : PD_TV, \
         'nonneg': 1,
         'lipschitz_const' : 8}
 
-(pd_gpu,info_vec_gpu) = PD_TV(pars['input'], 
+(pd_gpu,info_vec_gpu) = PD_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
-              pars['tolerance_constant'], 
+              pars['tolerance_constant'],
               pars['methodTV'],
               pars['nonneg'],
               pars['lipschitz_const'],
