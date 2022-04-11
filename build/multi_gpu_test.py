@@ -11,7 +11,9 @@ import os
 import tomophantom
 from tomophantom.supp.artifacts import _Artifacts_
 #from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
-from ccpi.filters.regularisers import PD_TV
+import sys
+sys.path.append("..")
+from build_proj.install.python.ccpi.filters.regularisers import PD_TV
 #import matplotlib.pyplot as plt
 
 
@@ -40,7 +42,6 @@ phantom_3D_noisy += phantom_3D.copy()
 
 
 #%%
-from ccpi.filters.regularisers import PD_TV
 gpu_device = 0
 
 pars = {'algorithm' : PD_TV, \
