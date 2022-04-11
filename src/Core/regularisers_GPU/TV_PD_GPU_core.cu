@@ -331,6 +331,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
        fprintf(stderr, "No CUDA devices found\n");
        return -1;
    }
+   checkCudaErrors(cudaSetDevice(gpu_device));
 
    int count = 0, i;
    float re, sigma, theta, lt, tau;
@@ -343,7 +344,6 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
 
    if (dimZ <= 1) {
    /*2D verson*/
-     cudaSetDevice(gpu_device);
      int ImSize = dimX*dimY;
      float *d_input, *d_update, *d_old=NULL, *P1=NULL, *P2=NULL;
 
@@ -439,8 +439,6 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            dim3 dimBlock(BLKXSIZE,BLKYSIZE,BLKZSIZE);
            dim3 dimGrid(idivup(dimX,BLKXSIZE), idivup(dimY,BLKYSIZE),idivup(dimZ,BLKZSIZE));
 
-           cudaSetDevice(gpu_device);
-           if (gpu_device == 0) {
            /*allocate space for images on device*/
            checkCudaErrors( cudaMalloc((void**)&d_input0,ImSize*sizeof(float)) );
            checkCudaErrors( cudaMalloc((void**)&d_update0,ImSize*sizeof(float)) );
@@ -449,114 +447,43 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            checkCudaErrors( cudaMalloc((void**)&P2_0,ImSize*sizeof(float)) );
            checkCudaErrors( cudaMalloc((void**)&P3_0,ImSize*sizeof(float)) );
 
-            checkCudaErrors( cudaMemcpy(d_input0,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            checkCudaErrors( cudaMemcpy(d_update0,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            cudaMemset(P1_0, 0, ImSize*sizeof(float));
-            cudaMemset(P2_0, 0, ImSize*sizeof(float));
-            cudaMemset(P3_0, 0, ImSize*sizeof(float));
-            }
-
-           if (gpu_device == 1) {
-           /*allocate space for images on device*/
-           checkCudaErrors( cudaMalloc((void**)&d_input1,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&d_update1,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&d_old1,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P1_1,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P2_1,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P3_1,ImSize*sizeof(float)) );
-
-            checkCudaErrors( cudaMemcpy(d_input1,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            checkCudaErrors( cudaMemcpy(d_update1,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            cudaMemset(P1_1, 0, ImSize*sizeof(float));
-            cudaMemset(P2_1, 0, ImSize*sizeof(float));
-            cudaMemset(P3_1, 0, ImSize*sizeof(float));
-            }
-
-           if (gpu_device == 2) {
-           /*allocate space for images on device*/
-           checkCudaErrors( cudaMalloc((void**)&d_input2,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&d_update2,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&d_old2,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P1_2,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P2_2,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P3_2,ImSize*sizeof(float)) );
-
-            checkCudaErrors( cudaMemcpy(d_input2,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            checkCudaErrors( cudaMemcpy(d_update2,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            cudaMemset(P1_2, 0, ImSize*sizeof(float));
-            cudaMemset(P2_2, 0, ImSize*sizeof(float));
-            cudaMemset(P3_2, 0, ImSize*sizeof(float));
-            }
-           if (gpu_device == 3) {
-           /*allocate space for images on device*/
-           checkCudaErrors( cudaMalloc((void**)&d_input3,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&d_update3,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&d_old3,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P1_3,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P2_3,ImSize*sizeof(float)) );
-           checkCudaErrors( cudaMalloc((void**)&P3_3,ImSize*sizeof(float)) );
-
-            checkCudaErrors( cudaMemcpy(d_input3,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            checkCudaErrors( cudaMemcpy(d_update3,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-            cudaMemset(P1_3, 0, ImSize*sizeof(float));
-            cudaMemset(P2_3, 0, ImSize*sizeof(float));
-            cudaMemset(P3_3, 0, ImSize*sizeof(float));
-            }
-
+          checkCudaErrors( cudaMemcpy(d_input0,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+          checkCudaErrors( cudaMemcpy(d_update0,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+          cudaMemset(P1_0, 0, ImSize*sizeof(float));
+          cudaMemset(P2_0, 0, ImSize*sizeof(float));
+          cudaMemset(P3_0, 0, ImSize*sizeof(float));
 
            /********************** Run CUDA 3D kernel here ********************/
        for (i = 0; i < iter; i++) {
 
          /* computing the the dual P variable */
-          if (gpu_device == 0) dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update0, P1_0, P2_0, P3_0, sigma, dimX, dimY, dimZ);
-          if (gpu_device == 1) dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update1, P1_1, P2_1, P3_1, sigma, dimX, dimY, dimZ);
-          if (gpu_device == 2) dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update2, P1_2, P2_2, P3_2, sigma, dimX, dimY, dimZ);
-          if (gpu_device == 3) dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update3, P1_3, P2_3, P3_3, sigma, dimX, dimY, dimZ);
+         dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update0, P1_0, P2_0, P3_0, sigma, dimX, dimY, dimZ);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
-         if (nonneg != 0) {
-        if (gpu_device == 0) PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update0, dimX, dimY, dimZ, ImSize);
-        if (gpu_device == 1) PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update1, dimX, dimY, dimZ, ImSize);
-        if (gpu_device == 2) PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update2, dimX, dimY, dimZ, ImSize);
-        if (gpu_device == 3) PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update3, dimX, dimY, dimZ, ImSize);
+        if (nonneg != 0) {
+        PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update0, dimX, dimY, dimZ, ImSize);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() ); }
 
          /* projection step */
-         if (methodTV == 0) {
-          if (gpu_device == 0) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
-          if (gpu_device == 1) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_1, P2_1, P3_1, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
-          if (gpu_device == 2) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_2, P2_2, P3_2, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
-          if (gpu_device == 3) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_3, P2_3, P3_3, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
-          }
-         else {
-          if (gpu_device == 0) Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
-          if (gpu_device == 1) Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_1, P2_1, P3_1, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
-          if (gpu_device == 2) Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_2, P2_2, P3_2, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
-          if (gpu_device == 3) Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_3, P2_3, P3_3, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
-          }
+         if (methodTV == 0) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
+         else Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
          /* copy U to U_old */
-        if (gpu_device == 0) PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update0, d_old0, dimX, dimY, dimZ, ImSize);
-        if (gpu_device == 1) PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update1, d_old1, dimX, dimY, dimZ, ImSize);
-        if (gpu_device == 2) PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update2, d_old2, dimX, dimY, dimZ, ImSize);
-        if (gpu_device == 3) PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update3, d_old3, dimX, dimY, dimZ, ImSize);
+        PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update0, d_old0, dimX, dimY, dimZ, ImSize);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
          /* calculate divergence */
-        if (gpu_device == 0) DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_input0, P1_0, P2_0, P3_0, lt, tau, dimX, dimY, dimZ);
-        if (gpu_device == 1) DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update1, d_input1, P1_1, P2_1, P3_1, lt, tau, dimX, dimY, dimZ);
-        if (gpu_device == 2) DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update2, d_input2, P1_2, P2_2, P3_2, lt, tau, dimX, dimY, dimZ);
-        if (gpu_device == 3) DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update3, d_input3, P1_3, P2_3, P3_3, lt, tau, dimX, dimY, dimZ);
+         DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_input0, P1_0, P2_0, P3_0, lt, tau, dimX, dimY, dimZ);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
-         if (gpu_device == 0) {
-            if ((epsil != 0.0f) && (i % 5 == 0)) {
+
+          if ((epsil != 0.0f) && (i % 5 == 0)) {
            /* calculate norm - stopping rules using the Thrust library */
            PDResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, P1_0, dimX, dimY, dimZ, ImSize);
            checkCudaErrors( cudaDeviceSynchronize() );
@@ -575,18 +502,13 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
              if (re < epsil)  count++;
              if (count > 3) break;
              }
-          }
 
            /* get U*/
-          if (gpu_device == 0) getU3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, theta, dimX, dimY, dimZ, ImSize);
-          if (gpu_device == 1) getU3D_kernel<<<dimGrid,dimBlock>>>(d_update1, d_old1, theta, dimX, dimY, dimZ, ImSize);
-          if (gpu_device == 2) getU3D_kernel<<<dimGrid,dimBlock>>>(d_update2, d_old2, theta, dimX, dimY, dimZ, ImSize);
-          if (gpu_device == 3) getU3D_kernel<<<dimGrid,dimBlock>>>(d_update3, d_old3, theta, dimX, dimY, dimZ, ImSize);
+          getU3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, theta, dimX, dimY, dimZ, ImSize);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
          }
            /***************************************************************/
-           if (gpu_device == 0) {
            //copy result matrix from device to host memory
            cudaMemcpy(Output,d_update0,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
 
@@ -596,40 +518,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            cudaFree(P1_0);
            cudaFree(P2_0);
            cudaFree(P3_0);
-          }
-           if (gpu_device == 1) {
-           //copy result matrix from device to host memory
-           cudaMemcpy(Output,d_update1,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
 
-           cudaFree(d_input1);
-           cudaFree(d_update1);
-           cudaFree(d_old1);
-           cudaFree(P1_1);
-           cudaFree(P2_1);
-           cudaFree(P3_1);
-          }
-           if (gpu_device == 2) {
-           //copy result matrix from device to host memory
-           cudaMemcpy(Output,d_update2,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
-
-           cudaFree(d_input2);
-           cudaFree(d_update2);
-           cudaFree(d_old2);
-           cudaFree(P1_2);
-           cudaFree(P2_2);
-           cudaFree(P3_2);
-          }
-           if (gpu_device == 3) {
-           //copy result matrix from device to host memory
-           cudaMemcpy(Output,d_update3,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
-
-           cudaFree(d_input3);
-           cudaFree(d_update3);
-           cudaFree(d_old3);
-           cudaFree(P1_3);
-           cudaFree(P2_3);
-           cudaFree(P3_3);
-          }
    }
    //cudaDeviceReset();
    /*adding info into info_vector */

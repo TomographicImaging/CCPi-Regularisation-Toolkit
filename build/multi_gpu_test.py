@@ -38,14 +38,13 @@ phantom_3D_noisy += phantom_3D.copy()
 #plt.rcParams.update({'font.size': 21})
 #plt.imshow(phantom_3D_noisy[:,:,100], cmap="BuPu")
 
-
 #%%
 gpu_device = 0
 
 pars = {'algorithm' : PD_TV, \
-        'input' : phantom_3D_noisy[100,:,:],\
+        'input' : phantom_3D_noisy,\
         'regularisation_parameter':0.1, \
-        'number_of_iterations' :2000,\
+        'number_of_iterations' :1000,\
         'tolerance_constant':0.0,\
         'methodTV': 0 ,\
         'nonneg': 1,
@@ -59,7 +58,6 @@ pars = {'algorithm' : PD_TV, \
               pars['nonneg'],
               pars['lipschitz_const'],
               gpu_device)
-
 
 #plt.figure(2)
 #plt.rcParams.update({'font.size': 21})
