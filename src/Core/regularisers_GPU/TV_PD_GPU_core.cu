@@ -343,6 +343,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
 
    if (dimZ <= 1) {
    /*2D verson*/
+     cudaSetDevice(gpu_device);
      int ImSize = dimX*dimY;
      float *d_input, *d_update, *d_old=NULL, *P1=NULL, *P2=NULL;
 
