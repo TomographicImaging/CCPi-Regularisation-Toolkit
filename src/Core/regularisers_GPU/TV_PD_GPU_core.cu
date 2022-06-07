@@ -333,6 +333,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
        return -1;
    }
    checkCudaErrors(cudaSetDevice(gpu_device));
+   fprintf(stderr,"GPU device is set to: %d",gpu_device);
 
    int count = 0, i;
    float re, sigma, theta, lt, tau;
@@ -433,9 +434,6 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
 
            /* adapted to work with up to 4 GPU devices in parallel */
            float *d_input0, *d_update0, *d_old0=NULL, *P1_0=NULL, *P2_0=NULL, *P3_0=NULL;
-           float *d_input1, *d_update1, *d_old1=NULL, *P1_1=NULL, *P2_1=NULL, *P3_1=NULL;
-           float *d_input2, *d_update2, *d_old2=NULL, *P1_2=NULL, *P2_2=NULL, *P3_2=NULL;
-           float *d_input3, *d_update3, *d_old3=NULL, *P1_3=NULL, *P2_3=NULL, *P3_3=NULL;
 
            dim3 dimBlock(BLKXSIZE,BLKYSIZE,BLKZSIZE);
            dim3 dimGrid(idivup(dimX,BLKXSIZE), idivup(dimY,BLKYSIZE),idivup(dimZ,BLKZSIZE));
@@ -521,10 +519,10 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            cudaFree(P3_0);
 
    }
-   //cudaDeviceReset();
    /*adding info into info_vector */
    infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
    infovector[1] = re;  /* reached tolerance */
-   cudaDeviceSynchronize();
+   /*cudaDeviceSynchronize();*/
+   checkCudaErrors(cudaDeviceReset());
    return 0;
 }
