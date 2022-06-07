@@ -33,6 +33,7 @@ limitations under the License.
  * 5. lipschitz_const: convergence related parameter
  * 6. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 7. nonneg: 'nonnegativity (0 is OFF by default, 1 is ON)
+ * 8. GPU device number if for multigpu run (default 0)
 
  * Output:
  * [1] TV - Filtered/regularized image/volume

@@ -39,7 +39,7 @@ phantom_3D_noisy += phantom_3D.copy()
 #plt.imshow(phantom_3D_noisy[:,:,100], cmap="BuPu")
 
 #%%
-gpu_device = 0
+gpu_device = 1
 
 pars = {'algorithm' : PD_TV, \
         'input' : phantom_3D_noisy,\

@@ -12,18 +12,16 @@ except ImportError:
 
 def _set_gpu_device_index(device):
     GPUdevice_index = -1 # CPU executable
-    if device == 'gpu' and gpu_enabled:
-        GPUdevice_index = 0 # set to 0 GPU index by default
-    elif gpu_enabled:
-        try:
-            GPUdevice_index = int(device) # get a GPU index if integer is given
-            if GPUdevice_index > 7:
-                print('Multi GPU functionality is currently implemented for up to 4 devices')
-                return 0
-        except ValueError:
-            GPUdevice_index = -1 # set back to CPU
+    if gpu_enabled:
+        if device == 'gpu':
+            GPUdevice_index = 0 # set to 0 the GPU index by default
+        else:
+            try:
+                GPUdevice_index = int(device) # get the GPU index if the integer is given
+            except ValueError:
+                GPUdevice_index = 0 # roll back to default version
     else:
-        if not gpu_enabled and device == 'gpu':
+        if device == 'gpu':
             raise ValueError ('GPU is not available')
     return GPUdevice_index
 
