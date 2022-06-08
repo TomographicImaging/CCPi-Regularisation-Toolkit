@@ -32,6 +32,7 @@ limitations under the License.
  * 4. eplsilon: tolerance constant
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 6. nonneg: 'nonnegativity (0 is OFF by default)
+ * 7. GPU device number if for multigpu run (default 0)
  *
  * Output:
  * [1] Filtered/regularized image/volume
@@ -352,6 +353,7 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
         fprintf(stderr, "No CUDA devices found\n");
         return -1;
     }
+    checkCudaErrors(cudaSetDevice(gpu_device));
 
     int count = 0, i;
     float re, multip,multip2;
@@ -370,11 +372,11 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
 
 
 		/*allocate space for images on device*/
-         checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
-         checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
-  		   if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
-  		   checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
-  		    checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
+        checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
+        checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
+		    if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
+		    checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
+		    checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
   		  checkCudaErrors( cudaMalloc((void**)&P1_prev,ImSize*sizeof(float)) );
   		  checkCudaErrors( cudaMalloc((void**)&P2_prev,ImSize*sizeof(float)) );
   		  checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );

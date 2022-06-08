@@ -4,7 +4,7 @@
 |--------|-------------|-------------------|
 | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/) | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit-dev)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit-dev/) | ![conda version](https://anaconda.org/ccpi/ccpi-regulariser/badges/version.svg) ![conda last release](https://anaconda.org/ccpi/ccpi-regulariser/badges/latest_release_date.svg) [![conda platforms](https://anaconda.org/ccpi/ccpi-regulariser/badges/platforms.svg) ![conda dowloads](https://anaconda.org/ccpi/ccpi-regulariser/badges/downloads.svg)](https://anaconda.org/ccpi/ccpi-regulariser) |
 
-**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-Regularisation Toolkit (CCPi-RGL) toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided.**
+**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-Regularisation Toolkit (CCPi-RGL) toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided. Software also can be used by running in parallel across multiple GPU devices on a PC or a compute node of a cluster.**
 
 
 <div align="center">
@@ -96,7 +96,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 #### Python (conda-build)
 ```
-export CIL_VERSION=19.10.1 (Unix) / set CIL_VERSION=19.10 (Windows)
+export CIL_VERSION=`date +%Y.%m` (Unix) / set CIL_VERSION=19.10 (Windows)
 conda build recipe/ --numpy 1.15 --python 3.7
 conda install ccpi-regulariser=${CIL_VERSION} --use-local --force-reinstall # doesn't work?
 conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser=${CIL_VERSION} --force-reinstall # try this one
@@ -111,6 +111,13 @@ If passed `CONDA_BUILD=ON` the software will be installed by issuing `python set
 If passed `CONDA_BUILD=OFF` the software will be installed in the directory pointed by `${PYTHON_DEST_DIR}` which defaults to `${CMAKE_INSTALL_PREFIX}/python`. Therefore this directory should be added to the `PYTHONPATH`.
 
 If Python is not picked by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/python/executable`.
+
+### MultiGPU capability (to use in Python with mpi4py)
+The toolkit can be used by running in parallel across multiple GPU devices on a PC or a compute node of a cluster. In order to initiate a parallel on run on GPUs you will need an MPI library, such as, [mpi4py] (https://mpi4py.readthedocs.io/en/stable/) and at least two GPU devices. The demo script in the folder with demos and can be run with
+```
+mpirun -np 2 python multi_gpu.py -g -s -gpus 2
+```
+where `-np` sets the number of processes and `-gpus` defines the number of GPUs. 
 
 ### Matlab
 

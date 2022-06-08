@@ -20,7 +20,7 @@ cimport numpy as np
 
 CUDAErrorMessage = 'CUDA error'
 
-cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int N, int M, int Z);
+cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int gpu_device, int N, int M, int Z);
 cdef extern int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int gpu_device, int N, int M, int Z);
 cdef extern int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, int gpu_device, int dimX, int dimY, int dimZ);
 cdef extern int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int N, int M, int Z);
@@ -36,29 +36,30 @@ def TV_ROF_GPU(inputData,
                      regularisation_parameter,
                      iterations,
                      time_marching_parameter,
-                     tolerance_param):
+                     tolerance_param,
+                     gpu_device):
     if inputData.ndim == 2:
         return ROFTV2D(inputData,
                      regularisation_parameter,
                      iterations,
                      time_marching_parameter,
-                     tolerance_param)
+                     tolerance_param,
+                     gpu_device)
     elif inputData.ndim == 3:
         return ROFTV3D(inputData,
                      regularisation_parameter,
                      iterations,
                      time_marching_parameter,
-                     tolerance_param)
+                     tolerance_param,
+                     gpu_device)
 
 # Total-variation Fast-Gradient-Projection (FGP)
-def TV_FGP_GPU(inputData, regularisation_parameter, iterations,
-                     tolerance_param,
+def TV_FGP_GPU(inputData, regularisation_parameter, iterations, tolerance_param,
                      methodTV,
                      nonneg,
                      gpu_device):
     if inputData.ndim == 2:
-        return FGPTV2D(inputData, regularisation_parameter, iterations,
-                     tolerance_param,
+        return FGPTV2D(inputData, regularisation_parameter, iterations, tolerance_param,
                      methodTV,
                      nonneg,
                      gpu_device)
@@ -249,7 +250,8 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                      regularisation_parameter,
                      int iterations,
                      float time_marching_parameter,
-                     float tolerance_param):
+                     float tolerance_param,
+                     int gpu_device):
 
     cdef long dims[2]
     dims[0] = inputData.shape[0]
@@ -269,6 +271,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        iterations,
                        time_marching_parameter,
                        tolerance_param,
+                       gpu_device,
                        dims[1], dims[0], 1)==0):
                 return (outputData,infovec)
         else:
@@ -280,6 +283,7 @@ def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
                        iterations,
                        time_marching_parameter,
                        tolerance_param,
+                       gpu_device,
                        dims[1], dims[0], 1)==0):
             return (outputData,infovec)
         else:
@@ -289,7 +293,8 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                      regularisation_parameter,
                      int iterations,
                      float time_marching_parameter,
-                     float tolerance_param):
+                     float tolerance_param,
+                     int gpu_device):
 
     cdef long dims[3]
     dims[0] = inputData.shape[0]
@@ -311,6 +316,7 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        iterations,
                        time_marching_parameter,
                        tolerance_param,
+                       gpu_device,
                        dims[2], dims[1], dims[0])==0):
             return (outputData,infovec)
         else:
@@ -324,6 +330,7 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
                        iterations,
                        time_marching_parameter,
                        tolerance_param,
+                       gpu_device,
                        dims[2], dims[1], dims[0])==0):
             return (outputData,infovec)
         else:

@@ -31,7 +31,8 @@ limitations under the License.
 * 3. tau - marching step for explicit scheme, ~1 is recommended [REQUIRED]
 * 4. Number of iterations, for explicit scheme >= 150 is recommended  [REQUIRED]
 * 5. eplsilon: tolerance constant
-*
+* 6. GPU device number if for multigpu run (default 0)
+
 * Output:
 * [1] Regularised image/volume
 * [2] Information vector which contains [iteration no., reached tolerance]
@@ -346,7 +347,7 @@ __global__ void ROFResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 
 /////////////////////////////////////////////////
 ///////////////// HOST FUNCTION /////////////////
-extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int N, int M, int Z)
+extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int gpu_device, int N, int M, int Z)
 {
      int deviceCount = -1; // number of devices
      cudaGetDeviceCount(&deviceCount);
@@ -354,11 +355,13 @@ extern "C" int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, f
          fprintf(stderr, "No CUDA devices found\n");
           return -1;
       }
-        float re;
-        re = 0.0f;
-	int ImSize, count, n;
-	count = 0; n = 0;
-  float *d_input, *d_update, *d_D1, *d_D2, *d_update_prev=NULL, *lambdaPar_d=NULL;
+    checkCudaErrors(cudaSetDevice(gpu_device));
+
+    float re;
+    re = 0.0f;
+	  int ImSize, count, n;
+	  count = 0; n = 0;
+    float *d_input, *d_update, *d_D1, *d_D2, *d_update_prev=NULL, *lambdaPar_d=NULL;
 
 	if (Z == 0) Z = 1;
 	      ImSize = N*M*Z;

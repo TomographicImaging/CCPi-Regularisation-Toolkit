@@ -333,7 +333,6 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
        return -1;
    }
    checkCudaErrors(cudaSetDevice(gpu_device));
-   fprintf(stderr,"GPU device is set to: %d",gpu_device);
 
    int count = 0, i;
    float re, sigma, theta, lt, tau;

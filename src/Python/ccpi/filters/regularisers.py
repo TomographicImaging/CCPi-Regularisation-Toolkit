@@ -23,27 +23,27 @@ def _set_gpu_device_index(device):
     else:
         if device == 'gpu':
             raise ValueError ('GPU is not available')
+        else:
+            raise ValueError('Unknown device {0}. Expecting either cpu, gpu strings OR the gpu device integer'\
+                         .format(device))
     return GPUdevice_index
 
 def ROF_TV(inputData, regularisation_parameter, iterations,
-                     time_marching_parameter,tolerance_param, device='cpu'):
-    if device == 'cpu':
+                     time_marching_parameter, tolerance_param, device='cpu'):
+    GPUdevice_index = _set_gpu_device_index(device)
+    if GPUdevice_index == -1:
         return TV_ROF_CPU(inputData,
                      regularisation_parameter,
                      iterations,
                      time_marching_parameter,
                      tolerance_param)
-    elif device == 'gpu' and gpu_enabled:
+    else:
         return TV_ROF_GPU(inputData,
                      regularisation_parameter,
                      iterations,
                      time_marching_parameter,
-                     tolerance_param)
-    else:
-        if not gpu_enabled and device == 'gpu':
-            raise ValueError ('GPU is not available')
-        raise ValueError('Unknown device {0}. Expecting gpu or cpu'\
-                         .format(device))
+                     tolerance_param,
+                     GPUdevice_index)
 
 def FGP_TV(inputData, regularisation_parameter,iterations,
                      tolerance_param, methodTV, nonneg, device='cpu'):
