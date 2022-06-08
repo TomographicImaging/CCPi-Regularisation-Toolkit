@@ -11,7 +11,7 @@ except ImportError:
     gpu_enabled = False
 
 def _set_gpu_device_index(device):
-    GPUdevice_index = -1 # CPU executable
+    GPUdevice_index = -1 # CPU executable only
     if gpu_enabled:
         if device == 'gpu':
             GPUdevice_index = 0 # set to 0 the GPU index by default
@@ -23,6 +23,8 @@ def _set_gpu_device_index(device):
     else:
         if device == 'gpu':
             raise ValueError ('GPU is not available')
+        elif device == 'cpu':
+            GPUdevice_index = -1 # CPU executable only
         else:
             raise ValueError('Unknown device {0}. Expecting either cpu, gpu strings OR the gpu device integer'\
                          .format(device))
