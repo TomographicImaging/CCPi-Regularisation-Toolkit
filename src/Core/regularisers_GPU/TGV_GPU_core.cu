@@ -35,6 +35,7 @@ limitations under the License.
  * 5. Number of Chambolle-Pock (Primal-Dual) iterations
  * 6. Lipshitz constant (default is 12)
  * 7. eplsilon: tolerance constant
+ * 8. GPU device number if for multigpu run (default 0)
  *
  * Output:
  * [1] Filtered/regularized image/volume
@@ -595,7 +596,7 @@ __global__ void TGVResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /************************ MAIN HOST FUNCTION ***********************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" int TGV_GPU_main(float *U0, float *U, float *infovector, float lambda, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int dimX, int dimY, int dimZ)
+extern "C" int TGV_GPU_main(float *U0, float *U, float *infovector, float lambda, float alpha1, float alpha0, int iterationsNumb, float L2, float epsil, int gpu_device, int dimX, int dimY, int dimZ)
 {
 
         int deviceCount = -1; // number of devices
@@ -605,7 +606,9 @@ extern "C" int TGV_GPU_main(float *U0, float *U, float *infovector, float lambda
         return -1;
         }
 
-	      long dimTotal = (long)(dimX*dimY*dimZ);
+        checkCudaErrors(cudaSetDevice(gpu_device));
+
+	    long dimTotal = (long)(dimX*dimY*dimZ);
         float *U_old, *d_U0, *d_U, *P1, *P2, *Q1, *Q2, *Q3, *V1, *V1_old, *V2, *V2_old, tau, sigma, re;
         int n, count;
         count = 0; re = 0.0f;

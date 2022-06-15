@@ -32,6 +32,7 @@
  * 3. Similarity window (half-size of the patch window, e.g. 2)
  * 4. The number of neighbours to take (the most prominent after sorting neighbours will be taken)
  * 5. noise-related parameter to calculate non-local weights
+ * 6. GPU device number if for multigpu run (default 0)
  *
  * Output [2D]:
  * 1. AR_i - indeces of i neighbours
@@ -441,7 +442,7 @@ __global__ void IndexSelect2D_13_kernel(float *Ad, unsigned short *H_i_d, unsign
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned short *H_j, float *Weights, int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h)
+extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned short *H_j, float *Weights, int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h, int gpu_device)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -449,6 +450,7 @@ extern "C" int PatchSelect_GPU_main(float *A, unsigned short *H_i, unsigned shor
         fprintf(stderr, "No CUDA devices found\n");
         return -1;
     }
+    checkCudaErrors(cudaSetDevice(gpu_device));
 
     int SearchW_full, SimilW_full, counterG, i, j;
     float *Ad, *Weights_d, h2, *Eucl_Vec, *Eucl_Vec_d;

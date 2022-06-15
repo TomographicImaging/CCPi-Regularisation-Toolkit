@@ -32,7 +32,8 @@ limitations under the License.
 * 4. eplsilon - tolerance constant [OPTIONAL parameter]
 * 5. TV-type: 'iso' or 'l1' [OPTIONAL parameter]
 * 6. nonneg: 'nonnegativity (0 is OFF by default) [OPTIONAL parameter]
-*
+* 7. GPU device number if for multigpu run (default 0)
+
 * Output:
 * [1] Filtered/regularized image/volume
 * [2] Information vector which contains [iteration no., reached tolerance]
@@ -353,14 +354,15 @@ __global__ void SBResidCalc3D_kernel(float *Input1, float *Input2, float* Output
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int dimX, int dimY, int dimZ)
+extern "C" int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float mu, int iter, float epsil, int methodTV, int gpu_device, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0) {
         fprintf(stderr, "No CUDA devices found\n");
         return -1;
-    }
+    }    
+    checkCudaErrors(cudaSetDevice(gpu_device));
 
 	int ll, DimTotal;
 	float re, lambda, normConst;

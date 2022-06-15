@@ -36,6 +36,7 @@ limitations under the License.
 * 4. iter - iterations number (for both models)
 * 5. tau - time-marching step
 * 6. eplsilon: tolerance constant
+* 7. GPU device number if for multigpu run (default 0)
 
  * Output:
  * [1] Filtered/regularized image/volume
@@ -448,7 +449,7 @@ __global__ void ROFLLTResidCalc3D_kernel(float *Input1, float *Input2, float* Ou
 /************************ HOST FUNCTION ****************************/
 /*******************************************************************/
 
-extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau,  float epsil, int N, int M, int Z)
+extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector, float lambdaROF, float lambdaLLT, int iterationsNumb, float tau,  float epsil, int gpu_device, int N, int M, int Z)
 {
   int deviceCount = -1; // number of devices
   cudaGetDeviceCount(&deviceCount);
@@ -456,6 +457,8 @@ extern "C" int LLT_ROF_GPU_main(float *Input, float *Output,  float *infovector,
       fprintf(stderr, "No CUDA devices found\n");
        return -1;
    }
+   checkCudaErrors(cudaSetDevice(gpu_device));    
+
    float re;
    re = 0.0f;
 		int DimTotal,count,n;

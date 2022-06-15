@@ -600,6 +600,6 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
     /*adding info into info_vector */
     infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
-    cudaDeviceSynchronize();
+    checkCudaErrors( cudaDeviceSynchronize() );
     return 0;
 }

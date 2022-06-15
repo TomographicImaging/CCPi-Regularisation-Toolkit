@@ -33,7 +33,8 @@ limitations under the License.
  * 4. Number of iterations, for explicit scheme >= 150 is recommended
  * 5. tau - time-marching step for explicit scheme
  * 6. eplsilon: tolerance constant
- *
+ * 7. GPU device number if for multigpu run (default 0)
+
  * Output:
  * [1] Filtered/regularized image/volume
  * [2] Information vector which contains [iteration no., reached tolerance]
@@ -274,7 +275,7 @@ __global__ void Diff4thResidCalc3D_kernel(float *Input1, float *Input2, float* O
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /********************* MAIN HOST FUNCTION ******************/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int N, int M, int Z)
+extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, float epsil, int gpu_device, int N, int M, int Z)
 {
 
     int deviceCount = -1; // number of devices
@@ -283,6 +284,8 @@ extern "C" int Diffus4th_GPU_main(float *Input, float *Output, float *infovector
         fprintf(stderr, "No CUDA devices found\n");
         return -1;
       }
+        
+        checkCudaErrors(cudaSetDevice(gpu_device)); 
 
         int dimTotal, n, count = 0;
         float *d_input, *d_output, *d_W_Lapl, *d_update_prev=NULL, re;

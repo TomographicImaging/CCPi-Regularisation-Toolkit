@@ -113,11 +113,11 @@ If passed `CONDA_BUILD=OFF` the software will be installed in the directory poin
 If Python is not picked by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/python/executable`.
 
 ### MultiGPU capability (to use in Python with mpi4py)
-The toolkit can be used by running in parallel across multiple GPU devices on a PC or a compute node of a cluster. In order to initiate a parallel on run on GPUs you will need an MPI library, such as, [mpi4py] (https://mpi4py.readthedocs.io/en/stable/) and at least two GPU devices. The demo script in the folder with demos and can be run with
+The toolkit can be used by running in parallel across multiple GPU devices on a PC or a compute node of a cluster. In order to initiate a parallel run on your GPUs you will need an MPI library, such as, [mpi4py](https://mpi4py.readthedocs.io/en/stable/). See multi_gpu demo script in demos folder, it can be run as
 ```
 mpirun -np 2 python multi_gpu.py -g -s -gpus 2
 ```
-where `-np` sets the number of processes and `-gpus` defines the number of GPUs. 
+where `-np` parameter defines the total number of processes and `-gpus` defines the number of available GPUs. 
 
 ### Matlab
 

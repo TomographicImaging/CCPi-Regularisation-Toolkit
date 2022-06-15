@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+"""A script to demonstrate multi-gpu capabilities of the regularisation package, note
+that mpi4py is required for this to work.
+
+#############################################################################
+Run the demo for two processes for e.g.:
+mpirun -np 2 python multi_gpu.py -g -s -gpus 1
+#############################################################################
+
 GPLv3 license (ASTRA toolbox)
-
-A script to demonstrate multi-gpu capabilities of the regularisation package, note
-that mpi4py is required.
-# Run the demo for two processes mpirun -np 2 python multi_gpu.py -g -s -gpus 1
-
 @author: Daniil Kazantsev
 """
 
@@ -20,7 +22,7 @@ def filter3D(vol3d, iterations_reg, DEVICE_no):
     from ccpi.filters.regularisers import ROF_TV
     # perform basic data splitting between GPUs    
     print("-----------------------------------------------------------------")
-    print("Perform 3D filtering in parallel on {} GPU device...".format(DEVICE_no))
+    print("Perform 3D filtering on {} GPU device...".format(DEVICE_no))
     print("-----------------------------------------------------------------")
     # set parameters
     pars = {'algorithm': ROF_TV, \
@@ -34,7 +36,7 @@ def filter3D(vol3d, iterations_reg, DEVICE_no):
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'], 'gpu')
+             pars['tolerance_constant'], DEVICE_no)
 
     return rof_gpu3D
 
