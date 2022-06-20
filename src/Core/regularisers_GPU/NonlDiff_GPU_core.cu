@@ -34,6 +34,7 @@ limitations under the License.
  * 5. tau - time-marching step for explicit scheme
  * 6. Penalty type: 1 - Huber, 2 - Perona-Malik, 3 - Tukey Biweight, 4 - Threshold-constrained Linear, 5 - modified Huber with a dead stop on edge
  * 7. eplsilon: tolerance constant
+ * 8. GPU device number if for multigpu run (default 0)
 
   * Output:
   * [1] Filtered/regularized image/volume
@@ -418,7 +419,7 @@ __global__ void NonLinearDiff3D_kernel(float *Input, float *Output, float lambda
 
 /////////////////////////////////////////////////
 // HOST FUNCTION
-extern "C" int NonlDiff_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int N, int M, int Z)
+extern "C" int NonlDiff_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float sigmaPar, int iterationsNumb, float tau, int penaltytype, float epsil, int gpu_device, int N, int M, int Z)
 {
   int deviceCount = -1; // number of devices
   cudaGetDeviceCount(&deviceCount);
@@ -426,6 +427,8 @@ extern "C" int NonlDiff_GPU_main(float *Input, float *Output, float *infovector,
       fprintf(stderr, "No CUDA devices found\n");
        return -1;
    }
+        checkCudaErrors(cudaSetDevice(gpu_device));
+
         int n, count, ImSize;
         count = 0;
         float *d_input, *d_output, *d_update_prev, *d_res;

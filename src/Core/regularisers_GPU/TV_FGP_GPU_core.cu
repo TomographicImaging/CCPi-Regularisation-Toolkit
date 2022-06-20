@@ -32,6 +32,7 @@ limitations under the License.
  * 4. eplsilon: tolerance constant
  * 5. TV-type: methodTV - 'iso' (0) or 'l1' (1)
  * 6. nonneg: 'nonnegativity (0 is OFF by default)
+ * 7. GPU device number if for multigpu run (default 0)
  *
  * Output:
  * [1] Filtered/regularized image/volume
@@ -344,7 +345,7 @@ __global__ void FGPResidCalc3D_kernel(float *Input1, float *Input2, float* Outpu
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
+extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int gpu_device, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -352,12 +353,14 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
         fprintf(stderr, "No CUDA devices found\n");
         return -1;
     }
+    checkCudaErrors(cudaSetDevice(gpu_device));
 
     int count = 0, i;
     float re, multip,multip2;
     re = 0.0f;
     float tk = 1.0f;
     float tkp1=1.0f;
+
 
     if (dimZ <= 1) {
 		/*2D verson*/
@@ -367,16 +370,17 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
       dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
       dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
 
+
 		/*allocate space for images on device*/
-       checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
-       checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
-		   if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P1_prev,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&P2_prev,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );
-		checkCudaErrors( cudaMalloc((void**)&R2,ImSize*sizeof(float)) );
+        checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
+        checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
+		    if (epsil != 0.0f) checkCudaErrors( cudaMalloc((void**)&d_update_prev,ImSize*sizeof(float)) );
+		    checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
+		    checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&P1_prev,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&P2_prev,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&R1,ImSize*sizeof(float)) );
+  		  checkCudaErrors( cudaMalloc((void**)&R2,ImSize*sizeof(float)) );
 
         checkCudaErrors( cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
         cudaMemset(P1, 0, ImSize*sizeof(float));
@@ -596,6 +600,6 @@ extern "C" int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, f
     /*adding info into info_vector */
     infovector[0] = (float)(i);  /*iterations number (if stopped earlier based on tolerance)*/
     infovector[1] = re;  /* reached tolerance */
-    cudaDeviceSynchronize();
+    checkCudaErrors( cudaDeviceSynchronize() );
     return 0;
 }

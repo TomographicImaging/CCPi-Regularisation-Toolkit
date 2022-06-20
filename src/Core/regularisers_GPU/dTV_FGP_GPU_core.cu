@@ -35,6 +35,7 @@ limitations under the License.
  * 6. eta: smoothing constant to calculate gradient of the reference [OPTIONAL] *
  * 7. TV-type: methodTV - 'iso' (0) or 'l1' (1) [OPTIONAL]
  * 8. nonneg: 'nonnegativity (0 is OFF by default) [OPTIONAL]
+ * 9. GPU device number if for multigpu run (default 0) [OPTIONAL]
 
  * Output:
  * [1] Filtered/regularized image/volume
@@ -456,7 +457,7 @@ __global__ void dTVnonneg3D_kernel(float* Output, int N, int M, int Z, int num_t
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 ////////////MAIN HOST FUNCTION ///////////////
-extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float eta, int methodTV, int nonneg, int dimX, int dimY, int dimZ)
+extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float eta, int methodTV, int nonneg, int gpu_device, int dimX, int dimY, int dimZ)
 {
     int deviceCount = -1; // number of devices
     cudaGetDeviceCount(&deviceCount);
@@ -464,6 +465,8 @@ extern "C" int dTV_FGP_GPU_main(float *Input, float *InputRef, float *Output, fl
         fprintf(stderr, "No CUDA devices found\n");
         return -1;
     }
+
+    checkCudaErrors(cudaSetDevice(gpu_device)); 
 
     int count = 0, i;
     float re, multip,multip2;
