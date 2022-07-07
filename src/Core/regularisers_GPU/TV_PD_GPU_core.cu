@@ -55,7 +55,6 @@ limitations under the License.
 /************************************************/
 /*****************2D modules*********************/
 /************************************************/
-
 __global__ void dualPD_kernel(float *U, float *P1, float *P2, float sigma, int N, int M)
 {
 
@@ -143,111 +142,7 @@ __global__ void PDnonneg2D_kernel(float* Output, int N, int M, int num_total)
        if (Output[index] < 0.0f) Output[index] = 0.0f;
    }
 }
-/************************************************/
-/*****************3D modules*********************/
-/************************************************/
-__global__ void dualPD3D_kernel(float *U, float *P1, float *P2, float *P3, float sigma, int N, int M, int Z)
-{
 
-  //calculate each thread global index
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
-
-  int index = (N*M)*k + i + N*j;
-
-  if ((i < N) && (j < M) && (k < Z)) {
-     if (i == N-1) P1[index] += sigma*(U[(N*M)*k + (i-1) + N*j] - U[index]);
-     else P1[index] += sigma*(U[(N*M)*k + (i+1) + N*j] - U[index]);
-     if (j == M-1) P2[index] += sigma*(U[(N*M)*k + i + N*(j-1)] - U[index]);
-     else  P2[index] += sigma*(U[(N*M)*k + i + N*(j+1)] - U[index]);
-     if (k == Z-1) P3[index] += sigma*(U[(N*M)*(k-1) + i + N*j] - U[index]);
-     else  P3[index] += sigma*(U[(N*M)*(k+1) + i + N*j] - U[index]);
-   }
-   return;
-}
-__global__ void Proj_funcPD3D_iso_kernel(float *P1, float *P2, float *P3, int N, int M, int Z, int ImSize)
-{
-
-   float denom,sq_denom;
-   //calculate each thread global index
-   int i = blockDim.x * blockIdx.x + threadIdx.x;
-   int j = blockDim.y * blockIdx.y + threadIdx.y;
-   int k = blockDim.z * blockIdx.z + threadIdx.z;
-
-   int index = (N*M)*k + i + N*j;
-
-   if ((i < N) && (j < M) && (k <  Z)) {
-       denom = pow(P1[index],2) +  pow(P2[index],2) + pow(P3[index],2);
-       if (denom > 1.0f) {
-           sq_denom = 1.0f/sqrt(denom);
-           P1[index] *= sq_denom;
-           P2[index] *= sq_denom;
-           P3[index] *= sq_denom;
-       }
-   }
-   return;
-}
-__global__ void Proj_funcPD3D_aniso_kernel(float *P1, float *P2, float *P3, int N, int M, int Z, int ImSize)
-{
-
-   float val1, val2, val3;
-   //calculate each thread global index
-   int i = blockDim.x * blockIdx.x + threadIdx.x;
-   int j = blockDim.y * blockIdx.y + threadIdx.y;
-   int k = blockDim.z * blockIdx.z + threadIdx.z;
-
-   int index = (N*M)*k + i + N*j;
-
-   if ((i < N) && (j < M) && (k <  Z)) {
-               val1 = abs(P1[index]);
-               val2 = abs(P2[index]);
-               val3 = abs(P3[index]);
-               if (val1 < 1.0f) {val1 = 1.0f;}
-               if (val2 < 1.0f) {val2 = 1.0f;}
-               if (val3 < 1.0f) {val3 = 1.0f;}
-               P1[index] /= val1;
-               P2[index] /= val2;
-               P3[index] /= val3;
-   }
-   return;
-}
-__global__ void DivProj3D_kernel(float *U, float *Input, float *P1, float *P2, float *P3, float lt, float tau, int N, int M, int Z)
-{
-   float P_v1, P_v2, P_v3, div_var;
-
-   //calculate each thread global index
-   int i = blockDim.x * blockIdx.x + threadIdx.x;
-   int j = blockDim.y * blockIdx.y + threadIdx.y;
-   int k = blockDim.z * blockIdx.z + threadIdx.z;
-
-   int index = (N*M)*k + i + N*j;
-
-   if ((i < N) && (j < M) && (k <  Z)) {
-     if (i == 0) P_v1 = -P1[index];
-     else P_v1 = -(P1[index] - P1[(N*M)*k + (i-1) + N*j]);
-     if (j == 0) P_v2 = -P2[index];
-     else  P_v2 = -(P2[index] - P2[(N*M)*k + i + N*(j-1)]);
-     if (k == 0) P_v3 = -P3[index];
-     else  P_v3 = -(P3[index] - P3[(N*M)*(k-1) + i + N*j]);
-     div_var = P_v1 + P_v2 + P_v3;
-     U[index] = (U[index] - tau*div_var + lt*Input[index])/(1.0 + lt);
-   }
-   return;
-}
-
-__global__ void PDnonneg3D_kernel(float* Output, int N, int M, int Z, int num_total)
-{
-   int i = blockDim.x * blockIdx.x + threadIdx.x;
-   int j = blockDim.y * blockIdx.y + threadIdx.y;
-   int k = blockDim.z * blockIdx.z + threadIdx.z;
-
-   int index = (N*M)*k + i + N*j;
-
-   if (index < num_total)	{
-       if (Output[index] < 0.0f) Output[index] = 0.0f;
-   }
-}
 __global__ void PDcopy_kernel2D(float *Input, float* Output, int N, int M, int num_total)
 {
    int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
@@ -285,19 +180,6 @@ __global__ void getU2D_kernel(float *Input, float *Input_old, float theta, int N
    }
 }
 
-__global__ void getU3D_kernel(float *Input, float *Input_old, float theta, int N, int M, int Z, int num_total)
-{
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
-
-  int index = (N*M)*k + i + N*j;
-
-   if (index < num_total)	{
-       Input[index] += theta*(Input[index] - Input_old[index]);
-   }
-}
-
 __global__ void PDResidCalc2D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int num_total)
 {
     int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
@@ -310,13 +192,130 @@ __global__ void PDResidCalc2D_kernel(float *Input1, float *Input2, float* Output
     }
 }
 
-__global__ void PDResidCalc3D_kernel(float *Input1, float *Input2, float* Output, int N, int M, int Z, int num_total)
+/************************************************/
+/*****************3D modules*********************/
+/************************************************/
+__global__ void dualPD3D_kernel(float *U, float *P1, float *P2, float *P3, float sigma, long N, long M, long Z)
 {
-   	int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = blockDim.y * blockIdx.y + threadIdx.y;
-    int k = blockDim.z * blockIdx.z + threadIdx.z;
 
-    int index = (N*M)*k + i + N*j;
+  const long i = blockDim.x * blockIdx.x + threadIdx.x;
+  const long j = blockDim.y * blockIdx.y + threadIdx.y;
+  const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+  const long index = (N*M)*k + i + N*j;
+
+  if ((i < N) && (j < M) && (k < Z)) {
+     if (i == N-1) P1[index] += sigma*(U[(N*M)*k + (i-1) + N*j] - U[index]);
+     else P1[index] += sigma*(U[(N*M)*k + (i+1) + N*j] - U[index]);
+     if (j == M-1) P2[index] += sigma*(U[(N*M)*k + i + N*(j-1)] - U[index]);
+     else  P2[index] += sigma*(U[(N*M)*k + i + N*(j+1)] - U[index]);
+     if (k == Z-1) P3[index] += sigma*(U[(N*M)*(k-1) + i + N*j] - U[index]);
+     else  P3[index] += sigma*(U[(N*M)*(k+1) + i + N*j] - U[index]);
+   }
+   return;
+}
+__global__ void Proj_funcPD3D_iso_kernel(float *P1, float *P2, float *P3, long N, long M, long Z, long ImSize)
+{
+
+   float denom,sq_denom;
+
+   const long i = blockDim.x * blockIdx.x + threadIdx.x;
+   const long j = blockDim.y * blockIdx.y + threadIdx.y;
+   const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+   const long index = (N*M)*k + i + N*j;
+
+   if ((i < N) && (j < M) && (k <  Z)) {
+       denom = pow(P1[index],2) +  pow(P2[index],2) + pow(P3[index],2);
+       if (denom > 1.0f) {
+           sq_denom = 1.0f/sqrt(denom);
+           P1[index] *= sq_denom;
+           P2[index] *= sq_denom;
+           P3[index] *= sq_denom;
+       }
+   }
+   return;
+}
+__global__ void Proj_funcPD3D_aniso_kernel(float *P1, float *P2, float *P3, long N, long M, long Z, long ImSize)
+{
+
+   float val1, val2, val3;
+
+   const long i = blockDim.x * blockIdx.x + threadIdx.x;
+   const long j = blockDim.y * blockIdx.y + threadIdx.y;
+   const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+   const long index = (N*M)*k + i + N*j;
+
+   if ((i < N) && (j < M) && (k <  Z)) {
+               val1 = abs(P1[index]);
+               val2 = abs(P2[index]);
+               val3 = abs(P3[index]);
+               if (val1 < 1.0f) {val1 = 1.0f;}
+               if (val2 < 1.0f) {val2 = 1.0f;}
+               if (val3 < 1.0f) {val3 = 1.0f;}
+               P1[index] /= val1;
+               P2[index] /= val2;
+               P3[index] /= val3;
+   }
+   return;
+}
+__global__ void DivProj3D_kernel(float *U, float *Input, float *P1, float *P2, float *P3, float lt, float tau, long N, long M, long Z)
+{
+   float P_v1, P_v2, P_v3, div_var;
+
+   const long i = blockDim.x * blockIdx.x + threadIdx.x;
+   const long j = blockDim.y * blockIdx.y + threadIdx.y;
+   const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+   const long index = (N*M)*k + i + N*j;
+
+   if ((i < N) && (j < M) && (k <  Z)) {
+     if (i == 0) P_v1 = -P1[index];
+     else P_v1 = -(P1[index] - P1[(N*M)*k + (i-1) + N*j]);
+     if (j == 0) P_v2 = -P2[index];
+     else  P_v2 = -(P2[index] - P2[(N*M)*k + i + N*(j-1)]);
+     if (k == 0) P_v3 = -P3[index];
+     else  P_v3 = -(P3[index] - P3[(N*M)*(k-1) + i + N*j]);
+     div_var = P_v1 + P_v2 + P_v3;
+     U[index] = (U[index] - tau*div_var + lt*Input[index])/(1.0 + lt);
+   }
+   return;
+}
+
+__global__ void PDnonneg3D_kernel(float* Output, long N, long M, long Z, long num_total)
+{
+   const long i = blockDim.x * blockIdx.x + threadIdx.x;
+   const long j = blockDim.y * blockIdx.y + threadIdx.y;
+   const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+   const long index = (N*M)*k + i + N*j;
+
+   if (index < num_total)	{
+       if (Output[index] < 0.0f) Output[index] = 0.0f;
+   }
+}
+
+__global__ void getU3D_kernel(float *Input, float *Input_old, float theta, long N, long M, long Z, long num_total)
+{
+  const long i = blockDim.x * blockIdx.x + threadIdx.x;
+  const long j = blockDim.y * blockIdx.y + threadIdx.y;
+  const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+  const long index = (N*M)*k + i + N*j;
+
+   if (index < num_total)	{
+       Input[index] += theta*(Input[index] - Input_old[index]);
+   }
+}
+
+__global__ void PDResidCalc3D_kernel(float *Input1, float *Input2, float* Output, long N, long M, long Z, long num_total)
+{
+   	const long i = blockDim.x * blockIdx.x + threadIdx.x;
+    const long j = blockDim.y * blockIdx.y + threadIdx.y;
+    const long k = blockDim.z * blockIdx.z + threadIdx.z;
+
+    const long index = (N*M)*k + i + N*j;
 
     if (index < num_total)	{
         Output[index] = Input1[index] - Input2[index];
@@ -332,7 +331,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
        fprintf(stderr, "No CUDA devices found\n");
        return -1;
    }
-   checkCudaErrors(cudaSetDevice(gpu_device));
+   checkCudaErrors(cudaSetDevice(gpu_device)); // set the GPU device here 
 
    int count = 0, i;
    float re, sigma, theta, lt, tau;
@@ -429,7 +428,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
    }
    else {
            /*3D verson*/
-           int ImSize = dimX*dimY*dimZ;
+           long ImSize = (long)(dimX*dimY*dimZ);
 
            /* adapted to work with up to 4 GPU devices in parallel */
            float *d_input0, *d_update0, *d_old0=NULL, *P1_0=NULL, *P2_0=NULL, *P3_0=NULL;
@@ -455,35 +454,35 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
        for (i = 0; i < iter; i++) {
 
          /* computing the the dual P variable */
-         dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update0, P1_0, P2_0, P3_0, sigma, dimX, dimY, dimZ);
+         dualPD3D_kernel<<<dimGrid,dimBlock>>>(d_update0, P1_0, P2_0, P3_0, sigma, (long)(dimX), (long)(dimY), (long)(dimZ));
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
         if (nonneg != 0) {
-        PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update0, dimX, dimY, dimZ, ImSize);
+        PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update0, (long)(dimX), (long)(dimY), (long)(dimZ), ImSize);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() ); }
 
          /* projection step */
-         if (methodTV == 0) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
-         else Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
+         if (methodTV == 0) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, (long)(dimX), (long)(dimY), (long)(dimZ), ImSize); /*isotropic TV*/
+         else Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, (long)(dimX), (long)(dimY), (long)(dimZ), ImSize); /*anisotropic TV*/
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
          /* copy U to U_old */
-        PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update0, d_old0, dimX, dimY, dimZ, ImSize);
+        PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update0, d_old0, (long)(dimX), (long)(dimY), (long)(dimZ), ImSize);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
          /* calculate divergence */
-         DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_input0, P1_0, P2_0, P3_0, lt, tau, dimX, dimY, dimZ);
+         DivProj3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_input0, P1_0, P2_0, P3_0, lt, tau, (long)(dimX), (long)(dimY), (long)(dimZ));
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
 
           if ((epsil != 0.0f) && (i % 5 == 0)) {
            /* calculate norm - stopping rules using the Thrust library */
-           PDResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, P1_0, dimX, dimY, dimZ, ImSize);
+           PDResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, P1_0, (long)(dimX), (long)(dimY), (long)(dimZ), ImSize);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
 
@@ -502,7 +501,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
              }
 
            /* get U*/
-          getU3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, theta, dimX, dimY, dimZ, ImSize);
+           getU3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, theta, (long)(dimX), (long)(dimY), (long)(dimZ), ImSize);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
          }
