@@ -4,7 +4,7 @@
 |--------|-------------|-------------------|
 | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/) | [![Build Status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?job=CILsingle/CCPi-Regularisation-Toolkit-dev)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit-dev/) | ![conda version](https://anaconda.org/ccpi/ccpi-regulariser/badges/version.svg) ![conda last release](https://anaconda.org/ccpi/ccpi-regulariser/badges/latest_release_date.svg) [![conda platforms](https://anaconda.org/ccpi/ccpi-regulariser/badges/platforms.svg) ![conda dowloads](https://anaconda.org/ccpi/ccpi-regulariser/badges/downloads.svg)](https://anaconda.org/ccpi/ccpi-regulariser) |
 
-**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-Regularisation Toolkit (CCPi-RGL) toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided. Software also can be used by running in parallel across multiple GPU devices on a PC or a compute node of a cluster.**
+**Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-Regularisation Toolkit (CCPi-RGL) toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided. With [CuPy](https://docs.cupy.dev/en/stable/index.html) dependency installed for Python, one can use regularisers directly without the need for explicit compilation. We recommend this option as the simplest to start with if you've got a GPU. This software can also be used by running in parallel across multiple GPU devices on a PC or a cluster compute node.**
 
 
 <div align="center">
@@ -17,6 +17,7 @@
  * Python (tested ver. 3.5/2.7); Cython
  * C compilers
  * nvcc (CUDA SDK) compilers
+ * [CuPy](https://docs.cupy.dev/en/stable/index.html) for GPU-enabled methods
 
 ## Package modules:
 
@@ -85,10 +86,9 @@ cd install/python
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:../lib
 ```
 
-
 ### Python
 #### Python binaries
-Python binaries are distributed via the [ccpi](https://anaconda.org/ccpi/ccpi-regulariser) conda channel. Currently we produce packages for Linux64, Python 2.7, 3.5 and 3.6, NumPy 1.12 and 1.13.
+Python binaries are distributed via the [ccpi](https://anaconda.org/ccpi/ccpi-regulariser) conda channel.
 
 ```
 conda install ccpi-regulariser -c ccpi -c conda-forge
@@ -97,13 +97,17 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 #### Python (conda-build)
 ```
 export CIL_VERSION=`date +%Y.%m` (Unix) / set CIL_VERSION=19.10 (Windows)
-conda build recipe/ --numpy 1.15 --python 3.7
+conda build recipe/ --numpy 1.23 --python 3.10
 conda install ccpi-regulariser=${CIL_VERSION} --use-local --force-reinstall # doesn't work?
 conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser=${CIL_VERSION} --force-reinstall # try this one
 cd demos/
 python demo_cpu_regularisers.py # to run CPU demo
 python demo_gpu_regularisers.py # to run GPU demo
 ```
+
+#### Python (with CuPy)
+One can run GPU-enabled regularisers directly, i.e., without explicit installation if CuPy dependency is satisfied, please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py)
+
 
 #### Python build
 

@@ -116,4 +116,7 @@ if (PYTHONINTERP_FOUND)
     endif()
     
     add_custom_target(PythonWrapper ALL DEPENDS ${OUTPUT})
+
+    add_custom_target(copy-runtime-files ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../Core/regularisers_GPU/cuda_kernels ${CMAKE_CURRENT_BINARY_DIR}/ccpi/cuda_kernels)     
 endif()
