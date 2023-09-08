@@ -14,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Regularisation functions are exposed through CuPy """
+""" Regularisation functions are exposed through CuPy API """
 
 try:
     import cupy as cp
@@ -26,14 +26,15 @@ from typing import Optional, Tuple
 from ccpi.cuda_kernels import load_cuda_module
 
 __all__ = [
-    "TV_ROF",
+    "ROF_TV",
 ]
 
-def TV_ROF(data: cp.ndarray,
+
+def ROF_TV(data: cp.ndarray,
            regularisation_parameter: Optional[float] = 1e-05,
            number_of_iterations: Optional[int] = 3000,
            time_marching_parameter: Optional[float] = 0.001,
-           gpu_device: Optional[int] = 0,
+           gpu_id: Optional[int] = 0,
            ) -> cp.ndarray:
     """Total Variation using Rudin-Osher-Fatemi (ROF) explicit iteration scheme to perform edge-preserving image denoising.      
        This is a gradient-based algorithm for a smoothed TV term which requires a small time marching parameter and a significant number of iterations. 
@@ -44,13 +45,13 @@ def TV_ROF(data: cp.ndarray,
         regularisation_parameter (Optional[float], optional): Regularisation parameter to control smoothing. Defaults to 1e-05.
         number_of_iterations (Optional[int], optional): The number of iterations. Defaults to 3000.
         time_marching_parameter (Optional[float], optional): Time marching parameter, needs to be small to ensure convergance. Defaults to 0.001.
-        gpu_device (Optional[int], optional): A number of the GPU device if multi-GPU run is considered. Defaults to 0.
+        gpu_id (Optional[int], optional): A GPU device index to perform operation on. Defaults to 0.
 
     Returns:
         cp.ndarray: A ROF-TV filtered CuPy array.
     """
-    if gpu_device >= 0:
-        cp.cuda.Device(gpu_device).use()
+    if gpu_id >= 0:
+        cp.cuda.Device(gpu_id).use()
     else:
         raise ValueError("The gpu_device must be a positive integer or zero")
     cp.get_default_memory_pool().free_all_blocks()

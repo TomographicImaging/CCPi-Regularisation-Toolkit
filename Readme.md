@@ -106,7 +106,7 @@ python demo_gpu_regularisers.py # to run GPU demo
 ```
 
 #### Python (with CuPy)
-One can run GPU-enabled regularisers directly, i.e., without explicit installation if CuPy dependency is satisfied, please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py)
+One can run GPU-enabled regularisers directly, i.e. without explicit installation if CuPy dependency is satisfied, please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py)
 
 
 #### Python build
