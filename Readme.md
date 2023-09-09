@@ -96,7 +96,7 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 
 #### Python (conda-build)
 ```
-export CIL_VERSION=`date +%Y.%m` (Unix) / set CIL_VERSION=19.10 (Windows)
+export CIL_VERSION=$(date +%Y.%m) (Unix) / set CIL_VERSION=19.10 (Windows)
 conda build recipe/ --numpy 1.23 --python 3.10
 conda install ccpi-regulariser=${CIL_VERSION} --use-local --force-reinstall # doesn't work?
 conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser=${CIL_VERSION} --force-reinstall # try this one
