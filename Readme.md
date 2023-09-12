@@ -37,23 +37,22 @@
 2. Total Nuclear Variation (TNV) penalty **2D+channels CPU** (Ref. *7*)
 
 ## Installation:
-The package comes as a [CMake](https://cmake.org) project and additional wrappers for Python and Matlab.
+The package comes as a [CMake](https://cmake.org) project and additional wrappers for Python and Matlab. Please see more detailed [Installation](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/Installation.md) information.
 
+### Python binaries
 To install precompiled binaries, you need `conda` and install from the `ccpi` channel using :
 ```
 conda install ccpi-regulariser -c ccpi -c conda-forge
 ```
 
 ### Python (GPU-CuPy)
-Alternatively, one can use some of GPU modules directly (without the need of compiling the package) by using [CuPy](https://docs.cupy.dev/en/stable/index.html) implementations.
+One can also use some of GPU modules directly (without the need of compiling the package) by using [CuPy](https://docs.cupy.dev/en/stable/index.html) implementations.
 ```
 cp -r src/Core/regularisers_GPU/cuda_kernels src/Python/ccpi
 pip install .
 ```
 Once installed please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py).
 
-
-Please see more detailed [Installation](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/Installation.md) page
 
 ### References to implemented methods:
 1. [Rudin, L.I., Osher, S. and Fatemi, E., 1992. Nonlinear total variation based noise removal algorithms. Physica D: nonlinear phenomena, 60(1-4)](https://www.sciencedirect.com/science/article/pii/016727899290242F)
