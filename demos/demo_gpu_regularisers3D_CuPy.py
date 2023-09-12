@@ -9,7 +9,7 @@ import numpy as np
 import cupy as cp
 import os
 import timeit
-from ccpi.filters.regularisersCuPy import TV_ROF
+from ccpi.filters.regularisersCuPy import ROF_TV
 
 from ccpi.supp.qualitymetrics import QualityTools
 ###############################################################################
@@ -77,11 +77,11 @@ a.set_title('Noisy 15th slice of a volume')
 imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 
 # set parameters
-pars = {'algorithm': TV_ROF}
+pars = {'algorithm': ROF_TV}
 
 start_time = timeit.default_timer()
 
-rof_gpu3D = TV_ROF(noisyVol_cp,
+rof_gpu3D = ROF_TV(noisyVol_cp,
                 regularisation_parameter=0.02,
                 number_of_iterations = 6000,
                 time_marching_parameter=0.001)
