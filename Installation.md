@@ -59,6 +59,14 @@ python demo_cpu_regularisers.py # to run CPU demo
 python demo_gpu_regularisers.py # to run GPU demo
 ```
 
+### Python (GPU-CuPy)
+One can also use some of the GPU modules directly (i.e. without the need of building the package) by using [CuPy](https://docs.cupy.dev/en/stable/index.html) implementations. 
+```
+git clone git@github.com:vais-ral/CCPi-Regularisation-Toolkit.git
+cd CCPi-Regularisation-Toolkit
+pip install .
+``` 
+
 #### Python build
 If passed `CONDA_BUILD=ON` the software will be installed by issuing `python setup.py install` which will install in the system python (or whichever other python it's been picked up by CMake at configuration time.)
 If passed `CONDA_BUILD=OFF` the software will be installed in the directory pointed by `${PYTHON_DEST_DIR}` which defaults to `${CMAKE_INSTALL_PREFIX}/python`. Therefore this directory should be added to the `PYTHONPATH`.
@@ -95,7 +103,6 @@ addpath(/path/to/library);
 
 #### Legacy Matlab installation (partly supported, please use Cmake)
 ```
-
 	cd src/Matlab/mex_compile
 	compileCPU_mex.m % to compile CPU modules
 	compileGPU_mex.m % to compile GPU modules (see instructions in the file)

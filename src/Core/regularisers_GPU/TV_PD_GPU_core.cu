@@ -73,29 +73,31 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
    theta = 1.0f;
    lt = tau/lambdaPar;
 
-   if (dimZ <= 1) {
-   /*2D verson*/
-     int ImSize = dimX*dimY;
-     float *d_input, *d_update, *d_old=NULL, *P1=NULL, *P2=NULL;
+   if (dimZ <= 1) 
+   {
+        /*2D verson*/
+        int ImSize = dimX*dimY;
+        float *d_input, *d_update, *d_old=NULL, *P1=NULL, *P2=NULL;
 
-     dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
-     dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
+        dim3 dimBlock(BLKXSIZE2D,BLKYSIZE2D);
+        dim3 dimGrid(idivup(dimX,BLKXSIZE2D), idivup(dimY,BLKYSIZE2D));
 
-      /*allocate space for images on device*/
-      checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
-      checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
-      checkCudaErrors( cudaMalloc((void**)&d_old,ImSize*sizeof(float)) );
-      checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
-      checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
+          /*allocate space for images on device*/
+          checkCudaErrors( cudaMalloc((void**)&d_input,ImSize*sizeof(float)) );
+          checkCudaErrors( cudaMalloc((void**)&d_update,ImSize*sizeof(float)) );
+          checkCudaErrors( cudaMalloc((void**)&d_old,ImSize*sizeof(float)) );
+          checkCudaErrors( cudaMalloc((void**)&P1,ImSize*sizeof(float)) );
+          checkCudaErrors( cudaMalloc((void**)&P2,ImSize*sizeof(float)) );
 
-       checkCudaErrors( cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-       checkCudaErrors( cudaMemcpy(d_update,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
-       cudaMemset(P1, 0, ImSize*sizeof(float));
-       cudaMemset(P2, 0, ImSize*sizeof(float));
+          checkCudaErrors( cudaMemcpy(d_input,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+          checkCudaErrors( cudaMemcpy(d_update,Input,ImSize*sizeof(float),cudaMemcpyHostToDevice));
+          cudaMemset(P1, 0, ImSize*sizeof(float));
+          cudaMemset(P2, 0, ImSize*sizeof(float));
 
        /********************** Run CUDA 2D kernel here ********************/
        /* The main kernel */
-       for (i = 0; i < iter; i++) {
+       for (i = 0; i < iter; i++) 
+       {
 
            /* computing the the dual P variable */
            dualPD_kernel<<<dimGrid,dimBlock>>>(d_update, P1, P2, sigma, dimX, dimY);
@@ -103,18 +105,18 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            checkCudaErrors(cudaPeekAtLastError() );
 
            if (nonneg != 0) {
-           PDnonneg2D_kernel<<<dimGrid,dimBlock>>>(d_update, dimX, dimY, ImSize);
+           PDnonneg2D_kernel<<<dimGrid,dimBlock>>>(d_update, dimX, dimY);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() ); }
 
            /* projection step */
-           if (methodTV == 0) Proj_funcPD2D_iso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, ImSize); /*isotropic TV*/
-           else Proj_funcPD2D_aniso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY, ImSize); /*anisotropic TV*/
+           if (methodTV == 0) Proj_funcPD2D_iso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY); /*isotropic TV*/
+           else Proj_funcPD2D_aniso_kernel<<<dimGrid,dimBlock>>>(P1, P2, dimX, dimY); /*anisotropic TV*/
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
 
            /* copy U to U_old */
-           PDcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_old, dimX, dimY, ImSize);
+           PDcopy_kernel2D<<<dimGrid,dimBlock>>>(d_update, d_old, dimX, dimY);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
 
@@ -123,9 +125,10 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
 
-           if ((epsil != 0.0f) && (i % 5 == 0)) {
+           if ((epsil != 0.0f) && (i % 5 == 0)) 
+           {
                /* calculate norm - stopping rules using the Thrust library */
-               PDResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_old, P1, dimX, dimY, ImSize);
+               PDResidCalc2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_old, P1, dimX, dimY);
                checkCudaErrors( cudaDeviceSynchronize() );
                checkCudaErrors(cudaPeekAtLastError() );
 
@@ -141,12 +144,11 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
                re = (reduction/reduction2);
                if (re < epsil)  count++;
                if (count > 3) break;
-             }
-
-           getU2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_old, theta, dimX, dimY, ImSize);
+           }
+           getU2D_kernel<<<dimGrid,dimBlock>>>(d_update, d_old, theta, dimX, dimY);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
-          }
+       }
            //copy result matrix from device to host memory
            cudaMemcpy(Output,d_update,ImSize*sizeof(float),cudaMemcpyDeviceToHost);
 
@@ -156,7 +158,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
            cudaFree(P1);
            cudaFree(P2);
 
-   }
+    }
    else {
            /*3D verson*/
            int ImSize = dimX*dimY*dimZ;
@@ -190,18 +192,18 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
          checkCudaErrors(cudaPeekAtLastError() );
 
         if (nonneg != 0) {
-        PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update0, dimX, dimY, dimZ, ImSize);
+        PDnonneg3D_kernel<<<dimGrid,dimBlock>>>(d_update0, dimX, dimY, dimZ);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() ); }
 
          /* projection step */
-         if (methodTV == 0) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*isotropic TV*/
-         else Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ, ImSize); /*anisotropic TV*/
+         if (methodTV == 0) Proj_funcPD3D_iso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ); /*isotropic TV*/
+         else Proj_funcPD3D_aniso_kernel<<<dimGrid,dimBlock>>>(P1_0, P2_0, P3_0, dimX, dimY, dimZ); /*anisotropic TV*/
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
          /* copy U to U_old */
-        PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update0, d_old0, dimX, dimY, dimZ, ImSize);
+        PDcopy_kernel3D<<<dimGrid,dimBlock>>>(d_update0, d_old0, dimX, dimY, dimZ);
          checkCudaErrors( cudaDeviceSynchronize() );
          checkCudaErrors(cudaPeekAtLastError() );
 
@@ -213,7 +215,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
 
           if ((epsil != 0.0f) && (i % 5 == 0)) {
            /* calculate norm - stopping rules using the Thrust library */
-           PDResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, P1_0, dimX, dimY, dimZ, ImSize);
+           PDResidCalc3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, P1_0, dimX, dimY, dimZ);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
 
@@ -232,7 +234,7 @@ extern "C" int TV_PD_GPU_main(float *Input, float *Output, float *infovector, fl
              }
 
            /* get U*/
-          getU3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, theta, dimX, dimY, dimZ, ImSize);
+          getU3D_kernel<<<dimGrid,dimBlock>>>(d_update0, d_old0, theta, dimX, dimY, dimZ);
            checkCudaErrors( cudaDeviceSynchronize() );
            checkCudaErrors(cudaPeekAtLastError() );
          }

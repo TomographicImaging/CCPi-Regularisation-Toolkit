@@ -7,6 +7,7 @@ include-package-data = true
 package-dir = {"" = "src/Python"}
 packages = ["ccpi",
             "ccpi.filters",
+            "ccpi.supp",
             "ccpi.cuda_kernels"]
 
 

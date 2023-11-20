@@ -124,8 +124,8 @@ float SB_TV_CPU_main(float *Input, float *Output, float *infovector, float mu, i
                 re = 0.0f; re1 = 0.0f;
                 for(j=0; j<DimTotal; j++)
                 {
-                    re += powf(Output[j] - Output_prev[j],2);
-                    re1 += powf(Output[j],2);
+                    re += powf(Output[j] - Output_prev[j], 2);
+                    re1 += powf(Output[j], 2);
                 }
                 re = sqrtf(re)/sqrtf(re1);
                 /* stop if the norm residual is less than the tolerance EPS */
@@ -189,11 +189,11 @@ float updDxDy_shrinkAniso2D(float *U, float *Dx, float *Dy, float *Bx, float *By
             val1 = (U[j*dimX+i1] - U[index]) + Bx[index];
             val2 = (U[j1*dimX+i] - U[index]) + By[index];
             
-            val11 = fabs(val1) - denom_lam; if (val11 < 0) val11 = 0;
-            val22 = fabs(val2) - denom_lam; if (val22 < 0) val22 = 0;
+            val11 = fabsf(val1) - denom_lam; if (val11 < 0) val11 = 0;
+            val22 = fabsf(val2) - denom_lam; if (val22 < 0) val22 = 0;
             
-            if (val1 !=0) Dx[index] = (val1/fabs(val1))*val11; else Dx[index] = 0;
-            if (val2 !=0) Dy[index] = (val2/fabs(val2))*val22; else Dy[index] = 0;
+            if (val1 !=0) Dx[index] = (val1/fabsf(val1))*val11; else Dx[index] = 0;
+            if (val2 !=0) Dy[index] = (val2/fabsf(val2))*val22; else Dy[index] = 0;
             
         }}
     return 1;
@@ -215,7 +215,7 @@ float updDxDy_shrinkIso2D(float *U, float *Dx, float *Dy, float *Bx, float *By, 
             val1 = (U[j*dimX+i1] - U[index]) + Bx[index];
             val2 = (U[j1*dimX+i] - U[index]) + By[index];
             
-            denom = sqrt(val1*val1 + val2*val2);
+            denom = sqrtf(val1*val1 + val2*val2);
             
             val11 = (denom - denom_lam); if (val11 < 0) val11 = 0.0f;
             
@@ -301,13 +301,13 @@ float updDxDyDz_shrinkAniso3D(float *U, float *Dx, float *Dy, float *Dz, float *
                 val2 = (U[(dimX*dimY)*k + j1*dimX+i] - U[index]) + By[index];
                 val3 = (U[(dimX*dimY)*k1 + j*dimX+i] - U[index]) + Bz[index];
                 
-                val11 = fabs(val1) - denom_lam; if (val11 < 0.0f) val11 = 0.0f;
-                val22 = fabs(val2) - denom_lam; if (val22 < 0.0f) val22 = 0.0f;
-                val33 = fabs(val3) - denom_lam; if (val33 < 0.0f) val33 = 0.0f;
+                val11 = fabsf(val1) - denom_lam; if (val11 < 0.0f) val11 = 0.0f;
+                val22 = fabsf(val2) - denom_lam; if (val22 < 0.0f) val22 = 0.0f;
+                val33 = fabsf(val3) - denom_lam; if (val33 < 0.0f) val33 = 0.0f;
                 
-                if (val1 !=0.0f) Dx[index] = (val1/fabs(val1))*val11; else Dx[index] = 0.0f;
-                if (val2 !=0.0f) Dy[index] = (val2/fabs(val2))*val22; else Dy[index] = 0.0f;
-                if (val3 !=0.0f) Dz[index] = (val3/fabs(val3))*val33; else Dz[index] = 0.0f;
+                if (val1 !=0.0f) Dx[index] = (val1/fabsf(val1))*val11; else Dx[index] = 0.0f;
+                if (val2 !=0.0f) Dy[index] = (val2/fabsf(val2))*val22; else Dy[index] = 0.0f;
+                if (val3 !=0.0f) Dz[index] = (val3/fabsf(val3))*val33; else Dz[index] = 0.0f;
                 
             }}}
     return 1;
@@ -333,7 +333,7 @@ float updDxDyDz_shrinkIso3D(float *U, float *Dx, float *Dy, float *Dz, float *Bx
                 val2 = (U[(dimX*dimY)*k + j1*dimX+i] - U[index]) + By[index];
                 val3 = (U[(dimX*dimY)*k1 + j*dimX+i] - U[index]) + Bz[index];
                 
-                denom = sqrt(val1*val1 + val2*val2 + val3*val3);
+                denom = sqrtf(val1*val1 + val2*val2 + val3*val3);
                 
                 val11 = (denom - denom_lam); if (val11 < 0) val11 = 0.0f;
                 
