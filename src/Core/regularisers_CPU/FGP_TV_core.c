@@ -238,7 +238,7 @@ float Grad_func3D(float *P1, float *P2, float *P3, float *D, float *R1, float *R
 {
     float val1, val2, val3, multip;
     long i,j,k, index;
-    multip = (1.0f/(26.0f*lambda));
+    multip = (1.0f/(12.0f*lambda));
 #pragma omp parallel for shared(P1,P2,P3,D,R1,R2,R3,multip) private(index,i,j,k,val1,val2,val3)
     for(k=0; k<dimZ; k++) {
         for(j=0; j<dimY; j++) {
