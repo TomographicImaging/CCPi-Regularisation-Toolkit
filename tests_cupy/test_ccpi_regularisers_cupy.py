@@ -1,14 +1,12 @@
 import time
-
 import numpy as np
+import cupy as cp
 import pytest
-cp = pytest.importorskip("cupy") # skipping the tests bellow if the CuPy is not installed
 from ccpi.filters.regularisersCuPy import ROF_TV, PD_TV
 
 from numpy.testing import assert_allclose, assert_equal
 
 eps = 1e-5
-@cp.testing.gpu
 def test_ROF_TV_2d(host_data):
     cp.get_default_memory_pool().free_all_blocks()
     input_np = np.float32(host_data[60,:,:])
@@ -25,8 +23,6 @@ def test_ROF_TV_2d(host_data):
     assert_allclose(np.median(filtered_data), 960.0731, rtol=eps)
     assert filtered_data.dtype == np.float32
 
-
-@cp.testing.gpu
 def test_ROF_TV_3d(host_data):
     cp.get_default_memory_pool().free_all_blocks()
     input_np = np.float32(host_data)
@@ -43,7 +39,6 @@ def test_ROF_TV_3d(host_data):
     assert_allclose(np.median(filtered_data), 960.1991, rtol=eps)
     assert filtered_data.dtype == np.float32
 
-@cp.testing.gpu
 def test_PD_TV_2d(host_data):
     cp.get_default_memory_pool().free_all_blocks()
     input_np = np.float32(host_data[60,:,:])
@@ -63,7 +58,6 @@ def test_PD_TV_2d(host_data):
     assert_allclose(np.median(filtered_data), 960.11084, rtol=eps)
     assert filtered_data.dtype == np.float32
 
-@cp.testing.gpu
 def test_PD_TV_3d(host_data):
     cp.get_default_memory_pool().free_all_blocks()
     input_np = np.float32(host_data)

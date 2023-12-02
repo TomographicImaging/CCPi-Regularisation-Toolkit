@@ -53,7 +53,7 @@ extern "C" __global__ void Proj_funcPD2D_iso_kernel(float *P1, float *P2, int N,
    int index = xIndex + N*yIndex;
 
    if ((xIndex < N) && (yIndex < M)) {
-       denom = powf(P1[index],2) +  powf(P2[index],2);
+       denom = P1[index]*P1[index] +  P2[index]*P2[index];
        if (denom > 1.0f) {
            P1[index] = P1[index]/sqrtf(denom);
            P2[index] = P2[index]/sqrtf(denom);
@@ -171,7 +171,7 @@ extern "C" __global__ void Proj_funcPD3D_iso_kernel(float *P1, float *P2, float 
    float denom,sq_denom;      
    long long index = static_cast<long long>(i) + dimX * static_cast<long long>(j) + dimX * dimY * static_cast<long long>(k);
 
-    denom = powf(P1[index],2) +  powf(P2[index],2) + powf(P3[index],2);
+    denom = P1[index]*P1[index] +  P2[index]*P2[index] + P3[index]*P3[index];
        if (denom > 1.0f) {
            sq_denom = 1.0f/sqrtf(denom);
            P1[index] *= sq_denom;

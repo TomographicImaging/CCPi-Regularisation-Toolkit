@@ -1,2 +1,1 @@
-include src/Core/regularisers_GPU/cuda_kernels/*.cuh
-
+recursive-include src/Core/regularisers_GPU/cuda_kernels *
