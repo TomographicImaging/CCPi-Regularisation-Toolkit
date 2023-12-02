@@ -6,7 +6,7 @@ rm -r ../build_proj
 mkdir ../build_proj
 cd ../build_proj/
 #make clean
-export CIL_VERSION=22.03.1
+export CIL_VERSION=23.04.1
 # install Python modules without CUDA
 #cmake ../ -DBUILD_PYTHON_WRAPPER=ON -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_CUDA=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
 # install Python modules with CUDA

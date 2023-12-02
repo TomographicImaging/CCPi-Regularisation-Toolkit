@@ -20,7 +20,7 @@ cimport numpy as np
 
 CUDAErrorMessage = 'CUDA error'
 
-cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float *lambdaPar, int lambda_is_arr, int iter, float tau, float epsil, int gpu_device, int N, int M, int Z);
+cdef extern int TV_ROF_GPU_main(float* Input, float* Output, float *infovector, float lambdaPar, int iter, float tau, float epsil, int gpu_device, int N, int M, int Z);
 cdef extern int TV_FGP_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int nonneg, int gpu_device, int N, int M, int Z);
 cdef extern int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, float lipschitz_const, int methodTV, int nonneg, int gpu_device, int dimX, int dimY, int dimZ);
 cdef extern int TV_SB_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, int methodTV, int gpu_device, int N, int M, int Z);
@@ -260,50 +260,34 @@ def TVPD3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
 #********************** Total-variation ROF *********************#
 #****************************************************************#
 def ROFTV2D(np.ndarray[np.float32_t, ndim=2, mode="c"] inputData,
-                     regularisation_parameter,
+                     float regularisation_parameter,
                      int iterations,
                      float time_marching_parameter,
                      float tolerance_param,
                      int gpu_device):
-
     cdef long dims[2]
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
-    cdef float lambdareg
-    cdef np.ndarray[np.float32_t, ndim=2, mode="c"] reg
     cdef np.ndarray[np.float32_t, ndim=2, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1]], dtype='float32')
     cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
             np.ones([2], dtype='float32')
 
-    if isinstance (regularisation_parameter, np.ndarray):
-        reg = regularisation_parameter.copy()
-        # Running CUDA code here
-        if (TV_ROF_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0],
-                       &reg[0,0], 1,
-                       iterations,
-                       time_marching_parameter,
-                       tolerance_param,
-                       gpu_device,
-                       dims[1], dims[0], 1)==0):
-                return (outputData,infovec)
-        else:
-            raise ValueError(CUDAErrorMessage);
+    # Running CUDA code here
+    if (TV_ROF_GPU_main(
+        &inputData[0,0], &outputData[0,0], &infovec[0],
+                    regularisation_parameter,
+                    iterations,
+                    time_marching_parameter,
+                    tolerance_param,
+                    gpu_device,
+                    dims[1], dims[0], 1)==0):
+        return (outputData,infovec)
     else:
-        lambdareg = regularisation_parameter
-        if (TV_ROF_GPU_main(&inputData[0,0], &outputData[0,0], &infovec[0],
-                       &lambdareg,  0,
-                       iterations,
-                       time_marching_parameter,
-                       tolerance_param,
-                       gpu_device,
-                       dims[1], dims[0], 1)==0):
-            return (outputData,infovec)
-        else:
-            raise ValueError(CUDAErrorMessage);
+        raise ValueError(CUDAErrorMessage);
 
 def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
-                     regularisation_parameter,
+                     float regularisation_parameter,
                      int iterations,
                      float time_marching_parameter,
                      float tolerance_param,
@@ -313,41 +297,23 @@ def ROFTV3D(np.ndarray[np.float32_t, ndim=3, mode="c"] inputData,
     dims[0] = inputData.shape[0]
     dims[1] = inputData.shape[1]
     dims[2] = inputData.shape[2]
-    cdef float lambdareg
-    cdef np.ndarray[np.float32_t, ndim=3, mode="c"] reg
     cdef np.ndarray[np.float32_t, ndim=3, mode="c"] outputData = \
 		    np.zeros([dims[0],dims[1],dims[2]], dtype='float32')
     cdef np.ndarray[np.float32_t, ndim=1, mode="c"] infovec = \
             np.ones([2], dtype='float32')
 
-    if isinstance (regularisation_parameter, np.ndarray):
-        reg = regularisation_parameter.copy()
-        # Running CUDA code here
-        if (TV_ROF_GPU_main(
-            &inputData[0,0,0], &outputData[0,0,0], &infovec[0],
-                       &reg[0,0,0], 1,
-                       iterations,
-                       time_marching_parameter,
-                       tolerance_param,
-                       gpu_device,
-                       dims[2], dims[1], dims[0])==0):
-            return (outputData,infovec)
-        else:
-            raise ValueError(CUDAErrorMessage);
+    # Running CUDA code here
+    if (TV_ROF_GPU_main(
+        &inputData[0,0,0], &outputData[0,0,0], &infovec[0],
+                    regularisation_parameter,
+                    iterations,
+                    time_marching_parameter,
+                    tolerance_param,
+                    gpu_device,
+                    dims[2], dims[1], dims[0])==0):
+        return (outputData,infovec)
     else:
-        lambdareg = regularisation_parameter
-        # Running CUDA code here
-        if (TV_ROF_GPU_main(
-            &inputData[0,0,0], &outputData[0,0,0], &infovec[0],
-                       &lambdareg,  0,
-                       iterations,
-                       time_marching_parameter,
-                       tolerance_param,
-                       gpu_device,
-                       dims[2], dims[1], dims[0])==0):
-            return (outputData,infovec)
-        else:
-            raise ValueError(CUDAErrorMessage);
+        raise ValueError(CUDAErrorMessage);
 
 #****************************************************************#
 #********************** Total-variation FGP *********************#

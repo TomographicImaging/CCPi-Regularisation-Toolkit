@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import timeit
+
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, TNV, NDF, Diff4th
 from ccpi.filters.regularisers import PatchSelect, NLTV
 from ccpi.supp.qualitymetrics import QualityTools
@@ -222,7 +223,7 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : SB_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
-        'number_of_iterations' :250 ,\
+        'number_of_iterations' :1 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0}
         
@@ -234,8 +235,8 @@ start_time = timeit.default_timer()
               pars['tolerance_constant'], 
               pars['methodTV'],'cpu')
              
-Qtools = QualityTools(Im, sb_cpu)
-pars['rmse'] = Qtools.rmse()
+#Qtools = QualityTools(Im, sb_cpu)
+#pars['rmse'] = Qtools.rmse()
 
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
@@ -589,7 +590,7 @@ pars = {'algorithm' : TNV, \
         
 print ("#############TNV CPU#################")
 start_time = timeit.default_timer()
-tnv_cpu = TNV(pars['input'],           
+tnv_cpu = TNV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'])

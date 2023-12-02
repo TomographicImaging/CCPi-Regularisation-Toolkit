@@ -1,0 +1,117 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools-git-versioning"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+package-dir = {"" = "src/Python"}
+packages = ["ccpi",
+            "ccpi.filters",
+            "ccpi.supp",
+            "ccpi.cuda_kernels"]
+
+
+[tool.setuptools.package-data]
+ccpi = ["*.cu", "*.cuh"]
+
+[tool.setuptools-git-versioning]
+enabled = true
+template = "{tag}"
+dev_template = "{tag}"
+
+[project]
+name = "ccpi_regularisation_cupy"
+description = "GPU-CuPy accelerated regularisation routines"
+readme = "Readme.md"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "Daniil Kazantsev", email = "daniil.kazantsev@diamond.ac.uk"},
+    {name = "Edoardo Pasca", email = "edoardo.pasca@stfc.ac.uk"},
+]
+classifiers = [
+    "License :: OSI Approved :: Apache license 2.0",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Environment :: GPU :: NVIDIA CUDA"
+]
+requires-python = ">=3.9"
+dynamic = ["version"]
+dependencies = [
+    "cupy",
+    "numpy",
+    "scipy",
+    "pillow",
+    "scikit-image"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "pytest-xdist",
+  "pytest-benchmark",
+  "flake8",
+  "pyproject-flake8",
+  "pydocstyle"
+]
+
+[project.urls]
+"Repository" = "https://github.com/vais-ral/CCPi-Regularisation-Toolkit"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+   "-vv", 
+   "-ra", 
+   "-q",
+   "--benchmark-sort=mean",
+   "--benchmark-columns=mean",
+   "--tb=native",
+   "--cov-report=term", 
+   "--cov-report=xml:cov.xml",
+]
+testpaths = [
+    "tests_cupy",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::pytest.PytestUnknownMarkWarning",
+    "ignore::scipy.stats.ConstantInputWarning",
+]
+
+[tool.coverage.run]
+data_file = "/tmp/ccpi_regularisation_cupy.coverage"
+
+[tool.coverage.paths]
+# Tests are run from installed location, map back to the src directory
+source = [
+    "ccpi_regularisation_cupy",
+    "**/site-packages/"
+]
+
+[tool.mypy]
+# Ignore missing stubs for modules we use
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+float_to_top = true
+
+[tool.pydocstyle]
+convention = "google"
+add-ignore = [
+    "D100", # Ignore missing docstrings in public modules
+    "D104", # Ignore missing docstrings in public packages
+    "D418", # Ignore missing docstrings in dunder methods; See: https://github.com/PyCQA/pydocstyle/issues/525
+]
+
+[tool.flake8]
+# Make flake8 respect black's line length (default 88),
+max-line-length = 88
+extend-ignore = [
+    "E203",  
+    "F811"  
+]
+per-file-ignores = [
+    "*pyi:E302"
+]
