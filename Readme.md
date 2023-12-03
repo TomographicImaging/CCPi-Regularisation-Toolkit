@@ -46,13 +46,11 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 ```
 
 ### Python (GPU-CuPy)
-One can also use some of the GPU modules directly (i.e. without the need of building the package) by using [CuPy](https://docs.cupy.dev/en/stable/index.html) implementations. 
+One can also use some of the GPU modules with the provided [CuPy](https://docs.cupy.dev/en/stable/index.html) interfaces. The functions in `ccpi-regularisation-cupy` package work with CuPy arrays as an input and return a CuPy array for output. 
 ```
-git clone git@github.com:vais-ral/CCPi-Regularisation-Toolkit.git
-cd CCPi-Regularisation-Toolkit
-pip install .
+conda install -c httomo ccpi-regularisation-cupy
 ``` 
-Once installed please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py). Please note that not all modules are yet supported as this is an ongoing development. 
+Once installed please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py). Please note that not all modules are yet supported as this is an ongoing development. One can install both CuPy-driven and the `ccpi-regulariser` packge in one environment, but please be aware that the functions carry the identical names. 
 
 
 ### References to implemented methods:
