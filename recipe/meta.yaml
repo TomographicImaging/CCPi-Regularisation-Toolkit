@@ -21,6 +21,7 @@ requirements:
   build:
     - python
     - numpy {{ numpy }}
+    - pip
     - setuptools
     - cython
     - vc 14 # [win]
