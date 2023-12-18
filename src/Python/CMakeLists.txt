@@ -106,7 +106,7 @@ if (PYTHONINTERP_FOUND)
         PREFIX=${CMAKE_SOURCE_DIR}/src/Core
         LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
         LIBRARY_LIB=${LIBRARY_LIB}
-        ${PYTHON_EXECUTABLE} ${SETUP_PY} ${PYTHON_ARGS}
+        ${PYTHON_EXECUTABLE} -m pip install . --no-deps
       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
       DEPENDS cilreg)
 
