@@ -39,7 +39,7 @@ if (BUILD_CUDA)
     find_package(CUDA)
     if (CUDA_FOUND)
       message("CUDA FOUND")
-      set(GPU_EXTRA_LIBRARIES "'cilregcuda'")
+      set(GPU_EXTRA_LIBRARIES "cilregcuda")
       set(SETUP_GPU_WRAPPERS "Extension('ccpi.filters.gpu_regularisers',\n\
                                   sources=[ \n\
                                           os.path.join('.' , 'src', 'gpu_regularisers.pyx' ),\n\
@@ -47,8 +47,8 @@ if (BUILD_CUDA)
                                  include_dirs=extra_include_dirs, \n\
                                  library_dirs=extra_library_dirs, \n\
                                  extra_compile_args=extra_compile_args, \n\
-                                 libraries=extra_libraries ), \n\
-      )
+                                 libraries=extra_libraries ), \n
+      ")
       
     else()
       message("CUDA NOT FOUND")
@@ -76,7 +76,7 @@ endif()
 if (PYTHONINTERP_FOUND)
     message("Python found " ${PYTHON_EXECUTABLE})
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup-regularisers.py.in")
-    set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup-regularisers.py")
+    set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
     #set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
     set (DEPS       "${CMAKE_BINARY_DIR}/src/Core/")
     set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
@@ -103,7 +103,7 @@ if (PYTHONINTERP_FOUND)
         PREFIX=${CMAKE_SOURCE_DIR}/src/Core
         LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
         LIBRARY_LIB=${LIBRARY_LIB}
-        ${PYTHON_EXECUTABLE} ${SETUP_PY} ${PYTHON_ARGS}
+        ${PYTHON_EXECUTABLE} -m pip install . --verbose
       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
       DEPENDS cilreg)
 

@@ -58,8 +58,8 @@ else:
     extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x']
     extra_libraries += [@EXTRA_OMP_LIB@]
 
-if @GPU_EXTRA_LIBRARIES@ is not []:
-  extra_libraries += @GPU_EXTRA_LIBRARIES@
+if '@GPU_EXTRA_LIBRARIES@' != '':
+  extra_libraries += ['@GPU_EXTRA_LIBRARIES@']
 
 setup(
   name='ccpi',
