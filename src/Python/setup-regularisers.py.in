@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import Extension, setup, find_packages
+from setuptools import Extension, setup
 from Cython.Distutils import build_ext
 
 import os
@@ -58,12 +58,15 @@ else:
     extra_compile_args = ['-fopenmp','-O2', '-funsigned-char', '-Wall', '-std=c++0x']
     extra_libraries += [@EXTRA_OMP_LIB@]
 
+if @GPU_EXTRA_LIBRARIES@ is not []:
+  extra_libraries += @GPU_EXTRA_LIBRARIES@
+
 setup(
   name='ccpi',
 	description='CCPi Core Imaging Library - Image regularisers',
 	version=cil_version,
   cmdclass = {'build_ext': build_ext},
-  ext_modules = [Extension("ccpi.filters.cpu_regularisers",
+  ext_modules = [ Extension("ccpi.filters.cpu_regularisers",
     sources=[os.path.join("." , "src", "cpu_regularisers.pyx" ) ],
     include_dirs=extra_include_dirs,
     library_dirs=extra_library_dirs,
@@ -71,6 +74,7 @@ setup(
     libraries=extra_libraries,
     extra_link_args=extra_link_args
     ),
+   @SETUP_GPU_WRAPPERS@
   ],
 	zip_safe = False,
 	packages = {'ccpi', 'ccpi.filters', 'ccpi.supp', 'ccpi.cuda_kernels'},      
@@ -78,4 +82,4 @@ setup(
   package_data={"": ["*.cuh"]}
 )
 
-@SETUP_GPU_WRAPPERS@
+

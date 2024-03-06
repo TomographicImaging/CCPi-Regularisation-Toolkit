@@ -39,13 +39,8 @@ if (BUILD_CUDA)
     find_package(CUDA)
     if (CUDA_FOUND)
       message("CUDA FOUND")
-      set (SETUP_GPU_WRAPPERS "extra_libraries += ['cilregcuda']\n\
-setup( \n\
-        name='ccpi', \n\
-        description='CCPi Core Imaging Library - Image regularisers GPU',\n\
-        version=cil_version,\n\
-        cmdclass = {'build_ext': build_ext},\n\
-        ext_modules = [Extension('ccpi.filters.gpu_regularisers',\n\
+      set(GPU_EXTRA_LIBRARIES "'cilregcuda'")
+      set(SETUP_GPU_WRAPPERS "Extension('ccpi.filters.gpu_regularisers',\n\
                                   sources=[ \n\
                                           os.path.join('.' , 'src', 'gpu_regularisers.pyx' ),\n\
                                             ],\n\
@@ -53,14 +48,16 @@ setup( \n\
                                  library_dirs=extra_library_dirs, \n\
                                  extra_compile_args=extra_compile_args, \n\
                                  libraries=extra_libraries ), \n\
-        ],\n\
-        zip_safe = False,	\n\
-        packages = {'ccpi','ccpi.filters'},\n\
-    )")
+      )
+      
     else()
       message("CUDA NOT FOUND")
       set(SETUP_GPU_WRAPPERS "#CUDA NOT FOUND")
+      set(GPU_EXTRA_LIBRARIES "")
     endif()
+else()
+set(SETUP_GPU_WRAPPERS "#CUDA NOT BUILT")
+set(GPU_EXTRA_LIBRARIES "")
 endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/setup-regularisers.py.in" "${CMAKE_CURRENT_BINARY_DIR}/setup-regularisers.py")
 
