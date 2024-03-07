@@ -57,7 +57,6 @@ else()
 set(SETUP_GPU_WRAPPERS "#CUDA NOT BUILT")
 set(GPU_EXTRA_LIBRARIES "")
 endif()
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/setup-regularisers.py.in" "${CMAKE_CURRENT_BINARY_DIR}/setup-regularisers.py")
 
 
 find_package(PythonInterp)
@@ -77,7 +76,8 @@ if (PYTHONINTERP_FOUND)
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
     #set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
     set (DEPS       "${CMAKE_BINARY_DIR}/src/Core/")
-    set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+    set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/build")
+    set(OUTPUT      "${OUTPUT_DIR}/timestamp")
 
     configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
@@ -97,11 +97,14 @@ if (PYTHONINTERP_FOUND)
     add_custom_command(OUTPUT ${OUTPUT}
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ccpi ${CMAKE_CURRENT_BINARY_DIR}/ccpi
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml ${CMAKE_CURRENT_BINARY_DIR}
       COMMAND ${CMAKE_COMMAND} -E env CIL_VERSION=${CIL_VERSION}
         PREFIX=${CMAKE_SOURCE_DIR}/src/Core
         LIBRARY_INC=${CMAKE_SOURCE_DIR}/src/Core
         LIBRARY_LIB=${LIBRARY_LIB}
-        ${PYTHON_EXECUTABLE} -m pip install . --verbose
+        ${PYTHON_EXECUTABLE} -m build -n . --outdir=${CMAKE_CURRENT_BINARY_DIR}/dist
+      COMMAND ${PYTHON_EXECUTABLE} -m pip install --force-reinstall --no-index --find-links=${CMAKE_CURRENT_BINARY_DIR}/dist/ ccpi-regulariser
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
       DEPENDS cilreg
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
