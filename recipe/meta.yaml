@@ -25,7 +25,8 @@ requirements:
     - cython
     - vc 14 # [win]
     - cmake
-    - ripgrep 
+    - ripgrep
+    - build
 
   run:
     - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
