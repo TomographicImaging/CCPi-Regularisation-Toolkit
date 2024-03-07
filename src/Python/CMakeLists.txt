@@ -41,9 +41,7 @@ if (BUILD_CUDA)
       message("CUDA FOUND")
       set(GPU_EXTRA_LIBRARIES "cilregcuda")
       set(SETUP_GPU_WRAPPERS "Extension('ccpi.filters.gpu_regularisers',\n\
-                                  sources=[ \n\
-                                          os.path.join('.' , 'src', 'gpu_regularisers.pyx' ),\n\
-                                            ],\n\
+                                  [ os.path.join('.' , 'src', 'gpu_regularisers.pyx' ) ],\n\
                                  include_dirs=extra_include_dirs, \n\
                                  library_dirs=extra_library_dirs, \n\
                                  extra_compile_args=extra_compile_args, \n\
@@ -105,7 +103,8 @@ if (PYTHONINTERP_FOUND)
         LIBRARY_LIB=${LIBRARY_LIB}
         ${PYTHON_EXECUTABLE} -m pip install . --verbose
       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-      DEPENDS cilreg)
+      DEPENDS cilreg
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
     if (NOT CONDA_BUILD)
       install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ccpi 
