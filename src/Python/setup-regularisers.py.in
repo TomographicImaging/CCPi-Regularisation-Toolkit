@@ -2,7 +2,7 @@
 
 from setuptools import Extension, setup
 # from Cython.Distutils import build_ext
-# from Cython.Build import cythonize
+from Cython.Build import cythonize
 
 import os
 import sys
@@ -55,7 +55,7 @@ if '@GPU_EXTRA_LIBRARIES@' != '':
   extra_libraries += ['@GPU_EXTRA_LIBRARIES@']
 
 extensions = [ Extension("ccpi.filters.cpu_regularisers",
-     [os.path.join("." , "src", "cpu_regularisers.pyx" ) ],
+     [os.path.join( "@CMAKE_CURRENT_BINARY_DIR@", "src", "cpu_regularisers.pyx" ) ],
     include_dirs=extra_include_dirs,
     library_dirs=extra_library_dirs,
     extra_compile_args=extra_compile_args,
@@ -68,7 +68,7 @@ extensions = [ Extension("ccpi.filters.cpu_regularisers",
 setup(
   name='ccpi',
 	# description='CCPi Core Imaging Library - Image regularisers',
-  ext_modules = extensions,
+  ext_modules = cythonize(extensions),
 	version=cil_version,
   zip_safe = False,
 	packages = {'ccpi', 'ccpi.filters', 'ccpi.supp', 'ccpi.cuda_kernels'},      

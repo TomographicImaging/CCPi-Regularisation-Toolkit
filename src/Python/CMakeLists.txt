@@ -41,7 +41,7 @@ if (BUILD_CUDA)
       message("CUDA FOUND")
       set(GPU_EXTRA_LIBRARIES "cilregcuda")
       set(SETUP_GPU_WRAPPERS "Extension('ccpi.filters.gpu_regularisers',\n\
-                                  [ os.path.join('.' , 'src', 'gpu_regularisers.pyx' ) ],\n\
+                                  [ os.path.join('@CURRENT_CMAKE_BINARY_DIR@' , 'src', 'gpu_regularisers.pyx' ) ],\n\
                                  include_dirs=extra_include_dirs, \n\
                                  library_dirs=extra_library_dirs, \n\
                                  extra_compile_args=extra_compile_args, \n\
