@@ -1,0 +1,9 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+version = "24.0.0"
+name='ccpi',
+name ='CCPi Core Imaging Library - Image regularisers',
