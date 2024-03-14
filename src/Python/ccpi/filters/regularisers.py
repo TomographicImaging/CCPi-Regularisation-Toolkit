@@ -18,7 +18,7 @@ from .utils import cilregcuda
 
 def create_wrapper(CPU_func, GPU_func):
     def wrapper(*args, **kwargs):
-        device = kwargs.get('device', 'cpu')
+        device = kwargs.pop('device', 'cpu')
         if device == 'cpu':
             return CPU_func(*args, **kwargs)
         elif device == 'gpu' or isinstance(device, numbers.Integral) and cilregcuda is not None:

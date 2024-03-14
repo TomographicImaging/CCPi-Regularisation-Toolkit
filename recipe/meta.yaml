@@ -22,7 +22,7 @@ requirements:
     - python
     - numpy {{ numpy }}
     - setuptools
-    - cython
+    - pip
     - vc 14 # [win]
     - cmake
     - ripgrep 

@@ -89,10 +89,13 @@ def TV_FGP_CPU(inputData, lambdaPar, iterationsNumb, epsil, methodTV, nonneg, ou
 
     return out
 
-def PDTV_CPU(inputData, lambdaPar, iterationsNumb, epsil, lipschitz_const, methodTV, nonneg, out=None, infovector=None):
-    # float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
-    # int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, 
+def PDTV_CPU(inputData, lambdaPar, iterationsNumb, epsil, lipschitz_const, methodTV, 
+             nonneg, out=None, infovector=None):
+    # float PDTV_CPU_main(float *Input, float *U, float *infovector, 
+    # float lambdaPar, int iterationsNumb, float epsil, 
+    # float lipschitz_const, int methodTV, int nonneg, 
     # int dimX, int dimY, int dimZ);
+    
     cilreg.PDTV_CPU_main.argtypes = [
         ctypes.POINTER(ctypes.c_float),  # pointer to the Input array
         ctypes.POINTER(ctypes.c_float),  # pointer to the U array
@@ -126,7 +129,8 @@ def PDTV_CPU(inputData, lambdaPar, iterationsNumb, epsil, lipschitz_const, metho
     # float PDTV_CPU_main(float *Input, float *U, float *infovector, float lambdaPar, 
     # int iterationsNumb, float epsil, float lipschitz_const, int methodTV, int nonneg, 
     # int dimX, int dimY, int dimZ);
-    cilreg.PDTV_CPU_main(in_p, out_p, infovector_p, lambdaPar, iterationsNumb, epsil, lipschitz_const, methodTV, nonneg, dims[0], dims[1], dims[2])
+    cilreg.PDTV_CPU_main(in_p, out_p, infovector_p, lambdaPar, iterationsNumb,
+                         epsil, lipschitz_const, methodTV, nonneg, dims[0], dims[1], dims[2])
 
     return out
 
@@ -400,7 +404,7 @@ def NLTV(inputData, H_i, H_j, H_k, Weights, NumNeighb, lambdaReg, IterNumb,
     weights_p = Weights.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     
     if Output is None:
-        Output = np.zeros_like(A_orig)
+        Output = np.zeros_like(inputData)
     out_p = Output.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     
     
@@ -452,14 +456,6 @@ def TV_ENERGY(U, U0, lambdaPar, type, E_val=None):
     else:
         raise ValueError(f"TV_ENERGY: Only 2D and 3D data are supported. Got {U.ndim}")
     return E_val
-
-def TV_ENERGY(inputData, inputData0, regularisation_parameter, typeFunctional, output=None):
-    if inputData.ndim == 2:
-        return TV_energy2D(inputData, inputData0, regularisation_parameter, 
-                           typeFunctional)
-    elif inputData.ndim == 3:
-        return TV_energy3D(inputData, inputData0, regularisation_parameter, 
-                           typeFunctional)
 
 
 # Define all the GPU functions as None
