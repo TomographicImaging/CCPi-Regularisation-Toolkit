@@ -8,6 +8,7 @@ Demonstration of CPU implementation against the GPU one
 @authors: Daniil Kazantsev, Edoardo Pasca
 """
 
+#%%
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -31,6 +32,8 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 
+
+os.chdir(os.path.join("..", "demos"))
 filename = os.path.join("data" ,"lena_gray_512.tif")
 
 # read image
@@ -73,11 +76,12 @@ pars = {'algorithm': ROF_TV, \
 
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
-(rof_cpu, infocpu) = ROF_TV(pars['input'],
+infocpu = np.zeros(2, dtype='float32')
+rof_cpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'],'cpu')
+             pars['tolerance_constant'],device='cpu', infovector=infocpu)
 
 Qtools = QualityTools(Im, rof_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -95,13 +99,15 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(rof_cpu, cmap="gray")
 plt.title('{}'.format('CPU results'))
 
+#%%
 print ("##############ROF TV GPU##################")
 start_time = timeit.default_timer()
-(rof_gpu, infgpu) = ROF_TV(pars['input'],
+infogpu = np.zeros(2, dtype='float32')
+rof_gpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'],'gpu')
+             pars['tolerance_constant'],device='gpu', infovector=infogpu)
 
 Qtools = QualityTools(Im, rof_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -120,7 +126,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(rof_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
 
-
+#%%
 print ("--------Compare the results--------")
 tolerance = 1e-05
 diff_im = np.zeros(np.shape(rof_cpu))
@@ -156,12 +162,12 @@ pars = {'algorithm' : FGP_TV, \
         
 print ("#############FGP TV CPU####################")
 start_time = timeit.default_timer()
-(fgp_cpu,infocpu) =  FGP_TV(pars['input'], 
+fgp_cpu =  FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'],'cpu') 
+              pars['nonneg'],device='cpu', infovector=infocpu) 
 
 Qtools = QualityTools(Im, fgp_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -182,12 +188,12 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############FGP TV GPU##################")
 start_time = timeit.default_timer()
-(fgp_gpu,infogpu) =  FGP_TV(pars['input'], 
+fgp_gpu =  FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'],'gpu') 
+              pars['nonneg'],device='gpu', infovector=infogpu) 
 
 Qtools = QualityTools(Im, fgp_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -245,13 +251,14 @@ pars = {'algorithm' : PD_TV, \
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()
-(pd_cpu,info_vec_cpu) = PD_TV(pars['input'], 
+pd_cpu = PD_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
+              pars['lipschitz_const'],
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],'cpu')
+              device='cpu', infovector=infocpu)
 
 Qtools = QualityTools(Im, pd_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -279,15 +286,16 @@ pars = {'algorithm' : PD_TV, \
         'nonneg': 0,
         'lipschitz_const' : 8}
         
-print ("#############PD TV CPU####################")
+print ("#############PD TV GPU####################")
 start_time = timeit.default_timer()
-(pd_gpu,info_vec_gpu) = PD_TV(pars['input'], 
+pd_gpu = PD_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
+              pars['lipschitz_const'],
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],'gpu')
+              device='gpu', infovector=infogpu)
 
 Qtools = QualityTools(Im, pd_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -340,11 +348,11 @@ pars = {'algorithm' : SB_TV, \
         
 print ("#############SB-TV CPU####################")
 start_time = timeit.default_timer()
-(sb_cpu, info_vec_cpu) = SB_TV(pars['input'], 
+sb_cpu = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'], 'cpu')
+              pars['methodTV'], device='cpu', infovector=infocpu)
              
 
 Qtools = QualityTools(Im, sb_cpu)
@@ -366,11 +374,11 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############SB TV GPU##################")
 start_time = timeit.default_timer()
-(sb_gpu, info_vec_gpu) = SB_TV(pars['input'], 
+sb_gpu = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'], 'gpu')
+              pars['methodTV'], device='gpu', infovector=infogpu)
 
 Qtools = QualityTools(Im, sb_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -424,12 +432,12 @@ pars = {'algorithm' : LLT_ROF, \
 
 print ("#############LLT- ROF CPU####################")
 start_time = timeit.default_timer()
-(lltrof_cpu, info_vec_cpu) = LLT_ROF(pars['input'], 
+lltrof_cpu = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device='cpu', infovector=infocpu)
 
 Qtools = QualityTools(Im, lltrof_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -449,12 +457,12 @@ plt.title('{}'.format('CPU results'))
 
 print ("#############LLT- ROF GPU####################")
 start_time = timeit.default_timer()
-(lltrof_gpu, info_vec_gpu) = LLT_ROF(pars['input'], 
+lltrof_gpu = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'gpu')
+              pars['tolerance_constant'], device='gpu', infovector=infogpu)
 
 Qtools = QualityTools(Im, lltrof_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -509,13 +517,13 @@ pars = {'algorithm' : TGV, \
         
 print ("#############TGV CPU####################")
 start_time = timeit.default_timer()
-(tgv_cpu, info_vec_cpu) = TGV(pars['input'], 
+tgv_cpu = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'],device='cpu', infovector=infocpu)
              
 Qtools = QualityTools(Im, tgv_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -535,13 +543,13 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############TGV GPU##################")
 start_time = timeit.default_timer()
-(tgv_gpu, info_vec_gpu) = TGV(pars['input'], 
+tgv_gpu = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'],device='gpu', infovector=infogpu)
                                    
 Qtools = QualityTools(Im, tgv_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -595,13 +603,13 @@ pars = {'algorithm' : NDF, \
 
 print ("#############NDF CPU####################")
 start_time = timeit.default_timer()
-(ndf_cpu,info_vec_cpu) = NDF(pars['input'], 
+ndf_cpu = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
               pars['penalty_type'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'],device='cpu', infovector=infocpu)
 
 Qtools = QualityTools(Im, ndf_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -622,13 +630,13 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############NDF GPU##################")
 start_time = timeit.default_timer()
-(ndf_gpu,info_vec_gpu) = NDF(pars['input'], 
+ndf_gpu = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
               pars['penalty_type'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'],device='gpu', infovector=infogpu)
 
 Qtools = QualityTools(Im, ndf_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -682,12 +690,12 @@ pars = {'algorithm' : Diff4th, \
 
 print ("#############Diff4th CPU####################")
 start_time = timeit.default_timer()
-(diff4th_cpu,info_vec_cpu) = Diff4th(pars['input'], 
+diff4th_cpu = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'],device='cpu', infovector=infocpu)
 
 Qtools = QualityTools(Im, diff4th_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -707,12 +715,12 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############Diff4th GPU##################")
 start_time = timeit.default_timer()
-(diff4th_gpu,info_vec_gpu) = Diff4th(pars['input'], 
+diff4th_gpu = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'],device='gpu', infovector=infogpu)
 
 Qtools = QualityTools(Im, diff4th_gpu)
 pars['rmse'] = Qtools.rmse()
@@ -768,14 +776,14 @@ pars = {'algorithm' : FGP_dTV, \
         
 print ("#############FGP dTV CPU####################")
 start_time = timeit.default_timer()
-(fgp_dtv_cpu,info_vec_cpu) = FGP_dTV(pars['input'], 
+fgp_dtv_cpu = FGP_dTV(pars['input'], 
               pars['refdata'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['eta_const'], 
               pars['methodTV'],
-              pars['nonneg'],'cpu')
+              pars['nonneg'],device='cpu', infovector=infocpu)
 
 Qtools = QualityTools(Im, fgp_dtv_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -796,14 +804,14 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############FGP dTV GPU##################")
 start_time = timeit.default_timer()
-(fgp_dtv_gpu,info_vec_gpu) = FGP_dTV(pars['input'], 
+fgp_dtv_gpu = FGP_dTV(pars['input'], 
               pars['refdata'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['eta_const'], 
               pars['methodTV'],
-              pars['nonneg'],'gpu')
+              pars['nonneg'],device='cpu', infovector=infogpu)
 Qtools = QualityTools(Im, fgp_dtv_gpu)
 pars['rmse'] = Qtools.rmse()
 pars['algorithm'] = FGP_dTV
@@ -858,11 +866,11 @@ H_i, H_j, WeightsCPU = PatchSelect(pars['input'],
               pars['searchwindow'],
               pars['patchwindow'], 
               pars['neighbours'],
-              pars['edge_parameter'],'cpu')
+              pars['edge_parameter'], device='cpu')
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)
-
+#%%
 print ("############## Nonlocal Patches on GPU##################")
 start_time = timeit.default_timer()
 start_time = timeit.default_timer()
@@ -870,7 +878,7 @@ H_i, H_j, WeightsGPU = PatchSelect(pars['input'],
               pars['searchwindow'],
               pars['patchwindow'], 
               pars['neighbours'],
-              pars['edge_parameter'],'gpu')
+              pars['edge_parameter'],device='gpu')
 txtstr = printParametersToString(pars)
 txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
 print (txtstr)

@@ -323,7 +323,7 @@ def TNV(inputData, lambdaPar, maxIter, tol, out=None):
 
 # Non-local TV
 # usage example https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/71f8d304d804b54d378f0ed05539f01aaaf13758/demos/demo_gpu_regularisers.py#L438-L506
-def PatchSelect_CPU(inputData, H_i, H_j, H_k, Weights, SearchWindow, SimilarWin, NumNeighb, h, dims):
+def PatchSelect_CPU(inputData, SearchWindow, SimilarWin, NumNeighb, h, H_i=None, H_j=None, H_k=None, Weights=None):
     # float PatchSelect_CPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, 
     # float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h);
     cilreg.PatchSelect_CPU_main.argtypes = [
@@ -352,6 +352,9 @@ def PatchSelect_CPU(inputData, H_i, H_j, H_k, Weights, SearchWindow, SimilarWin,
         H_i = np.zeros(dims, dtype='uint16')
     if H_j is None:
         H_j = np.zeros(dims, dtype='uint16')
+    if H_k is None:
+        H_k = np.zeros(dims, dtype='uint16')
+
 
     in_p = inputData.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     hi_p = H_i.ctypes.data_as(ctypes.POINTER(ctypes.c_ushort))
@@ -361,7 +364,7 @@ def PatchSelect_CPU(inputData, H_i, H_j, H_k, Weights, SearchWindow, SimilarWin,
 
     # float PatchSelect_CPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, 
     # float *Weights, int dimX, int dimY, int dimZ, int SearchWindow, int SimilarWin, int NumNeighb, float h);
-    cilreg.PatchSelect_CPU_main(in_p, hi_p, hj_p, hk_p, weights_p, dims[0], dims[1], dims[2], SearchWindow, SimilarWin, NumNeighb, h)
+    cilreg.PatchSelect_CPU_main(in_p, hi_p, hj_p, hk_p, weights_p, dims[2], dims[1], 0, SearchWindow, SimilarWin, NumNeighb, h)
 
     return H_i, H_j, Weights    
         
@@ -411,7 +414,7 @@ def NLTV(inputData, H_i, H_j, H_k, Weights, NumNeighb, lambdaReg, IterNumb,
     
     # float Nonlocal_TV_CPU_main(float *A_orig, float *Output, unsigned short *H_i, unsigned short *H_j, unsigned short *H_k, 
     # float *Weights, int dimX, int dimY, int dimZ, int NumNeighb, float lambdaReg, int IterNumb, int switchM);
-    result = cilreg.Nonlocal_TV_CPU_main(aorig_p, out_p, hi_p, hj_p, hk_p, weights_p, dims[0], dims[1], dims[2], NumNeighb, lambdaReg, IterNumb, switchM)
+    result = cilreg.Nonlocal_TV_CPU_main(aorig_p, out_p, hi_p, hj_p, hk_p, weights_p, dims[1], dims[0], 0, NumNeighb, lambdaReg, IterNumb, switchM)
 
     return Output
 
@@ -590,10 +593,14 @@ if cilregcuda is not None:
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
         
         dims = list(Input.shape)
-        
+        if Input.ndim == 2:
+            dims.append(1)
         # int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil, 
         # float lipschitz_const, int methodTV, int nonneg, int gpu_device, int dimX, int dimY, int dimZ);
-        result = cilreg.TV_PD_GPU_main(input_p, output_p, infovector_p, lambdaPar, iter, epsil, lipschitz_const, methodTV, nonneg, gpu_device, dims[0], dims[1], dims[2])
+        result = cilregcuda.TV_PD_GPU_main(input_p, output_p, infovector_p, 
+                                           lambdaPar, iter, epsil, lipschitz_const, 
+                                           methodTV, nonneg, gpu_device, 
+                                           dims[0], dims[1], dims[2])
 
         return Output
     
@@ -713,6 +720,7 @@ if cilregcuda is not None:
         dims = list(inputData.shape)
         if inputData.ndim == 2:
             dims.append(1)
+        dims = dims[::-1]
         
         # int TGV_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, float alpha1, float alpha0, 
         # int iterationsNumb, float L2, float epsil, int gpu_device, int dimX, int dimY, int dimZ);
@@ -766,7 +774,7 @@ if cilregcuda is not None:
 
         return out
     
-    def PatchSelect_GPU(inputData, H_i, H_j, Weights, SearchWindow, SimilarWin, NumNeighb, h, dims, gpu_device):
+    def PatchSelect_GPU(inputData, SearchWindow, SimilarWin, NumNeighb, h, gpu_device, H_i=None, H_j=None, H_k=None, Weights=None):
         # int PatchSelect_GPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, float *Weights, 
         # int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h, int gpu_device);
         cilregcuda.PatchSelect_GPU_main.argtypes = [
@@ -784,6 +792,15 @@ if cilregcuda is not None:
         ]
         cilregcuda.PatchSelect_GPU_main.restype = ctypes.c_int # return value is int
 
+        dims = [NumNeighb, inputData.shape[0], inputData.shape[1]] 
+
+        if Weights is None:
+            Weights = np.zeros(dims, dtype='float32')
+        if H_i is None:
+            H_i = np.zeros(dims, dtype='uint16')
+        if H_j is None:
+            H_j = np.zeros(dims, dtype='uint16')
+
         in_p = inputData.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
         hi_p = H_i.ctypes.data_as(ctypes.POINTER(ctypes.c_ushort))
         hj_p = H_j.ctypes.data_as(ctypes.POINTER(ctypes.c_ushort))
@@ -791,6 +808,7 @@ if cilregcuda is not None:
                 
         # int PatchSelect_GPU_main(float *Input, unsigned short *H_i, unsigned short *H_j, float *Weights, 
         # int N, int M, int SearchWindow, int SimilarWin, int NumNeighb, float h, int gpu_device);
-        result = cilregcuda.PatchSelect_GPU_main(in_p, hi_p, hj_p, weights_p, dims[0], dims[1], SearchWindow, SimilarWin, NumNeighb, h, gpu_device)
+        result = cilregcuda.PatchSelect_GPU_main(in_p, hj_p, hi_p, weights_p,
+                                                 dims[2], dims[1], SearchWindow, SimilarWin, NumNeighb, h, gpu_device)
 
-        return result
+        return H_i, H_j, Weights

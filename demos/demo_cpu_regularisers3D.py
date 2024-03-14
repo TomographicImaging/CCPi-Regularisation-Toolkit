@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#%%
 """
 Created on Thu Feb 22 11:39:43 2018
 
@@ -30,6 +31,7 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 
+os.chdir(os.path.join("..", "demos"))
 filename = os.path.join( "data" ,"lena_gray_512.tif")
 
 # read image
@@ -101,11 +103,12 @@ pars = {'algorithm': ROF_TV, \
 
 print ("#############ROF TV CPU####################")
 start_time = timeit.default_timer()
-(rof_cpu3D, info_vec_cpu) = ROF_TV(pars['input'],
+info_vec_cpu = np.zeros(2, dtype = np.float32)
+rof_cpu3D = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device='cpu', infovector=info_vec_cpu)
 
 Qtools = QualityTools(idealVol, rof_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -146,12 +149,12 @@ pars = {'algorithm' : FGP_TV, \
 
 print ("#############FGP TV GPU####################")
 start_time = timeit.default_timer()
-(fgp_cpu3D, info_vec_cpu)  = FGP_TV(pars['input'], 
+fgp_cpu3D = FGP_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['methodTV'],
-              pars['nonneg'], 'cpu')
+              pars['nonneg'], device='cpu', infovector=info_vec_cpu)
              
 Qtools = QualityTools(idealVol, fgp_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -190,15 +193,16 @@ pars = {'algorithm' : PD_TV, \
         'nonneg': 0,
         'lipschitz_const' : 8}
 
-print ("#############FGP TV GPU####################")
+print ("#############PD-TV (3D) CPU####################")
 start_time = timeit.default_timer()
-(pd_cpu3D,info_vec_cpu) = PD_TV(pars['input'], 
+pd_cpu3D = PD_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
+              pars['lipschitz_const'],
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],'cpu')
+              device='cpu', infovector=info_vec_cpu)
              
 Qtools = QualityTools(idealVol, pd_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -237,11 +241,11 @@ pars = {'algorithm' : SB_TV, \
         
 print ("#############SB TV CPU####################")
 start_time = timeit.default_timer()
-(sb_cpu3D, info_vec_cpu) = SB_TV(pars['input'], 
+sb_cpu3D = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'],'cpu')
+              pars['methodTV'], device='cpu', infovector=info_vec_cpu)
 
 Qtools = QualityTools(idealVol, sb_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -283,12 +287,12 @@ pars = {'algorithm' : LLT_ROF, \
 
 print ("#############LLT ROF CPU####################")
 start_time = timeit.default_timer()
-(lltrof_cpu3D,info_vec_cpu) = LLT_ROF(pars['input'], 
+lltrof_cpu3D = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device='cpu', infovector=info_vec_cpu)
 
 
 Qtools = QualityTools(idealVol, lltrof_cpu3D)
@@ -331,13 +335,13 @@ pars = {'algorithm' : TGV, \
 
 print ("#############TGV CPU####################")
 start_time = timeit.default_timer()
-(tgv_cpu3D,info_vec_cpu)  = TGV(pars['input'], 
+tgv_cpu3D  = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu', infovector=info_vec_cpu)
 
 
 Qtools = QualityTools(idealVol, tgv_cpu3D)
@@ -380,13 +384,13 @@ pars = {'algorithm' : NDF, \
 
 print ("#############NDF CPU################")
 start_time = timeit.default_timer()
-(ndf_cpu3D,info_vec_cpu)  = NDF(pars['input'], 
+ndf_cpu3D  = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'], 
               pars['penalty_type'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device='cpu', infovector=info_vec_cpu)
              
 
 Qtools = QualityTools(idealVol, ndf_cpu3D)
@@ -428,12 +432,12 @@ pars = {'algorithm' : Diff4th, \
 
 print ("#############Diff4th CPU################")
 start_time = timeit.default_timer()
-(diff4th_cpu3D,info_vec_cpu) = Diff4th(pars['input'], 
+diff4th_cpu3D = Diff4th(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu', infovector=info_vec_cpu)
              
 
 Qtools = QualityTools(idealVol, diff4th_cpu3D)
@@ -477,14 +481,14 @@ pars = {'algorithm' : FGP_dTV,\
         
 print ("#############FGP dTV CPU####################")
 start_time = timeit.default_timer()
-(fgp_dTV_cpu3D,info_vec_cpu)  = FGP_dTV(pars['input'],
+fgp_dTV_cpu3D = FGP_dTV(pars['input'],
               pars['refdata'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],'cpu')
+              pars['nonneg'], device='cpu', infovector=info_vec_cpu)
              
 
 Qtools = QualityTools(idealVol, fgp_dTV_cpu3D)

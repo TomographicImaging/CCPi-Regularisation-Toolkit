@@ -22,6 +22,10 @@ def create_wrapper(CPU_func, GPU_func):
         if device == 'cpu':
             return CPU_func(*args, **kwargs)
         elif device == 'gpu' or isinstance(device, numbers.Integral) and cilregcuda is not None:
+            if device == "gpu":
+                kwargs['gpu_device'] = 0
+            else:
+                kwargs['gpu_device'] = device
             return GPU_func(*args, **kwargs)
         else:
             raise ValueError(f'{GPU_func.__name__} Error: GPU device {device} not available')
