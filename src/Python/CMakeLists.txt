@@ -4,10 +4,22 @@ message(STATUS "Creating Python Wrapper")
 #include (GenerateExportHeader)
 
 find_package(Python COMPONENTS Interpreter REQUIRED)
+
 set(PIP_CMAKE_DEPS cilreg)
 if(TARGET cilregcuda)
   list(APPEND PIP_CMAKE_DEPS cilregcuda)
 endif()
+if (UNIX)
+  install(TARGETS ${PIP_CMAKE_DEPS}
+	  LIBRARY DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ccpi/filters"
+	  CONFIGURATIONS ${CMAKE_BUILD_TYPE})
+elseif(WIN32)
+  install(TARGETS ${PIP_CMAKE_DEPS}
+	  RUNTIME DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ccpi/filters"
+	  ARCHIVE DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ccpi/filters"
+	  CONFIGURATIONS ${CMAKE_BUILD_TYPE})
+endif()
+
 add_custom_target(PythonWrapper ALL
   COMMAND "${Python_EXECUTABLE}" -m pip install "${CMAKE_CURRENT_SOURCE_DIR}" --verbose
   DEPENDS ${PIP_CMAKE_DEPS})
