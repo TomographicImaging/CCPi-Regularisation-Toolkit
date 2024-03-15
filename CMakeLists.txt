@@ -26,7 +26,6 @@ message(STATUS "CIL_VERSION: ${CIL_VERSION}")
 
 option (BUILD_MATLAB_WRAPPER "Build Matlab Wrappers" OFF)
 option (BUILD_PYTHON_WRAPPER "Build Python Wrappers" ON)
-option (CONDA_BUILD "Conda Build" OFF)
 option (BUILD_CUDA "Build the CUDA modules" ON)
 
 set(MATLAB_DEST_DIR "" CACHE PATH "Directory of the Matlab wrappers")
