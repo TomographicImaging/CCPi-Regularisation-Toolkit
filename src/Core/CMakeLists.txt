@@ -44,18 +44,16 @@ include_directories(cilreg PUBLIC
 					  ${CMAKE_CURRENT_SOURCE_DIR}
 		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ )
 
-## Install
+message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
 if (UNIX)
-  message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}/lib")
   install(TARGETS cilreg
-	LIBRARY DESTINATION lib
+	LIBRARY DESTINATION .
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
 	)
 elseif(WIN32)
-  message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}/{lib,bin}")
   install(TARGETS cilreg
 	RUNTIME DESTINATION bin
-	ARCHIVE DESTINATION lib
+	ARCHIVE DESTINATION .
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
 	)
 endif()
@@ -79,17 +77,16 @@ if (BUILD_CUDA)
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/Diffus_4thO_GPU_core.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/PatchSelect_GPU_core.cu
       )
+      message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
       if (UNIX)
-        message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}/lib")
         install(TARGETS cilregcuda
-        LIBRARY DESTINATION lib
+        LIBRARY DESTINATION .
         CONFIGURATIONS ${CMAKE_BUILD_TYPE}
         )
       elseif(WIN32)
-        message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}/{lib,bin}")
         install(TARGETS cilregcuda
         RUNTIME DESTINATION bin
-        ARCHIVE DESTINATION lib
+        ARCHIVE DESTINATION .
         CONFIGURATIONS ${CMAKE_BUILD_TYPE}
         )
       endif()

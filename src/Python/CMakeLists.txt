@@ -23,7 +23,8 @@ if (PYTHONINTERP_FOUND)
 
   add_custom_target(PythonWrapper ALL
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMAND ${PYTHON_EXECUTABLE} -m pip install . --verbose)
+    COMMAND ${PYTHON_EXECUTABLE} -m pip install . --verbose
+    DEPENDS cilreg)
 
   add_custom_target(copy-runtime-files ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../Core/regularisers_GPU/cuda_kernels ${CMAKE_CURRENT_BINARY_DIR}/ccpi/cuda_kernels)

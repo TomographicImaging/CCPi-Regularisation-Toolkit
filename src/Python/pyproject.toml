@@ -1,11 +1,11 @@
-# pyproject.toml
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+include = ["ccpi", "ccpi.*"]
+[tool.setuptools.package-data]
+"ccpi.filters" = ["*cilreg.*"] # cmake libraries
 
 [project]
 version = "24.0.0"
 name='ccpi-regularisers'
-
-[tool.setuptools.packages.find]
-include = ["ccpi", "ccpi.*"]

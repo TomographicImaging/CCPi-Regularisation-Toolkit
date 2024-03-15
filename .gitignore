@@ -3,3 +3,6 @@
 __pycache__/
 /src/Python/build/
 /src/Python/*.egg*/
+*.so
+*.dll
+*.dylib
