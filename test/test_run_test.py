@@ -3,19 +3,12 @@ import numpy as np
 import os
 import timeit
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
-gpu_modules_available = True
-try:
-    from ccpi.filters.utils import cilregcuda
-except ImportError:
-    gpu_modules_available = False
-else:
-    if cilregcuda is None:
-        gpu_modules_available = False
-#from PIL import Image
+from ccpi.filters.utils import cilregcuda
+gpu_modules_available = cilregcuda is not None
 from testroutines import BinReader, rmse, printParametersToString
 
+@unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
 class TestRegularisers(unittest.TestCase):
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_ROF_TV_CPU_vs_GPU(self):
         #print ("tomas debug test function")
         print(__name__)
@@ -89,7 +82,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_FGP_TV_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
@@ -173,7 +165,6 @@ class TestRegularisers(unittest.TestCase):
 
         self.assertLessEqual(diff_im.sum() , 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_PD_TV_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
@@ -258,7 +249,6 @@ class TestRegularisers(unittest.TestCase):
 
         self.assertLessEqual(diff_im.sum() , 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_SB_TV_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
@@ -337,7 +327,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_TGV_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
@@ -420,7 +409,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_LLT_ROF_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
@@ -500,7 +488,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_NDF_CPU_vs_GPU(self):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
@@ -583,7 +570,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_Diff4th_CPU_vs_GPU(self):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
@@ -660,7 +646,6 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_FDGdTV_CPU_vs_GPU(self):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
