@@ -5,9 +5,12 @@ import timeit
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
 gpu_modules_available = True
 try:
-    from ccpi.filters.gpu_regularisers import *
-except ImportError as ie:
+    from ccpi.filters.utils import cilregcuda
+except ImportError:
     gpu_modules_available = False
+else:
+    if cilregcuda is None:
+        gpu_modules_available = False
 #from PIL import Image
 from testroutines import BinReader, rmse, printParametersToString
 
