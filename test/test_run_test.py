@@ -47,11 +47,11 @@ class TestRegularisers(unittest.TestCase):
         'tolerance_constant':0.0}
         print ("#############ROF TV CPU####################")
         start_time = timeit.default_timer()
-        (rof_cpu, infocpu) = ROF_TV(pars['input'],
+        rof_cpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'],'cpu')
+             pars['tolerance_constant'], device='cpu')
         rms = rmse(Im, rof_cpu)
         pars['rmse'] = rms
 
@@ -60,14 +60,11 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("##############ROF TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (rof_gpu, infogpu) = ROF_TV(pars['input'],
+        rof_gpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'],'gpu')
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+             pars['tolerance_constant'], device='gpu')
 
         rms = rmse(Im, rof_gpu)
         pars['rmse'] = rms
@@ -122,13 +119,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############FGP TV CPU####################")
         start_time = timeit.default_timer()
-        (fgp_cpu,infocpu) =  FGP_TV(pars['input'],
+        fgp_cpu =  FGP_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['methodTV'],
-              pars['nonneg'],'cpu')
-
+              pars['nonneg'], device='cpu')
 
         rms = rmse(Im, fgp_cpu)
         pars['rmse'] = rms
@@ -139,16 +135,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############FGP TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (fgp_gpu,infogpu) =  FGP_TV(pars['input'],
+        fgp_gpu = FGP_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['methodTV'],
-              pars['nonneg'],'gpu')
-
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['nonneg'], device='gpu')
 
         rms = rmse(Im, fgp_gpu)
         pars['rmse'] = rms
@@ -205,13 +197,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############PD TV CPU####################")
         start_time = timeit.default_timer()
-        (pd_cpu,info_vec_cpu) = PD_TV(pars['input'],
+        pd_cpu = PD_TV(pars['input'],
                       pars['regularisation_parameter'],
                       pars['number_of_iterations'],
                       pars['tolerance_constant'],
                       pars['methodTV'],
                       pars['nonneg'],
-                      pars['lipschitz_const'],'cpu')
+                      pars['lipschitz_const'], device='cpu')
 
         rms = rmse(Im, pd_cpu)
         pars['rmse'] = rms
@@ -222,17 +214,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############PD TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (pd_gpu,info_vec_gpu) = PD_TV(pars['input'],
+        pd_gpu = PD_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],'gpu')
-
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['lipschitz_const'], device='gpu')
 
         rms = rmse(Im, pd_gpu)
         pars['rmse'] = rms
@@ -288,12 +276,11 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############SB-TV CPU####################")
         start_time = timeit.default_timer()
-        (sb_cpu, info_vec_cpu) = SB_TV(pars['input'],
+        sb_cpu = SB_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
-              pars['methodTV'], 'cpu')
-
+              pars['methodTV'], device='cpu')
 
         rms = rmse(Im, sb_cpu)
         pars['rmse'] = rms
@@ -304,15 +291,11 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############SB TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (sb_gpu, info_vec_gpu) = SB_TV(pars['input'],
+        sb_gpu = SB_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
-              pars['methodTV'], 'gpu')
-
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['methodTV'], device='gpu')
 
         rms = rmse(Im, sb_gpu)
         pars['rmse'] = rms
@@ -368,13 +351,14 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############TGV CPU####################")
         start_time = timeit.default_timer()
-        (tgv_cpu, info_vec_cpu) = TGV(pars['input'],
+        #infovector = np.zeros((2,), dtype='float32')
+        tgv_cpu = TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, tgv_cpu)
         pars['rmse'] = rms
@@ -385,16 +369,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############TGV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (tgv_gpu, info_vec_gpu) = TGV(pars['input'],
+        tgv_gpu = TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'gpu')
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['tolerance_constant'], device='gpu')
 
         rms = rmse(Im, tgv_gpu)
         pars['rmse'] = rms
@@ -449,12 +430,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############LLT- ROF CPU####################")
         start_time = timeit.default_timer()
-        (lltrof_cpu, info_vec_cpu) = LLT_ROF(pars['input'],
+        lltrof_cpu = LLT_ROF(pars['input'],
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, lltrof_cpu)
         pars['rmse'] = rms
@@ -464,16 +445,13 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("#############LLT- ROF GPU####################")
         start_time = timeit.default_timer()
-        try:
-            (lltrof_gpu, info_vec_gpu) = LLT_ROF(pars['input'],
+        lltrof_gpu = LLT_ROF(pars['input'],
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'gpu')
+              pars['tolerance_constant'], device='gpu')
 
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
 
         rms = rmse(Im, lltrof_gpu)
         pars['rmse'] = rms
@@ -529,13 +507,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############NDF CPU####################")
         start_time = timeit.default_timer()
-        (ndf_cpu,info_vec_cpu) = NDF(pars['input'],
+        ndf_cpu = NDF(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
               pars['penalty_type'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, ndf_cpu)
         pars['rmse'] = rms
@@ -546,17 +524,14 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############NDF GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (ndf_gpu,info_vec_gpu) = NDF(pars['input'],
+        ndf_gpu = NDF(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
               pars['penalty_type'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'], device='gpu')
 
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
         rms = rmse(Im, ndf_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = NDF
@@ -608,12 +583,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############Diff4th CPU####################")
         start_time = timeit.default_timer()
-        (diff4th_cpu,info_vec_cpu) = Diff4th(pars['input'],
+        diff4th_cpu = Diff4th(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, diff4th_cpu)
         pars['rmse'] = rms
@@ -623,16 +598,13 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("##############Diff4th GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (diff4th_gpu,info_vec_gpu) = Diff4th(pars['input'],
+        diff4th_gpu = Diff4th(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'], device='gpu')
 
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
         rms = rmse(Im, diff4th_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = Diff4th
@@ -687,15 +659,14 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############FGP dTV CPU####################")
         start_time = timeit.default_timer()
-        (fgp_dtv_cpu,info_vec_cpu) = FGP_dTV(pars['input'],
+        fgp_dtv_cpu = FGP_dTV(pars['input'],
               pars['refdata'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],'cpu')
-
+              pars['nonneg'], device='cpu')
 
         rms = rmse(Im, fgp_dtv_cpu)
         pars['rmse'] = rms
@@ -705,17 +676,15 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("##############FGP dTV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (fgp_dtv_gpu,info_vec_gpu) = FGP_dTV(pars['input'],
+        fgp_dtv_gpu = FGP_dTV(pars['input'],
               pars['refdata'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],'gpu')
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['nonneg'], device='gpu')
+
         rms = rmse(Im, fgp_dtv_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = FGP_dTV
