@@ -4,7 +4,7 @@ import os
 #import timeit
 import numpy as np
 from ccpi.filters.regularisers import FGP_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th, ROF_TV, PD_TV
-from testroutines import BinReader, rmse 
+from testroutines import BinReader, rmse
 ###############################################################################
 
 class TestRegularisers(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestRegularisers(unittest.TestCase):
     def getPars(self):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join(".","test_imageLena.bin")
+        filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
         plt = BinReader()
         # read image
         Im = plt.imread(filename)
@@ -43,13 +43,13 @@ class TestRegularisers(unittest.TestCase):
 
     def test_PD_TV_CPU(self):
         Im,input,ref = self.getPars()
-        
+
         info = np.zeros((2,), dtype='float32')
 
         pd_cpu = PD_TV(input, 0.02, 300, 0.0, 0.1, 0, 1, device='cpu', infovector=info)
-        
+
         rms = rmse(Im, pd_cpu)
-        
+
         self.assertAlmostEqual(rms,0.02,delta=0.01)
 
     def test_TV_ROF_CPU(self):
