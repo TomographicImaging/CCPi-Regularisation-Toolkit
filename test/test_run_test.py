@@ -88,7 +88,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(rof_cpu - rof_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-        
+
     @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_FGP_TV_CPU_vs_GPU(self):
         print(__name__)
@@ -172,7 +172,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
 
         self.assertLessEqual(diff_im.sum() , 1)
-    
+
     @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_PD_TV_CPU_vs_GPU(self):
         print(__name__)
@@ -211,13 +211,13 @@ class TestRegularisers(unittest.TestCase):
                 'methodTV': 0 ,\
                 'nonneg': 0,
                 'lipschitz_const' : 8}
-                
+
         print ("#############PD TV CPU####################")
         start_time = timeit.default_timer()
-        (pd_cpu,info_vec_cpu) = PD_TV(pars['input'], 
+        (pd_cpu,info_vec_cpu) = PD_TV(pars['input'],
                       pars['regularisation_parameter'],
                       pars['number_of_iterations'],
-                      pars['tolerance_constant'], 
+                      pars['tolerance_constant'],
                       pars['methodTV'],
                       pars['nonneg'],
                       pars['lipschitz_const'],'cpu')
@@ -232,10 +232,10 @@ class TestRegularisers(unittest.TestCase):
         print ("##############PD TV GPU##################")
         start_time = timeit.default_timer()
         try:
-            (pd_gpu,info_vec_gpu) = PD_TV(pars['input'], 
+            (pd_gpu,info_vec_gpu) = PD_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
-              pars['tolerance_constant'], 
+              pars['tolerance_constant'],
               pars['methodTV'],
               pars['nonneg'],
               pars['lipschitz_const'],'gpu')
@@ -336,7 +336,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(sb_cpu - sb_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
-    
+
     @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_TGV_CPU_vs_GPU(self):
         print(__name__)
@@ -419,7 +419,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(tgv_cpu - tgv_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-    
+
     @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_LLT_ROF_CPU_vs_GPU(self):
         print(__name__)
@@ -499,7 +499,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(lltrof_cpu - lltrof_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
-    
+
     @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_NDF_CPU_vs_GPU(self):
         print(__name__)
@@ -659,7 +659,7 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(diff4th_cpu - diff4th_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-    
+
     @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_FDGdTV_CPU_vs_GPU(self):
         #filename = os.path.join("test","lena_gray_512.tif")
