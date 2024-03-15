@@ -1,3 +1,5 @@
+import numbers
+from functools import wraps
 # CPU regularisers
 from .TV import TV_ROF_CPU, TV_ROF_GPU
 from .TV import TV_FGP_CPU, TV_FGP_GPU
@@ -11,29 +13,22 @@ from .TV import PatchSelect_CPU, PatchSelect_GPU
 
 from .diffusion import NDF_GPU, NDF_CPU
 from .diffusion import Diffus4th_GPU, Diffus4th_CPU
-
-import numbers
-
 from .utils import cilregcuda
 
+
 def create_wrapper(CPU_func, GPU_func):
-    def wrapper(*args, **kwargs):
-        device = kwargs.pop('device', 'cpu')
+    @wraps(CPU_func)
+    def wrapper(*args, device='cpu', **kwargs):
         if device == 'cpu':
             return CPU_func(*args, **kwargs)
         elif device == 'gpu' or isinstance(device, numbers.Integral) and cilregcuda is not None:
-            if device == "gpu":
-                kwargs['gpu_device'] = 0
-            else:
-                kwargs['gpu_device'] = device
-            return GPU_func(*args, **kwargs)
-        else:
-            raise ValueError(f'{GPU_func.__name__} Error: GPU device {device} not available')
+            return GPU_func(*args, gpu_device=0 if device == 'gpu' else device, **kwargs)
+        raise KeyError(f"{GPU_func.__name__}: device {device} not available")
     return wrapper
 
 
-# TODO: The functions below will not have a docstring. 
-# This could be added as described here 
+# TODO: The functions below will not have a docstring.
+# This could be added as described here
 # https://stackoverflow.com/questions/53564301/insert-docstring-attributes-in-a-python-file
 from .TV import NLTV
 from .TV import TV_ENERGY
