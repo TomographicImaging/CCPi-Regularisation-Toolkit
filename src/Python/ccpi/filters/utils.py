@@ -1,5 +1,6 @@
 import platform
 import ctypes
+import os
 
 if platform.system() == 'Linux':
     dll = 'libcilreg.so'
@@ -11,7 +12,7 @@ elif platform.system() == 'Darwin':
 else:
     raise ValueError('Not supported platform, ', platform.system())
 
-cilreg = ctypes.cdll.LoadLibrary(dll)
+cilreg = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), dll))
 
 try:
     if platform.system() == 'Linux':
@@ -23,8 +24,8 @@ try:
         gpudll = 'libcilregcuda.dylib'
     else:
         raise ValueError('Not supported platform, ', platform.system())
-    
-    cilregcuda = ctypes.cdll.LoadLibrary(gpudll)
+
+    cilregcuda = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), gpudll))
 except OSError as ose:
     print(ose)
     cilregcuda = None
