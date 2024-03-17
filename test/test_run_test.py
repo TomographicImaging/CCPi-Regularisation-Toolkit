@@ -9,15 +9,17 @@ from testroutines import BinReader, rmse, printParametersToString
 
 @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
 class TestRegularisers(unittest.TestCase):
+    def setUp(self):
+        self.filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
+
     def test_ROF_TV_CPU_vs_GPU(self):
         #print ("tomas debug test function")
-        print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
+        filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -83,10 +85,10 @@ class TestRegularisers(unittest.TestCase):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
+        # self.filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -161,10 +163,10 @@ class TestRegularisers(unittest.TestCase):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
+        # self.filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -201,9 +203,10 @@ class TestRegularisers(unittest.TestCase):
                       pars['regularisation_parameter'],
                       pars['number_of_iterations'],
                       pars['tolerance_constant'],
+                      pars['lipschitz_const'],
                       pars['methodTV'],
                       pars['nonneg'],
-                      pars['lipschitz_const'], device='cpu')
+                      device='cpu')
 
         rms = rmse(Im, pd_cpu)
         pars['rmse'] = rms
@@ -218,9 +221,10 @@ class TestRegularisers(unittest.TestCase):
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
+              pars['lipschitz_const'],
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'], device='gpu')
+              device='gpu')
 
         rms = rmse(Im, pd_gpu)
         pars['rmse'] = rms
@@ -242,9 +246,9 @@ class TestRegularisers(unittest.TestCase):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
+        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -314,10 +318,10 @@ class TestRegularisers(unittest.TestCase):
         print(__name__)
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
+        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -395,9 +399,9 @@ class TestRegularisers(unittest.TestCase):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
+        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -471,9 +475,9 @@ class TestRegularisers(unittest.TestCase):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
+        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -549,9 +553,9 @@ class TestRegularisers(unittest.TestCase):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
+        # filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -622,9 +626,9 @@ class TestRegularisers(unittest.TestCase):
         #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
+        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
