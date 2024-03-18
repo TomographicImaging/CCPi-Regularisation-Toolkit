@@ -8,14 +8,15 @@ from testroutines import BinReader, rmse
 ###############################################################################
 
 class TestRegularisers(unittest.TestCase):
+    def setUp(self):
+        self.filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
+        # lena_gray_512.tif
 
     def getPars(self):
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
         Im = Im / 255
         perc = 0.05

@@ -11,12 +11,11 @@ from testroutines import BinReader, rmse, printParametersToString
 class TestRegularisers(unittest.TestCase):
     def setUp(self):
         self.filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
+        # lena_gray_512.tif
 
     def test_ROF_TV_CPU_vs_GPU(self):
         #print ("tomas debug test function")
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
         plt = BinReader()
         # read image
         Im = plt.imread(self.filename)
@@ -83,9 +82,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_FGP_TV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        # self.filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
         Im = plt.imread(self.filename)
@@ -161,9 +158,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_PD_TV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        # self.filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
         Im = plt.imread(self.filename)
@@ -243,10 +238,8 @@ class TestRegularisers(unittest.TestCase):
 
     def test_SB_TV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
@@ -316,9 +309,7 @@ class TestRegularisers(unittest.TestCase):
 
     def test_TGV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
         Im = plt.imread(self.filename)
@@ -357,7 +348,7 @@ class TestRegularisers(unittest.TestCase):
         print ("#############TGV CPU####################")
         start_time = timeit.default_timer()
         infovector = np.zeros((2,), dtype='float32')
-        tgv_cpu = TGV(pars['input'], 
+        tgv_cpu = TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
@@ -374,7 +365,7 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############TGV GPU##################")
         start_time = timeit.default_timer()
-        tgv_gpu = TGV(pars['input'], 
+        tgv_gpu = TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
@@ -397,10 +388,8 @@ class TestRegularisers(unittest.TestCase):
 
     def test_LLT_ROF_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
@@ -473,10 +462,8 @@ class TestRegularisers(unittest.TestCase):
 
     def test_NDF_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
@@ -551,10 +538,8 @@ class TestRegularisers(unittest.TestCase):
         self.assertLessEqual(diff_im.sum(), 1)
 
     def test_Diff4th_CPU_vs_GPU(self):
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        # filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
         plt = BinReader()
         Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
@@ -624,10 +609,8 @@ class TestRegularisers(unittest.TestCase):
         self.assertLessEqual(diff_im.sum() , 1)
 
     def test_FDGdTV_CPU_vs_GPU(self):
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        # filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
@@ -704,8 +687,6 @@ class TestRegularisers(unittest.TestCase):
         self.assertLessEqual(diff_im.sum(), 1)
 """
     def test_cpu_ROF_TV(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
-
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
@@ -741,8 +722,6 @@ class TestRegularisers(unittest.TestCase):
         # now compare obtained rms with the expected value
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
     def test_cpu_FGP_TV(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
-
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
@@ -782,7 +761,6 @@ class TestRegularisers(unittest.TestCase):
         self.assertLess(abs(rms_fgp-rms_fgp_exp) , tolerance)
 
     def test_gpu_ROF(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
@@ -817,7 +795,6 @@ class TestRegularisers(unittest.TestCase):
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
 
     def test_gpu_FGP(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
