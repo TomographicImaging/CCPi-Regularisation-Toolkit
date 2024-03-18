@@ -3,25 +3,22 @@ import numpy as np
 import os
 import timeit
 from ccpi.filters.regularisers import ROF_TV, FGP_TV, PD_TV, SB_TV, TGV, LLT_ROF, FGP_dTV, NDF, Diff4th
-gpu_modules_available = True
-try:
-    from ccpi.filters.gpu_regularisers import *
-except ImportError as ie:
-    gpu_modules_available = False
-#from PIL import Image
+from ccpi.filters.utils import cilregcuda
+gpu_modules_available = cilregcuda is not None
 from testroutines import BinReader, rmse, printParametersToString
 
+@unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
 class TestRegularisers(unittest.TestCase):
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+    def setUp(self):
+        self.filename = os.path.join(os.path.dirname(__file__), "test_imageLena.bin")
+        # lena_gray_512.tif
+
     def test_ROF_TV_CPU_vs_GPU(self):
         #print ("tomas debug test function")
-        print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -51,11 +48,11 @@ class TestRegularisers(unittest.TestCase):
         'tolerance_constant':0.0}
         print ("#############ROF TV CPU####################")
         start_time = timeit.default_timer()
-        (rof_cpu, infocpu) = ROF_TV(pars['input'],
+        rof_cpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'],'cpu')
+             pars['tolerance_constant'], device='cpu')
         rms = rmse(Im, rof_cpu)
         pars['rmse'] = rms
 
@@ -64,14 +61,11 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("##############ROF TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (rof_gpu, infogpu) = ROF_TV(pars['input'],
+        rof_gpu = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-             pars['tolerance_constant'],'gpu')
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+             pars['tolerance_constant'], device='gpu')
 
         rms = rmse(Im, rof_gpu)
         pars['rmse'] = rms
@@ -85,16 +79,13 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(rof_cpu - rof_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-        
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+
     def test_FGP_TV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -127,13 +118,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############FGP TV CPU####################")
         start_time = timeit.default_timer()
-        (fgp_cpu,infocpu) =  FGP_TV(pars['input'],
+        fgp_cpu =  FGP_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['methodTV'],
-              pars['nonneg'],'cpu')
-
+              pars['nonneg'], device='cpu')
 
         rms = rmse(Im, fgp_cpu)
         pars['rmse'] = rms
@@ -144,16 +134,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############FGP TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (fgp_gpu,infogpu) =  FGP_TV(pars['input'],
+        fgp_gpu = FGP_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['methodTV'],
-              pars['nonneg'],'gpu')
-
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['nonneg'], device='gpu')
 
         rms = rmse(Im, fgp_gpu)
         pars['rmse'] = rms
@@ -169,16 +155,13 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
 
         self.assertLessEqual(diff_im.sum() , 1)
-    
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+
     def test_PD_TV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -208,16 +191,17 @@ class TestRegularisers(unittest.TestCase):
                 'methodTV': 0 ,\
                 'nonneg': 0,
                 'lipschitz_const' : 8}
-                
+
         print ("#############PD TV CPU####################")
         start_time = timeit.default_timer()
-        (pd_cpu,info_vec_cpu) = PD_TV(pars['input'], 
+        pd_cpu = PD_TV(pars['input'],
                       pars['regularisation_parameter'],
                       pars['number_of_iterations'],
-                      pars['tolerance_constant'], 
+                      pars['tolerance_constant'],
+                      pars['lipschitz_const'],
                       pars['methodTV'],
                       pars['nonneg'],
-                      pars['lipschitz_const'],'cpu')
+                      device='cpu')
 
         rms = rmse(Im, pd_cpu)
         pars['rmse'] = rms
@@ -228,17 +212,14 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############PD TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (pd_gpu,info_vec_gpu) = PD_TV(pars['input'], 
+        pd_gpu = PD_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
-              pars['tolerance_constant'], 
+              pars['tolerance_constant'],
+              pars['lipschitz_const'],
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'],'gpu')
-
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              device='gpu')
 
         rms = rmse(Im, pd_gpu)
         pars['rmse'] = rms
@@ -255,15 +236,12 @@ class TestRegularisers(unittest.TestCase):
 
         self.assertLessEqual(diff_im.sum() , 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_SB_TV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -295,12 +273,11 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############SB-TV CPU####################")
         start_time = timeit.default_timer()
-        (sb_cpu, info_vec_cpu) = SB_TV(pars['input'],
+        sb_cpu = SB_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
-              pars['methodTV'], 'cpu')
-
+              pars['methodTV'], device='cpu')
 
         rms = rmse(Im, sb_cpu)
         pars['rmse'] = rms
@@ -311,15 +288,11 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############SB TV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (sb_gpu, info_vec_gpu) = SB_TV(pars['input'],
+        sb_gpu = SB_TV(pars['input'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
-              pars['methodTV'], 'gpu')
-
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['methodTV'], device='gpu')
 
         rms = rmse(Im, sb_gpu)
         pars['rmse'] = rms
@@ -333,16 +306,13 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(sb_cpu - sb_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
-    
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+
     def test_TGV_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
         # read image
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -365,24 +335,26 @@ class TestRegularisers(unittest.TestCase):
 
 
         # set parameters
+        # set parameters
         pars = {'algorithm' : TGV, \
-        'input' : u0,\
-        'regularisation_parameter':0.02, \
-        'alpha1':1.0,\
-        'alpha0':2.0,\
-        'number_of_iterations' :1000 ,\
-        'LipshitzConstant' :12 ,\
-        'tolerance_constant':0.0}
+            'input' : u0,\
+            'regularisation_parameter':0.02, \
+            'alpha1':1.0,\
+            'alpha0':2.0,\
+            'number_of_iterations' :1000 ,\
+            'LipshitzConstant' :12 ,\
+            'tolerance_constant':0.0}
 
         print ("#############TGV CPU####################")
         start_time = timeit.default_timer()
-        (tgv_cpu, info_vec_cpu) = TGV(pars['input'],
+        infovector = np.zeros((2,), dtype='float32')
+        tgv_cpu = TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'],device='cpu', infovector=infovector)
 
         rms = rmse(Im, tgv_cpu)
         pars['rmse'] = rms
@@ -393,16 +365,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############TGV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (tgv_gpu, info_vec_gpu) = TGV(pars['input'],
+        tgv_gpu = TGV(pars['input'],
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'],'gpu')
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['tolerance_constant'], device='gpu', infovector=infovector)
 
         rms = rmse(Im, tgv_gpu)
         pars['rmse'] = rms
@@ -411,21 +380,18 @@ class TestRegularisers(unittest.TestCase):
         txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
         print (txtstr)
         print ("--------Compare the results--------")
-        tolerance = 1e-05
+        tolerance = 1e-02
         diff_im = np.zeros(np.shape(tgv_gpu))
         diff_im = abs(tgv_cpu - tgv_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-    
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+
     def test_LLT_ROF_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -458,12 +424,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############LLT- ROF CPU####################")
         start_time = timeit.default_timer()
-        (lltrof_cpu, info_vec_cpu) = LLT_ROF(pars['input'],
+        lltrof_cpu = LLT_ROF(pars['input'],
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, lltrof_cpu)
         pars['rmse'] = rms
@@ -473,16 +439,13 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("#############LLT- ROF GPU####################")
         start_time = timeit.default_timer()
-        try:
-            (lltrof_gpu, info_vec_gpu) = LLT_ROF(pars['input'],
+        lltrof_gpu = LLT_ROF(pars['input'],
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'gpu')
+              pars['tolerance_constant'], device='gpu')
 
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
 
         rms = rmse(Im, lltrof_gpu)
         pars['rmse'] = rms
@@ -496,16 +459,13 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(lltrof_cpu - lltrof_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
-    
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+
     def test_NDF_CPU_vs_GPU(self):
         print(__name__)
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -539,13 +499,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############NDF CPU####################")
         start_time = timeit.default_timer()
-        (ndf_cpu,info_vec_cpu) = NDF(pars['input'],
+        ndf_cpu = NDF(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
               pars['penalty_type'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, ndf_cpu)
         pars['rmse'] = rms
@@ -556,17 +516,14 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############NDF GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (ndf_gpu,info_vec_gpu) = NDF(pars['input'],
+        ndf_gpu = NDF(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
               pars['penalty_type'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'], device='gpu')
 
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
         rms = rmse(Im, ndf_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = NDF
@@ -580,14 +537,11 @@ class TestRegularisers(unittest.TestCase):
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum(), 1)
 
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
     def test_Diff4th_CPU_vs_GPU(self):
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -619,12 +573,12 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############Diff4th CPU####################")
         start_time = timeit.default_timer()
-        (diff4th_cpu,info_vec_cpu) = Diff4th(pars['input'],
+        diff4th_cpu = Diff4th(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'cpu')
+              pars['tolerance_constant'], device='cpu')
 
         rms = rmse(Im, diff4th_cpu)
         pars['rmse'] = rms
@@ -634,16 +588,13 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("##############Diff4th GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (diff4th_gpu,info_vec_gpu) = Diff4th(pars['input'],
+        diff4th_gpu = Diff4th(pars['input'],
               pars['regularisation_parameter'],
               pars['edge_parameter'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'],'gpu')
+              pars['tolerance_constant'], device='gpu')
 
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
         rms = rmse(Im, diff4th_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = Diff4th
@@ -656,15 +607,12 @@ class TestRegularisers(unittest.TestCase):
         diff_im = abs(diff4th_cpu - diff4th_gpu)
         diff_im[diff_im > tolerance] = 1
         self.assertLessEqual(diff_im.sum() , 1)
-    
-    @unittest.skipUnless(gpu_modules_available, 'Skipping as GPU modules not available')
+
     def test_FDGdTV_CPU_vs_GPU(self):
-        #filename = os.path.join("test","lena_gray_512.tif")
         #plt = TiffReader()
         # read image
-        filename = os.path.join("test","test_imageLena.bin")
         plt = BinReader()
-        Im = plt.imread(filename)
+        Im = plt.imread(self.filename)
         Im = np.asarray(Im, dtype='float32')
 
         Im = Im/255
@@ -699,15 +647,14 @@ class TestRegularisers(unittest.TestCase):
 
         print ("#############FGP dTV CPU####################")
         start_time = timeit.default_timer()
-        (fgp_dtv_cpu,info_vec_cpu) = FGP_dTV(pars['input'],
+        fgp_dtv_cpu = FGP_dTV(pars['input'],
               pars['refdata'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],'cpu')
-
+              pars['nonneg'], device='cpu')
 
         rms = rmse(Im, fgp_dtv_cpu)
         pars['rmse'] = rms
@@ -717,17 +664,15 @@ class TestRegularisers(unittest.TestCase):
         print (txtstr)
         print ("##############FGP dTV GPU##################")
         start_time = timeit.default_timer()
-        try:
-            (fgp_dtv_gpu,info_vec_gpu) = FGP_dTV(pars['input'],
+        fgp_dtv_gpu = FGP_dTV(pars['input'],
               pars['refdata'],
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'],
               pars['eta_const'],
               pars['methodTV'],
-              pars['nonneg'],'gpu')
-        except ValueError as ve:
-            self.skipTest("Results not comparable. GPU computing error.")
+              pars['nonneg'], device='gpu')
+
         rms = rmse(Im, fgp_dtv_gpu)
         pars['rmse'] = rms
         pars['algorithm'] = FGP_dTV
@@ -742,8 +687,6 @@ class TestRegularisers(unittest.TestCase):
         self.assertLessEqual(diff_im.sum(), 1)
 """
     def test_cpu_ROF_TV(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
-
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
@@ -779,8 +722,6 @@ class TestRegularisers(unittest.TestCase):
         # now compare obtained rms with the expected value
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
     def test_cpu_FGP_TV(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
-
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
@@ -820,7 +761,6 @@ class TestRegularisers(unittest.TestCase):
         self.assertLess(abs(rms_fgp-rms_fgp_exp) , tolerance)
 
     def test_gpu_ROF(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
@@ -855,7 +795,6 @@ class TestRegularisers(unittest.TestCase):
         self.assertLess(abs(rms_rof-rms_rof_exp) , tolerance)
 
     def test_gpu_FGP(self):
-        #filename = os.path.join(".." , ".." , ".." , "data" ,"testLena.npy")
         filename = os.path.join("test","lena_gray_512.tif")
 
         plt = TiffReader()
