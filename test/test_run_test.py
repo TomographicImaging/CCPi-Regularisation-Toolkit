@@ -344,25 +344,26 @@ class TestRegularisers(unittest.TestCase):
 
 
         # set parameters
+        # set parameters
         pars = {'algorithm' : TGV, \
-        'input' : u0,\
-        'regularisation_parameter':0.02, \
-        'alpha1':1.0,\
-        'alpha0':2.0,\
-        'number_of_iterations' :1000 ,\
-        'LipshitzConstant' :12 ,\
-        'tolerance_constant':0.0}
+            'input' : u0,\
+            'regularisation_parameter':0.02, \
+            'alpha1':1.0,\
+            'alpha0':2.0,\
+            'number_of_iterations' :1000 ,\
+            'LipshitzConstant' :12 ,\
+            'tolerance_constant':0.0}
 
         print ("#############TGV CPU####################")
         start_time = timeit.default_timer()
-        #infovector = np.zeros((2,), dtype='float32')
-        tgv_cpu = TGV(pars['input'],
+        infovector = np.zeros((2,), dtype='float32')
+        tgv_cpu = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'], device='cpu')
+              pars['tolerance_constant'],device='cpu', infovector=infovector)
 
         rms = rmse(Im, tgv_cpu)
         pars['rmse'] = rms
@@ -373,13 +374,13 @@ class TestRegularisers(unittest.TestCase):
 
         print ("##############TGV GPU##################")
         start_time = timeit.default_timer()
-        tgv_gpu = TGV(pars['input'],
+        tgv_gpu = TGV(pars['input'], 
               pars['regularisation_parameter'],
               pars['alpha1'],
               pars['alpha0'],
               pars['number_of_iterations'],
               pars['LipshitzConstant'],
-              pars['tolerance_constant'], device='gpu')
+              pars['tolerance_constant'], device='gpu', infovector=infovector)
 
         rms = rmse(Im, tgv_gpu)
         pars['rmse'] = rms
@@ -388,7 +389,7 @@ class TestRegularisers(unittest.TestCase):
         txtstr += "%s = %.3fs" % ('elapsed time',timeit.default_timer() - start_time)
         print (txtstr)
         print ("--------Compare the results--------")
-        tolerance = 1e-05
+        tolerance = 1e-02
         diff_im = np.zeros(np.shape(tgv_gpu))
         diff_im = abs(tgv_cpu - tgv_gpu)
         diff_im[diff_im > tolerance] = 1

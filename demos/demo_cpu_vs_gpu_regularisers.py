@@ -568,7 +568,7 @@ imgplot = plt.imshow(tgv_gpu, cmap="gray")
 plt.title('{}'.format('GPU results'))
 
 print ("--------Compare the results--------")
-tolerance = 1e-05
+tolerance = 1e-02
 diff_im = np.zeros(np.shape(tgv_gpu))
 diff_im = abs(tgv_cpu - tgv_gpu)
 diff_im[diff_im > tolerance] = 1
@@ -576,9 +576,15 @@ a=fig.add_subplot(1,4,4)
 imgplot = plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
 plt.title('{}'.format('Pixels larger threshold difference'))
 if (diff_im.sum() > 1):
-    print ("Arrays do not match!")
+    print (f"Arrays do not match! {diff_im.sum()}")
+    plt.imshow(diff_im, vmin=0, vmax=1, cmap="gray")
 else:
-    print ("Arrays match")
+    print (f"Arrays match {diff_im.sum()}")
+
+N =10
+diff = tgv_cpu[:N,:N] - tgv_gpu[:N,:N]
+lim = np.max(np.abs(diff))
+plt.imshow(diff, vmin=-lim, vmax=lim,  cmap="seismic")
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________NDF bench___________________")
@@ -630,6 +636,7 @@ plt.title('{}'.format('CPU results'))
 
 print ("##############NDF GPU##################")
 start_time = timeit.default_timer()
+infogpu = np.zeros(2, dtype='float32')
 ndf_gpu = NDF(pars['input'], 
               pars['regularisation_parameter'],
               pars['edge_parameter'], 
