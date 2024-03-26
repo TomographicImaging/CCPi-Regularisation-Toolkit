@@ -3,6 +3,9 @@ project(regulariserPython)
 message(STATUS "Creating Python Wrapper")
 #include (GenerateExportHeader)
 
+cmake_policy(SET CMP0094 NEW)
+set(Python_FIND_REGISTRY LAST) # prefer active over base conda env
+set(Python_FIND_VIRTUALENV STANDARD) # use PATH to search
 find_package(Python COMPONENTS Interpreter REQUIRED)
 
 set(PIP_CMAKE_DEPS cilreg)
