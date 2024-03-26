@@ -5,10 +5,9 @@ exit 1
 
 mkdir "%SRC_DIR%\test"
 ROBOCOPY /E "%RECIPE_DIR%\..\test" "%SRC_DIR%\test"
-cd %SRC_DIR%
 
-:: issue cmake to create setup.py
-cmake -G "NMake Makefiles" %RECIPE_DIR%\..\ -DBUILD_PYTHON_WRAPPERS=ON -DCONDA_BUILD=ON -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE="Release" -DLIBRARY_LIB="%CONDA_PREFIX%\lib" -DLIBRARY_INC="%CONDA_PREFIX%" -DCMAKE_INSTALL_PREFIX="%PREFIX%\Library" 
+cmake -S "%SRC_DIR%" -B "%RECIPE_DIR%\.." -DBUILD_PYTHON_WRAPPERS=ON -DCONDA_BUILD=ON -DBUILD_CUDA=ON -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLIBRARY_INC="%CONDA_PREFIX%" -DCMAKE_INSTALL_PREFIX="%SRC_DIR%\install"
+cmake --build "%RECIPE_DIR%\.." --target install
+%PYTHON% -m pip install "%SRC_DIR%\src\Python"
 
-nmake install
 if errorlevel 1 exit 1
