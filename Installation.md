@@ -55,11 +55,9 @@ conda install ccpi-regulariser -c ccpi -c conda-forge
 #### Python (conda-build)
 
 ```sh
-export CIL_VERSION=$(date +%Y.%m.%d) # UNIX
-# set CIL_VERSION=24.3.0             # Windows
 conda build recipe/ --numpy 1.23 --python 3.10
-conda install ccpi-regulariser=${CIL_VERSION} --use-local --force-reinstall # doesn't work?
-conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser=${CIL_VERSION} --force-reinstall # try this one
+conda install ccpi-regulariser --use-local --force-reinstall # doesn't work?
+conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser --force-reinstall # try this one
 cd demos/
 python demo_cpu_regularisers.py # to run CPU demo
 python demo_gpu_regularisers.py # to run GPU demo
