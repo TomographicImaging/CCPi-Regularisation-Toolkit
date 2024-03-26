@@ -40,6 +40,7 @@ git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 cd CCPi-Regularisation-Toolkit
 cmake -S . -B ./build_proj -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
 cmake --build ./build_proj --target install
+pip install ./src/Python
 ```
 
 ### Python
@@ -79,7 +80,7 @@ pip install git+https://github.com/vais-ral/CCPi-Regularisation-Toolkit
 If passed `BUILD_PYTHON_WRAPPER=ON`, CMake will install libraries in-place under `./src/Python`, followed by running `python -m pip install ./src/Python`.
 (Note that libraries are also installed under the user-specified `${CMAKE_INSTALL_PREFIX}`, which could be set to a throwaway directory, e.g. `-DCMAKE_INSTALL_PREFIX=./install`).
 
-If Python is not picked by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/executable/python`.
+If Python is not found by CMake you can provide the additional flag to CMake `-DPYTHON_EXECUTABLE=/path/to/executable/python`.
 
 Tests can also be run in-place after the build:
 

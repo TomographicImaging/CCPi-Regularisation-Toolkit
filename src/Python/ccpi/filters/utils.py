@@ -19,4 +19,5 @@ try:
     cilregcuda = ctypes.cdll.LoadLibrary(os.path.join(_here, gpudll))
 except Exception as exc:
     warnings.warn(str(exc), ImportWarning, stacklevel=2)
+    warnings.warn(f"Found: {os.listdir(_here)}", ImportWarning, stacklevel=2)
     cilregcuda = None
