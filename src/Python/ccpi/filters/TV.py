@@ -471,6 +471,8 @@ LLT_ROF_GPU = None
 TGV_GPU = None
 dTV_FGP_GPU = None
 
+PatchSelect_GPU = None
+
 if cilregcuda is not None:
     def TV_ROF_GPU(inputData, regularisation_parameter, iterationsNumb, 
                 marching_step_parameter, tolerance_param, gpu_device, out=None, infovector=None):
