@@ -63,7 +63,9 @@ endif()
 if (BUILD_CUDA)
     find_package(CUDA)
     if (CUDA_FOUND)
-      set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
+      if (UNIX)
+        set(CUDA_NVCC_FLAGS "-Xcompiler -fPIC -shared -D_FORCE_INLINES")
+      endif()
       message(STATUS "CUDA_NVCC_FLAGS: ${CUDA_NVCC_FLAGS}")
       CUDA_ADD_LIBRARY(cilregcuda SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/TV_ROF_GPU_core.cu

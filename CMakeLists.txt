@@ -8,19 +8,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-# The version number.
-set (RGL_VERSION_MAJOR 1)
-set (RGL_VERSION_MINOR 0)
-
-set (CIL_VERSION_MAJOR 0)
-set (CIL_VERSION_MINOR 10)
-set (CIL_VERSION_PATCH 2)
-
-# set (CIL_VERSION '${CIL_VERSION_MAJOR}.${CIL_VERSION_MINOR}.${CIL_VERSION_PATCH}' CACHE INTERNAL "Core Imaging Library version" FORCE)
-# get CIL_VERSION from environment variable and set it in cmake
-set (CIL_VERSION $ENV{CIL_VERSION} CACHE INTERNAL "Core Imaging Library version" FORCE)
-message(STATUS "CIL_VERSION: ${CIL_VERSION}")
-
 # set the Python variables for the Conda environment
 #include(${CMAKE_SOURCE_DIR}/CMake/FindAnacondaEnvironment.cmake)
 
