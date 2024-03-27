@@ -9,3 +9,4 @@ include = ["ccpi", "ccpi.*"]
 [project]
 version = "24.0.0"
 name = "ccpi-regulariser"
+dependencies = ["numpy"]
