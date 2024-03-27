@@ -26,7 +26,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: build
       run: |
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
+        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
         pip install ./src/Python
     - name: test
