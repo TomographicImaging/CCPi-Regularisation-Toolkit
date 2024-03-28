@@ -8,6 +8,44 @@ on:
   pull_request:
     branches: [master]
 jobs:
+  test-cuda:
+    defaults: {run: {shell: 'bash -el {0}'}}
+    runs-on: [self-hosted, python, cuda]
+    strategy:
+      matrix:
+        python-version: [3.9]
+        numpy-version: [1.22]
+    steps:
+    - uses: actions/checkout@v4
+      with: {fetch-depth: 0, submodules: recursive}
+    - id: reqs
+      name: set requirements
+      run: |
+        envname="${GITHUB_REPOSITORY##*/}-${GITHUB_RUN_ID}.${GITHUB_RUN_NUMBER}"
+        echo "envname=$envname" >> $GITHUB_OUTPUT
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+        activate-environment: ${{ steps.reqs.outputs.envname }}
+        run-post: false
+    - id: build
+      name: build
+      run: |
+        conda activate "${{ steps.reqs.outputs.envname }}"
+        which cmake || conda install -yq cmake
+        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
+        cmake --build ./build_proj --target install
+        pip install ./src/Python
+    - name: test
+      run: |
+        conda activate "${{ steps.reqs.outputs.envname }}"
+        PYTHONPATH=./src/Python python -m unittest discover ./test
+    - if: always()
+      name: Post Run conda-incubator/setup-miniconda@v3
+      run: |
+        conda deactivate
+        sed -i '/${{ steps.reqs.outputs.envname }}/d' ~/.profile
+        conda env remove -n "${{ steps.reqs.outputs.envname }}"
   test:
     defaults: {run: {shell: 'bash -el {0}'}}
     runs-on: ubuntu-latest
@@ -57,6 +95,6 @@ jobs:
         name: ccpi-regulariser-package
         path: recipe/linux-64/ccpi-regulariser*
   pass:
-    needs: [test, conda]
+    needs: [test-cuda, test, conda]
     runs-on: ubuntu-latest
     steps: [{run: echo success}]
