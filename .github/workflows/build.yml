@@ -42,9 +42,10 @@ jobs:
         PYTHONPATH=./src/Python python -m unittest discover ./test
     - if: always()
       name: Post Run conda-incubator/setup-miniconda@v3
+      shell: bash
       run: |
-        conda deactivate
         sed -i '/${{ steps.reqs.outputs.envname }}/d' ~/.profile
+        source ~/.profile
         conda env remove -n "${{ steps.reqs.outputs.envname }}"
   test:
     defaults: {run: {shell: 'bash -el {0}'}}
