@@ -37,7 +37,7 @@ Iterative image reconstruction (IIR) methods frequently require regularisation t
 
 ## Installation
 
-The package comes as a [CMake](https://cmake.org) project and additional wrappers for Python and Matlab. Please see more detailed [Installation](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/Installation.md) information.
+The package comes as a [CMake](https://cmake.org) project and additional wrappers for Python and Matlab. Please see more detailed [Installation](./Installation.md) information.
 
 ### Python binaries
 
@@ -55,7 +55,7 @@ One can also use some of the GPU modules with the provided [CuPy](https://docs.c
 conda install -c httomo ccpi-regularisation-cupy
 ```
 
-Once installed please see [Demos](https://github.com/vais-ral/CCPi-Regularisation-Toolkit/blob/master/demos/demo_gpu_regularisers3D_CuPy.py). Please note that not all modules are yet supported as this is an ongoing development. One can install both CuPy-driven and the `ccpi-regulariser` packge in one environment, but please be aware that the functions carry the identical names.
+Once installed please see [Demos](./demos/demo_gpu_regularisers3D_CuPy.py). Please note that not all modules are yet supported as this is an ongoing development. One can install both CuPy-driven and the `ccpi-regulariser` package in one environment, but please be aware that the functions carry the identical names.
 
 ## References
 
