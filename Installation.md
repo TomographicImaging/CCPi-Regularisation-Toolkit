@@ -5,7 +5,7 @@
 In order to compile C/C++ sources and additional wrappers from source code for numpy 1.24 and python 3.10, the recommended way is:
 
 ```sh
-git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+git clone https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit
 cd CCPi-Regularisation-Toolkit
 export CCPI_BUILD_ARGS="--numpy 1.24 --python 3.10"
 build/jenkins-build.sh
@@ -36,7 +36,7 @@ Flags used during configuration
 Here an example of build on Linux (see also `run.sh` for additional info):
 
 ```sh
-git clone https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+git clone https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit
 cd CCPi-Regularisation-Toolkit
 cmake -S . -B ./build_proj -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
 cmake --build ./build_proj --target install
@@ -69,7 +69,7 @@ python demo_gpu_regularisers.py # to run GPU demo
 One can also use some of the GPU modules directly (i.e. without the need of building the package) by using [CuPy](https://docs.cupy.dev) implementations.
 
 ```sh
-pip install git+https://github.com/vais-ral/CCPi-Regularisation-Toolkit
+pip install git+https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit
 ```
 
 > [!WARNING]
