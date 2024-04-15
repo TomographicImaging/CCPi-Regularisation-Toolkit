@@ -49,14 +49,16 @@ jobs:
         conda env remove -n "${{ steps.reqs.outputs.envname }}"
   test:
     defaults: {run: {shell: 'bash -el {0}'}}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        python-version: ['3.10', 3.11]
+        numpy-version: [1.23, 1.26]
+        os: [ubuntu-latest, windows-latest]
         include:
-        - python-version: '3.10' # min supported
-          numpy-version: 1.23
-        - python-version: 3.12 # max supported
+        - python-version: 3.12 # needs numpy>=1.26
           numpy-version: 1.26
+          os: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
