@@ -31,7 +31,8 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 
-os.chdir(os.path.join("..", "demos"))
+# os.chdir(os.path.join("..", "demos"))
+os.chdir("C:/Users/ofn77899/Dev/CCPi-Regularisation-Toolkit/demos")
 filename = os.path.join( "data" ,"lena_gray_512.tif")
 
 # read image
@@ -70,7 +71,7 @@ Im2[:,0:M] = Im[:,0:M]
 Im = Im2
 del Im2
 """
-slices = 15
+slices = 20
 
 noisyVol = np.zeros((slices,N,M),dtype='float32')
 noisyRef = np.zeros((slices,N,M),dtype='float32')
@@ -90,14 +91,15 @@ print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 fig = plt.figure()
 plt.suptitle('Performance of ROF-TV regulariser using the CPU')
 a=fig.add_subplot(1,2,1)
-a.set_title('Noisy 15th slice of a volume')
-imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
+slice_num = 10
+a.set_title(f'Noisy slice {slice_num} of a volume')
+imgplot = plt.imshow(noisyVol[slice_num,:,:],cmap="gray")
 
 # set parameters
 pars = {'algorithm': ROF_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.02,\
-        'number_of_iterations': 7000,\
+        'regularisation_parameter':0.02 * 100,\
+        'number_of_iterations': 200,\
         'time_marching_parameter': 0.0007,\
         'tolerance_constant':1e-06}
 
@@ -108,7 +110,7 @@ rof_cpu3D = ROF_TV(pars['input'],
              pars['regularisation_parameter'],
              pars['number_of_iterations'],
              pars['time_marching_parameter'],
-              pars['tolerance_constant'], device='cpu', infovector=info_vec_cpu)
+              pars['tolerance_constant'], device='gpu', infovector=info_vec_cpu)
 
 Qtools = QualityTools(idealVol, rof_cpu3D)
 pars['rmse'] = Qtools.rmse()
@@ -126,6 +128,7 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
 imgplot = plt.imshow(rof_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using ROF-TV'))
 
+print (f"information vector: {info_vec_cpu}")
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________FGP-TV (3D)__________________")
@@ -141,8 +144,8 @@ imgplot = plt.imshow(noisyVol[10,:,:],cmap="gray")
 # set parameters
 pars = {'algorithm' : FGP_TV, \
         'input' : noisyVol,\
-        'regularisation_parameter':0.02, \
-        'number_of_iterations' :1000 ,\
+        'regularisation_parameter': 0.08,# 0.02 * 10000,
+        'number_of_iterations' :2000 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0 ,\
         'nonneg': 0}
@@ -171,6 +174,9 @@ a.text(0.15, 0.25, txtstr, transform=a.transAxes, fontsize=14,
          verticalalignment='top', bbox=props)
 imgplot = plt.imshow(fgp_cpu3D[10,:,:], cmap="gray")
 plt.title('{}'.format('Recovered volume on the CPU using FGP-TV'))
+
+#%%
+imgplot = plt.imshow(fgp_cpu3D[:,1,:], cmap="gray")
 #%%
 print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 print ("_______________PD-TV (3D)__________________")
