@@ -35,7 +35,7 @@ def NDF_CPU(inputData, lambdaPar, sigmaPar, iterationsNumb, tau, penaltytype, ep
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
     
@@ -74,7 +74,7 @@ def Diffus4th_CPU(inputData, lambdaPar, sigmaPar, iterationsNumb, tau, epsil, ou
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
     
@@ -117,7 +117,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
         
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
         
@@ -159,7 +159,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
         
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
         
