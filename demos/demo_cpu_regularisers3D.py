@@ -31,8 +31,7 @@ def printParametersToString(pars):
         return txt
 ###############################################################################
 
-# os.chdir(os.path.join("..", "demos"))
-os.chdir("C:/Users/ofn77899/Dev/CCPi-Regularisation-Toolkit/demos")
+os.chdir(os.path.join("..", "demos"))
 filename = os.path.join( "data" ,"lena_gray_512.tif")
 
 # read image
