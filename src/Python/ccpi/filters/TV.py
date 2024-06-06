@@ -34,7 +34,7 @@ def TV_ROF_CPU(inputData, regularisation_parameter, iterationsNumb,
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -79,7 +79,7 @@ def TV_FGP_CPU(inputData, lambdaPar, iterationsNumb, epsil, methodTV, nonneg, ou
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -122,7 +122,7 @@ def PDTV_CPU(inputData, lambdaPar, iterationsNumb, epsil, lipschitz_const, metho
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -161,7 +161,7 @@ def SB_TV_CPU(inputData, mu, iter, epsil, methodTV, out=None, infovector=None):
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -199,7 +199,7 @@ def LLT_ROF_CPU(inputData, lambdaROF, lambdaLLT, iterationsNumb, tau, epsil, out
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -239,7 +239,7 @@ def TGV_CPU(inputData, lambdaPar, alpha1, alpha0, iterationsNumb, L2, epsil, out
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -281,7 +281,7 @@ def dTV_FGP_CPU(inputData, inputRef, lambdaPar, iterationsNumb, epsil, eta, meth
         infovector = np.zeros((2,), dtype='float32')
     infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim == 2:
         dims.append(1)
 
@@ -312,7 +312,7 @@ def TNV(inputData, lambdaPar, maxIter, tol, out=None):
         out = np.zeros_like(inputData)
     out_p = out.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-    dims = list(inputData.shape)
+    dims = list(inputData.shape)[::-1]
     if inputData.ndim != 3:
         raise ValueError('Input data must be 2D + 1 channel')
 
@@ -439,7 +439,7 @@ def TV_ENERGY(U, U0, lambdaPar, type, E_val=None):
             ctypes.c_int,                    # dimY (int)
         ]
         cilreg.TV_energy2D.restype = ctypes.c_float # return value is float
-        result = cilreg.TV_energy2D(u_p, u0_p, e_val_p, lambdaPar, type, dims[0], dims[1])
+        result = cilreg.TV_energy2D(u_p, u0_p, e_val_p, lambdaPar, type, dims[1], dims[0])
     elif U.ndim == 3:
         # float TV_energy3D(float *U, float *U0, float *E_val, float lambdaPar, int type, int dimX, int dimY, int dimZ);
         cilreg.TV_energy3D.argtypes = [
@@ -455,7 +455,7 @@ def TV_ENERGY(U, U0, lambdaPar, type, E_val=None):
         cilreg.TV_energy3D.restype = ctypes.c_float # return value is float
 
         # float TV_energy3D(float *U, float *U0, float *E_val, float lambdaPar, int type, int dimX, int dimY, int dimZ);
-        result = cilreg.TV_energy3D(u_p, u0_p, e_val_p, lambdaPar, type, dims[0], dims[1], dims[2])
+        result = cilreg.TV_energy3D(u_p, u0_p, e_val_p, lambdaPar, type, dims[2], dims[1], dims[0])
     else:
         raise ValueError(f"TV_ENERGY: Only 2D and 3D data are supported. Got {U.ndim}")
     return E_val
@@ -503,7 +503,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
 
@@ -551,7 +551,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
         if gpu_device == 'gpu':
@@ -594,7 +594,7 @@ if cilregcuda is not None:
             infovector = np.zeros_like(Input)
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(Input.shape)
+        dims = list(Input.shape)[::-1]
         if Input.ndim == 2:
             dims.append(1)
         # int TV_PD_GPU_main(float *Input, float *Output, float *infovector, float lambdaPar, int iter, float epsil,
@@ -635,7 +635,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
 
@@ -676,7 +676,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
 
@@ -719,7 +719,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
         dims = dims[::-1]
@@ -765,7 +765,7 @@ if cilregcuda is not None:
             infovector = np.zeros((2,), dtype='float32')
         infovector_p = infovector.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        dims = list(inputData.shape)
+        dims = list(inputData.shape)[::-1]
         if inputData.ndim == 2:
             dims.append(1)
 
