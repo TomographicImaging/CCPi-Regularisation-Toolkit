@@ -7,7 +7,7 @@ include = ["ccpi", "ccpi.*"]
 "ccpi.filters" = ["*cilreg.*", "*cilregcuda.*"] # cmake libraries
 
 [project]
-version = "24.0.0"
+version = "24.0.1"
 name = "ccpi-regulariser"
 dependencies = ["numpy"]
 [project.optional-dependencies]
