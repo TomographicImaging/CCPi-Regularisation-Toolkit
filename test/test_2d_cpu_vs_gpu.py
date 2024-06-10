@@ -191,6 +191,53 @@ def test_FGP_TV_CPU_vs_GPU_nonsquare(
     assert fgp_gpu.dtype == np.float32
 
 
+def test_PD_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
+    pars = {
+        "algorithm": PD_TV,
+        "input": host_pepper_im_noise,
+        "regularisation_parameter": 0.02,
+        "number_of_iterations": 1500,
+        "tolerance_constant": 0.0,
+        "methodTV": 0,
+        "nonneg": 0,
+        "lipschitz_const": 8,
+    }
+
+    print("#############PD TV CPU####################")
+    pd_cpu = PD_TV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["lipschitz_const"],
+        pars["methodTV"],
+        pars["nonneg"],
+        device="cpu",
+    )
+    rms_cpu = rmse(host_pepper_im, pd_cpu)
+    print("##############PD TV GPU##################")
+    pd_gpu = PD_TV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["lipschitz_const"],
+        pars["methodTV"],
+        pars["nonneg"],
+        device="gpu",
+    )
+    rms_gpu = rmse(host_pepper_im, pd_gpu)
+
+    print("--------Compare the results--------")
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(np.max(pd_cpu), np.max(pd_gpu), rtol=eps)
+    assert rms_cpu > 0.0
+    assert rms_gpu > 0.0
+    assert pd_cpu.dtype == np.float32
+    assert pd_gpu.dtype == np.float32
+
+
 #     def test_PD_TV_CPU_vs_GPU(self):
 #         u0, u_ref, Im = self._initiate_data()
 

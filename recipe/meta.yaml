@@ -26,6 +26,7 @@ requirements:
     - pip
     - vc 14 # [win]
     - cmake
+    - pytest
 
   run:
     - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
