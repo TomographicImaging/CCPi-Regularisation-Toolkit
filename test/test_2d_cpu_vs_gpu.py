@@ -139,6 +139,9 @@ def test_FGP_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, fgp_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5
@@ -237,6 +240,9 @@ def test_PD_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, pd_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5
@@ -331,6 +337,9 @@ def test_SB_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, sb_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5
@@ -424,6 +433,9 @@ def test_TGV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, tgv_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5
@@ -519,6 +531,9 @@ def test_LLT_ROF_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, lltrof_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5
@@ -615,6 +630,9 @@ def test_NDF_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="cpu",
     )
     rms_gpu = rmse(host_pepper_im, ndf_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5
@@ -711,6 +729,9 @@ def test_Diff4th_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, diff4th_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-4
@@ -811,6 +832,9 @@ def test_FGP_dTV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
         device="gpu",
     )
     rms_gpu = rmse(host_pepper_im, fgp_dtv_gpu)
+    pars["rmse"] = rms_gpu
+    txtstr = printParametersToString(pars)
+    print(txtstr)
 
     print("--------Compare the results--------")
     eps = 1e-5

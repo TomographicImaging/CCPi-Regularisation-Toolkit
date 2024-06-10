@@ -39,7 +39,7 @@ jobs:
     - name: test
       run: |
         conda activate "${{ steps.reqs.outputs.envname }}"
-        PYTHONPATH=./src/Python python -m unittest discover ./test
+        PYTHONPATH=./src/Python python -m pytest -s ./test
     - if: always()
       name: Post Run conda-incubator/setup-miniconda@v3
       shell: bash
