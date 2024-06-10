@@ -17,7 +17,7 @@ test:
     - ./test/
   commands:
     - python -c "import os; print (os.getcwd())"
-    - pytest
+    - pytest -s
 requirements:
   build:
     - python
@@ -30,7 +30,6 @@ requirements:
   run:
     - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
     - python
-    - cupy
     - pytest
     - vc 14 # [win]
     - libgcc-ng # [unix]
