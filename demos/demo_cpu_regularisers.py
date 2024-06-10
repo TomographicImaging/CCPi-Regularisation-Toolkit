@@ -175,7 +175,7 @@ pd_cpu = PD_TV(pars['input'],
               pars['tolerance_constant'], 
               pars['methodTV'],
               pars['nonneg'],
-              pars['lipschitz_const'], device='cpu')
+              pars['lipschitz_const'],device='cpu')
 
 Qtools = QualityTools(Im, pd_cpu)
 pars['rmse'] = Qtools.rmse()

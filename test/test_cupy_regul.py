@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-from ccpi.filters.regularisersCuPy import ROF_TV, PD_TV
 from numpy.testing import assert_allclose, assert_equal
 
 eps = 1e-5
@@ -9,6 +8,8 @@ eps = 1e-5
 
 @pytest.mark.cupy
 def test_ROF_TV_2d(device_data):
+    from ccpi.filters.regularisersCuPy import ROF_TV
+
     filtered_data = ROF_TV(
         device_data[60, :, :],
         regularisation_parameter=0.06,
@@ -26,6 +27,8 @@ def test_ROF_TV_2d(device_data):
 
 @pytest.mark.cupy
 def test_ROF_TV_3d(device_data):
+    from ccpi.filters.regularisersCuPy import ROF_TV
+
     filtered_data = ROF_TV(
         device_data,
         regularisation_parameter=0.06,
@@ -43,6 +46,8 @@ def test_ROF_TV_3d(device_data):
 
 @pytest.mark.cupy
 def test_PD_TV_2d(device_data):
+    from ccpi.filters.regularisersCuPy import PD_TV
+
     filtered_data = PD_TV(
         device_data[60, :, :],
         regularisation_parameter=0.06,
@@ -63,6 +68,8 @@ def test_PD_TV_2d(device_data):
 
 @pytest.mark.cupy
 def test_PD_TV_3d(device_data):
+    from ccpi.filters.regularisersCuPy import PD_TV
+
     filtered_data = PD_TV(
         device_data,
         regularisation_parameter=0.06,

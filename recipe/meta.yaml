@@ -27,11 +27,13 @@ requirements:
     - vc 14 # [win]
     - cmake
     - pytest
+    - imageio
 
   run:
     - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
     - python
     - pytest
+    - imageio
     - vc 14 # [win]
     - libgcc-ng # [unix]
 
