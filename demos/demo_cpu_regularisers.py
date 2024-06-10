@@ -169,13 +169,15 @@ pars = {'algorithm' : PD_TV, \
         
 print ("#############PD TV CPU####################")
 start_time = timeit.default_timer()
-pd_cpu = PD_TV(pars['input'], 
-              pars['regularisation_parameter'],
-              pars['number_of_iterations'],
-              pars['tolerance_constant'], 
-              pars['methodTV'],
-              pars['nonneg'],
-              pars['lipschitz_const'],device='cpu')
+pd_cpu = PD_TV(pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["lipschitz_const"],
+        pars["methodTV"],
+        pars["nonneg"],
+        device="cpu",
+        )
 
 Qtools = QualityTools(Im, pd_cpu)
 pars['rmse'] = Qtools.rmse()
@@ -208,17 +210,17 @@ imgplot = plt.imshow(u0,cmap="gray")
 pars = {'algorithm' : SB_TV, \
         'input' : u0,\
         'regularisation_parameter':0.02, \
-        'number_of_iterations' :1 ,\
+        'number_of_iterations' :100 ,\
         'tolerance_constant':1e-06,\
         'methodTV': 0}
         
 print ("#############SB TV CPU####################")
 start_time = timeit.default_timer()
-(sb_cpu,info_vec_cpu) = SB_TV(pars['input'], 
+sb_cpu = SB_TV(pars['input'], 
               pars['regularisation_parameter'],
               pars['number_of_iterations'],
               pars['tolerance_constant'], 
-              pars['methodTV'],'cpu')
+              pars['methodTV'], device='cpu')
              
 #Qtools = QualityTools(Im, sb_cpu)
 #pars['rmse'] = Qtools.rmse()
@@ -259,12 +261,12 @@ pars = {'algorithm' : LLT_ROF, \
         
 print ("#############LLT- ROF CPU####################")
 start_time = timeit.default_timer()
-(lltrof_cpu,info_vec_cpu) = LLT_ROF(pars['input'], 
+lltrof_cpu = LLT_ROF(pars['input'], 
               pars['regularisation_parameterROF'],
               pars['regularisation_parameterLLT'],
               pars['number_of_iterations'],
               pars['time_marching_parameter'],
-              pars['tolerance_constant'], 'cpu')
+              pars['tolerance_constant'], device = 'cpu')
 
 Qtools = QualityTools(Im, lltrof_cpu)
 pars['rmse'] = Qtools.rmse()

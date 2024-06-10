@@ -98,12 +98,54 @@ def host_pepper_im_noise(host_pepper_im):
 
 
 @pytest.fixture(scope="session")
+def host_pepper_3d(host_pepper_im):
+    slices_no = 5
+    (x_size, y_size) = np.shape(host_pepper_im)
+    GT_vol = np.zeros((slices_no, x_size, y_size), dtype="float32")
+    for i in range(slices_no):
+        GT_vol[i, :, :] = host_pepper_im
+    return GT_vol
+
+
+@pytest.fixture(scope="session")
+def host_pepper_3d_noise(host_pepper_3d):
+    perc = 0.075
+    u0 = host_pepper_3d + np.random.normal(
+        loc=0, scale=perc * host_pepper_3d, size=np.shape(host_pepper_3d)
+    )
+    u0 = u0.astype("float32")
+    return u0
+
+
+@pytest.fixture(scope="session")
 def host_pepper_im_noise_nonsquare(host_pepper_im_nonsquare):
     perc = 0.05
     u0 = host_pepper_im_nonsquare + np.random.normal(
         loc=0,
         scale=perc * host_pepper_im_nonsquare,
         size=np.shape(host_pepper_im_nonsquare),
+    )
+    u0 = u0.astype("float32")
+    return u0
+
+
+@pytest.fixture(scope="session")
+def host_pepper_3d_noncubic(host_pepper_im_nonsquare):
+    slices_no = 5
+    (x_size, y_size) = np.shape(host_pepper_im_nonsquare)
+    GT_vol = np.zeros((slices_no, x_size, y_size), dtype="float32")
+    for i in range(slices_no):
+        GT_vol[i, :, :] = host_pepper_im_nonsquare
+    return GT_vol
+
+
+@pytest.fixture(scope="session")
+def host_pepper_3d_noise_noncubic(host_pepper_3d_noncubic):
+    perc = 0.075
+    u0 = host_pepper_3d_noncubic + np.random.normal(
+        loc=0,
+        scale=perc * host_pepper_3d_noncubic,
+        size=np.shape(host_pepper_3d_noncubic),
     )
     u0 = u0.astype("float32")
     return u0
