@@ -12,7 +12,8 @@ name = "ccpi-regulariser"
 dependencies = [
     "numpy",
     "pillow",
-    "pytest"
+    "pytest",
+    "imageio",
 ]
 [project.optional-dependencies]
 gpu = ["cupy"]

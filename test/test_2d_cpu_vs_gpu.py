@@ -191,6 +191,9 @@ def test_FGP_TV_CPU_vs_GPU_nonsquare(
     assert fgp_gpu.dtype == np.float32
 
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 def test_PD_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
     pars = {
         "algorithm": PD_TV,
@@ -287,199 +290,278 @@ def test_PD_TV_CPU_vs_GPU_nonsqure(
     assert pd_gpu.dtype == np.float32
 
 
-#     def test_PD_TV_CPU_vs_GPU(self):
-#         u0, u_ref, Im = self._initiate_data()
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-#         print("____________PD-TV bench___________________")
-#         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
-#         pars = {
-#             "algorithm": PD_TV,
-#             "input": u0,
-#             "regularisation_parameter": 0.02,
-#             "number_of_iterations": 1500,
-#             "tolerance_constant": 0.0,
-#             "methodTV": 0,
-#             "nonneg": 0,
-#             "lipschitz_const": 8,
-#         }
+def test_SB_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
+    pars = {
+        "algorithm": SB_TV,
+        "input": host_pepper_im_noise,
+        "regularisation_parameter": 0.02,
+        "number_of_iterations": 250,
+        "tolerance_constant": 0.0,
+        "methodTV": 0,
+    }
+    print("#############SB TV CPU####################")
+    sb_cpu = SB_TV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["methodTV"],
+        device="cpu",
+    )
+    rms_cpu = rmse(host_pepper_im, sb_cpu)
+    print("##############SB TV GPU##################")
+    sb_gpu = SB_TV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["methodTV"],
+        device="gpu",
+    )
+    rms_gpu = rmse(host_pepper_im, sb_gpu)
 
-#         print("#############PD TV CPU####################")
-#         start_time = timeit.default_timer()
-#         pd_cpu = PD_TV(
-#             pars["input"],
-#             pars["regularisation_parameter"],
-#             pars["number_of_iterations"],
-#             pars["tolerance_constant"],
-#             pars["lipschitz_const"],
-#             pars["methodTV"],
-#             pars["nonneg"],
-#             device="cpu",
-#         )
+    print("--------Compare the results--------")
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(np.max(sb_cpu), np.max(sb_gpu), rtol=eps)
+    assert rms_cpu > 0.0
+    assert rms_gpu > 0.0
+    assert sb_cpu.dtype == np.float32
+    assert sb_gpu.dtype == np.float32
 
-#         rms = rmse(Im, pd_cpu)
-#         pars["rmse"] = rms
 
-#         txtstr = printParametersToString(pars)
-#         txtstr += "%s = %.3fs" % ("elapsed time", timeit.default_timer() - start_time)
-#         print(txtstr)
+def test_SB_TV_CPU_vs_GPU_nonsquare(
+    host_pepper_im_nonsquare, host_pepper_im_noise_nonsquare
+):
+    pars = {
+        "algorithm": SB_TV,
+        "input": host_pepper_im_noise_nonsquare,
+        "regularisation_parameter": 0.02,
+        "number_of_iterations": 250,
+        "tolerance_constant": 0.0,
+        "methodTV": 0,
+    }
+    print("#############SB TV CPU####################")
+    sb_cpu = SB_TV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["methodTV"],
+        device="cpu",
+    )
+    rms_cpu = rmse(host_pepper_im_nonsquare, sb_cpu)
+    print("##############SB TV GPU##################")
+    sb_gpu = SB_TV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["number_of_iterations"],
+        pars["tolerance_constant"],
+        pars["methodTV"],
+        device="gpu",
+    )
+    rms_gpu = rmse(host_pepper_im_nonsquare, sb_gpu)
 
-#         print("##############PD TV GPU##################")
-#         start_time = timeit.default_timer()
-#         pd_gpu = PD_TV(
-#             pars["input"],
-#             pars["regularisation_parameter"],
-#             pars["number_of_iterations"],
-#             pars["tolerance_constant"],
-#             pars["lipschitz_const"],
-#             pars["methodTV"],
-#             pars["nonneg"],
-#             device="gpu",
-#         )
+    print("--------Compare the results--------")
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(np.max(sb_cpu), np.max(sb_gpu), rtol=eps)
+    assert rms_cpu > 0.0
+    assert rms_gpu > 0.0
+    assert sb_cpu.dtype == np.float32
+    assert sb_gpu.dtype == np.float32
 
-#         rms = rmse(Im, pd_gpu)
-#         pars["rmse"] = rms
-#         pars["algorithm"] = PD_TV
-#         txtstr = printParametersToString(pars)
-#         txtstr += "%s = %.3fs" % ("elapsed time", timeit.default_timer() - start_time)
-#         print(txtstr)
 
-#         print("--------Compare the results--------")
-#         tolerance = 1e-05
-#         diff_im = np.zeros(np.shape(pd_cpu))
-#         diff_im = abs(pd_cpu - pd_gpu)
-#         diff_im[diff_im > tolerance] = 1
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#         self.assertLessEqual(diff_im.sum(), 1)
 
-#     def test_SB_TV_CPU_vs_GPU(self):
-#         u0, u_ref, Im = self._initiate_data()
+def test_TGV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
+    pars = {
+        "algorithm": TGV,
+        "input": host_pepper_im_noise,
+        "regularisation_parameter": 0.02,
+        "alpha1": 1.0,
+        "alpha0": 2.0,
+        "number_of_iterations": 1000,
+        "LipshitzConstant": 12,
+        "tolerance_constant": 0.0,
+    }
+    print("#############TGV CPU####################")
+    tgv_cpu = TGV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["alpha1"],
+        pars["alpha0"],
+        pars["number_of_iterations"],
+        pars["LipshitzConstant"],
+        pars["tolerance_constant"],
+        device="cpu",
+    )
+    rms_cpu = rmse(host_pepper_im, tgv_cpu)
+    print("##############TGV GPU##################")
+    tgv_gpu = TGV(
+        pars["input"],
+        pars["regularisation_parameter"],
+        pars["alpha1"],
+        pars["alpha0"],
+        pars["number_of_iterations"],
+        pars["LipshitzConstant"],
+        pars["tolerance_constant"],
+        device="gpu",
+    )
+    rms_gpu = rmse(host_pepper_im, tgv_gpu)
 
-#         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-#         print("____________SB-TV bench___________________")
-#         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    print("--------Compare the results--------")
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(np.max(tgv_cpu), np.max(tgv_gpu), rtol=eps)
+    assert rms_cpu > 0.0
+    assert rms_gpu > 0.0
+    assert tgv_cpu.dtype == np.float32
+    assert tgv_gpu.dtype == np.float32
 
-#         # set parameters
-#         pars = {
-#             "algorithm": SB_TV,
-#             "input": u0,
-#             "regularisation_parameter": 0.02,
-#             "number_of_iterations": 250,
-#             "tolerance_constant": 0.0,
-#             "methodTV": 0,
-#         }
 
-#         print("#############SB-TV CPU####################")
-#         start_time = timeit.default_timer()
-#         sb_cpu = SB_TV(
-#             pars["input"],
-#             pars["regularisation_parameter"],
-#             pars["number_of_iterations"],
-#             pars["tolerance_constant"],
-#             pars["methodTV"],
-#             device="cpu",
-#         )
+# TODO: This test fails! A bug in TGV.
+# def test_TGV_CPU_vs_GPU_nonsquare(
+#     host_pepper_im_nonsquare, host_pepper_im_noise_nonsquare
+# ):
+#     pars = {
+#         "algorithm": TGV,
+#         "input": host_pepper_im_noise_nonsquare,
+#         "regularisation_parameter": 0.02,
+#         "alpha1": 1.0,
+#         "alpha0": 2.0,
+#         "number_of_iterations": 1000,
+#         "LipshitzConstant": 12,
+#         "tolerance_constant": 0.0,
+#     }
+#     print("#############TGV CPU####################")
+#     tgv_cpu = TGV(
+#         pars["input"],
+#         pars["regularisation_parameter"],
+#         pars["alpha1"],
+#         pars["alpha0"],
+#         pars["number_of_iterations"],
+#         pars["LipshitzConstant"],
+#         pars["tolerance_constant"],
+#         device="cpu",
+#     )
+#     rms_cpu = rmse(host_pepper_im_nonsquare, tgv_cpu)
+#     print("##############TGV GPU##################")
+#     tgv_gpu = TGV(
+#         pars["input"],
+#         pars["regularisation_parameter"],
+#         pars["alpha1"],
+#         pars["alpha0"],
+#         pars["number_of_iterations"],
+#         pars["LipshitzConstant"],
+#         pars["tolerance_constant"],
+#         device="gpu",
+#     )
+#     rms_gpu = rmse(host_pepper_im_nonsquare, tgv_gpu)
 
-#         rms = rmse(Im, sb_cpu)
-#         pars["rmse"] = rms
+#     print("--------Compare the results--------")
+#     eps = 1e-5
+#     assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+#     assert_allclose(np.max(tgv_cpu), np.max(tgv_gpu), rtol=eps)
+#     assert rms_cpu > 0.0
+#     assert rms_gpu > 0.0
+#     assert tgv_cpu.dtype == np.float32
+#     assert tgv_gpu.dtype == np.float32
 
-#         txtstr = printParametersToString(pars)
-#         txtstr += "%s = %.3fs" % ("elapsed time", timeit.default_timer() - start_time)
-#         print(txtstr)
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#         print("##############SB TV GPU##################")
-#         start_time = timeit.default_timer()
-#         sb_gpu = SB_TV(
-#             pars["input"],
-#             pars["regularisation_parameter"],
-#             pars["number_of_iterations"],
-#             pars["tolerance_constant"],
-#             pars["methodTV"],
-#             device="gpu",
-#         )
 
-#         rms = rmse(Im, sb_gpu)
-#         pars["rmse"] = rms
-#         pars["algorithm"] = SB_TV
-#         txtstr = printParametersToString(pars)
-#         txtstr += "%s = %.3fs" % ("elapsed time", timeit.default_timer() - start_time)
-#         print(txtstr)
-#         print("--------Compare the results--------")
-#         tolerance = 1e-05
-#         diff_im = np.zeros(np.shape(sb_cpu))
-#         diff_im = abs(sb_cpu - sb_gpu)
-#         diff_im[diff_im > tolerance] = 1
-#         self.assertLessEqual(diff_im.sum(), 1)
+def test_LLT_ROF_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
+    pars = {
+        "algorithm": LLT_ROF,
+        "input": host_pepper_im_noise,
+        "regularisation_parameterROF": 0.01,
+        "regularisation_parameterLLT": 0.0085,
+        "number_of_iterations": 1000,
+        "time_marching_parameter": 0.0001,
+        "tolerance_constant": 0.0,
+    }
+    print("#############LLT_ROF CPU####################")
+    lltrof_cpu = LLT_ROF(
+        pars["input"],
+        pars["regularisation_parameterROF"],
+        pars["regularisation_parameterLLT"],
+        pars["number_of_iterations"],
+        pars["time_marching_parameter"],
+        pars["tolerance_constant"],
+        device="cpu",
+    )
+    rms_cpu = rmse(host_pepper_im, lltrof_cpu)
+    print("##############LLT_ROF GPU##################")
+    lltrof_gpu = LLT_ROF(
+        pars["input"],
+        pars["regularisation_parameterROF"],
+        pars["regularisation_parameterLLT"],
+        pars["number_of_iterations"],
+        pars["time_marching_parameter"],
+        pars["tolerance_constant"],
+        device="gpu",
+    )
+    rms_gpu = rmse(host_pepper_im, lltrof_gpu)
 
-#     def test_TGV_CPU_vs_GPU(self):
-#         u0, u_ref, Im = self._initiate_data()
+    print("--------Compare the results--------")
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(np.max(lltrof_cpu), np.max(lltrof_gpu), rtol=eps)
+    assert rms_cpu > 0.0
+    assert rms_gpu > 0.0
+    assert lltrof_cpu.dtype == np.float32
+    assert lltrof_gpu.dtype == np.float32
 
-#         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-#         print("____________TGV bench___________________")
-#         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
-#         # set parameters
-#         # set parameters
-#         pars = {
-#             "algorithm": TGV,
-#             "input": u0,
-#             "regularisation_parameter": 0.02,
-#             "alpha1": 1.0,
-#             "alpha0": 2.0,
-#             "number_of_iterations": 1000,
-#             "LipshitzConstant": 12,
-#             "tolerance_constant": 0.0,
-#         }
+def test_LLT_ROF_CPU_vs_GPU_nonsquare(
+    host_pepper_im_nonsquare, host_pepper_im_noise_nonsquare
+):
+    pars = {
+        "algorithm": LLT_ROF,
+        "input": host_pepper_im_noise_nonsquare,
+        "regularisation_parameterROF": 0.01,
+        "regularisation_parameterLLT": 0.0085,
+        "number_of_iterations": 1000,
+        "time_marching_parameter": 0.0001,
+        "tolerance_constant": 0.0,
+    }
+    print("#############LLT_ROF CPU####################")
+    lltrof_cpu = LLT_ROF(
+        pars["input"],
+        pars["regularisation_parameterROF"],
+        pars["regularisation_parameterLLT"],
+        pars["number_of_iterations"],
+        pars["time_marching_parameter"],
+        pars["tolerance_constant"],
+        device="cpu",
+    )
+    rms_cpu = rmse(host_pepper_im_nonsquare, lltrof_cpu)
+    print("##############LLT_ROF GPU##################")
+    lltrof_gpu = LLT_ROF(
+        pars["input"],
+        pars["regularisation_parameterROF"],
+        pars["regularisation_parameterLLT"],
+        pars["number_of_iterations"],
+        pars["time_marching_parameter"],
+        pars["tolerance_constant"],
+        device="gpu",
+    )
+    rms_gpu = rmse(host_pepper_im_nonsquare, lltrof_gpu)
 
-#         print("#############TGV CPU####################")
-#         start_time = timeit.default_timer()
-#         infovector = np.zeros((2,), dtype="float32")
-#         tgv_cpu = TGV(
-#             pars["input"],
-#             pars["regularisation_parameter"],
-#             pars["alpha1"],
-#             pars["alpha0"],
-#             pars["number_of_iterations"],
-#             pars["LipshitzConstant"],
-#             pars["tolerance_constant"],
-#             device="cpu",
-#             infovector=infovector,
-#         )
+    print("--------Compare the results--------")
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(np.max(lltrof_cpu), np.max(lltrof_gpu), rtol=eps)
+    assert rms_cpu > 0.0
+    assert rms_gpu > 0.0
+    assert lltrof_cpu.dtype == np.float32
+    assert lltrof_gpu.dtype == np.float32
 
-#         rms = rmse(Im, tgv_cpu)
-#         pars["rmse"] = rms
-
-#         txtstr = printParametersToString(pars)
-#         txtstr += "%s = %.3fs" % ("elapsed time", timeit.default_timer() - start_time)
-#         print(txtstr)
-
-#         print("##############TGV GPU##################")
-#         start_time = timeit.default_timer()
-#         tgv_gpu = TGV(
-#             pars["input"],
-#             pars["regularisation_parameter"],
-#             pars["alpha1"],
-#             pars["alpha0"],
-#             pars["number_of_iterations"],
-#             pars["LipshitzConstant"],
-#             pars["tolerance_constant"],
-#             device="gpu",
-#             infovector=infovector,
-#         )
-
-#         rms = rmse(Im, tgv_gpu)
-#         pars["rmse"] = rms
-#         pars["algorithm"] = TGV
-#         txtstr = printParametersToString(pars)
-#         txtstr += "%s = %.3fs" % ("elapsed time", timeit.default_timer() - start_time)
-#         print(txtstr)
-#         print("--------Compare the results--------")
-#         tolerance = 1e-02
-#         diff_im = np.zeros(np.shape(tgv_gpu))
-#         diff_im = abs(tgv_cpu - tgv_gpu)
-#         diff_im[diff_im > tolerance] = 1
-#         self.assertLessEqual(diff_im.sum(), 1)
 
 #     def test_LLT_ROF_CPU_vs_GPU(self):
 #         u0, u_ref, Im = self._initiate_data()
