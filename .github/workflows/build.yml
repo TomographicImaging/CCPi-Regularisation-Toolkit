@@ -71,7 +71,7 @@ jobs:
         cmake --build ./build_proj --target install
         pip install ./src/Python
     - name: test
-      run: PYTHONPATH=./src/Python python -m unittest discover ./test
+      run: PYTHONPATH=./src/Python python -m pytest -s ./test
   conda:
     defaults: {run: {shell: 'bash -el {0}'}}
     runs-on: ubuntu-latest
