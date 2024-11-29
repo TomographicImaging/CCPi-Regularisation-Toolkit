@@ -53,7 +53,7 @@ def test_ROF_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(rof_cpu), np.max(rof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -97,7 +97,7 @@ def test_ROF_TV_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(rof_cpu), np.max(rof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -146,7 +146,7 @@ def test_FGP_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_cpu), np.max(fgp_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -193,7 +193,7 @@ def test_FGP_TV_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_cpu), np.max(fgp_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -247,7 +247,7 @@ def test_PD_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(pd_cpu), np.max(pd_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -297,7 +297,7 @@ def test_PD_TV_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(pd_cpu), np.max(pd_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -344,7 +344,7 @@ def test_SB_TV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(sb_cpu), np.max(sb_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -387,7 +387,7 @@ def test_SB_TV_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(sb_cpu), np.max(sb_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -440,7 +440,7 @@ def test_TGV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(tgv_cpu), np.max(tgv_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -538,7 +538,7 @@ def test_LLT_ROF_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(lltrof_cpu), np.max(lltrof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -584,7 +584,7 @@ def test_LLT_ROF_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(lltrof_cpu), np.max(lltrof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -636,8 +636,8 @@ def test_NDF_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
     print(txtstr)
 
     print("--------Compare the results--------")
-    eps = 1e-4
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(ndf_cpu), np.max(ndf_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -686,7 +686,7 @@ def test_NDF_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(ndf_cpu), np.max(ndf_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -735,8 +735,8 @@ def test_Diff4th_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
     print(txtstr)
 
     print("--------Compare the results--------")
-    eps = 1e-4
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(diff4th_cpu), np.max(diff4th_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -781,8 +781,8 @@ def test_Diff4th_CPU_vs_GPU_nonsquare(
     rms_gpu = rmse(host_pepper_im_nonsquare, diff4th_gpu)
 
     print("--------Compare the results--------")
-    eps = 1e-4
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(diff4th_cpu), np.max(diff4th_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -839,7 +839,7 @@ def test_FGP_dTV_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_dtv_cpu), np.max(fgp_dtv_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -892,7 +892,7 @@ def test_FGP_dTV_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_dtv_cpu), np.max(fgp_dtv_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0

@@ -21,7 +21,7 @@ def test_ROF_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "algorithm": ROF_TV,
         "input": host_pepper_3d_noise,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 20,
+        "number_of_iterations": 100,
         "time_marching_parameter": 0.001,
         "tolerance_constant": 0.0,
     }
@@ -51,7 +51,7 @@ def test_ROF_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(rof_cpu), np.max(rof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -68,7 +68,7 @@ def test_ROF_TV_CPU_vs_GPU_noncubic(
         "algorithm": ROF_TV,
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 20,
+        "number_of_iterations": 100,
         "time_marching_parameter": 0.001,
         "tolerance_constant": 0.0,
     }
@@ -98,7 +98,7 @@ def test_ROF_TV_CPU_vs_GPU_noncubic(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(rof_cpu), np.max(rof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -113,7 +113,7 @@ def test_FGP_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "algorithm": FGP_TV,
         "input": host_pepper_3d_noise,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 30,
+        "number_of_iterations": 100,
         "tolerance_constant": 0.0,
         "methodTV": 0,
         "nonneg": 0,
@@ -147,7 +147,7 @@ def test_FGP_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_cpu), np.max(fgp_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -163,7 +163,7 @@ def test_FGP_TV_CPU_vs_GPU_noncubic(
         "algorithm": FGP_TV,
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 30,
+        "number_of_iterations": 100,
         "tolerance_constant": 0.0,
         "methodTV": 0,
         "nonneg": 0,
@@ -194,7 +194,7 @@ def test_FGP_TV_CPU_vs_GPU_noncubic(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_cpu), np.max(fgp_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -211,7 +211,7 @@ def test_PD_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "algorithm": PD_TV,
         "input": host_pepper_3d_noise,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 100,
         "tolerance_constant": 0.0,
         "methodTV": 0,
         "nonneg": 0,
@@ -248,7 +248,7 @@ def test_PD_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(pd_cpu), np.max(pd_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -264,7 +264,7 @@ def test_PD_TV_CPU_vs_GPU_noncubic(
         "algorithm": PD_TV,
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 100,
         "tolerance_constant": 0.0,
         "methodTV": 0,
         "nonneg": 0,
@@ -298,7 +298,7 @@ def test_PD_TV_CPU_vs_GPU_noncubic(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(pd_cpu), np.max(pd_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -315,7 +315,7 @@ def test_SB_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "algorithm": SB_TV,
         "input": host_pepper_3d_noise,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 80,
         "tolerance_constant": 0.0,
         "methodTV": 0,
     }
@@ -345,7 +345,7 @@ def test_SB_TV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(sb_cpu), np.max(sb_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -361,7 +361,7 @@ def test_SB_TV_CPU_vs_GPU_noncubic(
         "algorithm": SB_TV,
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 80,
         "tolerance_constant": 0.0,
         "methodTV": 0,
     }
@@ -388,7 +388,7 @@ def test_SB_TV_CPU_vs_GPU_noncubic(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(sb_cpu), np.max(sb_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -508,7 +508,7 @@ def test_LLT_ROF_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "input": host_pepper_3d_noise,
         "regularisation_parameterROF": 0.01,
         "regularisation_parameterLLT": 0.0085,
-        "number_of_iterations": 50,
+        "number_of_iterations": 100,
         "time_marching_parameter": 0.0001,
         "tolerance_constant": 0.0,
     }
@@ -540,7 +540,7 @@ def test_LLT_ROF_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(lltrof_cpu), np.max(lltrof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -557,7 +557,7 @@ def test_LLT_ROF_CPU_vs_GPU_noncubic(
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameterROF": 0.01,
         "regularisation_parameterLLT": 0.0085,
-        "number_of_iterations": 50,
+        "number_of_iterations": 100,
         "time_marching_parameter": 0.0001,
         "tolerance_constant": 0.0,
     }
@@ -589,7 +589,7 @@ def test_LLT_ROF_CPU_vs_GPU_noncubic(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(lltrof_cpu), np.max(lltrof_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -606,7 +606,7 @@ def test_NDF_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "input": host_pepper_3d_noise,
         "regularisation_parameter": 0.02,
         "edge_parameter": 0.017,
-        "number_of_iterations": 50,
+        "number_of_iterations": 300,
         "time_marching_parameter": 0.01,
         "penalty_type": 1,
         "tolerance_constant": 0.0,
@@ -641,7 +641,7 @@ def test_NDF_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(ndf_cpu), np.max(ndf_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -658,7 +658,7 @@ def test_NDF_CPU_vs_GPU_noncubic(
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameter": 0.02,
         "edge_parameter": 0.017,
-        "number_of_iterations": 50,
+        "number_of_iterations": 300,
         "time_marching_parameter": 0.01,
         "penalty_type": 1,
         "tolerance_constant": 0.0,
@@ -689,8 +689,8 @@ def test_NDF_CPU_vs_GPU_noncubic(
     rms_gpu = rmse(host_pepper_3d_noncubic, ndf_gpu)
 
     print("--------Compare the results--------")
-    eps = 1e-4
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    eps = 1e-5
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(ndf_cpu), np.max(ndf_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -708,7 +708,7 @@ def test_Diff4th_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "input": host_pepper_3d_noise,
         "regularisation_parameter": 0.8,
         "edge_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 150,
         "time_marching_parameter": 0.0001,
         "tolerance_constant": 0.0,
     }
@@ -740,7 +740,7 @@ def test_Diff4th_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-4
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(diff4th_cpu), np.max(diff4th_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -757,7 +757,7 @@ def test_Diff4th_CPU_vs_GPU_nonsquare(
         "input": host_pepper_3d_noise_noncubic,
         "regularisation_parameter": 0.8,
         "edge_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 150,
         "time_marching_parameter": 0.0001,
         "tolerance_constant": 0.0,
     }
@@ -786,7 +786,7 @@ def test_Diff4th_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-4
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(diff4th_cpu), np.max(diff4th_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -805,7 +805,7 @@ def test_FGP_dTV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
         "input": host_pepper_3d_noise,
         "refdata": host_pepper_3d,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 100,
         "tolerance_constant": 0.0,
         "eta_const": 0.2,
         "methodTV": 0,
@@ -843,7 +843,7 @@ def test_FGP_dTV_CPU_vs_GPU(host_pepper_3d, host_pepper_3d_noise):
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_dtv_cpu), np.max(fgp_dtv_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
@@ -861,7 +861,7 @@ def test_FGP_dTV_CPU_vs_GPU_nonsquare(
         "input": host_pepper_3d_noise_noncubic,
         "refdata": host_pepper_3d_noncubic,
         "regularisation_parameter": 0.02,
-        "number_of_iterations": 50,
+        "number_of_iterations": 100,
         "tolerance_constant": 0.0,
         "eta_const": 0.2,
         "methodTV": 0,
@@ -896,7 +896,7 @@ def test_FGP_dTV_CPU_vs_GPU_nonsquare(
 
     print("--------Compare the results--------")
     eps = 1e-5
-    assert_allclose(rms_cpu, rms_gpu, rtol=eps)
+    assert_allclose(rms_cpu, rms_gpu, rtol=0, atol=eps)
     assert_allclose(np.max(fgp_dtv_cpu), np.max(fgp_dtv_gpu), rtol=eps)
     assert rms_cpu > 0.0
     assert rms_gpu > 0.0
