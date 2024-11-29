@@ -18,7 +18,7 @@ or install from https://github.com/dkazanc/ToMoBAR
 @author: Daniil Kazantsev, e:mail daniil.kazantsev@diamond.ac.uk
 GPLv3 license (ASTRA toolbox)
 """
-#import timeit
+# import timeit
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
@@ -26,283 +26,299 @@ import h5py
 from ccpi.supp.qualitymetrics import QualityTools
 from scipy.signal import gaussian
 
-# loading the data 
-h5f = h5py.File('data/TomoSim_data1550671417.h5','r')
-phantom = h5f['phantom'][:]
-projdata_norm = h5f['projdata_norm'][:]
-proj_angles = h5f['proj_angles'][:]
+# loading the data
+h5f = h5py.File("data/TomoSim_data1550671417.h5", "r")
+phantom = h5f["phantom"][:]
+projdata_norm = h5f["projdata_norm"][:]
+proj_angles = h5f["proj_angles"][:]
 h5f.close()
 
 [Vert_det, AnglesNum, Horiz_det] = np.shape(projdata_norm)
 N_size = Vert_det
 
 # loading optmisation parameters (the result of running Demo_SimulData_ParOptimis_SX)
-h5f = h5py.File('optim_param/Optim_admm_sbtv.h5','r')
-reg_param_sb_vec = h5f['reg_param_sb_vec'][:]
-erros_vec_sbtv = h5f['erros_vec_sbtv'][:]
+h5f = h5py.File("optim_param/Optim_admm_sbtv.h5", "r")
+reg_param_sb_vec = h5f["reg_param_sb_vec"][:]
+erros_vec_sbtv = h5f["erros_vec_sbtv"][:]
 h5f.close()
 
-h5f = h5py.File('optim_param/Optim_admm_rofllt.h5','r')
-reg_param_rofllt_vec = h5f['reg_param_rofllt_vec'][:]
-erros_vec_rofllt = h5f['erros_vec_rofllt'][:]
+h5f = h5py.File("optim_param/Optim_admm_rofllt.h5", "r")
+reg_param_rofllt_vec = h5f["reg_param_rofllt_vec"][:]
+erros_vec_rofllt = h5f["erros_vec_rofllt"][:]
 h5f.close()
 
-h5f = h5py.File('optim_param/Optim_admm_tgv.h5','r')
-reg_param_tgv_vec = h5f['reg_param_tgv_vec'][:]
-erros_vec_tgv = h5f['erros_vec_tgv'][:]
+h5f = h5py.File("optim_param/Optim_admm_tgv.h5", "r")
+reg_param_tgv_vec = h5f["reg_param_tgv_vec"][:]
+erros_vec_tgv = h5f["erros_vec_tgv"][:]
 h5f.close()
 
 index_minSBTV = np.argmin(erros_vec_sbtv)
 index_minROFLLT = np.argmin(erros_vec_rofllt)
-index_minTGV = np.argmin(erros_vec_tgv) 
+index_minTGV = np.argmin(erros_vec_tgv)
 # assign optimal regularisation parameters:
 optimReg_sbtv = reg_param_sb_vec[index_minSBTV]
 optimReg_rofllt = reg_param_rofllt_vec[index_minROFLLT]
 optimReg_tgv = reg_param_tgv_vec[index_minTGV]
-#%%
+# %%
 # plot loaded data
 sliceSel = 128
-#plt.figure() 
+# plt.figure()
 fig, (ax1, ax2) = plt.subplots(figsize=(15, 5), ncols=2)
-plt.rcParams.update({'xtick.labelsize': 'x-small'})
-plt.rcParams.update({'ytick.labelsize':'x-small'})
+plt.rcParams.update({"xtick.labelsize": "x-small"})
+plt.rcParams.update({"ytick.labelsize": "x-small"})
 plt.subplot(121)
-one = plt.imshow(phantom[sliceSel,:,:],vmin=0, vmax=1, interpolation='none', cmap="PuOr")
+one = plt.imshow(
+    phantom[sliceSel, :, :], vmin=0, vmax=1, interpolation="none", cmap="PuOr"
+)
 fig.colorbar(one, ax=ax1)
-plt.title('3D Phantom, axial (X-Y) view')
+plt.title("3D Phantom, axial (X-Y) view")
 plt.subplot(122)
-two = plt.imshow(phantom[:,sliceSel,:],vmin=0, vmax=1,interpolation='none', cmap="PuOr")
+two = plt.imshow(
+    phantom[:, sliceSel, :], vmin=0, vmax=1, interpolation="none", cmap="PuOr"
+)
 fig.colorbar(two, ax=ax2)
-plt.title('3D Phantom, coronal (Y-Z) view')
+plt.title("3D Phantom, coronal (Y-Z) view")
 """
 plt.subplot(133)
 plt.imshow(phantom[:,:,sliceSel],vmin=0, vmax=1, cmap="PuOr")
 plt.title('3D Phantom, sagittal view')
 """
 plt.show()
-#%%
+# %%
 intens_max = 220
-plt.figure() 
-plt.rcParams.update({'xtick.labelsize': 'x-small'})
-plt.rcParams.update({'ytick.labelsize':'x-small'})
+plt.figure()
+plt.rcParams.update({"xtick.labelsize": "x-small"})
+plt.rcParams.update({"ytick.labelsize": "x-small"})
 plt.subplot(131)
-plt.imshow(projdata_norm[:,sliceSel,:],vmin=0, vmax=intens_max, cmap="PuOr")
-plt.xlabel('X-detector', fontsize=16)
-plt.ylabel('Z-detector', fontsize=16)
-plt.title('2D Projection (X-Z) view', fontsize=19)
+plt.imshow(projdata_norm[:, sliceSel, :], vmin=0, vmax=intens_max, cmap="PuOr")
+plt.xlabel("X-detector", fontsize=16)
+plt.ylabel("Z-detector", fontsize=16)
+plt.title("2D Projection (X-Z) view", fontsize=19)
 plt.subplot(132)
-plt.imshow(projdata_norm[sliceSel,:,:],vmin=0, vmax=intens_max, cmap="PuOr")
-plt.xlabel('X-detector', fontsize=16)
-plt.ylabel('Projection angle', fontsize=16)
-plt.title('Sinogram (X-Y) view', fontsize=19)
+plt.imshow(projdata_norm[sliceSel, :, :], vmin=0, vmax=intens_max, cmap="PuOr")
+plt.xlabel("X-detector", fontsize=16)
+plt.ylabel("Projection angle", fontsize=16)
+plt.title("Sinogram (X-Y) view", fontsize=19)
 plt.subplot(133)
-plt.imshow(projdata_norm[:,:,sliceSel],vmin=0, vmax=intens_max, cmap="PuOr")
-plt.xlabel('Projection angle', fontsize=16)
-plt.ylabel('Z-detector', fontsize=16)
-plt.title('Vertical (Y-Z) view', fontsize=19)
+plt.imshow(projdata_norm[:, :, sliceSel], vmin=0, vmax=intens_max, cmap="PuOr")
+plt.xlabel("Projection angle", fontsize=16)
+plt.ylabel("Z-detector", fontsize=16)
+plt.title("Vertical (Y-Z) view", fontsize=19)
 plt.show()
-#plt.savefig('projdata.pdf', format='pdf', dpi=1200)
-#%%
+# plt.savefig('projdata.pdf', format='pdf', dpi=1200)
+# %%
 # initialise tomobar DIRECT reconstruction class ONCE
 from tomobar.methodsDIR import RecToolsDIR
-RectoolsDIR = RecToolsDIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
-                    AnglesVec = proj_angles, # array of angles in radians
-                    ObjSize = N_size, # a scalar to define reconstructed object dimensions
-                    device = 'gpu')
-#%%
-print ("Reconstruction using FBP from tomobar")
-recFBP= RectoolsDIR.FBP(projdata_norm) # FBP reconstruction
-#%%
-x0, y0 = 0, 127 # These are in _pixel_ coordinates!!
+
+RectoolsDIR = RecToolsDIR(
+    DetectorsDimH=Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
+    DetectorsDimV=Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+    AnglesVec=proj_angles,  # array of angles in radians
+    ObjSize=N_size,  # a scalar to define reconstructed object dimensions
+    device="gpu",
+)
+# %%
+print("Reconstruction using FBP from tomobar")
+recFBP = RectoolsDIR.FBP(projdata_norm)  # FBP reconstruction
+# %%
+x0, y0 = 0, 127  # These are in _pixel_ coordinates!!
 x1, y1 = 255, 127
 
-sliceSel = int(0.5*N_size)
+sliceSel = int(0.5 * N_size)
 max_val = 1
-plt.figure(figsize = (20,5))
+plt.figure(figsize=(20, 5))
 gs1 = gridspec.GridSpec(1, 3)
-gs1.update(wspace=0.1, hspace=0.05) # set the spacing between axes. 
+gs1.update(wspace=0.1, hspace=0.05)  # set the spacing between axes.
 ax1 = plt.subplot(gs1[0])
-plt.imshow(recFBP[sliceSel,:,:],vmin=0, vmax=max_val, cmap="PuOr")
-ax1.plot([x0, x1], [y0, y1], 'ko-', linestyle='--')
+plt.imshow(recFBP[sliceSel, :, :], vmin=0, vmax=max_val, cmap="PuOr")
+ax1.plot([x0, x1], [y0, y1], "ko-", linestyle="--")
 plt.colorbar(ax=ax1)
-plt.title('FBP Reconstruction, axial (X-Y) view', fontsize=19)
-ax1.set_aspect('equal')
+plt.title("FBP Reconstruction, axial (X-Y) view", fontsize=19)
+ax1.set_aspect("equal")
 ax3 = plt.subplot(gs1[1])
-plt.plot(phantom[sliceSel,sliceSel,0:N_size],color='k',linewidth=2)
-plt.plot(recFBP[sliceSel,sliceSel,0:N_size],linestyle='--',color='g')
-plt.title('Profile', fontsize=19)
+plt.plot(phantom[sliceSel, sliceSel, 0:N_size], color="k", linewidth=2)
+plt.plot(recFBP[sliceSel, sliceSel, 0:N_size], linestyle="--", color="g")
+plt.title("Profile", fontsize=19)
 ax2 = plt.subplot(gs1[2])
-plt.imshow(recFBP[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
-plt.title('FBP Reconstruction, coronal (Y-Z) view', fontsize=19)
-ax2.set_aspect('equal')
+plt.imshow(recFBP[:, sliceSel, :], vmin=0, vmax=max_val, cmap="PuOr")
+plt.title("FBP Reconstruction, coronal (Y-Z) view", fontsize=19)
+ax2.set_aspect("equal")
 plt.show()
-#plt.savefig('FBP_phantom.pdf', format='pdf', dpi=1600)
+# plt.savefig('FBP_phantom.pdf', format='pdf', dpi=1600)
 
-# calculate errors 
+# calculate errors
 Qtools = QualityTools(phantom, recFBP)
 RMSE_fbp = Qtools.rmse()
 print("Root Mean Square Error for FBP is {}".format(RMSE_fbp))
 
 # SSIM measure
-Qtools = QualityTools(phantom[128,:,:]*255, recFBP[128,:,:]*235)
+Qtools = QualityTools(phantom[128, :, :] * 255, recFBP[128, :, :] * 235)
 win = np.array([gaussian(11, 1.5)])
 win2d = win * (win.T)
 ssim_fbp = Qtools.ssim(win2d)
 print("Mean SSIM for FBP is {}".format(ssim_fbp[0]))
-#%%
-print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-print ("Reconstructing with ADMM method using tomobar software")
-print ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+# %%
+print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+print("Reconstructing with ADMM method using tomobar software")
+print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 # initialise tomobar ITERATIVE reconstruction class ONCE
 from tomobar.methodsIR import RecToolsIR
-RectoolsIR = RecToolsIR(DetectorsDimH = Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
-                    DetectorsDimV = Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
-                    AnglesVec = proj_angles, # array of angles in radians
-                    ObjSize = N_size, # a scalar to define reconstructed object dimensions
-                    datafidelity='LS',# data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
-                    nonnegativity='ENABLE', # enable nonnegativity constraint (set to 'ENABLE')
-                    OS_number = None, # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
-                    tolerance = 1e-06, # tolerance to stop outer -ADMM iterations earlier
-                    device='gpu')
-#%%
-print ("Reconstructing with ADMM method using SB-TV penalty")
-RecADMM_reg_sbtv = RectoolsIR.ADMM(projdata_norm,
-                                  rho_const = 2000.0, \
-                                  iterationsADMM = 25, \
-                                  regularisation = 'SB_TV', \
-                                  regularisation_parameter = optimReg_sbtv,\
-                                  regularisation_iterations = 50)
 
-sliceSel = int(0.5*N_size)
+RectoolsIR = RecToolsIR(
+    DetectorsDimH=Horiz_det,  # DetectorsDimH # detector dimension (horizontal)
+    DetectorsDimV=Vert_det,  # DetectorsDimV # detector dimension (vertical) for 3D case only
+    AnglesVec=proj_angles,  # array of angles in radians
+    ObjSize=N_size,  # a scalar to define reconstructed object dimensions
+    datafidelity="LS",  # data fidelity, choose LS, PWLS (wip), GH (wip), Student (wip)
+    nonnegativity="ENABLE",  # enable nonnegativity constraint (set to 'ENABLE')
+    OS_number=None,  # the number of subsets, NONE/(or > 1) ~ classical / ordered subsets
+    tolerance=1e-06,  # tolerance to stop outer -ADMM iterations earlier
+    device="gpu",
+)
+# %%
+print("Reconstructing with ADMM method using SB-TV penalty")
+RecADMM_reg_sbtv = RectoolsIR.ADMM(
+    projdata_norm,
+    rho_const=2000.0,
+    iterationsADMM=25,
+    regularisation="SB_TV",
+    regularisation_parameter=optimReg_sbtv,
+    regularisation_iterations=50,
+)
+
+sliceSel = int(0.5 * N_size)
 max_val = 1
-plt.figure(figsize = (20,3))
+plt.figure(figsize=(20, 3))
 gs1 = gridspec.GridSpec(1, 4)
-gs1.update(wspace=0.02, hspace=0.01) # set the spacing between axes. 
+gs1.update(wspace=0.02, hspace=0.01)  # set the spacing between axes.
 ax1 = plt.subplot(gs1[0])
-plt.plot(reg_param_sb_vec, erros_vec_sbtv, color='k',linewidth=2)
-plt.xlabel('Regularisation parameter', fontsize=16)
-plt.ylabel('RMSE value', fontsize=16)
-plt.title('Regularisation selection', fontsize=19)
+plt.plot(reg_param_sb_vec, erros_vec_sbtv, color="k", linewidth=2)
+plt.xlabel("Regularisation parameter", fontsize=16)
+plt.ylabel("RMSE value", fontsize=16)
+plt.title("Regularisation selection", fontsize=19)
 ax2 = plt.subplot(gs1[1])
-plt.imshow(RecADMM_reg_sbtv[sliceSel,:,:],vmin=0, vmax=max_val, cmap="PuOr")
-ax2.plot([x0, x1], [y0, y1], 'ko-', linestyle='--')
-plt.title('ADMM-SBTV (X-Y) view', fontsize=19)
-#ax2.set_aspect('equal')
+plt.imshow(RecADMM_reg_sbtv[sliceSel, :, :], vmin=0, vmax=max_val, cmap="PuOr")
+ax2.plot([x0, x1], [y0, y1], "ko-", linestyle="--")
+plt.title("ADMM-SBTV (X-Y) view", fontsize=19)
+# ax2.set_aspect('equal')
 ax3 = plt.subplot(gs1[2])
-plt.plot(phantom[sliceSel,sliceSel,0:N_size],color='k',linewidth=2)
-plt.plot(RecADMM_reg_sbtv[sliceSel,sliceSel,0:N_size],linestyle='--',color='g')
-plt.title('Profile', fontsize=19)
+plt.plot(phantom[sliceSel, sliceSel, 0:N_size], color="k", linewidth=2)
+plt.plot(RecADMM_reg_sbtv[sliceSel, sliceSel, 0:N_size], linestyle="--", color="g")
+plt.title("Profile", fontsize=19)
 ax4 = plt.subplot(gs1[3])
-plt.imshow(RecADMM_reg_sbtv[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
-plt.title('ADMM-SBTV (Y-Z) view', fontsize=19)
+plt.imshow(RecADMM_reg_sbtv[:, sliceSel, :], vmin=0, vmax=max_val, cmap="PuOr")
+plt.title("ADMM-SBTV (Y-Z) view", fontsize=19)
 plt.colorbar(ax=ax4)
 plt.show()
-#plt.savefig('SBTV_phantom.pdf', format='pdf', dpi=1600)
+# plt.savefig('SBTV_phantom.pdf', format='pdf', dpi=1600)
 
-# calculate errors 
+# calculate errors
 Qtools = QualityTools(phantom, RecADMM_reg_sbtv)
 RMSE_admm_sbtv = Qtools.rmse()
 print("Root Mean Square Error for ADMM-SB-TV is {}".format(RMSE_admm_sbtv))
 
 # SSIM measure
-Qtools = QualityTools(phantom[128,:,:]*255, RecADMM_reg_sbtv[128,:,:]*235)
+Qtools = QualityTools(phantom[128, :, :] * 255, RecADMM_reg_sbtv[128, :, :] * 235)
 win = np.array([gaussian(11, 1.5)])
 win2d = win * (win.T)
 ssim_admm_sbtv = Qtools.ssim(win2d)
 print("Mean SSIM ADMM-SBTV is {}".format(ssim_admm_sbtv[0]))
-#%%
-print ("Reconstructing with ADMM method using ROFLLT penalty")
-RecADMM_reg_rofllt = RectoolsIR.ADMM(projdata_norm,
-                                  rho_const = 2000.0, \
-                                  iterationsADMM = 25, \
-                                  regularisation = 'LLT_ROF', \
-                                  regularisation_parameter = optimReg_rofllt,\
-                                  regularisation_parameter2 = 0.0085,\
-                                  regularisation_iterations = 600)
+# %%
+print("Reconstructing with ADMM method using ROFLLT penalty")
+RecADMM_reg_rofllt = RectoolsIR.ADMM(
+    projdata_norm,
+    rho_const=2000.0,
+    iterationsADMM=25,
+    regularisation="LLT_ROF",
+    regularisation_parameter=optimReg_rofllt,
+    regularisation_parameter2=0.0085,
+    regularisation_iterations=600,
+)
 
-sliceSel = int(0.5*N_size)
+sliceSel = int(0.5 * N_size)
 max_val = 1
-plt.figure(figsize = (20,3))
+plt.figure(figsize=(20, 3))
 gs1 = gridspec.GridSpec(1, 4)
-gs1.update(wspace=0.02, hspace=0.01) # set the spacing between axes. 
+gs1.update(wspace=0.02, hspace=0.01)  # set the spacing between axes.
 ax1 = plt.subplot(gs1[0])
-plt.plot(reg_param_rofllt_vec, erros_vec_rofllt, color='k',linewidth=2)
-plt.xlabel('Regularisation parameter', fontsize=16)
-plt.ylabel('RMSE value', fontsize=16)
-plt.title('Regularisation selection', fontsize=19)
+plt.plot(reg_param_rofllt_vec, erros_vec_rofllt, color="k", linewidth=2)
+plt.xlabel("Regularisation parameter", fontsize=16)
+plt.ylabel("RMSE value", fontsize=16)
+plt.title("Regularisation selection", fontsize=19)
 ax2 = plt.subplot(gs1[1])
-plt.imshow(RecADMM_reg_rofllt[sliceSel,:,:],vmin=0, vmax=max_val, cmap="PuOr")
-ax2.plot([x0, x1], [y0, y1], 'ko-', linestyle='--')
-plt.title('ADMM-ROFLLT (X-Y) view', fontsize=19)
-#ax2.set_aspect('equal')
+plt.imshow(RecADMM_reg_rofllt[sliceSel, :, :], vmin=0, vmax=max_val, cmap="PuOr")
+ax2.plot([x0, x1], [y0, y1], "ko-", linestyle="--")
+plt.title("ADMM-ROFLLT (X-Y) view", fontsize=19)
+# ax2.set_aspect('equal')
 ax3 = plt.subplot(gs1[2])
-plt.plot(phantom[sliceSel,sliceSel,0:N_size],color='k',linewidth=2)
-plt.plot(RecADMM_reg_rofllt[sliceSel,sliceSel,0:N_size],linestyle='--',color='g')
-plt.title('Profile', fontsize=19)
+plt.plot(phantom[sliceSel, sliceSel, 0:N_size], color="k", linewidth=2)
+plt.plot(RecADMM_reg_rofllt[sliceSel, sliceSel, 0:N_size], linestyle="--", color="g")
+plt.title("Profile", fontsize=19)
 ax4 = plt.subplot(gs1[3])
-plt.imshow(RecADMM_reg_rofllt[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
-plt.title('ADMM-ROFLLT (Y-Z) view', fontsize=19)
+plt.imshow(RecADMM_reg_rofllt[:, sliceSel, :], vmin=0, vmax=max_val, cmap="PuOr")
+plt.title("ADMM-ROFLLT (Y-Z) view", fontsize=19)
 plt.colorbar(ax=ax4)
 plt.show()
-#plt.savefig('ROFLLT_phantom.pdf', format='pdf', dpi=1600)
+# plt.savefig('ROFLLT_phantom.pdf', format='pdf', dpi=1600)
 
-# calculate errors 
+# calculate errors
 Qtools = QualityTools(phantom, RecADMM_reg_rofllt)
 RMSE_admm_rofllt = Qtools.rmse()
 print("Root Mean Square Error for ADMM-ROF-LLT is {}".format(RMSE_admm_rofllt))
 
 # SSIM measure
-Qtools = QualityTools(phantom[128,:,:]*255, RecADMM_reg_rofllt[128,:,:]*235)
+Qtools = QualityTools(phantom[128, :, :] * 255, RecADMM_reg_rofllt[128, :, :] * 235)
 win = np.array([gaussian(11, 1.5)])
 win2d = win * (win.T)
 ssim_admm_rifllt = Qtools.ssim(win2d)
 print("Mean SSIM ADMM-ROFLLT is {}".format(ssim_admm_rifllt[0]))
-#%%
-print ("Reconstructing with ADMM method using TGV penalty")
-RecADMM_reg_tgv = RectoolsIR.ADMM(projdata_norm,
-                                  rho_const = 2000.0, \
-                                  iterationsADMM = 25, \
-                                  regularisation = 'TGV', \
-                                  regularisation_parameter = optimReg_tgv,\
-                                  regularisation_iterations = 600)
-#%%
-sliceSel = int(0.5*N_size)
+# %%
+print("Reconstructing with ADMM method using TGV penalty")
+RecADMM_reg_tgv = RectoolsIR.ADMM(
+    projdata_norm,
+    rho_const=2000.0,
+    iterationsADMM=25,
+    regularisation="TGV",
+    regularisation_parameter=optimReg_tgv,
+    regularisation_iterations=600,
+)
+# %%
+sliceSel = int(0.5 * N_size)
 max_val = 1
-plt.figure(figsize = (20,3))
+plt.figure(figsize=(20, 3))
 gs1 = gridspec.GridSpec(1, 4)
-gs1.update(wspace=0.02, hspace=0.01) # set the spacing between axes. 
+gs1.update(wspace=0.02, hspace=0.01)  # set the spacing between axes.
 ax1 = plt.subplot(gs1[0])
-plt.plot(reg_param_tgv_vec, erros_vec_tgv, color='k',linewidth=2)
-plt.xlabel('Regularisation parameter', fontsize=16)
-plt.ylabel('RMSE value', fontsize=16)
-plt.title('Regularisation selection', fontsize=19)
+plt.plot(reg_param_tgv_vec, erros_vec_tgv, color="k", linewidth=2)
+plt.xlabel("Regularisation parameter", fontsize=16)
+plt.ylabel("RMSE value", fontsize=16)
+plt.title("Regularisation selection", fontsize=19)
 ax2 = plt.subplot(gs1[1])
-plt.imshow(RecADMM_reg_tgv[sliceSel,:,:],vmin=0, vmax=max_val, cmap="PuOr")
-ax2.plot([x0, x1], [y0, y1], 'ko-', linestyle='--')
-plt.title('ADMM-TGV (X-Y) view', fontsize=19)
-#ax2.set_aspect('equal')
+plt.imshow(RecADMM_reg_tgv[sliceSel, :, :], vmin=0, vmax=max_val, cmap="PuOr")
+ax2.plot([x0, x1], [y0, y1], "ko-", linestyle="--")
+plt.title("ADMM-TGV (X-Y) view", fontsize=19)
+# ax2.set_aspect('equal')
 ax3 = plt.subplot(gs1[2])
-plt.plot(phantom[sliceSel,sliceSel,0:N_size],color='k',linewidth=2)
-plt.plot(RecADMM_reg_tgv[sliceSel,sliceSel,0:N_size],linestyle='--',color='g')
-plt.title('Profile', fontsize=19)
+plt.plot(phantom[sliceSel, sliceSel, 0:N_size], color="k", linewidth=2)
+plt.plot(RecADMM_reg_tgv[sliceSel, sliceSel, 0:N_size], linestyle="--", color="g")
+plt.title("Profile", fontsize=19)
 ax4 = plt.subplot(gs1[3])
-plt.imshow(RecADMM_reg_tgv[:,sliceSel,:],vmin=0, vmax=max_val, cmap="PuOr")
-plt.title('ADMM-TGV (Y-Z) view', fontsize=19)
+plt.imshow(RecADMM_reg_tgv[:, sliceSel, :], vmin=0, vmax=max_val, cmap="PuOr")
+plt.title("ADMM-TGV (Y-Z) view", fontsize=19)
 plt.colorbar(ax=ax4)
 plt.show()
-#plt.savefig('TGV_phantom.pdf', format='pdf', dpi=1600)
+# plt.savefig('TGV_phantom.pdf', format='pdf', dpi=1600)
 
-# calculate errors 
+# calculate errors
 Qtools = QualityTools(phantom, RecADMM_reg_tgv)
 RMSE_admm_tgv = Qtools.rmse()
 print("Root Mean Square Error for ADMM-TGV is {}".format(RMSE_admm_tgv))
 
 # SSIM measure
-#Create a 2d gaussian for the window parameter
-Qtools = QualityTools(phantom[128,:,:]*255, RecADMM_reg_tgv[128,:,:]*235)
+# Create a 2d gaussian for the window parameter
+Qtools = QualityTools(phantom[128, :, :] * 255, RecADMM_reg_tgv[128, :, :] * 235)
 win = np.array([gaussian(11, 1.5)])
 win2d = win * (win.T)
 ssim_admm_tgv = Qtools.ssim(win2d)
 print("Mean SSIM ADMM-TGV is {}".format(ssim_admm_tgv[0]))
-#%%
+# %%

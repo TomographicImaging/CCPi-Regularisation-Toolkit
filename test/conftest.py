@@ -41,6 +41,10 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_configure(config):
+    config.addinivalue_line("markers", "cupy: mark test as a CuPy test")
+
+
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--runcupy"):
         # --runcupy given in cli: do not skip cupy tests

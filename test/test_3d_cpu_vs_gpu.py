@@ -1,4 +1,3 @@
-from numpy._typing._array_like import NDArray
 import pytest
 import numpy as np
 from ccpi.filters.regularisers import (
