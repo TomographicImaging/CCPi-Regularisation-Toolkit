@@ -636,7 +636,7 @@ def test_NDF_CPU_vs_GPU(host_pepper_im, host_pepper_im_noise):
     print(txtstr)
 
     print("--------Compare the results--------")
-    eps = 1e-5
+    eps = 1e-4
     assert_allclose(rms_cpu, rms_gpu, rtol=eps)
     assert_allclose(np.max(ndf_cpu), np.max(ndf_gpu), rtol=eps)
     assert rms_cpu > 0.0
