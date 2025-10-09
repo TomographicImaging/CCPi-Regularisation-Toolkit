@@ -1,23 +1,31 @@
 # https://docs.conda.io/projects/conda-build/en/stable/resources/define-metadata.html#loading-data-from-other-files
 # TODO: use scikit-build-core & setuptools_scm instead
 {% set project = load_file_data('../src/Python/pyproject.toml', from_recipe_dir=True).get('project', {}) %}
+{% set build_number = environ.get('GIT_DESCRIBE_NUMBER', 0) | int %}
+{% if cuda_compiler_version != "None" %}
+{% set build_number = build_number + 200 %}
+{% endif %}
+
 package:
   name: {{ project.get('name') }}
   version: {{ project.get('version') }}
 
 build:
   preserve_egg_dir: False
-  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  number: {{ build_number }}
+  run_exports:
+    - {{ pin_subpackage(project.get('name'), max_pin='x.x') }}
+    - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None"]
+    - {{ project.get('name') }} =*=cpu*  # [cuda_compiler_version == "None"]
+  ignore_run_exports:
+    - cudatoolkit # [(cuda_compiler_version or "None").startswith("11")]
   ignore_run_exports_from:
-    {% if cuda_compiler_version != '0' %}
-    - {{ compiler('cuda') }}
-    {% endif %}
+    - {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
   script_env:
-    {% if cuda_compiler_version != '0' %}
-    - BUILD_CUDA=ON
-    {% else %}
-    - BUILD_CUDA=OFF
-    {% endif %}
+    - BUILD_CUDA=ON  # [cuda_compiler_version != "None"]
+    - BUILD_CUDA=OFF # [cuda_compiler_version == "None"]
+  string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version != "None"]
+  string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version == "None"]
 
 source:
   path: ..
@@ -31,24 +39,21 @@ requirements:
   build:
     - cmake
     - ninja
+    - python # [build_platform != target_platform]
     - {{ compiler('cxx') }}
-    {% if cuda_compiler_version != '0' %}
-    - {{ compiler('cuda') }}
-    {% endif %}
-
+    - {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
   host:
     - python x.x
+    - libgomp     # [linux]
+    - llvm-openmp # [osx]
     - setuptools
     - pip
-    {% if cuda_compiler_version != '0' %}
-    - cuda-version {{ cuda_compiler_version }}
-    {% endif %}
-
+    - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   run:
+    - {{ pin_compatible('python', min_pin='x.x') }}
     - numpy
-    {% if cuda_compiler_version != '0' %}
-    - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }}
-    {% endif %}
+    - __cuda # [cuda_compiler_version != "None"]
+    - {{ pin_compatible('cuda-version', min_pin='x') }} # [cuda_compiler_version != "None"]
 
 about:
   home: https://TomographicImaging.github.io/CIL
