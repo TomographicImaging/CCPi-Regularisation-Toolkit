@@ -8,6 +8,16 @@ package:
 build:
   preserve_egg_dir: False
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  ignore_run_exports_from:
+    {% if cuda_compiler_version != '0' %}
+    - {{ compiler('cuda') }}
+    {% endif %}
+  script_env:
+    {% if cuda_compiler_version != '0' %}
+    - BUILD_CUDA=ON
+    {% else %}
+    - BUILD_CUDA=OFF
+    {% endif %}
 
 source:
   path: ..
@@ -22,14 +32,23 @@ requirements:
     - cmake
     - ninja
     - {{ compiler('cxx') }}
+    {% if cuda_compiler_version != '0' %}
+    - {{ compiler('cuda') }}
+    {% endif %}
 
   host:
     - python x.x
     - setuptools
     - pip
+    {% if cuda_compiler_version != '0' %}
+    - cuda-version {{ cuda_compiler_version }}
+    {% endif %}
 
   run:
     - numpy
+    {% if cuda_compiler_version != '0' %}
+    - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }}
+    {% endif %}
 
 about:
   home: https://TomographicImaging.github.io/CIL

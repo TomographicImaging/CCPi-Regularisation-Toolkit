@@ -1,5 +1,6 @@
 /build_proj/
 /install/
+/dist/
 __pycache__/
 /src/Python/build/
 /src/Python/*.egg*/

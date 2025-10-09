@@ -3,3 +3,5 @@ python:
   - 3.11
   - 3.12
   - 3.13
+cuda_compiler_version:
+  - 11.8
