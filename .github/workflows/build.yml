@@ -86,15 +86,14 @@ jobs:
         mamba-version: "*"
         channels: conda-forge
     - name: conda build & test
-      working-directory: recipe
       run: |
         conda install boa
-        conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder .
+        conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist
     - name: Upload artifact of the conda package
       uses: actions/upload-artifact@v4
       with:
         name: ccpi-regulariser-package
-        path: recipe/linux-64/ccpi-regulariser*
+        path: dist/linux-64/ccpi-regulariser*
   pass:
     needs: [test-cuda, test, conda]
     runs-on: ubuntu-latest
