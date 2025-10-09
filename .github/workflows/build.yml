@@ -1,7 +1,6 @@
 name: build
 on:
-  release:
-    types: [published]
+  release: {types: [published]}
   push:
     branches: [master]
     tags: ['**']
@@ -13,8 +12,8 @@ jobs:
     runs-on: [self-hosted, python, cuda]
     strategy:
       matrix:
-        python-version: [3.11]
-        numpy-version: [1.25]
+        python-version: [3.12]
+        numpy-version: [1.26]
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -35,11 +34,11 @@ jobs:
         which cmake || conda install -yq cmake
         cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
-        pip install ./src/Python
+        pip install ./src/Python numpy==${{ numpy-version }}
     - name: test
       run: |
         conda activate "${{ steps.reqs.outputs.envname }}"
-        PYTHONPATH=./src/Python python -m unittest discover ./test
+        PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
     - if: always()
       name: Post Run conda-incubator/setup-miniconda@v3
       shell: bash
@@ -52,12 +51,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.10', 3.11]
-        numpy-version: [1.23, 1.26]
+        python-version: ['3.10', 3.12]
+        numpy-version: [2.*]
         os: [ubuntu-latest, windows-latest]
         include:
-        - python-version: 3.12 # needs numpy>=1.26
-          numpy-version: 1.26
+        - python-version: '3.10'
+          numpy-version: 1.23
           os: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -69,16 +68,15 @@ jobs:
       run: |
         cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
-        pip install ./src/Python
+        pip install ./src/Python numpy==${{ numpy-version }}
     - name: test
-      run: PYTHONPATH=./src/Python python -m unittest discover ./test
+      run: PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
   conda:
     defaults: {run: {shell: 'bash -el {0}'}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.11] # penultimate supported
-        numpy-version: [1.25]
+        python-version: ['3.10', 3.11, 3.12, 3.13] # penultimate supported
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -91,7 +89,7 @@ jobs:
       working-directory: recipe
       run: |
         conda install boa
-        conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --numpy=${{ matrix.numpy-version }} --output-folder .
+        conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder .
     - name: Upload artifact of the conda package
       uses: actions/upload-artifact@v4
       with:

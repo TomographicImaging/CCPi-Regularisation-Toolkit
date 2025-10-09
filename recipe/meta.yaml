@@ -16,24 +16,22 @@ test:
   source_files:
     - ./test/
   commands:
-    - python -c "import os; print (os.getcwd())"
-    - python -m unittest discover -s test
+    - python -m unittest discover -v -s test
 requirements:
   build:
-    - python
-    - numpy {{ numpy }}
+    - cmake
+    - ninja
+    - {{ compiler('cxx') }}
+
+  host:
+    - python x.x
     - setuptools
     - pip
-    - vc 14 # [win]
-    - cmake
 
   run:
-    - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x.x') }}
-    - python
-    - vc 14 # [win]
-    - libgcc-ng # [unix]
+    - numpy
 
 about:
-  home: https://tomographicimaging.github.io/CIL/
+  home: https://TomographicImaging.github.io/CIL
   license:  Apache-2.0
   summary: 'The set of CPU/GPU optimised regularisation modules for iterative image reconstruction and other image processing tasks'
