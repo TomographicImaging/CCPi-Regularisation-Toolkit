@@ -48,6 +48,7 @@ requirements:
     - llvm-openmp # [osx]
     - setuptools
     - pip
+    - cuda-cccl # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   run:
     - {{ pin_compatible('python', min_pin='x.x') }}
