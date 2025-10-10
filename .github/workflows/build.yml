@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', 3.11, 3.12] # parallelise conda_build_config.yaml
+        python-version: ['3.10', 3.11, 3.12, 3.13] # parallelise conda_build_config.yaml
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -81,8 +81,13 @@ jobs:
         channels: conda-forge
     - name: conda build & test
       run: |
-        conda install boa
-        conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist
+        if test ${{ matrix.python-version }} = 3.13; then
+          conda install conda-build
+          conda build . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist
+        else
+          conda install boa
+          conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist
+        fi
     - name: Upload artifact of the conda package
       uses: actions/upload-artifact@v4
       with:
