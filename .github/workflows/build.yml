@@ -94,7 +94,7 @@ jobs:
     - name: Upload artifact of the conda package
       uses: actions/upload-artifact@v4
       with:
-        name: ccpi-regulariser-package
+        name: ccpi-regulariser_py${{ matrix.python-version }}
         path: dist/linux-64/ccpi-regulariser*
   pass:
     needs: [test-cuda, test, conda]
