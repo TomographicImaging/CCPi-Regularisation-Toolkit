@@ -93,7 +93,7 @@ jobs:
         $BUILD_CMD --test dist/*/ccpi-regulariser-*-cpu_h*.tar.bz2
     - uses: actions/upload-artifact@v4
       with:
-        name: ccpi-regulariser-package
+        name: ccpi-regulariser_py${{ matrix.python-version }}
         path: dist/linux-64/ccpi-regulariser*
   pass:
     needs: [test-cuda, test, conda]
