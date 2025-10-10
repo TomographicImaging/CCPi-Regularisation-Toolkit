@@ -19,8 +19,8 @@ build:
     - {{ project.get('name') }} =*=cpu*  # [cuda_compiler_version == "None"]
   ignore_run_exports:
     - cudatoolkit # [(cuda_compiler_version or "None").startswith("11")]
-  ignore_run_exports_from:
-    - {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
+  #ignore_run_exports_from:
+  #  - {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
   script_env:
     - BUILD_CUDA=ON  # [cuda_compiler_version != "None"]
     - BUILD_CUDA=OFF # [cuda_compiler_version == "None"]
@@ -41,7 +41,8 @@ requirements:
     - ninja
     - python # [build_platform != target_platform]
     - {{ compiler('cxx') }}
-    - {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
+    #- {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
+    - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   host:
     - python x.x
     - libgomp     # [linux]
