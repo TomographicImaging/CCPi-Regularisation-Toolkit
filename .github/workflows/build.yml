@@ -12,7 +12,7 @@ jobs:
     runs-on: [self-hosted, python, cuda]
     strategy:
       matrix:
-        python-version: [3.12]
+        python-version: [3.12] # penultimate supported
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -50,7 +50,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.10', 3.12]
+        python-version: ['3.10', 3.13] # min & max supported
         os: [ubuntu-latest, windows-latest]
     steps:
     - uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', 3.11, 3.12, 3.13] # penultimate supported
+        python-version: ['3.10', 3.11, 3.12] # parallelise conda_build_config.yaml
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
