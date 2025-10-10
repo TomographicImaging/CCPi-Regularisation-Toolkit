@@ -54,7 +54,7 @@ requirements:
     - {{ pin_compatible('python', min_pin='x.x') }}
     - numpy
     - __cuda # [cuda_compiler_version != "None"]
-    - {{ pin_compatible('cuda-version', min_pin='x') }} # [cuda_compiler_version != "None"]
+    - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None"]
 
 about:
   home: https://TomographicImaging.github.io/CIL
