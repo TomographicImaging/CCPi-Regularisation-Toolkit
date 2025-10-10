@@ -82,12 +82,15 @@ jobs:
     - name: conda build & test
       run: |
         if test ${{ matrix.python-version }} = 3.13; then
-          conda install conda-build
-          conda build . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist
+          BUILD_DEP=conda-build
+          BUILD_CMD="conda build"
         else
-          conda install boa
-          conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist
+          BUILD_DEP=boa
+          BUILD_CMD="conda mambabuild -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist"
         fi
+        conda install $BUILD_DEP
+        $BUILD_CMD --no-test .
+        $BUILD_CMD --test dist/*/ccpi-regulariser-*-cpu_h*.tar.bz2
     - name: Upload artifact of the conda package
       uses: actions/upload-artifact@v4
       with:
