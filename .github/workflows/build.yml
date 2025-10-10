@@ -13,7 +13,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.12]
-        numpy-version: [1.26]
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -34,7 +33,7 @@ jobs:
         which cmake || conda install -yq cmake
         cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
-        pip install ./src/Python numpy==${{ numpy-version }}
+        pip install ./src/Python
     - name: test
       run: |
         conda activate "${{ steps.reqs.outputs.envname }}"
@@ -52,12 +51,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', 3.12]
-        numpy-version: [2.*]
         os: [ubuntu-latest, windows-latest]
-        include:
-        - python-version: '3.10'
-          numpy-version: 1.23
-          os: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -68,7 +62,7 @@ jobs:
       run: |
         cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
-        pip install ./src/Python numpy==${{ numpy-version }}
+        pip install ./src/Python
     - name: test
       run: PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
   conda:
