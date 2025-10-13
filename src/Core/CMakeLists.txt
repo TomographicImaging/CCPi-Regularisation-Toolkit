@@ -63,6 +63,9 @@ endif()
 if (BUILD_CUDA)
   find_package(CUDAToolkit REQUIRED)
   enable_language(CUDA)
+  if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES "all")
+  endif()
 
   # CCCL (for thrust), vis. https://github.com/NVIDIA/cccl/tree/main/examples/basic#downloading-cpm
   set(CPM_DOWNLOAD_VERSION 0.34.0)
