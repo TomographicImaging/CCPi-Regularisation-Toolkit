@@ -164,12 +164,8 @@ class TestRegularisers(unittest.TestCase):
 
         print("--------Compare the results--------")
         tolerance = 1e-05
-        diff_im = np.zeros(np.shape(fgp_cpu))
         diff_im = abs(fgp_cpu - fgp_gpu)
-        diff_im[diff_im > tolerance] = 1
-
-        self.assertLessEqual(diff_im.sum(), 1)
-
+        np.testing.assert_array_less(diff_im, tolerance)
 
 if __name__ == "__main__":
     unittest.main()
