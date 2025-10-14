@@ -101,7 +101,9 @@ if (BUILD_CUDA)
     ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_GPU/PatchSelect_GPU_core.cu
   )
   target_link_libraries(cilregcuda PRIVATE CCCL::CCCL CUDA::cudart_static)
-  set_target_properties(cilregcuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  set_target_properties(cilregcuda PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+    CXX_STANDARD 17)
   message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
   install(TARGETS cilregcuda
     LIBRARY DESTINATION .
