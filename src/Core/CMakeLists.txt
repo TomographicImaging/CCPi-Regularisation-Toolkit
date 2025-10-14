@@ -40,9 +40,8 @@ add_library(cilreg SHARED
 	    )
 target_link_libraries(cilreg ${OpenMP_EXE_LINKER_FLAGS} ${EXTRA_LIBRARIES})
 include_directories(cilreg PUBLIC
-                      ${LIBRARY_INC}/include
-					  ${CMAKE_CURRENT_SOURCE_DIR}
-		              ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/ )
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/)
 
 message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
 if (UNIX)

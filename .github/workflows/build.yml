@@ -31,7 +31,7 @@ jobs:
       run: |
         conda activate "${{ steps.reqs.outputs.envname }}"
         which cmake || conda install -yq cmake
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
+        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
         pip install ./src/Python
     - name: test
@@ -58,9 +58,10 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
+        conda-remove-defaults: "true"
     - name: build
       run: |
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
+        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
         pip install ./src/Python
     - name: test
@@ -79,6 +80,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         mamba-version: "*"
         channels: conda-forge
+        conda-remove-defaults: "true"
     - name: conda build & test
       run: |
         if test ${{ matrix.python-version }} = 3.13; then
@@ -88,8 +90,8 @@ jobs:
           BUILD_DEP=boa
           BUILD_CMD="conda mambabuild -c conda-forge -c ccpi --python=${{ matrix.python-version }} --output-folder dist"
         fi
-        conda install $BUILD_DEP
-        $BUILD_CMD --no-test .
+        conda install conda-verify $BUILD_DEP
+        $BUILD_CMD --no-test recipe
         $BUILD_CMD --test dist/*/ccpi-regulariser-*-cpu_h*.tar.bz2
     - uses: actions/upload-artifact@v4
       with:
