@@ -4,11 +4,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["ccpi", "ccpi.*"]
 [tool.setuptools.package-data]
-"ccpi.filters" = ["*cilreg.*", "*cilregcuda.*"] # cmake libraries
+"ccpi.filters" = ["*cilreg.*"] # cmake libraries
 
 [project]
-version = "24.0.1"
+version = "25.0.0"
 name = "ccpi-regulariser"
 dependencies = ["numpy"]
-[project.optional-dependencies]
-gpu = ["cupy"]

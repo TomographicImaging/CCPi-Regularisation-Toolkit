@@ -15,15 +15,15 @@ build:
   number: {{ build_number }}
   run_exports:
     - {{ pin_subpackage(project.get('name'), max_pin='x.x') }}
-    - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None"]
-    - {{ project.get('name') }} =*=cpu*  # [cuda_compiler_version == "None"]
+    - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None" and not osx]
+    - {{ project.get('name') }} =*=cpu*  # [cuda_compiler_version == "None" and osx]
   ignore_run_exports:
     - cudatoolkit # [(cuda_compiler_version or "None").startswith("11")]
   #ignore_run_exports_from:
   #  - {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
   script_env:
-    - BUILD_CUDA=ON  # [cuda_compiler_version != "None"]
-    - BUILD_CUDA=OFF # [cuda_compiler_version == "None"]
+    - BUILD_CUDA=ON  # [cuda_compiler_version != "None" and not osx]
+    - BUILD_CUDA=OFF # [cuda_compiler_version == "None" or osx]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version != "None"]
   string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version == "None"]
 
@@ -41,21 +41,20 @@ requirements:
     - ninja
     - python # [build_platform != target_platform]
     - {{ compiler('cxx') }}
-    #- {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
-    - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
+    #- {{ compiler('cuda') }} # [cuda_compiler_version != "None" and not osx]
+    - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None" and not osx]
   host:
     - python x.x
-    - libgomp     # [linux]
-    - llvm-openmp # [osx]
+    - llvm-openmp
     - setuptools
     - pip
-    - cuda-cccl # [cuda_compiler_version != "None"]
-    - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
+    - cuda-cccl # [cuda_compiler_version != "None" and not osx]
+    - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None" and not osx]
   run:
     - {{ pin_compatible('python', min_pin='x.x') }}
     - numpy
-    - __cuda # [cuda_compiler_version != "None"]
-    - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None"]
+    - __cuda # [cuda_compiler_version != "None" and not osx]
+    - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None" and not osx]
 
 about:
   home: https://TomographicImaging.github.io/CIL

@@ -44,7 +44,7 @@ include_directories(cilreg PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/)
 
 message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
-if (UNIX)
+if (UNIX OR APPLE)
   install(TARGETS cilreg
 	LIBRARY DESTINATION .
 	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
