@@ -2,16 +2,7 @@
 
 ## Installation
 
-In order to compile C/C++ sources and additional wrappers from source code for numpy 1.24 and python 3.10, the recommended way is:
-
-```sh
-git clone https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit
-cd CCPi-Regularisation-Toolkit
-export CCPI_BUILD_ARGS="--numpy 1.24 --python 3.10"
-build/jenkins-build.sh
-```
-
-this will install `conda build` environment and compiles C/C++ and Python wrappers and performs basic tests for environment with python 3.10 and numpy 1.24.
+The recommended method is via `conda` (see [Python binaries](#python-binaries) below).
 
 ### CMake
 
@@ -47,18 +38,16 @@ pip install ./src/Python
 
 #### Python binaries
 
-Python binaries are distributed via the [ccpi](https://anaconda.org/ccpi/ccpi-regulariser) conda channel.
+Python binaries are distributed via the [`ccpi`](https://anaconda.org/ccpi/ccpi-regulariser) `conda` channel.
 
-```sh
-conda install ccpi-regulariser -c ccpi -c conda-forge
-```
+- `conda install -c ccpi -c conda-forge ccpi-regulariser=*=cpu*` (CPU-only)
+- `conda install -c ccpi -c conda-forge ccpi-regulariser=*=cuda*` (CUDA)
 
 #### Python (conda-build)
 
 ```sh
-conda build recipe/ --numpy 1.23 --python 3.10
-conda install ccpi-regulariser --use-local --force-reinstall # doesn't work?
-conda install -c file://${CONDA_PREFIX}/conda-bld/ ccpi-regulariser --force-reinstall # try this one
+conda build recipe/ --output-folder dist
+conda install ccpi-regulariser=*=cuda* -c dist -c conda-forge
 cd demos/
 python demo_cpu_regularisers.py # to run CPU demo
 python demo_gpu_regularisers.py # to run GPU demo
@@ -85,7 +74,7 @@ If Python is not found by CMake you can provide the additional flag to CMake `-D
 Tests can also be run in-place after the build:
 
 ```sh
-PYTHONPATH=./src/Python python -m unittest discover ./test
+PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
 ```
 
 ### MultiGPU capability (to use in Python with mpi4py)

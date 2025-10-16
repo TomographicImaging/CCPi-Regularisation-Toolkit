@@ -58,6 +58,6 @@ requirements:
     - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None"]
 
 about:
-  home: https://TomographicImaging.github.io/CIL
+  home: https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit
   license:  Apache-2.0
   summary: 'The set of CPU/GPU optimised regularisation modules for iterative image reconstruction and other image processing tasks'
