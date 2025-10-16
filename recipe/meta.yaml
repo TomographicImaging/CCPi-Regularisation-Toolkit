@@ -45,8 +45,7 @@ requirements:
     - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   host:
     - python >=3.10
-    - libgomp     # [linux]
-    - llvm-openmp # [osx]
+    - llvm-openmp
     - setuptools
     - pip
     - cuda-cccl # [cuda_compiler_version != "None"]
