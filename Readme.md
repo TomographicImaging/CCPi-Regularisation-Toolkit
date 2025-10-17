@@ -10,7 +10,7 @@ Iterative image reconstruction (IIR) methods frequently require regularisation t
 
 ## Prerequisites
 
-- Python (3.7+) and/or [MATLAB](https://www.mathworks.com/products/matlab)
+- Python (3.10+) and/or [MATLAB](https://www.mathworks.com/products/matlab)
 - C compilers
 - `nvcc` (CUDA SDK) compilers
   - [CuPy](https://docs.cupy.dev) for the GPU-enabled methods
@@ -42,9 +42,8 @@ The package comes as a [CMake](https://cmake.org) project and additional wrapper
 
 To install precompiled binaries, you need `conda` and install from the `ccpi` channel using :
 
-```sh
-conda install ccpi-regulariser -c ccpi -c conda-forge
-```
+- `conda install -c ccpi -c conda-forge ccpi-regulariser=*=cpu*` (CPU-only)
+- `conda install -c ccpi -c conda-forge ccpi-regulariser=*=cuda*` (CUDA)
 
 ### Python (GPU-CuPy)
 

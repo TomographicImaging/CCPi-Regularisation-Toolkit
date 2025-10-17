@@ -1,7 +1,6 @@
 name: build
 on:
-  release:
-    types: [published]
+  release: {types: [published]}
   push:
     branches: [master]
     tags: ['**']
@@ -13,8 +12,7 @@ jobs:
     runs-on: [self-hosted, python, cuda]
     strategy:
       matrix:
-        python-version: [3.11]
-        numpy-version: [1.25]
+        python-version: [3.12] # penultimate supported
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -33,13 +31,13 @@ jobs:
       run: |
         conda activate "${{ steps.reqs.outputs.envname }}"
         which cmake || conda install -yq cmake
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
+        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
         pip install ./src/Python
     - name: test
       run: |
         conda activate "${{ steps.reqs.outputs.envname }}"
-        PYTHONPATH=./src/Python python -m unittest discover ./test
+        PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
     - if: always()
       name: Post Run conda-incubator/setup-miniconda@v3
       shell: bash
@@ -52,52 +50,108 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.10', 3.11]
-        numpy-version: [1.23, 1.26]
+        python-version: ['3.10', 3.13] # min & max supported
         os: [ubuntu-latest, windows-latest]
-        include:
-        - python-version: 3.12 # needs numpy>=1.26
-          numpy-version: 1.26
-          os: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
     - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
+        conda-remove-defaults: "true"
     - name: build
       run: |
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_MATLAB_WRAPPER=OFF -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
+        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
         cmake --build ./build_proj --target install
         pip install ./src/Python
     - name: test
-      run: PYTHONPATH=./src/Python python -m unittest discover ./test
-  conda:
+      run: PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
+  conda-build:
     defaults: {run: {shell: 'bash -el {0}'}}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        python-version: [3.11] # penultimate supported
-        numpy-version: [1.25]
+        os: [ubuntu] # TODO: windows
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
+    - if: matrix.os == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        python-version: 3.12
+        mamba-version: "*"
+        channels: conda-forge
+        conda-remove-defaults: "true"
+    - run: conda install boa conda-verify
+    - name: conda build
+      run: >
+        conda mambabuild -c conda-forge --override-channels --output-folder dist recipe --no-test
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ccpi-regulariser-${{ matrix.os }}
+        path: dist/*/ccpi-regulariser-*.tar.bz2
+  conda-test:
+    defaults: {run: {shell: 'bash -el {0}'}}
+    runs-on: ${{ matrix.os }}-latest
+    needs: [conda-build]
+    strategy:
+      matrix:
+        python-version: ['3.10', 3.11, 3.12] # parallelise conda_build_config.yaml
+        os: [ubuntu] # TODO: windows
+        include:
+        - {python-version: 3.13, os: ubuntu}
+    steps:
+    - uses: actions/checkout@v4
     - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
         mamba-version: "*"
         channels: conda-forge
-    - name: conda build & test
-      working-directory: recipe
-      run: |
-        conda install boa
-        conda mambabuild . -c conda-forge -c ccpi --python=${{ matrix.python-version }} --numpy=${{ matrix.numpy-version }} --output-folder .
-    - name: Upload artifact of the conda package
-      uses: actions/upload-artifact@v4
+        conda-remove-defaults: "true"
+    - uses: actions/download-artifact@v4
       with:
-        name: ccpi-regulariser-package
-        path: recipe/linux-64/ccpi-regulariser*
+        name: ccpi-regulariser-${{ matrix.os }}
+        path: dist
+    - name: conda test
+      run: |
+        if test ${{ matrix.python-version }} = 3.13; then
+          BUILD_DEP=conda-build
+          BUILD_CMD="conda build"
+        else
+          BUILD_DEP=boa
+          BUILD_CMD="conda mambabuild"
+        fi
+        conda install $BUILD_DEP
+        $BUILD_CMD -c conda-forge --override-channels dist/*/ccpi-regulariser-*-cpu_h*.tar.bz2 --test --python=${{ matrix.python-version }}
+  conda-upload:
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
+    defaults: {run: {shell: 'bash -el {0}', working-directory: dist}}
+    runs-on: ubuntu-latest
+    needs: conda-test
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        mamba-version: "*"
+        channels: conda-forge
+        conda-remove-defaults: "true"
+    - uses: actions/download-artifact@v4
+      with: {pattern: ccpi-regulariser-*, path: dist, merge-multiple: true}
+    - run: conda install anaconda-client
+    - name: anaconda upload -c ccpi
+      run: >
+        anaconda -v -t ${{ secrets.CCPI_CONDA_TOKEN }} upload --force
+        --label ${{ startsWith(github.ref, 'refs/tags') && 'main' || 'dev' }} */ccpi-regulariser-*.tar.bz2
+    - if: startsWith(github.ref, 'refs/tags')
+      name: conda upload -c tomography.stfc.ac.uk/conda
+      run: |
+        echo '${{ secrets.STFC_SSH_KEY }}' > ./key
+        chmod 600 ./key
+        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */cil-*.tar.bz2 '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
+        ssh -o StrictHostKeyChecking=no -i ./key ${{ secrets.STFC_SSH_HOST }} \
+          'bash -lic "conda index --bz2 --zst --run-exports --channeldata --rss -n ccpi ${{ secrets.STFC_SSH_CONDA_DIR }}"'
   pass:
-    needs: [test-cuda, test, conda]
+    needs: [test-cuda, test, conda-test]
     runs-on: ubuntu-latest
     steps: [{run: echo success}]
