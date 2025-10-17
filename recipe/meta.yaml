@@ -13,6 +13,7 @@ package:
 build:
   preserve_egg_dir: False
   number: {{ build_number }}
+  noarch: python
   run_exports:
     - {{ pin_subpackage(project.get('name'), max_pin='x.x') }}
     - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None"]
