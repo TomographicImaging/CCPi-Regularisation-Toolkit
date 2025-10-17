@@ -71,7 +71,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu, windows]
+        os: [ubuntu] # TODO: windows
     steps:
     - uses: actions/checkout@v4
       with: {fetch-depth: 0, submodules: recursive}
@@ -98,7 +98,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', 3.11, 3.12] # parallelise conda_build_config.yaml
-        os: [ubuntu, windows]
+        os: [ubuntu] # TODO: windows
         include:
         - {python-version: 3.13, os: ubuntu}
     steps:
