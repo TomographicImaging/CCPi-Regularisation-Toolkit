@@ -1,5 +1,6 @@
 # https://docs.conda.io/projects/conda-build/en/stable/resources/define-metadata.html#loading-data-from-other-files
 # TODO: use scikit-build-core & setuptools_scm instead
+{% set python_min = "3.10" %}
 {% set project = load_file_data('../src/Python/pyproject.toml', from_recipe_dir=True).get('project', {}) %}
 {% set build_number = environ.get('GIT_DESCRIBE_NUMBER', 0) | int %}
 {% if cuda_compiler_version != "None" %}
@@ -13,7 +14,7 @@ package:
 build:
   preserve_egg_dir: False
   number: {{ build_number }}
-  noarch: python
+  python_version_independent: true
   run_exports:
     - {{ pin_subpackage(project.get('name'), max_pin='x.x') }}
     - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None"]
@@ -45,14 +46,14 @@ requirements:
     #- {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
     - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   host:
-    - python >=3.10
+    - python ~={{ python_min }}
     - llvm-openmp
     - setuptools
     - pip
     - cuda-cccl # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   run:
-    - python >=3.10
+    - python >={{ python_min }}
     - numpy
     - __cuda # [cuda_compiler_version != "None"]
     - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None"]
