@@ -1,6 +1,7 @@
 # https://docs.conda.io/projects/conda-build/en/stable/resources/define-metadata.html#loading-data-from-other-files
 # TODO: use scikit-build-core & setuptools_scm instead
 {% set project = load_file_data('../src/Python/pyproject.toml', from_recipe_dir=True).get('project', {}) %}
+{% set python_min = "3.10" %}
 {% set build_number = environ.get('GIT_DESCRIBE_NUMBER', 0) | int %}
 {% if cuda_compiler_version != "None" %}
 {% set build_number = build_number + 200 %}
@@ -13,6 +14,7 @@ package:
 build:
   preserve_egg_dir: False
   number: {{ build_number }}
+  python_version_independent: true
   run_exports:
     - {{ pin_subpackage(project.get('name'), max_pin='x.x') }}
     - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None"]
@@ -24,8 +26,8 @@ build:
   script_env:
     - BUILD_CUDA=ON  # [cuda_compiler_version != "None"]
     - BUILD_CUDA=OFF # [cuda_compiler_version == "None"]
-  string: cuda{{ cuda_compiler_version | replace('.', '') }}_py{{ py }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version != "None"]
-  string: cpu_py{{ py }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version == "None"]
+  string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version != "None"]
+  string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version == "None"]
 
 source:
   path: ..
@@ -43,14 +45,14 @@ requirements:
     #- {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
     - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   host:
-    - python
+    - python {{ python_min }}
     - llvm-openmp
     - setuptools
     - pip
     - cuda-cccl # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   run:
-    - {{ pin_compatible('python', min_pin='x.x', max_pin='x') }}
+    - python >={{ python_min }}
     {% for dep in project.get("dependencies") %}
     - {{ dep.lower() }}
     {% endfor %}
