@@ -1,6 +1,6 @@
 # CCPi-Regularisation Toolkit ([Software X paper](https://www.sciencedirect.com/science/article/pii/S2352711018301912))
 
-[![CI status](https://anvil.softeng-support.ac.uk/jenkins/buildStatus/icon?subject=master&job=CILsingle/CCPi-Regularisation-Toolkit)](https://anvil.softeng-support.ac.uk/jenkins/job/CILsingle/job/CCPi-Regularisation-Toolkit/lastBuild)
+[![CI status](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/actions/workflows/build.yml/badge.svg)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/actions/workflows/build.yml)
 [![conda version](https://anaconda.org/ccpi/ccpi-regulariser/badges/version.svg) ![conda date](https://anaconda.org/ccpi/ccpi-regulariser/badges/latest_release_date.svg) ![conda platforms](https://anaconda.org/ccpi/ccpi-regulariser/badges/platforms.svg) ![conda downloads](https://anaconda.org/ccpi/ccpi-regulariser/badges/downloads.svg)](https://anaconda.org/ccpi/ccpi-regulariser)
 [![License](https://img.shields.io/github/license/TomographicImaging/CCPi-Regularisation-Toolkit)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/blob/master/LICENSE)
 
