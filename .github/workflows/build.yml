@@ -68,7 +68,7 @@ jobs:
       run: PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
   conda-build:
     defaults: {run: {shell: 'bash -el {0}'}}
-    runs-on: ${{ matrix.os }}-${{ matrix.os == 'windows' && '2022' || 'latest' }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
         os: [ubuntu, windows]
