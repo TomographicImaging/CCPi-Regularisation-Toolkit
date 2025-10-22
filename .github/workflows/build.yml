@@ -75,11 +75,9 @@ jobs:
     steps:
     - uses: actions/checkout@v5
       with: {fetch-depth: 0, submodules: recursive}
-    - if: matrix.os == 'windows'
-      uses: ilammy/msvc-dev-cmd@v1
     - uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: 3.13
+        python-version: 3.12
         mamba-version: "*"
         channels: conda-forge
         conda-remove-defaults: "true"
