@@ -126,7 +126,7 @@ jobs:
       run: |
         echo '${{ secrets.STFC_SSH_KEY }}' > ./key
         chmod 600 ./key
-        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */cil-*.tar.bz2 '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
+        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */ccpi-regulariser-*.tar.bz2 '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
         ssh -o StrictHostKeyChecking=no -i ./key ${{ secrets.STFC_SSH_HOST }} \
           'bash -lic "conda index --bz2 --zst --run-exports --channeldata --rss -n ccpi ${{ secrets.STFC_SSH_CONDA_DIR }}"'
   pass:
