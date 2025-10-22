@@ -13,7 +13,6 @@ package:
 build:
   preserve_egg_dir: False
   number: {{ build_number }}
-  noarch: python
   run_exports:
     - {{ pin_subpackage(project.get('name'), max_pin='x.x') }}
     - {{ project.get('name') }} =*=cuda* # [cuda_compiler_version != "None"]
@@ -40,20 +39,21 @@ requirements:
   build:
     - cmake
     - ninja
-    - python # [build_platform != target_platform]
     - {{ compiler('cxx') }}
     #- {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
     - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   host:
-    - python >=3.10
+    - python x.x
     - llvm-openmp
     - setuptools
     - pip
     - cuda-cccl # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   run:
-    - python >=3.10
-    - numpy
+    - {{ pin_compatible('python', min_pin='x.x', max_pin='x') }}
+    {% for dep in project.get("dependencies") %}
+    - {{ dep.lower() }}
+    {% endfor %}
     - __cuda # [cuda_compiler_version != "None"]
     - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None"]
 
