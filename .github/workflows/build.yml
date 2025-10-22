@@ -97,11 +97,11 @@ jobs:
         fi
         conda install $BUILD_DEP conda-verify
         $BUILD_CMD -c conda-forge --override-channels --output-folder dist recipe --python=${{ matrix.python-version }} --no-test
-        $BUILD_CMD -c conda-forge --override-channels --test dist/*/ccpi-regulariser-*-cpu_*.tar.bz2
+        $BUILD_CMD -c conda-forge --override-channels --test dist/*/ccpi-regulariser-*-cpu_*
     - uses: actions/upload-artifact@v4
       with:
         name: ccpi-regulariser-py${{ matrix.python-version}}-${{ matrix.os }}
-        path: dist/*/ccpi-regulariser-*.tar.bz2
+        path: dist/*/ccpi-regulariser-*
   conda-upload:
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
     defaults: {run: {shell: 'bash -el {0}', working-directory: dist}}
@@ -120,13 +120,13 @@ jobs:
     - name: anaconda upload -c ccpi
       run: >
         anaconda -v -t ${{ secrets.CCPI_CONDA_TOKEN }} upload --force
-        --label ${{ startsWith(github.ref, 'refs/tags') && 'main' || 'dev' }} */ccpi-regulariser-*.tar.bz2
+        --label ${{ startsWith(github.ref, 'refs/tags') && 'main' || 'dev' }} */ccpi-regulariser-*
     - if: startsWith(github.ref, 'refs/tags')
       name: conda upload -c tomography.stfc.ac.uk/conda
       run: |
         echo '${{ secrets.STFC_SSH_KEY }}' > ./key
         chmod 600 ./key
-        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */ccpi-regulariser-*.tar.bz2 '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
+        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */ccpi-regulariser-* '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
         ssh -o StrictHostKeyChecking=no -i ./key ${{ secrets.STFC_SSH_HOST }} \
           'bash -lic "conda index --bz2 --zst --run-exports --channeldata --rss -n ccpi ${{ secrets.STFC_SSH_CONDA_DIR }}"'
   pass:
