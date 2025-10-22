@@ -116,7 +116,7 @@ jobs:
         conda-remove-defaults: "true"
     - uses: actions/download-artifact@v4
       with: {pattern: ccpi-regulariser-*, path: dist, merge-multiple: true}
-    - run: conda install anaconda-client
+    - run: mamba install anaconda-client
     - name: anaconda upload -c ccpi
       run: >
         anaconda -v -t ${{ secrets.CCPI_CONDA_TOKEN }} upload --force

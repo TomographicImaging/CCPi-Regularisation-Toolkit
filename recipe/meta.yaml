@@ -51,7 +51,9 @@ requirements:
     - cuda-version {{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   run:
     - {{ pin_compatible('python', min_pin='x.x', max_pin='x') }}
-    - numpy
+    {% for dep in project.get("dependencies") %}
+    - {{ dep.lower() }}
+    {% endfor %}
     - __cuda # [cuda_compiler_version != "None"]
     - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }} # [cuda_compiler_version != "None"]
 
