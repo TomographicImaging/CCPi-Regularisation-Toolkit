@@ -24,8 +24,8 @@ build:
   script_env:
     - BUILD_CUDA=ON  # [cuda_compiler_version != "None"]
     - BUILD_CUDA=OFF # [cuda_compiler_version == "None"]
-  string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version != "None"]
-  string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version == "None"]
+  string: cuda{{ cuda_compiler_version | replace('.', '') }}_py{{ py }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version != "None"]
+  string: cpu_py{{ py }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }} # [cuda_compiler_version == "None"]
 
 source:
   path: ..
@@ -43,7 +43,7 @@ requirements:
     #- {{ compiler('cuda') }} # [cuda_compiler_version != "None"]
     - cuda-compiler ~={{ cuda_compiler_version }} # [cuda_compiler_version != "None"]
   host:
-    - python x.x
+    - python
     - llvm-openmp
     - setuptools
     - pip
