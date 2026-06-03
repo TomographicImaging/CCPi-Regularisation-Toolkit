@@ -22,22 +22,13 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
     - uses: conda-incubator/setup-miniconda@v4
       with:
-        python-version: ${{ matrix.python-version }}
-        mamba-version: "*"
-        channels: conda-forge
-        conda-remove-defaults: "true"
+        auto-activate: true
+        activate-environment: ""
     - name: conda build
       run: |
-        if test ${{ matrix.python-version }} = 3.13; then
-          BUILD_DEP=conda-build
-          BUILD_CMD="conda build"
-        else
-          BUILD_DEP=boa
-          BUILD_CMD="conda mambabuild"
-        fi
-        conda install $BUILD_DEP conda-verify
-        $BUILD_CMD -c conda-forge --override-channels --output-folder dist recipe --python=${{ matrix.python-version }} --no-test
-        $BUILD_CMD -c conda-forge --override-channels --test dist/*/ccpi-regulariser-*-cpu_*
+        conda install conda-build
+        conda build -c conda-forge --override-channels --output-folder dist recipe --python=${{ matrix.python-version }} --no-test
+        conda build -c conda-forge --override-channels --test dist/*/ccpi-regulariser-*-cpu_*
     - uses: actions/upload-artifact@v7
       with:
         name: ccpi-regulariser-py${{ matrix.python-version}}-${{ matrix.os }}
