@@ -1,4 +1,4 @@
-name: build
+name: ci
 on:
   release: {types: [published]}
   push:

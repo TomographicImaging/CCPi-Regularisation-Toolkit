@@ -29,8 +29,8 @@ Here an example of build on Linux (see also `run.sh` for additional info):
 ```sh
 git clone https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit
 cd CCPi-Regularisation-Toolkit
-cmake -S . -B ./build_proj -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
-cmake --build ./build_proj --target install
+cmake -S . -B ./output -DBUILD_MATLAB_WRAPPER=ON -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=src/Python/ccpi/filters
+cmake --build ./output --target install
 pip install ./src/Python
 ```
 
@@ -43,11 +43,11 @@ Python binaries are distributed via the [`ccpi`](https://anaconda.org/ccpi/ccpi-
 - `conda install -c ccpi -c conda-forge ccpi-regulariser=*=cpu*` (CPU-only)
 - `conda install -c ccpi -c conda-forge ccpi-regulariser=*=cuda*` (CUDA)
 
-#### Python (conda-build)
+#### Python (rattler-build)
 
 ```sh
-conda build recipe/ --output-folder dist
-conda install ccpi-regulariser=*=cuda* -c dist -c conda-forge
+rattler-build build --experimental
+conda install ccpi-regulariser=*=cuda* -c output -c conda-forge
 cd demos/
 python demo_cpu_regularisers.py # to run CPU demo
 python demo_gpu_regularisers.py # to run GPU demo
