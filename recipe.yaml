@@ -16,7 +16,7 @@ source:
 
 build:
   number: ${{ build_number }}
-  string: ${{ "cpu" if cuda_version_major == "None" else ("cuda" + cuda_version_major) }}_h${{ hash }}_${{ build_number }}
+  string: ${{ "cpu" if cuda_version_major == "None" else ["cuda", cuda_version_major] | join("") }}_h${{ hash }}_${{ build_number }}
   script:
    content:
    # TODO: use scikit-build-core & setuptools_scm instead
