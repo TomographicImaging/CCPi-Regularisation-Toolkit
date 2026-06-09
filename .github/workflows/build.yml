@@ -18,7 +18,7 @@ jobs:
         recipe-path: recipe.yaml
         build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }}
   test:
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
     strategy:
       matrix:
         python-version: ['3.10', '3.x'] # min & max supported
@@ -38,7 +38,7 @@ jobs:
       run: python -m unittest discover -v -s ./test
       env: {PYTHONPATH: ./src/Python}
   conda-build-test:
-    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '24.04' || '2022' }}
+    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
     strategy:
       matrix:
         os: [ubuntu, windows]
