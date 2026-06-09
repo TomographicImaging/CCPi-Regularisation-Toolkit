@@ -37,29 +37,27 @@ jobs:
     - name: test
       run: python -m unittest discover -v -s ./test
       env: {PYTHONPATH: ./src/Python}
-  conda-build-test:
+  conda-build:
     runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
     strategy:
       matrix:
         os: [ubuntu, windows]
+        cuda-version: [None, 12, 13]
     steps:
     - uses: actions/checkout@v6
       with: {fetch-depth: 0, submodules: recursive}
-    - if: matrix.os == 'windows'
+    - if: matrix.os == 'windows' && matrix.cuda-version == 'None'
       uses: ilammy/msvc-dev-cmd@v1
     - uses: prefix-dev/rattler-build-action@v0.2.38 # https://github.com/prefix-dev/rattler-build/pull/2484
       with:
         recipe-path: recipe.yaml
-        build-args: --experimental --no-test
-        artifact-name: conda-${{ matrix.os }}
-    - name: conda test
-      run: rattler-build test --experimental -p output/*/*-cpu_h*.conda
-      shell: bash
+        build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }} ${{ matrix.cuda-version == 'None' && ' ' || '--no-test' }}
+        artifact-name: conda-${{ matrix.os }}-${{ matrix.cuda-version }}
   conda-upload:
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
     defaults: {run: {working-directory: output}}
     runs-on: ubuntu-slim
-    needs: conda-build-test
+    needs: conda-build
     steps:
     - uses: actions/checkout@v6
     - uses: prefix-dev/rattler-build-action@v0.2.37
@@ -80,6 +78,6 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i ./key ${{ secrets.STFC_SSH_HOST }} \
           'bash -lic "conda index --bz2 --zst --run-exports --channeldata --rss -n ccpi ${{ secrets.STFC_SSH_CONDA_DIR }}"'
   pass:
-    needs: [test-cuda, test, conda-build-test]
+    needs: [test-cuda, test, conda-build]
     runs-on: ubuntu-slim
     steps: [{run: echo success}]
