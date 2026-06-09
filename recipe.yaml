@@ -1,0 +1,81 @@
+schema_version: 1
+
+context:
+  # https://docs.conda.io/projects/conda-build/en/stable/resources/define-metadata.html#loading-data-from-other-files
+  project: ${{ load_from_file("src/Python/pyproject.toml").project }} # ratter-build --experimental
+  python_min: "3.10"
+  git_number: ${{ git.latest_tag_distance(".") | int }} # ratter-build>=0.65 --experimental
+  build_number: ${{ git_number + (0 if cuda_version_major == "None" else 200) }}
+
+package:
+  name: ${{ project.name }}
+  version: ${{ project.version }}
+
+source:
+  path: .
+
+build:
+  number: ${{ build_number }}
+  string: ${{ "cpu" if cuda_version_major == "None" else ["cuda", cuda_version_major] | join("") }}_h${{ hash }}_${{ build_number }}
+  script:
+   content:
+   # TODO: use scikit-build-core & setuptools_scm instead
+   - if: win
+     then:
+     - cmake -S . %CMAKE_ARGS% -DCMAKE_INSTALL_PREFIX=%SRC_DIR%\src\Python\ccpi\filters\ %CMAKE_EXTRA_ARGS%
+     - cmake --build . --target install --config RelWithDebInfo
+     - pip install -vv %SRC_DIR%\src\Python --prefix=%PREFIX%
+     else:
+     - cmake -S . $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=$SRC_DIR/src/Python/ccpi/filters/ $CMAKE_EXTRA_ARGS
+     - cmake --build . --target install
+     - pip install -vv $SRC_DIR/src/Python --prefix=$PREFIX
+   env:
+     CMAKE_EXTRA_ARGS: -DBUILD_PYTHON_WRAPPERS=ON -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_CUDA=${{ "OFF" if cuda_version_major == "None" else "ON" }}
+  python:
+    version_independent: true
+
+requirements:
+  build:
+    - cmake
+    - ninja
+    - ${{ compiler('cxx') }}
+    - if: cuda_version_major != "None"
+      then:
+      - cuda-version ${{ cuda_version_major }}.*
+      - cuda-nvcc
+  host:
+    - python ${{ python_min }}.*
+    - if: linux
+      then: libgomp
+    - if: osx
+      then: llvm-openmp
+    - setuptools
+    - pip
+    - if: cuda_version_major != "None"
+      then:
+      - cuda-version ${{ cuda_version_major }}.*
+      - cuda-cccl
+      - if: linux
+        then: cuda-cudart-dev_linux-64
+      - if: win
+        then: cuda-cudart-dev_win-64
+  run:
+    - python >=${{ python_min }}
+    - if: cuda_version_major != "None"
+      then: cuda-version ${{ cuda_version_major }}.*
+    - numpy
+  ignore_run_exports:
+    by_name:
+      - cuda-cudart  # due to CUDA::cudart_static
+
+tests:
+  - files:
+      source:
+        - ./test/
+    script:
+      - python -m unittest discover -v -s test
+
+about:
+  license: Apache-2.0
+  summary: The set of CPU/GPU optimised regularisation modules for iterative image reconstruction and other image processing tasks
+  homepage: https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit

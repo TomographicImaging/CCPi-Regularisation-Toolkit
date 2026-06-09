@@ -44,19 +44,11 @@ include_directories(cilreg PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/regularisers_CPU/)
 
 message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
-if (UNIX)
-  install(TARGETS cilreg
-	LIBRARY DESTINATION .
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
-	)
-elseif(WIN32)
-  install(TARGETS cilreg
-	RUNTIME DESTINATION bin
-	ARCHIVE DESTINATION .
-	CONFIGURATIONS ${CMAKE_BUILD_TYPE}
-	)
-endif()
-
+install(TARGETS cilreg
+  LIBRARY DESTINATION .
+  RUNTIME DESTINATION .
+  ARCHIVE DESTINATION .
+  CONFIGURATIONS ${CMAKE_BUILD_TYPE})
 
 # GPU Regularisers
 if (BUILD_CUDA)
@@ -66,23 +58,7 @@ if (BUILD_CUDA)
     set(CMAKE_CUDA_ARCHITECTURES "all")
   endif()
 
-  # CCCL (for thrust), vis. https://github.com/NVIDIA/cccl/tree/main/examples/basic#downloading-cpm
-  set(CPM_DOWNLOAD_VERSION 0.34.0)
-  if(CPM_SOURCE_CACHE)
-    set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
-  elseif(DEFINED ENV{CPM_SOURCE_CACHE})
-    set(CPM_DOWNLOAD_LOCATION "$ENV{CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
-  else()
-    set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
-  endif()
-  if(NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
-    message(STATUS "Downloading CPM.cmake to ${CPM_DOWNLOAD_LOCATION}")
-    file(DOWNLOAD
-      https://github.com/TheLartians/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
-      ${CPM_DOWNLOAD_LOCATION})
-  endif()
-  include(${CPM_DOWNLOAD_LOCATION})
-  CPMAddPackage(NAME CCCL GITHUB_REPOSITORY nvidia/cccl GIT_TAG main)
+  find_package(CCCL CONFIG REQUIRED HINTS ${CUDAToolkit_INCLUDE_DIRS} ${CUDAToolkit_LIBRARY_DIR}/cmake)
 
   if (UNIX)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -fPIC -shared -D_FORCE_INLINES")
@@ -107,7 +83,7 @@ if (BUILD_CUDA)
   message(STATUS "Installing in ${CMAKE_INSTALL_PREFIX}")
   install(TARGETS cilregcuda
     LIBRARY DESTINATION .
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION .
     ARCHIVE DESTINATION .
     CONFIGURATIONS ${CMAKE_BUILD_TYPE})
 endif()

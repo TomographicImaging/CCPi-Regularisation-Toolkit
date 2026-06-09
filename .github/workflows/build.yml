@@ -1,4 +1,4 @@
-name: build
+name: ci
 on:
   release: {types: [published]}
   push:
@@ -8,128 +8,76 @@ on:
     branches: [master]
 jobs:
   test-cuda:
-    defaults: {run: {shell: 'bash -el {0}'}}
     runs-on: [self-hosted, python, cuda]
-    strategy:
-      matrix:
-        python-version: [3.12] # penultimate supported
+    strategy: {matrix: {cuda-version: [12]}}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with: {fetch-depth: 0, submodules: recursive}
-    - id: reqs
-      name: set requirements
-      run: |
-        envname="${GITHUB_REPOSITORY##*/}-${GITHUB_RUN_ID}.${GITHUB_RUN_NUMBER}"
-        echo "envname=$envname" >> $GITHUB_OUTPUT
-    - uses: conda-incubator/setup-miniconda@v3
+    - uses: prefix-dev/rattler-build-action@v0.2.38 # https://github.com/prefix-dev/rattler-build/pull/2484
       with:
-        python-version: ${{ matrix.python-version }}
-        activate-environment: ${{ steps.reqs.outputs.envname }}
-        run-post: false
-    - id: build
-      name: build
-      run: |
-        conda activate "${{ steps.reqs.outputs.envname }}"
-        which cmake || conda install -yq cmake
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=./install
-        cmake --build ./build_proj --target install
-        pip install ./src/Python
-    - name: test
-      run: |
-        conda activate "${{ steps.reqs.outputs.envname }}"
-        PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
-    - if: always()
-      name: Post Run conda-incubator/setup-miniconda@v3
-      shell: bash
-      run: |
-        sed -i '/${{ steps.reqs.outputs.envname }}/d' ~/.profile
-        source ~/.profile
-        conda env remove -n "${{ steps.reqs.outputs.envname }}"
+        recipe-path: recipe.yaml
+        build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }}
   test:
-    defaults: {run: {shell: 'bash -el {0}'}}
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
     strategy:
       matrix:
-        python-version: ['3.10', 3.13] # min & max supported
-        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.10', '3.x'] # min & max supported
+        os: [ubuntu, windows]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with: {fetch-depth: 0, submodules: recursive}
-    - uses: conda-incubator/setup-miniconda@v3
+    - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-        conda-remove-defaults: "true"
     - name: build
       run: |
-        cmake -S . -B ./build_proj -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=./install
-        cmake --build ./build_proj --target install
+        cmake -S . -B ./output -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_WRAPPER=ON -DBUILD_CUDA=OFF -DCMAKE_INSTALL_PREFIX=src/Python/ccpi/filters
+        cmake --build ./output --target install
         pip install ./src/Python
     - name: test
-      run: PYTHONPATH=./src/Python python -m unittest discover -v -s ./test
+      run: python -m unittest discover -v -s ./test
+      env: {PYTHONPATH: ./src/Python}
   conda-build:
-    defaults: {run: {shell: 'bash -el {0}'}}
-    runs-on: ${{ matrix.os }}-${{ matrix.os == 'windows' && '2022' || 'latest' }}
+    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
     strategy:
       matrix:
-        python-version: ['3.10', 3.11, 3.12] # parallelise conda_build_config.yaml
         os: [ubuntu, windows]
-        include:
-        - {python-version: 3.13, os: ubuntu}
+        cuda-version: [None, 12, 13]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with: {fetch-depth: 0, submodules: recursive}
-    - if: matrix.os == 'windows'
+    - if: matrix.os == 'windows' && matrix.cuda-version == 'None'
       uses: ilammy/msvc-dev-cmd@v1
-    - uses: conda-incubator/setup-miniconda@v3
+    - uses: prefix-dev/rattler-build-action@v0.2.38 # https://github.com/prefix-dev/rattler-build/pull/2484
       with:
-        python-version: ${{ matrix.python-version }}
-        mamba-version: "*"
-        channels: conda-forge
-        conda-remove-defaults: "true"
-    - name: conda build
-      run: |
-        if test ${{ matrix.python-version }} = 3.13; then
-          BUILD_DEP=conda-build
-          BUILD_CMD="conda build"
-        else
-          BUILD_DEP=boa
-          BUILD_CMD="conda mambabuild"
-        fi
-        conda install $BUILD_DEP conda-verify
-        $BUILD_CMD -c conda-forge --override-channels --output-folder dist recipe --python=${{ matrix.python-version }} --no-test
-        $BUILD_CMD -c conda-forge --override-channels --test dist/*/ccpi-regulariser-*-cpu_*
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ccpi-regulariser-py${{ matrix.python-version}}-${{ matrix.os }}
-        path: dist/*/ccpi-regulariser-*
+        recipe-path: recipe.yaml
+        build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }} ${{ matrix.cuda-version == 'None' && ' ' || '--no-test' }}
+        artifact-name: conda-${{ matrix.os }}-${{ matrix.cuda-version }}
   conda-upload:
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
-    defaults: {run: {shell: 'bash -el {0}', working-directory: dist}}
-    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: output}}
+    runs-on: ubuntu-slim
     needs: conda-build
     steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        mamba-version: "*"
-        channels: conda-forge
-        conda-remove-defaults: "true"
-    - uses: actions/download-artifact@v4
-      with: {pattern: ccpi-regulariser-*, path: dist, merge-multiple: true}
-    - run: mamba install anaconda-client
-    - name: anaconda upload -c ccpi
+    - uses: actions/checkout@v6
+    - uses: prefix-dev/rattler-build-action@v0.2.37
+      with: {setup-only: true}
+    - uses: actions/download-artifact@v8
+      with: {pattern: conda-*, path: output, merge-multiple: true}
+    - name: conda upload -c ccpi
       run: >
-        anaconda -v -t ${{ secrets.CCPI_CONDA_TOKEN }} upload --force
-        --label ${{ startsWith(github.ref, 'refs/tags') && 'main' || 'dev' }} */ccpi-regulariser-*
+        rattler-build upload anaconda */*.conda -f
+        -o ccpi -a ${{ secrets.CCPI_CONDA_TOKEN }}
+        -c ${{ startsWith(github.ref, 'refs/tags') && 'main' || 'dev' }}
     - if: startsWith(github.ref, 'refs/tags')
       name: conda upload -c tomography.stfc.ac.uk/conda
       run: |
         echo '${{ secrets.STFC_SSH_KEY }}' > ./key
         chmod 600 ./key
-        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */ccpi-regulariser-* '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
+        rsync -e 'ssh -o StrictHostKeyChecking=no -i ./key' -R */*.conda '${{ secrets.STFC_SSH_HOST }}:${{ secrets.STFC_SSH_CONDA_DIR }}'
         ssh -o StrictHostKeyChecking=no -i ./key ${{ secrets.STFC_SSH_HOST }} \
           'bash -lic "conda index --bz2 --zst --run-exports --channeldata --rss -n ccpi ${{ secrets.STFC_SSH_CONDA_DIR }}"'
   pass:
     needs: [test-cuda, test, conda-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps: [{run: echo success}]
