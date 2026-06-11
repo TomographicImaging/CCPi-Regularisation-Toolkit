@@ -6,6 +6,7 @@ context:
   python_min: "3.10"
   git_number: ${{ git.latest_tag_distance(".") | int }} # ratter-build>=0.65 --experimental
   build_number: ${{ git_number + (0 if cuda_version_major == "None" else 200) }}
+  test_gpu: ${{ env.get("TESTS_FORCE_GPU", default="") | bool }}
 
 package:
   name: ${{ project.name }}
@@ -69,11 +70,21 @@ requirements:
       - cuda-cudart  # due to CUDA::cudart_static
 
 tests:
+  - python:
+      imports:
+        - ccpi.filters
+      pip_check: true
+      python_version:
+        - ${{ python_min }}
+        - "*"
   - files:
       source:
         - ./test/
     script:
-      - python -m unittest discover -v -s test
+      content:
+        - python -m unittest discover -v -s test
+      env:
+        TESTS_FORCE_GPU: ${{ "1" if test_gpu else "" }}
 
 about:
   license: Apache-2.0

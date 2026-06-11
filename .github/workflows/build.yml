@@ -13,6 +13,8 @@ jobs:
       with:
         recipe-path: recipe.yaml
         build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }}
+      env:
+        TESTS_FORCE_GPU: "1"
   test:
     runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
     strategy:

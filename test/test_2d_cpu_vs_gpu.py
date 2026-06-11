@@ -15,7 +15,7 @@ from ccpi.filters.regularisers import (
 )
 from ccpi.filters.utils import cilregcuda
 
-gpu_modules_available = cilregcuda is not None
+gpu_modules_available = bool(os.getenv("TESTS_FORCE_GPU", cilregcuda is not None))
 from testroutines import BinReader, rmse, printParametersToString
 
 
