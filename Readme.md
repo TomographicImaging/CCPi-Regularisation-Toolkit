@@ -2,7 +2,7 @@
 
 [![CI status](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/actions/workflows/build.yml/badge.svg)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/actions/workflows/build.yml)
 [![conda version](https://anaconda.org/ccpi/ccpi-regulariser/badges/version.svg) ![conda date](https://anaconda.org/ccpi/ccpi-regulariser/badges/latest_release_date.svg) ![conda platforms](https://anaconda.org/ccpi/ccpi-regulariser/badges/platforms.svg) ![conda downloads](https://anaconda.org/ccpi/ccpi-regulariser/badges/downloads.svg)](https://anaconda.org/ccpi/ccpi-regulariser)
-[![License](https://img.shields.io/github/license/TomographicImaging/CCPi-Regularisation-Toolkit)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/TomographicImaging/CCPi-Regularisation-Toolkit)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/blob/main/LICENSE)
 
 Iterative image reconstruction (IIR) methods frequently require regularisation to ensure convergence and make inverse problem well-posed. The CCPi-Regularisation Toolkit (CCPi-RGL) toolkit provides a set of 2D/3D regularisation strategies to guarantee a better performance of IIR methods (higher SNR and resolution). The regularisation modules for scalar and vectorial datasets are based on the [proximal operator](https://en.wikipedia.org/wiki/Proximal_operator) framework and can be used with [proximal splitting algorithms](https://en.wikipedia.org/wiki/Proximal_gradient_method), such as PDHG, Douglas-Rachford, ADMM, FISTA and [others](https://arxiv.org/abs/0912.3522). While the main target for CCPi-RGL is [tomographic image reconstruction](https://github.com/dkazanc/ToMoBAR), the toolkit can be used for image denoising problems. The core modules are written in C-OMP and CUDA languages and wrappers for Matlab and Python are provided. With [CuPy](https://docs.cupy.dev/en/stable/index.html) dependency installed for Python, one can use regularisers directly without the need for explicit compilation. We recommend this option as the simplest to start with if you've got a GPU. This software can also be used by running in parallel across multiple GPU devices on a PC or a cluster compute node.
 
@@ -83,7 +83,7 @@ Once installed please see [Demos](./demos/demo_gpu_regularisers3D_CuPy.py). Plea
 
 ### License
 
-[![License](https://img.shields.io/github/license/TomographicImaging/CCPi-Regularisation-Toolkit)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/TomographicImaging/CCPi-Regularisation-Toolkit)](https://github.com/TomographicImaging/CCPi-Regularisation-Toolkit/blob/main/LICENSE)
 
 ### Acknowledgments
 
