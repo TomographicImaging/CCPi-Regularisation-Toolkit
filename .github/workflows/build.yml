@@ -56,8 +56,6 @@ jobs:
         path: ${{ env.CCACHE_DIR }}
         key: ccache-${{ runner.os }}-cu${{ matrix.cuda-version }}-${{ hashFiles('conda/recipe.yaml', 'conda/variants.yaml') }}
         restore-keys: ccache-${{ runner.os }}-cu${{ matrix.cuda-version }}-
-    - if: matrix.os == 'windows' && matrix.cuda-version == 'None'
-      uses: ilammy/msvc-dev-cmd@v1
     - name: config
       id: config
       run: |

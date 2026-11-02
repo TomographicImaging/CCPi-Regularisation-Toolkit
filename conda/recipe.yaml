@@ -38,6 +38,8 @@ build:
    # TODO: use scikit-build-core & setuptools_scm instead
    - if: win
      then:
+     # fix conda-forge::cuda-cccl win-64 cmake config headers
+     - powershell -NoProfile -File "%RECIPE_DIR%\win-cccl-fix.ps1"
      - cmake -S . %CMAKE_ARGS% -DCMAKE_INSTALL_PREFIX=%SRC_DIR%\src\Python\ccpi\filters\ %CMAKE_EXTRA_ARGS%
      - cmake --build . --target install --config RelWithDebInfo
      - pip install -vv %SRC_DIR%\src\Python --prefix=%PREFIX%
