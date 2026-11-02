@@ -7,24 +7,25 @@ jobs:
     runs-on: [self-hosted, python, cuda]
     strategy: {matrix: {cuda-version: [12]}}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with: {fetch-depth: 0, submodules: recursive}
-    - uses: prefix-dev/rattler-build-action@v0.2.38 # https://github.com/prefix-dev/rattler-build/pull/2484
+    - uses: prefix-dev/rattler-build-action@v0.2.39
       with:
-        recipe-path: recipe.yaml
+        recipe-path: conda/recipe.yaml
+        rattler-build-version: v0.80.0
         build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }}
       env:
         TESTS_FORCE_GPU: "1"
   test:
-    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
         python-version: ['3.10', '3.x'] # min & max supported
         os: [ubuntu, windows]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with: {fetch-depth: 0, submodules: recursive}
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: build
@@ -36,29 +37,77 @@ jobs:
       run: python -m unittest discover -v -s ./test
       env: {PYTHONPATH: ./src/Python}
   conda-build:
-    runs-on: ${{ matrix.os }}-${{ matrix.os == 'ubuntu' && '22.04' || 'latest' }}
+    runs-on: ${{ matrix.os }}-latest
+    defaults: {run: {shell: 'bash -el {0}'}}
     strategy:
       matrix:
         os: [ubuntu, windows]
         cuda-version: [None, 12, 13]
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 100M
+      CHANNELS: -c conda-forge -c ccpi
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with: {fetch-depth: 0, submodules: recursive}
+    - name: Cache ccache
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-${{ runner.os }}-cu${{ matrix.cuda-version }}-${{ hashFiles('conda/recipe.yaml', 'conda/variants.yaml') }}
+        restore-keys: ccache-${{ runner.os }}-cu${{ matrix.cuda-version }}-
     - if: matrix.os == 'windows' && matrix.cuda-version == 'None'
       uses: ilammy/msvc-dev-cmd@v1
-    - uses: prefix-dev/rattler-build-action@v0.2.38 # https://github.com/prefix-dev/rattler-build/pull/2484
+    - name: config
+      id: config
+      run: |
+        # avoid "hardlink different from source"
+        git config --global core.commitGraph false
+        case ${{ matrix.os }} in
+          windows)
+            echo target=win-64 >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo target=linux-64 >> $GITHUB_OUTPUT
+            ;;
+        esac
+    - uses: prefix-dev/rattler-build-action@v0.2.39
       with:
-        recipe-path: recipe.yaml
-        build-args: --experimental --variant cuda_version_major=${{ matrix.cuda-version }} ${{ matrix.cuda-version == 'None' && ' ' || '--no-test' }}
-        artifact-name: conda-${{ matrix.os }}-${{ matrix.cuda-version }}
+        recipe-path: conda/recipe.yaml
+        rattler-build-version: v0.80.0
+        # --no-build-id: required for ccache
+        build-args: >
+          --experimental --target-platform ${{ steps.config.outputs.target }}
+          -c conda-forge -c ccpi
+          --test skip --variant cuda_version_major=${{ matrix.cuda-version }}
+          --no-build-id
+        artifact-name: conda-${{ steps.config.outputs.target }}-${{ matrix.cuda-version }}
+    - if: matrix.cuda-version == 'None'
+      name: test
+      env:
+        TMPDIR: ${{ github.workspace }}/.tmp-rattler
+      run: |
+        mkdir -p "$TMPDIR"
+        for pkg in output/*/*.conda; do
+          echo "::group::$(basename $pkg)"
+          rattler-build test -p "$pkg" -c ./output $CHANNELS
+          echo "::endgroup::"
+        done
+    - if: failure()
+      name: Upload debug build logs
+      uses: actions/upload-artifact@v7
+      with:
+        name: conda-build-logs-cu${{ matrix.cuda-version }}-${{ matrix.os }}
+        path: output/bld
+        retention-days: 7
   conda-upload:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags')
     defaults: {run: {working-directory: output}}
     runs-on: ubuntu-slim
     needs: conda-build
     steps:
-    - uses: actions/checkout@v6
-    - uses: prefix-dev/rattler-build-action@v0.2.37
+    - uses: actions/checkout@v7
+    - uses: prefix-dev/rattler-build-action@v0.2.39
       with: {setup-only: true}
     - uses: actions/download-artifact@v8
       with: {pattern: conda-*, path: output, merge-multiple: true}

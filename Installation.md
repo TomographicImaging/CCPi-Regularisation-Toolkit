@@ -46,7 +46,7 @@ Python binaries are distributed via the [`ccpi`](https://anaconda.org/ccpi/ccpi-
 #### Python (rattler-build)
 
 ```sh
-rattler-build build --experimental
+rattler-build build -r conda --experimental
 conda install ccpi-regulariser=*=cuda* -c output -c conda-forge
 cd demos/
 python demo_cpu_regularisers.py # to run CPU demo
