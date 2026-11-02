@@ -82,6 +82,22 @@ jobs:
           --test skip --variant cuda_version_major=${{ matrix.cuda-version }}
           --no-build-id
         artifact-name: conda-${{ steps.config.outputs.target }}-${{ matrix.cuda-version }}
+    - if: startsWith(matrix.os, 'ubuntu')
+      name: check glibc support
+      env:
+        GLIBC_MAX: '2.28' # see recipe.yaml
+      run: |
+        set -euo pipefail
+        d=$(mktemp -d)
+        unzip -q output/linux-64/*.conda 'pkg-*' -d "$d"
+        tar --zstd -xf "$d"/pkg-*.tar.zst -C "$d"
+        max=$(find "$d" -name '*.so' -type f -exec objdump -T {} + | grep -oE 'GLIBC_[0-9.]+' | sort -Vu | tail -1 || true)
+        [[ -n "$max" ]] || { echo "FAIL: no GLIBC symbols found in package" >&2; exit 1; }
+        echo "expected max glibc symbol: GLIBC_${GLIBC_MAX} ; found: $max"
+        if [[ $(printf '%s\n%s\n' "$GLIBC_MAX" "${max#GLIBC_}" | sort -V | tail -1) != "$GLIBC_MAX" ]] ; then
+          echo "FAIL: $max > GLIBC_${GLIBC_MAX}" >&2
+          exit 1
+        fi
     - if: matrix.cuda-version == 'None'
       name: test
       env:
