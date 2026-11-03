@@ -1,19 +1,34 @@
 schema_version: 1
 
+# Usage:
+#   rattler-build build -r conda -c conda-forge -c ccpi --experimental
+#   [--no-build-id] [--test skip] [--variant cuda_version_major={None,12,13}] [--target-platform {linux-64,win-64}]
+#
+# Example (CPU, no tests):
+#   rattler-build build -r conda -c conda-forge -c ccpi --experimental --no-build-id --test skip --variant cuda_version_major=None
+#
+# Notes:
+# - --experimental: load_from_file & git.latest_tag_distance
+# - --no-build-id: needed for ccache (env defaults CCACHE_DIR='', CCACHE_MAXSIZE=5G)
+
 context:
-  # https://docs.conda.io/projects/conda-build/en/stable/resources/define-metadata.html#loading-data-from-other-files
-  project: ${{ load_from_file("src/Python/pyproject.toml").project }} # ratter-build --experimental
+  project: ${{ load_from_file("../src/Python/pyproject.toml").project }}
   python_min: "3.10"
-  git_number: ${{ git.latest_tag_distance(".") | int }} # ratter-build>=0.65 --experimental
+  git_number: ${{ git.latest_tag_distance("..") | int }}
   build_number: ${{ git_number + (0 if cuda_version_major == "None" else 200) }}
   test_gpu: ${{ env.get("TESTS_FORCE_GPU", default="") | bool }}
+  ccache_dir: ${{ env.get("CCACHE_DIR", default="") }}
+  ccache_maxsize: ${{ env.get("CCACHE_MAXSIZE", default="5G") }}
+  ccache_c: ${{ env.get("CMAKE_C_COMPILER_LAUNCHER", default="ccache") }}
+  ccache_cxx: ${{ env.get("CMAKE_CXX_COMPILER_LAUNCHER", default="ccache") }}
+  ccache_cuda: ${{ env.get("CMAKE_CUDA_COMPILER_LAUNCHER", default="ccache") }}
 
 package:
   name: ${{ project.name }}
   version: ${{ project.version }}
 
 source:
-  path: .
+  path: ..
 
 build:
   number: ${{ build_number }}
@@ -23,6 +38,8 @@ build:
    # TODO: use scikit-build-core & setuptools_scm instead
    - if: win
      then:
+     # fix conda-forge::cuda-cccl win-64 cmake config headers
+     - powershell -NoProfile -File "%RECIPE_DIR%\win-cccl-fix.ps1"
      - cmake -S . %CMAKE_ARGS% -DCMAKE_INSTALL_PREFIX=%SRC_DIR%\src\Python\ccpi\filters\ %CMAKE_EXTRA_ARGS%
      - cmake --build . --target install --config RelWithDebInfo
      - pip install -vv %SRC_DIR%\src\Python --prefix=%PREFIX%
@@ -31,19 +48,28 @@ build:
      - cmake --build . --target install
      - pip install -vv $SRC_DIR/src/Python --prefix=$PREFIX
    env:
-     CMAKE_EXTRA_ARGS: -DBUILD_PYTHON_WRAPPERS=ON -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_CUDA=${{ "OFF" if cuda_version_major == "None" else "ON" }}
+     CMAKE_EXTRA_ARGS: -DBUILD_PYTHON_WRAPPER=ON -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_CUDA=${{ "OFF" if cuda_version_major == "None" else "ON" }}
+     CMAKE_C_COMPILER_LAUNCHER: ${{ ccache_c }}
+     CMAKE_CXX_COMPILER_LAUNCHER: ${{ ccache_cxx }}
+     CMAKE_CUDA_COMPILER_LAUNCHER: ${{ ccache_cuda }}
+     CCACHE_DIR: ${{ ccache_dir }}
+     CCACHE_MAXSIZE: ${{ ccache_maxsize }}
   python:
     version_independent: true
 
 requirements:
   build:
+    - ccache
     - cmake
     - ninja
     - ${{ compiler('cxx') }}
+    # pin minimum supported glibc ~=2.28 (RHEL/Rocky 8+)
+    - if: linux
+      then: sysroot_linux-64 2.28.*
     - if: cuda_version_major != "None"
       then:
       - cuda-version ${{ cuda_version_major }}.*
-      - cuda-nvcc
+      - ${{ compiler('cuda') }}
   host:
     - python ${{ python_min }}.*
     - if: linux
